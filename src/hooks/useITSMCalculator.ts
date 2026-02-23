@@ -6,11 +6,13 @@ export interface ITSMState {
   qtdServidores: number;
   qtdAtivosRede: number;
   qtdBancosDados: number;
+  qtdSistemas: number;
   // Taxas de demanda
   taxaUsuario: number;
   taxaServidor: number;
   taxaRede: number;
   taxaBancoDados: number;
+  taxaSistemas: number;
   // Funil
   reducaoN0: number;
   percN1: number;
@@ -54,10 +56,12 @@ const DEFAULTS: ITSMState = {
   qtdServidores: 50,
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
+  qtdSistemas: 15,
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
   taxaBancoDados: 0.8,
+  taxaSistemas: 0.6,
   reducaoN0: 15,
   percN1: 75,
   percN2: 20,
@@ -103,7 +107,8 @@ export function useITSMCalculator() {
     const totalChamadosInfra =
       state.qtdServidores * state.taxaServidor +
       state.qtdAtivosRede * state.taxaRede +
-      state.qtdBancosDados * state.taxaBancoDados;
+      state.qtdBancosDados * state.taxaBancoDados +
+      state.qtdSistemas * state.taxaSistemas;
     const volumeTotalBruto = totalChamadosUsuarios + totalChamadosInfra;
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
