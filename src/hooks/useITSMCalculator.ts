@@ -72,7 +72,7 @@ const DEFAULTS: ITSMState = {
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
   qtdSistemas: 15,
-  qtdRotinas: 30,
+  qtdRotinas: 1,
   planoRotinas: "prata",
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
