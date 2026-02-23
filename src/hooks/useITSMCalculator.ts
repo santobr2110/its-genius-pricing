@@ -1,5 +1,13 @@
 import { useState, useMemo } from "react";
 
+export type PlanoRotinas = "ouro" | "prata" | "bronze";
+
+export const PLANO_ROTINAS_MULTIPLICADOR: Record<PlanoRotinas, number> = {
+  ouro: 1.8,
+  prata: 1.5,
+  bronze: 1.0,
+};
+
 export interface ITSMState {
   // Inventário
   qtdUsuarios: number;
@@ -8,6 +16,7 @@ export interface ITSMState {
   qtdBancosDados: number;
   qtdSistemas: number;
   qtdRotinas: number;
+  planoRotinas: PlanoRotinas;
   // Taxas de demanda
   taxaUsuario: number;
   taxaServidor: number;
@@ -64,6 +73,7 @@ const DEFAULTS: ITSMState = {
   qtdBancosDados: 10,
   qtdSistemas: 15,
   qtdRotinas: 30,
+  planoRotinas: "prata",
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
@@ -119,7 +129,8 @@ export function useITSMCalculator() {
       state.qtdBancosDados * state.taxaBancoDados +
       state.qtdSistemas * state.taxaSistemas;
     // Rotinas: volume bruto, automação e sobra vai direto para N3
-    const totalChamadosRotinas = state.qtdRotinas * state.taxaRotinas;
+    const multiplicadorRotinas = PLANO_ROTINAS_MULTIPLICADOR[state.planoRotinas];
+    const totalChamadosRotinas = state.qtdRotinas * state.taxaRotinas * multiplicadorRotinas;
     const rotinasAutomatizadas = totalChamadosRotinas * (state.reducaoRotinas / 100);
     const rotinasHumanas = totalChamadosRotinas - rotinasAutomatizadas;
 

@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { ITSMState, ITSMResults, formatNumber } from "@/hooks/useITSMCalculator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ITSMState, ITSMResults, formatNumber, PlanoRotinas, PLANO_ROTINAS_MULTIPLICADOR } from "@/hooks/useITSMCalculator";
 import { Users, Server, Network, Database, Bot, Monitor, RotateCcw } from "lucide-react";
 
 interface Props {
@@ -18,8 +19,13 @@ const inventoryItems = [
   { key: "qtdAtivosRede" as const, label: "Ativos de Rede", icon: Network, color: "text-amber-500" },
   { key: "qtdBancosDados" as const, label: "Bancos de Dados", icon: Database, color: "text-purple-500" },
   { key: "qtdSistemas" as const, label: "Sistemas", icon: Monitor, color: "text-cyan-500" },
-  { key: "qtdRotinas" as const, label: "Rotinas", icon: RotateCcw, color: "text-rose-500" },
 ] as const;
+
+const planoLabels: Record<PlanoRotinas, string> = {
+  ouro: "Ouro (×1.8)",
+  prata: "Prata (×1.5)",
+  bronze: "Bronze (×1.0)",
+};
 
 const funnelColors = {
   percN1: "bg-blue-500",
@@ -51,6 +57,32 @@ export default function ClientPanel({ state, update, updateN1N2N3, results }: Pr
                 </div>
               </div>
             ))}
+            {/* Rotinas com dropdown de plano */}
+            <div className="flex items-center gap-2 rounded-lg border p-2.5 col-span-2">
+              <RotateCcw className="h-5 w-5 shrink-0 text-rose-500" />
+              <div className="flex-1 space-y-0.5">
+                <Label className="text-[11px] text-muted-foreground leading-none">Rotinas</Label>
+                <Input
+                  type="number"
+                  value={state.qtdRotinas}
+                  onChange={(e) => update("qtdRotinas", parseInt(e.target.value) || 0)}
+                  className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
+                />
+              </div>
+              <div className="flex-1 space-y-0.5">
+                <Label className="text-[11px] text-muted-foreground leading-none">Plano</Label>
+                <Select value={state.planoRotinas} onValueChange={(v) => update("planoRotinas", v as PlanoRotinas)}>
+                  <SelectTrigger className="h-7 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["ouro", "prata", "bronze"] as PlanoRotinas[]).map((p) => (
+                      <SelectItem key={p} value={p}>{planoLabels[p]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
