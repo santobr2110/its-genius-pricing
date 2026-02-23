@@ -139,10 +139,11 @@ export function useITSMCalculator() {
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
     const volN1 = volumeAtendimentoHumano * (state.percN1 / 100);
     const volN2 = volumeAtendimentoHumano * (state.percN2 / 100);
-    const volN3 = volumeAtendimentoHumano * (state.percN3 / 100) + rotinasHumanas;
+    const volN3Base = volumeAtendimentoHumano * (state.percN3 / 100);
+    const volN3 = volN3Base + rotinasHumanas;
     const horasN1 = volN1 * state.tmaN1;
     const horasN2 = volN2 * state.tmaN2;
-    const horasN3 = volN3 * state.tmaN3;
+    const horasN3 = (volN3Base * state.tmaN3) + (rotinasHumanas * state.tmaN3 * 0.15);
     const custoN1 = horasN1 * state.valorHoraN1;
     const custoN2 = horasN2 * state.valorHoraN2;
     const custoN3 = horasN3 * state.valorHoraN3;
