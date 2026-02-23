@@ -62,15 +62,6 @@ export default function ClientPanel({ state, update, updateN1N2N3, results }: Pr
               <RotateCcw className="h-5 w-5 shrink-0 text-rose-500" />
               <div className="flex-1 space-y-0.5">
                 <Label className="text-[11px] text-muted-foreground leading-none">Rotinas</Label>
-                <Input
-                  type="number"
-                  value={state.qtdRotinas}
-                  onChange={(e) => update("qtdRotinas", parseInt(e.target.value) || 0)}
-                  className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
-                />
-              </div>
-              <div className="flex-1 space-y-0.5">
-                <Label className="text-[11px] text-muted-foreground leading-none">Plano</Label>
                 <Select value={state.planoRotinas} onValueChange={(v) => update("planoRotinas", v as PlanoRotinas)}>
                   <SelectTrigger className="h-7 text-sm">
                     <SelectValue />
