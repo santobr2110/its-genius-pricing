@@ -58,7 +58,7 @@ export default function ClientPanel({ state, update, updateN1N2N3, results }: Pr
               </div>
             ))}
             {/* Rotinas com dropdown de plano */}
-            <div className="flex items-center gap-2 rounded-lg border p-2.5 col-span-2">
+            <div className="flex items-center gap-2 rounded-lg border p-2.5">
               <RotateCcw className="h-5 w-5 shrink-0 text-rose-500" />
               <div className="flex-1 space-y-0.5">
                 <Label className="text-[11px] text-muted-foreground leading-none">Rotinas</Label>
