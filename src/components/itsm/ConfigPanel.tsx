@@ -49,6 +49,7 @@ export default function ConfigPanel({ state, update }: Props) {
               <NumInput label="Chamados/Rede" value={state.taxaRede} onChange={(v) => update("taxaRede", v)} />
               <NumInput label="Chamados/BD" value={state.taxaBancoDados} onChange={(v) => update("taxaBancoDados", v)} />
               <NumInput label="Chamados/Sistemas" value={state.taxaSistemas} onChange={(v) => update("taxaSistemas", v)} />
+              <NumInput label="Rotinas/Mês" value={state.taxaRotinas} onChange={(v) => update("taxaRotinas", v)} />
             </div>
           </AccordionContent>
         </AccordionItem>
