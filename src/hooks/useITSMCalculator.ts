@@ -7,14 +7,17 @@ export interface ITSMState {
   qtdAtivosRede: number;
   qtdBancosDados: number;
   qtdSistemas: number;
+  qtdRotinas: number;
   // Taxas de demanda
   taxaUsuario: number;
   taxaServidor: number;
   taxaRede: number;
   taxaBancoDados: number;
   taxaSistemas: number;
+  taxaRotinas: number;
   // Funil
   reducaoN0: number;
+  reducaoRotinas: number;
   percN1: number;
   percN2: number;
   percN3: number;
@@ -34,6 +37,9 @@ export interface ITSMState {
 export interface ITSMResults {
   totalChamadosUsuarios: number;
   totalChamadosInfra: number;
+  totalChamadosRotinas: number;
+  rotinasAutomatizadas: number;
+  rotinasHumanas: number;
   volumeTotalBruto: number;
   chamadosResolvidosN0: number;
   volumeAtendimentoHumano: number;
@@ -57,12 +63,15 @@ const DEFAULTS: ITSMState = {
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
   qtdSistemas: 15,
+  qtdRotinas: 30,
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
   taxaBancoDados: 0.8,
   taxaSistemas: 0.6,
+  taxaRotinas: 1.0,
   reducaoN0: 15,
+  reducaoRotinas: 20,
   percN1: 75,
   percN2: 20,
   percN3: 5,
@@ -109,12 +118,17 @@ export function useITSMCalculator() {
       state.qtdAtivosRede * state.taxaRede +
       state.qtdBancosDados * state.taxaBancoDados +
       state.qtdSistemas * state.taxaSistemas;
+    // Rotinas: volume bruto, automação e sobra vai direto para N3
+    const totalChamadosRotinas = state.qtdRotinas * state.taxaRotinas;
+    const rotinasAutomatizadas = totalChamadosRotinas * (state.reducaoRotinas / 100);
+    const rotinasHumanas = totalChamadosRotinas - rotinasAutomatizadas;
+
     const volumeTotalBruto = totalChamadosUsuarios + totalChamadosInfra;
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
     const volN1 = volumeAtendimentoHumano * (state.percN1 / 100);
     const volN2 = volumeAtendimentoHumano * (state.percN2 / 100);
-    const volN3 = volumeAtendimentoHumano * (state.percN3 / 100);
+    const volN3 = volumeAtendimentoHumano * (state.percN3 / 100) + rotinasHumanas;
     const horasN1 = volN1 * state.tmaN1;
     const horasN2 = volN2 * state.tmaN2;
     const horasN3 = volN3 * state.tmaN3;
@@ -130,6 +144,9 @@ export function useITSMCalculator() {
     return {
       totalChamadosUsuarios,
       totalChamadosInfra,
+      totalChamadosRotinas,
+      rotinasAutomatizadas,
+      rotinasHumanas,
       volumeTotalBruto,
       chamadosResolvidosN0,
       volumeAtendimentoHumano,

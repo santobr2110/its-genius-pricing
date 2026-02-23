@@ -100,6 +100,11 @@ export default function ResultsPanel({ state, results }: Props) {
             <ReportRow label="→ N2" value={formatNumber(results.volN2)} sub />
             <ReportRow label="→ N3" value={formatNumber(results.volN3)} sub />
           </div>
+          <div className="border-t pt-2 mt-2 space-y-1">
+            <ReportRow label="Rotinas Geradas" value={formatNumber(results.totalChamadosRotinas)} />
+            <ReportRow label="Rotinas Automatizadas" value={formatNumber(results.rotinasAutomatizadas)} highlight />
+            <ReportRow label="Rotinas → N3" value={formatNumber(results.rotinasHumanas)} sub />
+          </div>
         </CardContent>
       </Card>
     </div>
