@@ -87,7 +87,7 @@ export default function ClientPanel({ state, update, updateN1N2N3, results }: Pr
             </div>
             <Slider value={[state.reducaoRotinas]} onValueChange={([v]) => update("reducaoRotinas", v)} min={0} max={80} step={1} />
             <p className="text-[11px] text-muted-foreground">
-              {formatNumber(results.rotinasAutomatizadas)} rotinas automatizadas · {formatNumber(results.rotinasHumanas)} direcionadas ao N3
+              {formatNumber(results.rotinasAutomatizadas, 1)} rotinas automatizadas · {formatNumber(results.rotinasHumanas, 1)} direcionadas ao N3
             </p>
           </div>
 
