@@ -22,9 +22,9 @@ const inventoryItems = [
 ] as const;
 
 const planoLabels: Record<PlanoRotinas, string> = {
-  ouro: "Ouro (×1.8)",
-  prata: "Prata (×1.5)",
-  bronze: "Bronze (×1.0)",
+  ouro: "Ouro",
+  prata: "Prata",
+  bronze: "Bronze",
 };
 
 const funnelColors = {
