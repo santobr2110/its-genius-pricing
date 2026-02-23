@@ -143,7 +143,7 @@ export function useITSMCalculator() {
     const volN3 = volN3Base + rotinasHumanas;
     const horasN1 = volN1 * state.tmaN1;
     const horasN2 = volN2 * state.tmaN2;
-    const horasN3 = (volN3Base * state.tmaN3) + (rotinasHumanas * state.tmaN3 * 0.15);
+    const horasN3 = (volN3Base * state.tmaN3) + (rotinasHumanas * state.tmaN3 * 0.05);
     const custoN1 = horasN1 * state.valorHoraN1;
     const custoN2 = horasN2 * state.valorHoraN2;
     const custoN3 = horasN3 * state.valorHoraN3;
