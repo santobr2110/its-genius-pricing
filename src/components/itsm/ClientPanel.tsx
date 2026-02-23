@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults, formatNumber } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, Bot } from "lucide-react";
+import { Users, Server, Network, Database, Bot, Monitor } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -17,6 +17,7 @@ const inventoryItems = [
   { key: "qtdServidores" as const, label: "Servidores", icon: Server, color: "text-emerald-500" },
   { key: "qtdAtivosRede" as const, label: "Ativos de Rede", icon: Network, color: "text-amber-500" },
   { key: "qtdBancosDados" as const, label: "Bancos de Dados", icon: Database, color: "text-purple-500" },
+  { key: "qtdSistemas" as const, label: "Sistemas", icon: Monitor, color: "text-cyan-500" },
 ] as const;
 
 const funnelColors = {
