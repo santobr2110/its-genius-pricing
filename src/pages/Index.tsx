@@ -7,7 +7,7 @@ import { Calculator } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
-  const { state, update, updateN1N2, results } = useITSMCalculator();
+  const { state, update, results } = useITSMCalculator();
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -38,7 +38,7 @@ const Index = () => {
 
           {/* Center Panel */}
           <section className="order-1 lg:order-2">
-            <ClientPanel state={state} update={update} updateN1N2={updateN1N2} results={results} />
+            <ClientPanel state={state} update={update} results={results} />
           </section>
 
           {/* Right Panel */}

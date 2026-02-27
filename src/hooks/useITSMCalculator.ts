@@ -7,7 +7,7 @@ export interface ITSMState {
   qtdAtivosRede: number;
   qtdBancosDados: number;
   qtdSistemas: number;
-  horasN3Mensais: number; // horas/mês consumidas pelo N3 (informado no inventário)
+  horasN3Mensais: number;
   // Taxas de demanda
   taxaUsuario: number;
   taxaServidor: number;
@@ -16,18 +16,16 @@ export interface ITSMState {
   taxaSistemas: number;
   // Funil
   reducaoN0: number;
-  percN1: number;
-  percN2: number;
   // Métricas e Parâmetros de Precificação - N1
-  custoPessoaN1: number;      // custo mensal por pessoa (posição = 4 pessoas 12x36)
-  percGestaoN1: number;       // % gestão sobre custo da posição
-  capacidadeChamadosN1: number; // chamados/mês que uma posição atende
+  custoPessoaN1: number;
+  percGestaoN1: number;
+  capacidadeChamadosN1: number;
   // Métricas e Parâmetros de Precificação - N2
-  custoAnalistaN2: number;    // custo mensal do analista (regime 8x5)
-  percGestaoN2: number;       // % gestão sobre custo do analista
-  capacidadeServidoresN2: number; // servidores atendidos por analista
+  custoAnalistaN2: number;
+  percGestaoN2: number;
+  capacidadeServidoresN2: number;
   // Métricas e Parâmetros de Precificação - N3
-  valorHoraN3: number;        // custo hora N3
+  valorHoraN3: number;
   // Custos fixos
   custoFixoFerramentas: number;
   // Financeiro
@@ -41,17 +39,15 @@ export interface ITSMResults {
   volumeTotalBruto: number;
   chamadosResolvidosN0: number;
   volumeAtendimentoHumano: number;
-  volN1: number;
-  volN2: number;
-  // N1 - custo por chamado
+  // N1
   custoPosicaoN1: number;
   custoPorChamadoN1: number;
   custoN1: number;
-  // N2 - custo por servidor
+  // N2
   custoTotalAnalistaN2: number;
   custoPorServidorN2: number;
   custoN2: number;
-  // N3 - horas
+  // N3
   horasN3: number;
   custoN3: number;
   custoTotalOperacao: number;
@@ -71,17 +67,12 @@ const DEFAULTS: ITSMState = {
   taxaBancoDados: 0.8,
   taxaSistemas: 0.6,
   reducaoN0: 15,
-  percN1: 75,
-  percN2: 25,
-  // N1: 4 pessoas a R$3.500/pessoa = R$14.000/posição
   custoPessoaN1: 3500,
   percGestaoN1: 20,
   capacidadeChamadosN1: 1500,
-  // N2: 1 analista a R$8.000
   custoAnalistaN2: 8000,
   percGestaoN2: 20,
   capacidadeServidoresN2: 30,
-  // N3
   valorHoraN3: 120,
   custoFixoFerramentas: 1500,
   margemLucro: 30,
@@ -95,16 +86,6 @@ export function useITSMCalculator() {
     setState((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateN1N2 = (changed: "percN1" | "percN2", value: number) => {
-    const clamped = Math.min(100, Math.max(0, value));
-    const other = changed === "percN1" ? "percN2" : "percN1";
-    setState((prev) => ({
-      ...prev,
-      [changed]: clamped,
-      [other]: 100 - clamped,
-    }));
-  };
-
   const results: ITSMResults = useMemo(() => {
     const totalChamadosUsuarios = state.qtdUsuarios * state.taxaUsuario;
     const totalChamadosInfra =
@@ -112,23 +93,19 @@ export function useITSMCalculator() {
       state.qtdAtivosRede * state.taxaRede +
       state.qtdBancosDados * state.taxaBancoDados +
       state.qtdSistemas * state.taxaSistemas;
-    
+
     const volumeTotalBruto = totalChamadosUsuarios + totalChamadosInfra;
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
-    const volN1 = volumeAtendimentoHumano * (state.percN1 / 100);
-    const volN2 = volumeAtendimentoHumano * (state.percN2 / 100);
 
     // === N1: Custo por Chamado ===
-    // Posição = 4 pessoas × custo/pessoa × (1 + %gestão)
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
     const custoPorChamadoN1 = state.capacidadeChamadosN1 > 0
       ? custoPosicaoN1 / state.capacidadeChamadosN1
       : 0;
-    const custoN1 = custoPorChamadoN1 * volN1;
+    const custoN1 = custoPorChamadoN1 * volumeAtendimentoHumano;
 
     // === N2: Custo por Servidor ===
-    // Analista × (1 + %gestão) / capacidade servidores × servidores do cliente
     const custoTotalAnalistaN2 = state.custoAnalistaN2 * (1 + state.percGestaoN2 / 100);
     const custoPorServidorN2 = state.capacidadeServidoresN2 > 0
       ? custoTotalAnalistaN2 / state.capacidadeServidoresN2
@@ -150,7 +127,6 @@ export function useITSMCalculator() {
       volumeTotalBruto,
       chamadosResolvidosN0,
       volumeAtendimentoHumano,
-      volN1, volN2,
       custoPosicaoN1,
       custoPorChamadoN1,
       custoN1,
@@ -164,7 +140,7 @@ export function useITSMCalculator() {
     };
   }, [state]);
 
-  return { state, update, updateN1N2, results };
+  return { state, update, results };
 }
 
 export function formatBRL(value: number): string {

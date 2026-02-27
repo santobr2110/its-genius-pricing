@@ -2,14 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ITSMState, ITSMResults, formatNumber } from "@/hooks/useITSMCalculator";
 import { Users, Server, Network, Database, Monitor, Bot, Clock } from "lucide-react";
 
 interface Props {
   state: ITSMState;
   update: <K extends keyof ITSMState>(key: K, value: ITSMState[K]) => void;
-  updateN1N2: (key: "percN1" | "percN2", value: number) => void;
   results: ITSMResults;
 }
 
@@ -21,12 +19,7 @@ const inventoryItems = [
   { key: "qtdSistemas" as const, label: "Sistemas", icon: Monitor, color: "text-cyan-500" },
 ] as const;
 
-const funnelColors = {
-  percN1: "bg-blue-500",
-  percN2: "bg-amber-500",
-};
-
-export default function ClientPanel({ state, update, updateN1N2, results }: Props) {
+export default function ClientPanel({ state, update, results }: Props) {
   return (
     <div className="space-y-4">
       {/* Inventário */}
@@ -84,41 +77,8 @@ export default function ClientPanel({ state, update, updateN1N2, results }: Prop
             </div>
             <Slider value={[state.reducaoN0]} onValueChange={([v]) => update("reducaoN0", v)} min={0} max={60} step={1} />
             <p className="text-[11px] text-muted-foreground">
-              {formatNumber(results.chamadosResolvidosN0)} chamados evitados por automação
+              {formatNumber(results.chamadosResolvidosN0)} chamados evitados · {formatNumber(results.volumeAtendimentoHumano)} para atendimento humano
             </p>
-          </div>
-
-
-          {/* N1, N2 */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-semibold">Distribuição Humana (N1 + N2 = 100%)</Label>
-              <span className="text-xs font-bold text-foreground">{formatNumber(results.volumeAtendimentoHumano)} chamados</span>
-            </div>
-            {(["percN1", "percN2"] as const).map((key) => {
-              const level = key.replace("perc", "");
-              const vol = key === "percN1" ? results.volN1 : results.volN2;
-              return (
-                <div key={key} className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">{level}</span>
-                    <span className="text-xs font-semibold">
-                      {state[key]}% · {formatNumber(vol)} chamados
-                    </span>
-                  </div>
-                  <Slider value={[state[key]]} onValueChange={([v]) => updateN1N2(key, v)} min={0} max={100} step={1} />
-                </div>
-              );
-            })}
-            {/* Visual bar */}
-            <div className="flex h-3 overflow-hidden rounded-full">
-              <div className={`${funnelColors.percN1} transition-all`} style={{ width: `${state.percN1}%` }} />
-              <div className={`${funnelColors.percN2} transition-all`} style={{ width: `${state.percN2}%` }} />
-            </div>
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-blue-500" />N1</span>
-              <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-amber-500" />N2</span>
-            </div>
           </div>
         </CardContent>
       </Card>

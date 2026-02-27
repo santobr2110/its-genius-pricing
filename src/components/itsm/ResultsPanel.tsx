@@ -96,7 +96,7 @@ export default function ResultsPanel({ state, results }: Props) {
           <ReportRow label="Evitados (N0)" value={formatNumber(results.chamadosResolvidosN0)} highlight />
           <ReportRow label="Atendimento Humano" value={formatNumber(results.volumeAtendimentoHumano)} />
           <div className="border-t pt-2 mt-2 space-y-1">
-            <ReportRow label="→ N1 (chamados)" value={formatNumber(results.volN1)} sub />
+            <ReportRow label="→ N1 (chamados)" value={formatNumber(results.volumeAtendimentoHumano)} sub />
             <ReportRow label="→ N1 custo/chamado" value={formatBRL(results.custoPorChamadoN1)} sub />
             <ReportRow label="→ N2 (servidores)" value={formatNumber(state.qtdServidores)} sub />
             <ReportRow label="→ N2 custo/servidor" value={formatBRL(results.custoPorServidorN2)} sub />
