@@ -18,7 +18,6 @@ export interface ITSMState {
   reducaoN0: number;
   percN1: number;
   percN2: number;
-  percN3: number;
   // Métricas e Parâmetros de Precificação - N1
   custoPessoaN1: number;      // custo mensal por pessoa (posição = 4 pessoas 12x36)
   percGestaoN1: number;       // % gestão sobre custo da posição
@@ -44,7 +43,6 @@ export interface ITSMResults {
   volumeAtendimentoHumano: number;
   volN1: number;
   volN2: number;
-  volN3: number;
   // N1 - custo por chamado
   custoPosicaoN1: number;
   custoPorChamadoN1: number;
@@ -74,8 +72,7 @@ const DEFAULTS: ITSMState = {
   taxaSistemas: 0.6,
   reducaoN0: 15,
   percN1: 75,
-  percN2: 20,
-  percN3: 5,
+  percN2: 25,
   // N1: 4 pessoas a R$3.500/pessoa = R$14.000/posição
   custoPessoaN1: 3500,
   percGestaoN1: 20,
@@ -98,22 +95,14 @@ export function useITSMCalculator() {
     setState((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateN1N2N3 = (changed: "percN1" | "percN2" | "percN3", value: number) => {
-    setState((prev) => {
-      const others = (["percN1", "percN2", "percN3"] as const).filter((k) => k !== changed);
-      const remaining = 100 - value;
-      const sumOthers = prev[others[0]] + prev[others[1]];
-      if (sumOthers === 0) {
-        return { ...prev, [changed]: value, [others[0]]: remaining / 2, [others[1]]: remaining / 2 };
-      }
-      const ratio0 = prev[others[0]] / sumOthers;
-      return {
-        ...prev,
-        [changed]: value,
-        [others[0]]: Math.round(remaining * ratio0),
-        [others[1]]: remaining - Math.round(remaining * ratio0),
-      };
-    });
+  const updateN1N2 = (changed: "percN1" | "percN2", value: number) => {
+    const clamped = Math.min(100, Math.max(0, value));
+    const other = changed === "percN1" ? "percN2" : "percN1";
+    setState((prev) => ({
+      ...prev,
+      [changed]: clamped,
+      [other]: 100 - clamped,
+    }));
   };
 
   const results: ITSMResults = useMemo(() => {
@@ -129,7 +118,6 @@ export function useITSMCalculator() {
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
     const volN1 = volumeAtendimentoHumano * (state.percN1 / 100);
     const volN2 = volumeAtendimentoHumano * (state.percN2 / 100);
-    const volN3 = volumeAtendimentoHumano * (state.percN3 / 100);
 
     // === N1: Custo por Chamado ===
     // Posição = 4 pessoas × custo/pessoa × (1 + %gestão)
@@ -162,7 +150,7 @@ export function useITSMCalculator() {
       volumeTotalBruto,
       chamadosResolvidosN0,
       volumeAtendimentoHumano,
-      volN1, volN2, volN3,
+      volN1, volN2,
       custoPosicaoN1,
       custoPorChamadoN1,
       custoN1,
@@ -176,7 +164,7 @@ export function useITSMCalculator() {
     };
   }, [state]);
 
-  return { state, update, updateN1N2N3, results };
+  return { state, update, updateN1N2, results };
 }
 
 export function formatBRL(value: number): string {
