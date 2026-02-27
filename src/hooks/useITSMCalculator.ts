@@ -26,6 +26,7 @@ export interface ITSMState {
   capacidadeServidoresN2: number;
   // Métricas e Parâmetros de Precificação - N3
   valorHoraN3: number;
+  percAtendimentoN3: number; // % das horas N3 dedicadas a atendimento (restante = prevenção)
   // Custos fixos
   custoFixoFerramentas: number;
   // Financeiro
@@ -49,7 +50,15 @@ export interface ITSMResults {
   custoN2: number;
   // N3
   horasN3: number;
+  horasAtendimentoN3: number;
+  horasPrevencao: number;
   custoN3: number;
+  // Chamados por categoria
+  chamadosUsuarios: number;
+  chamadosServidores: number;
+  chamadosRede: number;
+  chamadosBancoDados: number;
+  chamadosSistemas: number;
   custoTotalOperacao: number;
   precoVendaMensal: number;
 }
@@ -74,6 +83,7 @@ const DEFAULTS: ITSMState = {
   percGestaoN2: 20,
   capacidadeServidoresN2: 30,
   valorHoraN3: 120,
+  percAtendimentoN3: 30,
   custoFixoFerramentas: 1500,
   margemLucro: 30,
   impostosTaxas: 15,
@@ -87,12 +97,15 @@ export function useITSMCalculator() {
   };
 
   const results: ITSMResults = useMemo(() => {
-    const totalChamadosUsuarios = state.qtdUsuarios * state.taxaUsuario;
-    const totalChamadosInfra =
-      state.qtdServidores * state.taxaServidor +
-      state.qtdAtivosRede * state.taxaRede +
-      state.qtdBancosDados * state.taxaBancoDados +
-      state.qtdSistemas * state.taxaSistemas;
+    // Chamados por categoria
+    const chamadosUsuarios = state.qtdUsuarios * state.taxaUsuario;
+    const chamadosServidores = state.qtdServidores * state.taxaServidor;
+    const chamadosRede = state.qtdAtivosRede * state.taxaRede;
+    const chamadosBancoDados = state.qtdBancosDados * state.taxaBancoDados;
+    const chamadosSistemas = state.qtdSistemas * state.taxaSistemas;
+
+    const totalChamadosUsuarios = chamadosUsuarios;
+    const totalChamadosInfra = chamadosServidores + chamadosRede + chamadosBancoDados + chamadosSistemas;
 
     const volumeTotalBruto = totalChamadosUsuarios + totalChamadosInfra;
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
@@ -112,8 +125,10 @@ export function useITSMCalculator() {
       : 0;
     const custoN2 = custoPorServidorN2 * state.qtdServidores;
 
-    // === N3: Horas informadas ===
+    // === N3: Horas (manuais) com split atendimento/prevenção ===
     const horasN3 = state.horasN3Mensais;
+    const horasAtendimentoN3 = horasN3 * (state.percAtendimentoN3 / 100);
+    const horasPrevencao = horasN3 - horasAtendimentoN3;
     const custoN3 = horasN3 * state.valorHoraN3;
 
     const custoTotalOperacao = custoN1 + custoN2 + custoN3 + state.custoFixoFerramentas;
@@ -134,7 +149,14 @@ export function useITSMCalculator() {
       custoPorServidorN2,
       custoN2,
       horasN3,
+      horasAtendimentoN3,
+      horasPrevencao,
       custoN3,
+      chamadosUsuarios,
+      chamadosServidores,
+      chamadosRede,
+      chamadosBancoDados,
+      chamadosSistemas,
       custoTotalOperacao,
       precoVendaMensal,
     };

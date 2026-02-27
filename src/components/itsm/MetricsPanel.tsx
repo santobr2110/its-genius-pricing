@@ -161,6 +161,16 @@ export default function MetricsPanel({ state, results, update }: Props) {
             step={5}
             tooltip="Custo hora do especialista N3"
           />
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <Label className="text-xs text-muted-foreground">% Atendimento N3</Label>
+              <span className="text-xs font-semibold text-foreground">{state.percAtendimentoN3}%</span>
+            </div>
+            <Slider value={[state.percAtendimentoN3]} onValueChange={([v]) => update("percAtendimentoN3", v)} min={0} max={100} step={1} />
+            <p className="text-[10px] text-muted-foreground">
+              {formatNumber(results.horasAtendimentoN3, 1)}h atend. · {formatNumber(results.horasPrevencao, 1)}h prevenção
+            </p>
+          </div>
           <MetricResult label="Horas/Mês (inventário)" value={`${formatNumber(state.horasN3Mensais)}h`} />
           <MetricResult label="Custo N3 Total" value={formatBRL(results.custoN3)} />
         </CardContent>
