@@ -17,6 +17,7 @@ export interface ITSMState {
   qtdSistemas: number;
   qtdRotinas: number;
   planoRotinas: PlanoRotinas;
+  horasN3Mensais: number; // horas/mês consumidas pelo N3 (informado no inventário)
   // Taxas de demanda
   taxaUsuario: number;
   taxaServidor: number;
@@ -30,13 +31,17 @@ export interface ITSMState {
   percN1: number;
   percN2: number;
   percN3: number;
-  // Custos
-  tmaN1: number;
-  tmaN2: number;
-  tmaN3: number;
-  valorHoraN1: number;
-  valorHoraN2: number;
-  valorHoraN3: number;
+  // Métricas e Parâmetros de Precificação - N1
+  custoPessoaN1: number;      // custo mensal por pessoa (posição = 4 pessoas 12x36)
+  percGestaoN1: number;       // % gestão sobre custo da posição
+  capacidadeChamadosN1: number; // chamados/mês que uma posição atende
+  // Métricas e Parâmetros de Precificação - N2
+  custoAnalistaN2: number;    // custo mensal do analista (regime 8x5)
+  percGestaoN2: number;       // % gestão sobre custo do analista
+  capacidadeServidoresN2: number; // servidores atendidos por analista
+  // Métricas e Parâmetros de Precificação - N3
+  valorHoraN3: number;        // custo hora N3
+  // Custos fixos
   custoFixoFerramentas: number;
   // Financeiro
   margemLucro: number;
@@ -55,14 +60,18 @@ export interface ITSMResults {
   volN1: number;
   volN2: number;
   volN3: number;
-  horasN1: number;
-  horasN2: number;
-  horasN3: number;
+  // N1 - custo por chamado
+  custoPosicaoN1: number;
+  custoPorChamadoN1: number;
   custoN1: number;
+  // N2 - custo por servidor
+  custoTotalAnalistaN2: number;
+  custoPorServidorN2: number;
   custoN2: number;
+  // N3 - horas
+  horasN3: number;
   custoN3: number;
   custoTotalOperacao: number;
-  totalHoras: number;
   precoVendaMensal: number;
 }
 
@@ -74,6 +83,7 @@ const DEFAULTS: ITSMState = {
   qtdSistemas: 15,
   qtdRotinas: 1,
   planoRotinas: "prata",
+  horasN3Mensais: 80,
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
@@ -85,11 +95,15 @@ const DEFAULTS: ITSMState = {
   percN1: 75,
   percN2: 20,
   percN3: 5,
-  tmaN1: 0.5,
-  tmaN2: 2.0,
-  tmaN3: 6.0,
-  valorHoraN1: 35,
-  valorHoraN2: 65,
+  // N1: 4 pessoas a R$3.500/pessoa = R$14.000/posição
+  custoPessoaN1: 3500,
+  percGestaoN1: 20,
+  capacidadeChamadosN1: 1500,
+  // N2: 1 analista a R$8.000
+  custoAnalistaN2: 8000,
+  percGestaoN2: 20,
+  capacidadeServidoresN2: 30,
+  // N3
   valorHoraN3: 120,
   custoFixoFerramentas: 1500,
   margemLucro: 30,
@@ -128,7 +142,7 @@ export function useITSMCalculator() {
       state.qtdAtivosRede * state.taxaRede +
       state.qtdBancosDados * state.taxaBancoDados +
       state.qtdSistemas * state.taxaSistemas;
-    // Rotinas: volume bruto, automação e sobra vai direto para N3
+    
     const multiplicadorRotinas = PLANO_ROTINAS_MULTIPLICADOR[state.planoRotinas];
     const totalChamadosRotinas = state.qtdRotinas * state.taxaRotinas * multiplicadorRotinas;
     const rotinasAutomatizadas = totalChamadosRotinas * (state.reducaoRotinas / 100);
@@ -141,14 +155,28 @@ export function useITSMCalculator() {
     const volN2 = volumeAtendimentoHumano * (state.percN2 / 100);
     const volN3Base = volumeAtendimentoHumano * (state.percN3 / 100);
     const volN3 = volN3Base + rotinasHumanas;
-    const horasN1 = volN1 * state.tmaN1;
-    const horasN2 = volN2 * state.tmaN2;
-    const horasN3 = (volN3Base * state.tmaN3) + (rotinasHumanas * state.tmaN3 * 0.15);
-    const custoN1 = horasN1 * state.valorHoraN1;
-    const custoN2 = horasN2 * state.valorHoraN2;
+
+    // === N1: Custo por Chamado ===
+    // Posição = 4 pessoas × custo/pessoa × (1 + %gestão)
+    const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
+    const custoPorChamadoN1 = state.capacidadeChamadosN1 > 0
+      ? custoPosicaoN1 / state.capacidadeChamadosN1
+      : 0;
+    const custoN1 = custoPorChamadoN1 * volN1;
+
+    // === N2: Custo por Servidor ===
+    // Analista × (1 + %gestão) / capacidade servidores × servidores do cliente
+    const custoTotalAnalistaN2 = state.custoAnalistaN2 * (1 + state.percGestaoN2 / 100);
+    const custoPorServidorN2 = state.capacidadeServidoresN2 > 0
+      ? custoTotalAnalistaN2 / state.capacidadeServidoresN2
+      : 0;
+    const custoN2 = custoPorServidorN2 * state.qtdServidores;
+
+    // === N3: Horas informadas ===
+    const horasN3 = state.horasN3Mensais;
     const custoN3 = horasN3 * state.valorHoraN3;
+
     const custoTotalOperacao = custoN1 + custoN2 + custoN3 + state.custoFixoFerramentas;
-    const totalHoras = horasN1 + horasN2 + horasN3;
     const percentualCustosVenda = state.margemLucro + state.impostosTaxas;
     const fatorDivisor = (100 - percentualCustosVenda) / 100;
     const precoVendaMensal = fatorDivisor > 0 ? custoTotalOperacao / fatorDivisor : 0;
@@ -163,10 +191,15 @@ export function useITSMCalculator() {
       chamadosResolvidosN0,
       volumeAtendimentoHumano,
       volN1, volN2, volN3,
-      horasN1, horasN2, horasN3,
-      custoN1, custoN2, custoN3,
+      custoPosicaoN1,
+      custoPorChamadoN1,
+      custoN1,
+      custoTotalAnalistaN2,
+      custoPorServidorN2,
+      custoN2,
+      horasN3,
+      custoN3,
       custoTotalOperacao,
-      totalHoras,
       precoVendaMensal,
     };
   }, [state]);

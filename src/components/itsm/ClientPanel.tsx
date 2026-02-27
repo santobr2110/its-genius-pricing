@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ITSMState, ITSMResults, formatNumber, PlanoRotinas, PLANO_ROTINAS_MULTIPLICADOR } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, Bot, Monitor, RotateCcw } from "lucide-react";
+import { Users, Server, Network, Database, Bot, Monitor, RotateCcw, Clock } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -72,6 +72,19 @@ export default function ClientPanel({ state, update, updateN1N2N3, results }: Pr
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            {/* Horas N3 - campo informado */}
+            <div className="flex items-center gap-2 rounded-lg border p-2.5 border-dashed border-red-300 bg-red-50/30">
+              <Clock className="h-5 w-5 shrink-0 text-red-500" />
+              <div className="flex-1 space-y-0.5">
+                <Label className="text-[11px] text-muted-foreground leading-none">Horas N3/Mês</Label>
+                <Input
+                  type="number"
+                  value={state.horasN3Mensais}
+                  onChange={(e) => update("horasN3Mensais", parseInt(e.target.value) || 0)}
+                  className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
+                />
               </div>
             </div>
           </div>
