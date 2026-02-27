@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ITSMState, ITSMResults, formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis } from "recharts";
 import { DollarSign, Clock, TrendingUp, FileText } from "lucide-react";
 
 interface Props {
@@ -43,8 +43,8 @@ export default function ResultsPanel({ state, results }: Props) {
         />
         <HighlightCard
           icon={Clock}
-          label="Total Horas/Mês"
-          value={`${formatNumber(results.totalHoras, 1)}h`}
+          label="Horas N3/Mês"
+          value={`${formatNumber(results.horasN3)}h`}
           accent="text-amber-600 bg-amber-50"
         />
       </div>
@@ -96,9 +96,17 @@ export default function ResultsPanel({ state, results }: Props) {
           <ReportRow label="Evitados (N0)" value={formatNumber(results.chamadosResolvidosN0)} highlight />
           <ReportRow label="Atendimento Humano" value={formatNumber(results.volumeAtendimentoHumano)} />
           <div className="border-t pt-2 mt-2 space-y-1">
-            <ReportRow label="→ N1" value={formatNumber(results.volN1)} sub />
-            <ReportRow label="→ N2" value={formatNumber(results.volN2)} sub />
-            <ReportRow label="→ N3" value={formatNumber(results.volN3)} sub />
+            <ReportRow label="→ N1 (chamados)" value={formatNumber(results.volN1)} sub />
+            <ReportRow label="→ N1 custo/chamado" value={formatBRL(results.custoPorChamadoN1)} sub />
+            <ReportRow label="→ N2 (servidores)" value={formatNumber(state.qtdServidores)} sub />
+            <ReportRow label="→ N2 custo/servidor" value={formatBRL(results.custoPorServidorN2)} sub />
+            <ReportRow label="→ N3 horas" value={`${formatNumber(results.horasN3)}h`} sub />
+          </div>
+          <div className="border-t pt-2 mt-2 space-y-1">
+            <ReportRow label="Custo N1" value={formatBRL(results.custoN1)} />
+            <ReportRow label="Custo N2" value={formatBRL(results.custoN2)} />
+            <ReportRow label="Custo N3" value={formatBRL(results.custoN3)} />
+            <ReportRow label="Ferramentas" value={formatBRL(state.custoFixoFerramentas)} />
           </div>
           <div className="border-t pt-2 mt-2 space-y-1">
             <ReportRow label="Rotinas Geradas" value={formatNumber(results.totalChamadosRotinas)} />

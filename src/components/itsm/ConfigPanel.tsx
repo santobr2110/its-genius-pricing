@@ -37,7 +37,7 @@ export default function ConfigPanel({ state, update }: Props) {
         <Settings2 className="h-4 w-4 text-muted-foreground" />
         <h2 className="text-sm font-semibold text-foreground">Motor de Configurações</h2>
       </div>
-      <Accordion type="multiple" defaultValue={["taxas", "custos", "financeiro"]} className="space-y-2">
+      <Accordion type="multiple" defaultValue={["taxas", "financeiro"]} className="space-y-2">
         <AccordionItem value="taxas" className="border rounded-lg px-3 bg-card">
           <AccordionTrigger className="text-sm py-3 hover:no-underline">
             <span className="flex items-center gap-2"><TrendingUp className="h-3.5 w-3.5 text-primary" />Taxas de Demanda</span>
@@ -54,35 +54,12 @@ export default function ConfigPanel({ state, update }: Props) {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="custos" className="border rounded-lg px-3 bg-card">
-          <AccordionTrigger className="text-sm py-3 hover:no-underline">
-            <span className="flex items-center gap-2"><DollarSign className="h-3.5 w-3.5 text-primary" />Custos Operacionais</span>
-          </AccordionTrigger>
-          <AccordionContent className="pb-3">
-            <div className="space-y-3">
-              {(["N1", "N2", "N3"] as const).map((level) => {
-                const tmaKey = `tma${level}` as keyof ITSMState;
-                const vhKey = `valorHora${level}` as keyof ITSMState;
-                return (
-                  <div key={level} className="space-y-1">
-                    <Label className="text-xs font-semibold text-foreground">{level}</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <NumInput label="TMA (horas)" value={state[tmaKey] as number} onChange={(v) => update(tmaKey, v)} />
-                      <NumInput label="Valor/Hora" value={state[vhKey] as number} onChange={(v) => update(vhKey, v)} prefix="R$" step={1} />
-                    </div>
-                  </div>
-                );
-              })}
-              <NumInput label="Custo Fixo Ferramentas" value={state.custoFixoFerramentas} onChange={(v) => update("custoFixoFerramentas", v)} prefix="R$" step={100} />
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
         <AccordionItem value="financeiro" className="border rounded-lg px-3 bg-card">
           <AccordionTrigger className="text-sm py-3 hover:no-underline">
             <span className="flex items-center gap-2"><DollarSign className="h-3.5 w-3.5 text-primary" />Configurações Financeiras</span>
           </AccordionTrigger>
           <AccordionContent className="pb-3 space-y-4">
+            <NumInput label="Custo Fixo Ferramentas" value={state.custoFixoFerramentas} onChange={(v) => update("custoFixoFerramentas", v)} prefix="R$" step={100} />
             <div className="space-y-2">
               <div className="flex justify-between">
                 <Label className="text-xs text-muted-foreground">Margem de Lucro</Label>
