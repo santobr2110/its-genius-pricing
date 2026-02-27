@@ -3,8 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ITSMState, ITSMResults, formatNumber, PlanoRotinas, PLANO_ROTINAS_MULTIPLICADOR } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, Bot, Monitor, RotateCcw, Clock } from "lucide-react";
+import { ITSMState, ITSMResults, formatNumber } from "@/hooks/useITSMCalculator";
+import { Users, Server, Network, Database, Monitor, Bot, Clock } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -20,12 +20,6 @@ const inventoryItems = [
   { key: "qtdBancosDados" as const, label: "Bancos de Dados", icon: Database, color: "text-purple-500" },
   { key: "qtdSistemas" as const, label: "Sistemas", icon: Monitor, color: "text-cyan-500" },
 ] as const;
-
-const planoLabels: Record<PlanoRotinas, string> = {
-  ouro: "Ouro",
-  prata: "Prata",
-  bronze: "Bronze",
-};
 
 const funnelColors = {
   percN1: "bg-blue-500",
@@ -57,23 +51,6 @@ export default function ClientPanel({ state, update, updateN1N2N3, results }: Pr
                 </div>
               </div>
             ))}
-            {/* Rotinas com dropdown de plano */}
-            <div key="rotinas" className="flex items-center gap-2 rounded-lg border p-2.5">
-              <RotateCcw className="h-5 w-5 shrink-0 text-rose-500" />
-              <div className="flex-1 space-y-0.5">
-                <Label className="text-[11px] text-muted-foreground leading-none">Rotinas</Label>
-                <Select value={state.planoRotinas} onValueChange={(v) => update("planoRotinas", v as PlanoRotinas)}>
-                  <SelectTrigger className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(["ouro", "prata", "bronze"] as PlanoRotinas[]).map((p) => (
-                      <SelectItem key={p} value={p}>{planoLabels[p]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
             {/* Horas N3 - campo informado */}
             <div className="flex items-center gap-2 rounded-lg border p-2.5 border-dashed border-red-300 bg-red-50/30">
               <Clock className="h-5 w-5 shrink-0 text-red-500" />
@@ -112,20 +89,6 @@ export default function ClientPanel({ state, update, updateN1N2N3, results }: Pr
             </p>
           </div>
 
-          {/* Automação de Rotinas */}
-          <div className="space-y-2 rounded-lg border border-dashed border-rose-500/30 bg-rose-500/5 p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <RotateCcw className="h-4 w-4 text-rose-500" />
-                <Label className="text-xs font-semibold">Automação de Rotinas</Label>
-              </div>
-              <span className="text-xs font-bold text-rose-500">{state.reducaoRotinas}%</span>
-            </div>
-            <Slider value={[state.reducaoRotinas]} onValueChange={([v]) => update("reducaoRotinas", v)} min={0} max={80} step={1} />
-            <p className="text-[11px] text-muted-foreground">
-              {formatNumber(results.rotinasAutomatizadas, 1)} rotinas automatizadas · {formatNumber(results.rotinasHumanas, 1)} direcionadas ao N3
-            </p>
-          </div>
 
           {/* N1, N2, N3 */}
           <div className="space-y-3">
