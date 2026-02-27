@@ -29,24 +29,9 @@ export default function ResultsPanel({ state, results }: Props) {
     <div className="space-y-4">
       {/* Highlight Cards */}
       <div className="grid grid-cols-1 gap-3">
-        <HighlightCard
-          icon={DollarSign}
-          label="Preço Sugerido"
-          value={formatBRL(results.precoVendaMensal)}
-          accent="text-emerald-600 bg-emerald-50"
-        />
-        <HighlightCard
-          icon={TrendingUp}
-          label="Custo Total"
-          value={formatBRL(results.custoTotalOperacao)}
-          accent="text-blue-600 bg-blue-50"
-        />
-        <HighlightCard
-          icon={Clock}
-          label="Horas N3/Mês"
-          value={`${formatNumber(results.horasN3)}h`}
-          accent="text-amber-600 bg-amber-50"
-        />
+        <HighlightCard icon={DollarSign} label="Preço Sugerido" value={formatBRL(results.precoVendaMensal)} accent="text-emerald-600 bg-emerald-50" />
+        <HighlightCard icon={TrendingUp} label="Custo Total" value={formatBRL(results.custoTotalOperacao)} accent="text-blue-600 bg-blue-50" />
+        <HighlightCard icon={Clock} label="Horas N3/Mês" value={`${formatNumber(results.horasN3)}h`} accent="text-amber-600 bg-amber-50" />
       </div>
 
       {/* Charts */}
@@ -96,10 +81,11 @@ export default function ResultsPanel({ state, results }: Props) {
           <ReportRow label="Evitados (N0)" value={formatNumber(results.chamadosResolvidosN0)} highlight />
           <ReportRow label="Atendimento Humano" value={formatNumber(results.volumeAtendimentoHumano)} />
           <div className="border-t pt-2 mt-2 space-y-1">
-            <ReportRow label="→ N1 (chamados)" value={formatNumber(results.volumeAtendimentoHumano)} sub />
+            <ReportRow label={`→ N1 (${state.percN1}%)`} value={formatNumber(results.volumeN1)} sub />
             <ReportRow label="→ N1 custo/chamado" value={formatBRL(results.custoPorChamadoN1)} sub />
-            <ReportRow label="→ N2 (servidores)" value={formatNumber(state.qtdServidores)} sub />
+            <ReportRow label={`→ N2 (${state.percN2}%)`} value={formatNumber(results.volumeN2)} sub />
             <ReportRow label="→ N2 custo/servidor" value={formatBRL(results.custoPorServidorN2)} sub />
+            <ReportRow label={`→ N3 (${state.percN3}%)`} value={formatNumber(results.volumeN3)} sub />
             <ReportRow label="→ N3 horas atend." value={`${formatNumber(results.horasAtendimentoN3, 1)}h`} sub />
             <ReportRow label="→ N3 horas prevenção" value={`${formatNumber(results.horasPrevencao, 1)}h`} sub />
           </div>

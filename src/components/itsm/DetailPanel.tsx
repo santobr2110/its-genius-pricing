@@ -10,9 +10,9 @@ interface Props {
 
 export default function DetailPanel({ state, results }: Props) {
   const rows = [
-    { label: "Total de Chamados N1", value: formatNumber(results.volumeAtendimentoHumano), desc: "Volume humano após N0" },
-    { label: "Total de Chamados N2", value: formatNumber(state.qtdServidores), desc: "Servidores monitorados" },
-    { label: "Total de Chamados N3", value: formatNumber(results.horasAtendimentoN3, 1), desc: `${state.percAtendimentoN3}% das ${formatNumber(results.horasN3)}h N3` },
+    { label: "Total de Chamados N1", value: formatNumber(results.volumeN1), desc: `${state.percN1}% do funil humano` },
+    { label: "Total de Chamados N2", value: formatNumber(results.volumeN2), desc: `${state.percN2}% do funil humano` },
+    { label: "Total de Chamados N3", value: formatNumber(results.volumeN3), desc: `${state.percN3}% do funil humano` },
     { label: "", value: "", desc: "", separator: true },
     { label: "Chamados de Usuários", value: formatNumber(results.chamadosUsuarios), desc: `${formatNumber(state.qtdUsuarios)} × ${state.taxaUsuario}` },
     { label: "Chamados de Servidores", value: formatNumber(results.chamadosServidores), desc: `${formatNumber(state.qtdServidores)} × ${state.taxaServidor}` },
