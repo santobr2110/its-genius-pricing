@@ -92,14 +92,20 @@ export default function ClientPanel({ state, update, updateN1N2N3, results }: Pr
 
           {/* N1, N2, N3 */}
           <div className="space-y-3">
-            <Label className="text-xs font-semibold">Distribuição Humana (N1 + N2 + N3 = 100%)</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold">Distribuição Humana (N1 + N2 + N3 = 100%)</Label>
+              <span className="text-xs font-bold text-foreground">{formatNumber(results.volumeAtendimentoHumano)} chamados</span>
+            </div>
             {(["percN1", "percN2", "percN3"] as const).map((key) => {
               const level = key.replace("perc", "");
+              const vol = key === "percN1" ? results.volN1 : key === "percN2" ? results.volN2 : results.volN3;
               return (
                 <div key={key} className="space-y-1">
                   <div className="flex justify-between">
                     <span className="text-xs text-muted-foreground">{level}</span>
-                    <span className="text-xs font-semibold">{state[key]}%</span>
+                    <span className="text-xs font-semibold">
+                      {state[key]}% · {formatNumber(vol)} chamados
+                    </span>
                   </div>
                   <Slider value={[state[key]]} onValueChange={([v]) => updateN1N2N3(key, v)} min={0} max={100} step={1} />
                 </div>
