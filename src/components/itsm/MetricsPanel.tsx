@@ -107,7 +107,7 @@ export default function MetricsPanel({ state, results, update }: Props) {
         <CardHeader className="pb-2">
           <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
             <Server className="h-3.5 w-3.5 text-amber-500" />
-            N2 — Analista de Campo
+            N2 — Analista N2
           </CardTitle>
           <p className="text-[10px] text-muted-foreground">1 analista · Regime 8×5</p>
         </CardHeader>
