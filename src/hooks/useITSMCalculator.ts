@@ -1,13 +1,5 @@
 import { useState, useMemo } from "react";
 
-export type PlanoRotinas = "ouro" | "prata" | "bronze";
-
-export const PLANO_ROTINAS_MULTIPLICADOR: Record<PlanoRotinas, number> = {
-  ouro: 1.8,
-  prata: 1.5,
-  bronze: 1.0,
-};
-
 export interface ITSMState {
   // Inventário
   qtdUsuarios: number;
@@ -15,8 +7,6 @@ export interface ITSMState {
   qtdAtivosRede: number;
   qtdBancosDados: number;
   qtdSistemas: number;
-  qtdRotinas: number;
-  planoRotinas: PlanoRotinas;
   horasN3Mensais: number; // horas/mês consumidas pelo N3 (informado no inventário)
   // Taxas de demanda
   taxaUsuario: number;
@@ -24,10 +14,8 @@ export interface ITSMState {
   taxaRede: number;
   taxaBancoDados: number;
   taxaSistemas: number;
-  taxaRotinas: number;
   // Funil
   reducaoN0: number;
-  reducaoRotinas: number;
   percN1: number;
   percN2: number;
   percN3: number;
@@ -51,9 +39,6 @@ export interface ITSMState {
 export interface ITSMResults {
   totalChamadosUsuarios: number;
   totalChamadosInfra: number;
-  totalChamadosRotinas: number;
-  rotinasAutomatizadas: number;
-  rotinasHumanas: number;
   volumeTotalBruto: number;
   chamadosResolvidosN0: number;
   volumeAtendimentoHumano: number;
@@ -81,17 +66,13 @@ const DEFAULTS: ITSMState = {
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
   qtdSistemas: 15,
-  qtdRotinas: 1,
-  planoRotinas: "prata",
   horasN3Mensais: 80,
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
   taxaBancoDados: 0.8,
   taxaSistemas: 0.6,
-  taxaRotinas: 1.0,
   reducaoN0: 15,
-  reducaoRotinas: 20,
   percN1: 75,
   percN2: 20,
   percN3: 5,
@@ -143,18 +124,12 @@ export function useITSMCalculator() {
       state.qtdBancosDados * state.taxaBancoDados +
       state.qtdSistemas * state.taxaSistemas;
     
-    const multiplicadorRotinas = PLANO_ROTINAS_MULTIPLICADOR[state.planoRotinas];
-    const totalChamadosRotinas = state.qtdRotinas * state.taxaRotinas * multiplicadorRotinas;
-    const rotinasAutomatizadas = totalChamadosRotinas * (state.reducaoRotinas / 100);
-    const rotinasHumanas = totalChamadosRotinas - rotinasAutomatizadas;
-
     const volumeTotalBruto = totalChamadosUsuarios + totalChamadosInfra;
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
     const volN1 = volumeAtendimentoHumano * (state.percN1 / 100);
     const volN2 = volumeAtendimentoHumano * (state.percN2 / 100);
-    const volN3Base = volumeAtendimentoHumano * (state.percN3 / 100);
-    const volN3 = volN3Base + rotinasHumanas;
+    const volN3 = volumeAtendimentoHumano * (state.percN3 / 100);
 
     // === N1: Custo por Chamado ===
     // Posição = 4 pessoas × custo/pessoa × (1 + %gestão)
@@ -184,9 +159,6 @@ export function useITSMCalculator() {
     return {
       totalChamadosUsuarios,
       totalChamadosInfra,
-      totalChamadosRotinas,
-      rotinasAutomatizadas,
-      rotinasHumanas,
       volumeTotalBruto,
       chamadosResolvidosN0,
       volumeAtendimentoHumano,
