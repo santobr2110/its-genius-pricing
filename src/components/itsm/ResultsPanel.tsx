@@ -100,7 +100,8 @@ export default function ResultsPanel({ state, results }: Props) {
             <ReportRow label="→ N1 custo/chamado" value={formatBRL(results.custoPorChamadoN1)} sub />
             <ReportRow label="→ N2 (servidores)" value={formatNumber(state.qtdServidores)} sub />
             <ReportRow label="→ N2 custo/servidor" value={formatBRL(results.custoPorServidorN2)} sub />
-            <ReportRow label="→ N3 horas" value={`${formatNumber(results.horasN3)}h`} sub />
+            <ReportRow label="→ N3 horas atend." value={`${formatNumber(results.horasAtendimentoN3, 1)}h`} sub />
+            <ReportRow label="→ N3 horas prevenção" value={`${formatNumber(results.horasPrevencao, 1)}h`} sub />
           </div>
           <div className="border-t pt-2 mt-2 space-y-1">
             <ReportRow label="Custo N1" value={formatBRL(results.custoN1)} />

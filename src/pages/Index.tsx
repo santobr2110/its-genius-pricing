@@ -3,6 +3,7 @@ import ConfigPanel from "@/components/itsm/ConfigPanel";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import ResultsPanel from "@/components/itsm/ResultsPanel";
 import MetricsPanel from "@/components/itsm/MetricsPanel";
+import DetailPanel from "@/components/itsm/DetailPanel";
 import { Calculator } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -20,15 +21,19 @@ const Index = () => {
 
       <main className="mx-auto max-w-[1600px] p-4">
         <div className="grid gap-4 lg:grid-cols-[280px_1fr_300px]">
-          {/* Left Panel - Tabs: Configurações / Métricas */}
+          {/* Left Panel - Tabs */}
           <aside className="order-2 lg:order-1">
             <Tabs defaultValue="metricas" className="w-full">
-              <TabsList className="w-full grid grid-cols-2">
+              <TabsList className="w-full grid grid-cols-3">
                 <TabsTrigger value="metricas" className="text-xs">Métricas</TabsTrigger>
-                <TabsTrigger value="config" className="text-xs">Configurações</TabsTrigger>
+                <TabsTrigger value="detalhe" className="text-xs">Detalhamento</TabsTrigger>
+                <TabsTrigger value="config" className="text-xs">Config</TabsTrigger>
               </TabsList>
               <TabsContent value="metricas">
                 <MetricsPanel state={state} results={results} update={update} />
+              </TabsContent>
+              <TabsContent value="detalhe">
+                <DetailPanel state={state} results={results} />
               </TabsContent>
               <TabsContent value="config">
                 <ConfigPanel state={state} update={update} />
