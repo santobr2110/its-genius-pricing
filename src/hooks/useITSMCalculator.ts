@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 
 export interface ITSMState {
   // Inventário
@@ -16,6 +16,9 @@ export interface ITSMState {
   taxaSistemas: number;
   // Funil
   reducaoN0: number;
+  percN1: number;
+  percN2: number;
+  percN3: number;
   // Métricas e Parâmetros de Precificação - N1
   custoPessoaN1: number;
   percGestaoN1: number;
@@ -26,7 +29,7 @@ export interface ITSMState {
   capacidadeServidoresN2: number;
   // Métricas e Parâmetros de Precificação - N3
   valorHoraN3: number;
-  percAtendimentoN3: number; // % das horas N3 dedicadas a atendimento (restante = prevenção)
+  percAtendimentoN3: number;
   // Custos fixos
   custoFixoFerramentas: number;
   // Financeiro
@@ -40,6 +43,10 @@ export interface ITSMResults {
   volumeTotalBruto: number;
   chamadosResolvidosN0: number;
   volumeAtendimentoHumano: number;
+  // Funil
+  volumeN1: number;
+  volumeN2: number;
+  volumeN3: number;
   // N1
   custoPosicaoN1: number;
   custoPorChamadoN1: number;
@@ -76,6 +83,9 @@ const DEFAULTS: ITSMState = {
   taxaBancoDados: 0.8,
   taxaSistemas: 0.6,
   reducaoN0: 15,
+  percN1: 70,
+  percN2: 20,
+  percN3: 10,
   custoPessoaN1: 3500,
   percGestaoN1: 20,
   capacidadeChamadosN1: 1500,
@@ -96,6 +106,38 @@ export function useITSMCalculator() {
     setState((prev) => ({ ...prev, [key]: value }));
   };
 
+  // Atualiza um nível do funil redistribuindo o restante entre os outros dois
+  const updateFunnel = useCallback((level: "percN1" | "percN2" | "percN3", value: number) => {
+    setState((prev) => {
+      const clamped = Math.min(100, Math.max(0, Math.round(value)));
+      const remaining = 100 - clamped;
+
+      if (level === "percN1") {
+        const sumOthers = prev.percN2 + prev.percN3;
+        if (sumOthers > 0) {
+          const ratioN2 = prev.percN2 / sumOthers;
+          return { ...prev, percN1: clamped, percN2: Math.round(remaining * ratioN2), percN3: remaining - Math.round(remaining * ratioN2) };
+        }
+        return { ...prev, percN1: clamped, percN2: remaining, percN3: 0 };
+      }
+      if (level === "percN2") {
+        const sumOthers = prev.percN1 + prev.percN3;
+        if (sumOthers > 0) {
+          const ratioN1 = prev.percN1 / sumOthers;
+          return { ...prev, percN2: clamped, percN1: Math.round(remaining * ratioN1), percN3: remaining - Math.round(remaining * ratioN1) };
+        }
+        return { ...prev, percN2: clamped, percN1: remaining, percN3: 0 };
+      }
+      // percN3
+      const sumOthers = prev.percN1 + prev.percN2;
+      if (sumOthers > 0) {
+        const ratioN1 = prev.percN1 / sumOthers;
+        return { ...prev, percN3: clamped, percN1: Math.round(remaining * ratioN1), percN2: remaining - Math.round(remaining * ratioN1) };
+      }
+      return { ...prev, percN3: clamped, percN1: remaining, percN2: 0 };
+    });
+  }, []);
+
   const results: ITSMResults = useMemo(() => {
     // Chamados por categoria
     const chamadosUsuarios = state.qtdUsuarios * state.taxaUsuario;
@@ -111,14 +153,19 @@ export function useITSMCalculator() {
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
 
+    // === Funil: distribuição dos chamados humanos ===
+    const volumeN1 = volumeAtendimentoHumano * (state.percN1 / 100);
+    const volumeN2 = volumeAtendimentoHumano * (state.percN2 / 100);
+    const volumeN3 = volumeAtendimentoHumano * (state.percN3 / 100);
+
     // === N1: Custo por Chamado ===
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
     const custoPorChamadoN1 = state.capacidadeChamadosN1 > 0
       ? custoPosicaoN1 / state.capacidadeChamadosN1
       : 0;
-    const custoN1 = custoPorChamadoN1 * volumeAtendimentoHumano;
+    const custoN1 = custoPorChamadoN1 * volumeN1;
 
-    // === N2: Custo por Servidor ===
+    // === N2: Custo por Servidor (proporcional ao volume do funil) ===
     const custoTotalAnalistaN2 = state.custoAnalistaN2 * (1 + state.percGestaoN2 / 100);
     const custoPorServidorN2 = state.capacidadeServidoresN2 > 0
       ? custoTotalAnalistaN2 / state.capacidadeServidoresN2
@@ -142,6 +189,9 @@ export function useITSMCalculator() {
       volumeTotalBruto,
       chamadosResolvidosN0,
       volumeAtendimentoHumano,
+      volumeN1,
+      volumeN2,
+      volumeN3,
       custoPosicaoN1,
       custoPorChamadoN1,
       custoN1,
@@ -162,7 +212,7 @@ export function useITSMCalculator() {
     };
   }, [state]);
 
-  return { state, update, results };
+  return { state, update, updateFunnel, results };
 }
 
 export function formatBRL(value: number): string {
