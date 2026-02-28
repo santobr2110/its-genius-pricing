@@ -161,9 +161,17 @@ export default function MetricsPanel({ state, results, update }: Props) {
             step={5}
             tooltip="Custo hora do especialista N3"
           />
+          <NumInput
+            label="Tempo Médio/Chamado N3 (h)"
+            value={state.tempoMedioChamadoN3}
+            onChange={(v) => update("tempoMedioChamadoN3", v)}
+            step={0.5}
+            tooltip="Horas médias gastas por chamado N3"
+          />
           <div className="space-y-1">
             <p className="text-[10px] text-muted-foreground">
-              Vinculado ao funil N3 ({state.percN3}%) · {formatNumber(results.horasAtendimentoN3, 1)}h atend. · {formatNumber(results.horasPrevencao, 1)}h prevenção
+              {formatNumber(results.horasAtendimentoN3, 1)}h consumidas · {formatNumber(results.horasPrevencao, 1)}h prevenção
+              {results.horasPrevencao <= 0 && " ⚠️ Sem horas disponíveis!"}
             </p>
           </div>
           <MetricResult label="Horas/Mês (inventário)" value={`${formatNumber(state.horasN3Mensais)}h`} />

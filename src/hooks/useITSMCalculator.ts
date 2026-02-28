@@ -29,6 +29,7 @@ export interface ITSMState {
   capacidadeServidoresN2: number;
   // Métricas e Parâmetros de Precificação - N3
   valorHoraN3: number;
+  tempoMedioChamadoN3: number;
   // Custos fixos
   custoFixoFerramentas: number;
   // Financeiro
@@ -92,6 +93,7 @@ const DEFAULTS: ITSMState = {
   percGestaoN2: 20,
   capacidadeServidoresN2: 30,
   valorHoraN3: 120,
+  tempoMedioChamadoN3: 2,
   custoFixoFerramentas: 1500,
   margemLucro: 30,
   impostosTaxas: 15,
@@ -170,10 +172,11 @@ export function useITSMCalculator() {
       : 0;
     const custoN2 = custoPorServidorN2 * state.qtdServidores;
 
-    // === N3: Horas com split baseado no % do funil N3 ===
+    // === N3: Horas consumidas por chamados N3 ===
     const horasN3 = state.horasN3Mensais;
-    const horasAtendimentoN3 = horasN3 * (state.percN3 / 100);
-    const horasPrevencao = horasN3 - horasAtendimentoN3;
+    const horasConsumidasN3 = volumeN3 * state.tempoMedioChamadoN3;
+    const horasAtendimentoN3 = horasConsumidasN3;
+    const horasPrevencao = Math.max(0, horasN3 - horasConsumidasN3);
     const custoN3 = horasN3 * state.valorHoraN3;
 
     const custoTotalOperacao = custoN1 + custoN2 + custoN3 + state.custoFixoFerramentas;

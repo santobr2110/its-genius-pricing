@@ -28,8 +28,9 @@ export default function DetailPanel({ state, results }: Props) {
     { label: "  ↳ de Sistemas no N3", value: formatNumber(results.chamadosSistemas * (state.percN3 / 100), 1), desc: `${formatNumber(results.chamadosSistemas)} × ${state.percN3}%` },
     { label: "", value: "", desc: "", separator: true },
     { label: "Horas Totais N3", value: `${formatNumber(results.horasN3)}h`, desc: "Inserido no inventário" },
-    { label: "Horas Atendimento N3", value: `${formatNumber(results.horasAtendimentoN3, 1)}h`, desc: `${state.percN3}% (funil N3) das horas` },
-    { label: "Horas Disponíveis Prevenção", value: `${formatNumber(results.horasPrevencao, 1)}h`, desc: "Total N3 − Atendimento", highlight: true },
+    { label: "Horas Consumidas (chamados)", value: `${formatNumber(results.horasAtendimentoN3, 1)}h`, desc: `${formatNumber(results.volumeN3, 1)} chamados × ${state.tempoMedioChamadoN3}h` },
+    { label: "Horas Disponíveis Prevenção", value: `${formatNumber(results.horasPrevencao, 1)}h`, desc: "Total N3 − Consumidas", highlight: results.horasPrevencao > 0 },
+    ...(results.horasPrevencao <= 0 ? [{ label: "⚠️ Horas insuficientes!", value: `${formatNumber(Math.abs(results.horasPrevencao), 1)}h deficit`, desc: "Aumente horas N3 ou reduza % N3 no funil", highlight: true }] : []),
   ];
 
   return (
