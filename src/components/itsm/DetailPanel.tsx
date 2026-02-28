@@ -21,7 +21,7 @@ export default function DetailPanel({ state, results }: Props) {
     { label: "Chamados de Sistemas", value: formatNumber(results.chamadosSistemas), desc: `${formatNumber(state.qtdSistemas)} × ${state.taxaSistemas}` },
     { label: "", value: "", desc: "", separator: true },
     { label: "Horas Totais N3", value: `${formatNumber(results.horasN3)}h`, desc: "Inserido no inventário" },
-    { label: "Horas Atendimento N3", value: `${formatNumber(results.horasAtendimentoN3, 1)}h`, desc: `${state.percAtendimentoN3}% das horas N3` },
+    { label: "Horas Atendimento N3", value: `${formatNumber(results.horasAtendimentoN3, 1)}h`, desc: `${state.percN3}% (funil N3) das horas` },
     { label: "Horas Disponíveis Prevenção", value: `${formatNumber(results.horasPrevencao, 1)}h`, desc: "Total N3 − Atendimento", highlight: true },
   ];
 
