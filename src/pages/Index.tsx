@@ -3,9 +3,10 @@ import ConfigPanel from "@/components/itsm/ConfigPanel";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import ResultsPanel from "@/components/itsm/ResultsPanel";
 import MetricsPanel from "@/components/itsm/MetricsPanel";
-import DetailPanel from "@/components/itsm/DetailPanel";
-import { Calculator } from "lucide-react";
+import { Calculator, ClipboardList } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const { state, update, updateFunnel, results } = useITSMCalculator();
@@ -16,6 +17,12 @@ const Index = () => {
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
           <Calculator className="h-5 w-5 text-primary" />
           <h1 className="text-sm font-bold text-foreground">Calculadora de Precificação ITSM</h1>
+          <Link to="/detalhamento" className="ml-auto">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <ClipboardList className="h-3.5 w-3.5" />
+              Detalhamento
+            </Button>
+          </Link>
         </div>
       </header>
 
@@ -24,16 +31,12 @@ const Index = () => {
           {/* Left Panel - Tabs */}
           <aside className="order-2 lg:order-1">
             <Tabs defaultValue="metricas" className="w-full">
-              <TabsList className="w-full grid grid-cols-3">
+              <TabsList className="w-full grid grid-cols-2">
                 <TabsTrigger value="metricas" className="text-xs">Métricas</TabsTrigger>
-                <TabsTrigger value="detalhe" className="text-xs">Detalhamento</TabsTrigger>
                 <TabsTrigger value="config" className="text-xs">Config</TabsTrigger>
               </TabsList>
               <TabsContent value="metricas">
                 <MetricsPanel state={state} results={results} update={update} />
-              </TabsContent>
-              <TabsContent value="detalhe">
-                <DetailPanel state={state} results={results} />
               </TabsContent>
               <TabsContent value="config">
                 <ConfigPanel state={state} update={update} />
