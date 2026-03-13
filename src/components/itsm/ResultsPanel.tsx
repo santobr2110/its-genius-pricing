@@ -14,6 +14,9 @@ export default function ResultsPanel({ state, results }: Props) {
   const hasDeficit = results.horasPrevencao <= 0;
   const areas = useMemo(() => buildAreas(state, results), [state, results]);
   const grandTotal = areas.reduce((s, a) => s + getAreaTotal(a), 0);
+  const percentualCustosVenda = state.margemLucro + state.impostosTaxas;
+  const fatorDivisor = (100 - percentualCustosVenda) / 100;
+  const grandSellTotal = fatorDivisor > 0 ? grandTotal / fatorDivisor : 0;
 
   return (
     <div className="space-y-4">
