@@ -26,7 +26,7 @@ interface AreaData {
   custoExtraLabel?: string;
 }
 
-function buildAreas(state: ReturnType<typeof useITSMCalculator>["state"], results: ReturnType<typeof useITSMCalculator>["results"]): AreaData[] {
+function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
   const n0Factor = state.reducaoN0 / 100;
   const humanFactor = 1 - n0Factor;
 
