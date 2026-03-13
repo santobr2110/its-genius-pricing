@@ -165,7 +165,7 @@ function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
 }
 
 export default function Detalhamento() {
-  const { state, results } = useITSMCalculator();
+  const { state, results } = useITSMContext();
   const areas = buildAreas(state, results);
   const hasDeficit = results.horasPrevencao <= 0;
 
