@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ITSMState, ITSMResults, formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { DollarSign, Clock, TrendingUp, FileText, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { buildAreas, getAreaTotal } from "@/lib/buildAreas";
+import { useMemo } from "react";
 
 interface Props {
   state: ITSMState;
@@ -10,6 +12,8 @@ interface Props {
 
 export default function ResultsPanel({ state, results }: Props) {
   const hasDeficit = results.horasPrevencao <= 0;
+  const areas = useMemo(() => buildAreas(state, results), [state, results]);
+  const grandTotal = areas.reduce((s, a) => s + getAreaTotal(a), 0);
 
   return (
     <div className="space-y-4">
@@ -28,27 +32,27 @@ export default function ResultsPanel({ state, results }: Props) {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
-            <FileText className="h-3.5 w-3.5" /> Resumo
+            <FileText className="h-3.5 w-3.5" /> Custos por Área
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <ReportRow label="Chamados Gerados" value={formatNumber(results.volumeTotalBruto)} />
-          <ReportRow label="Evitados (N0)" value={formatNumber(results.chamadosResolvidosN0)} highlight />
-          <ReportRow label="Atendimento Humano" value={formatNumber(results.volumeAtendimentoHumano)} />
-          <div className="border-t pt-2 mt-2 space-y-1">
-            <ReportRow label={`→ N1 (${state.percN1}%)`} value={formatNumber(results.volumeN1)} sub />
-            <ReportRow label="→ N1 custo/chamado" value={formatBRL(results.custoPorChamadoN1)} sub />
-            <ReportRow label={`→ N2 (${state.percN2}%)`} value={formatNumber(results.volumeN2)} sub />
-            <ReportRow label="→ N2 custo/servidor" value={formatBRL(results.custoPorServidorN2)} sub />
-            <ReportRow label={`→ N3 (${state.percN3}%)`} value={formatNumber(results.volumeN3)} sub />
-            <ReportRow label="→ N3 horas atend." value={`${formatNumber(results.horasAtendimentoN3, 1)}h`} sub />
-            <ReportRow label="→ N3 horas prevenção" value={`${formatNumber(results.horasPrevencao, 1)}h`} sub />
-          </div>
-          <div className="border-t pt-2 mt-2 space-y-1">
-            <ReportRow label="Custo N1" value={formatBRL(results.custoN1)} />
-            <ReportRow label="Custo N2" value={formatBRL(results.custoN2)} />
-            <ReportRow label="Custo N3" value={formatBRL(results.custoN3)} />
-            <ReportRow label="Ferramentas" value={formatBRL(state.custoFixoFerramentas)} />
+        <CardContent className="space-y-1.5">
+          {areas.map((area) => {
+            const total = getAreaTotal(area);
+            const Icon = area.icon;
+            const pct = grandTotal > 0 ? (total / grandTotal) * 100 : 0;
+            return (
+              <div key={area.nome} className="flex items-center gap-2 text-xs">
+                <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="flex-1 text-muted-foreground truncate">{area.nome}</span>
+                <span className="font-semibold text-foreground w-20 text-right">{formatBRL(total)}</span>
+                <span className="text-muted-foreground w-10 text-right">{formatNumber(pct, 1)}%</span>
+              </div>
+            );
+          })}
+          <div className="border-t pt-1.5 mt-1.5 flex items-center gap-2 text-xs font-bold">
+            <span className="flex-1">Total</span>
+            <span className="w-20 text-right">{formatBRL(grandTotal)}</span>
+            <span className="w-10 text-right">100%</span>
           </div>
         </CardContent>
       </Card>
@@ -77,16 +81,5 @@ function HighlightCard({ icon: Icon, label, value, accent, badge }: {
         )}
       </CardContent>
     </Card>
-  );
-}
-
-function ReportRow({ label, value, highlight, sub }: {
-  label: string; value: string; highlight?: boolean; sub?: boolean;
-}) {
-  return (
-    <div className={`flex justify-between ${sub ? "pl-2 text-xs" : ""}`}>
-      <span className={`text-muted-foreground ${sub ? "text-xs" : "text-sm"}`}>{label}</span>
-      <span className={`font-semibold ${highlight ? "text-primary" : "text-foreground"} ${sub ? "text-xs" : "text-sm"}`}>{value}</span>
-    </div>
   );
 }
