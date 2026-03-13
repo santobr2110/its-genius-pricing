@@ -1,4 +1,5 @@
-import { useITSMCalculator, formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
+import { useITSMContext } from "@/contexts/ITSMContext";
+import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";

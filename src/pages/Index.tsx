@@ -1,4 +1,4 @@
-import { useITSMCalculator } from "@/hooks/useITSMCalculator";
+import { useITSMContext } from "@/contexts/ITSMContext";
 import ConfigPanel from "@/components/itsm/ConfigPanel";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import ResultsPanel from "@/components/itsm/ResultsPanel";
@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
-  const { state, update, updateFunnel, results } = useITSMCalculator();
+  const { state, update, updateFunnel, results } = useITSMContext();
 
   return (
     <div className="min-h-screen bg-muted/30">
