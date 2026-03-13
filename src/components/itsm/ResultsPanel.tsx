@@ -56,6 +56,35 @@ export default function ResultsPanel({ state, results }: Props) {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
+            <DollarSign className="h-3.5 w-3.5" /> Valor de Venda por Área
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1.5">
+          {areas.map((area) => {
+            const cost = getAreaTotal(area);
+            const sellPrice = fatorDivisor > 0 ? cost / fatorDivisor : 0;
+            const Icon = area.icon;
+            const pct = grandSellTotal > 0 ? (sellPrice / grandSellTotal) * 100 : 0;
+            return (
+              <div key={area.nome} className="flex items-center gap-2 text-xs">
+                <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="flex-1 text-muted-foreground truncate">{area.nome}</span>
+                <span className="font-semibold text-foreground w-20 text-right">{formatBRL(sellPrice)}</span>
+                <span className="text-muted-foreground w-10 text-right">{formatNumber(pct, 1)}%</span>
+              </div>
+            );
+          })}
+          <div className="border-t pt-1.5 mt-1.5 flex items-center gap-2 text-xs font-bold">
+            <span className="flex-1">Total</span>
+            <span className="w-20 text-right">{formatBRL(grandSellTotal)}</span>
+            <span className="w-10 text-right">100%</span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
