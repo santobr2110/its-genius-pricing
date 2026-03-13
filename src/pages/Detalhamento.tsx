@@ -3,27 +3,172 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ClipboardList, AlertTriangle, TrendingDown, Layers, Server, Users, Network, Database, Monitor, Clock } from "lucide-react";
+import {
+  ArrowLeft, ClipboardList, AlertTriangle, TrendingDown, Layers,
+  Headphones, Eye, Truck, Server, Monitor, Wrench, Clock
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-export default function Detalhamento() {
-  const { state, results } = useITSMCalculator();
+interface AreaData {
+  nome: string;
+  icon: React.ElementType;
+  chamadosBrutos: number;
+  chamadosN0: number;
+  chamadosN1: number;
+  chamadosN2: number;
+  chamadosN3: number;
+  custoN1: number;
+  custoN2: number;
+  custoN3: number;
+  custoExtra: number;
+  custoExtraLabel?: string;
+}
 
-  const chamadosN3PorCategoria = [
-    { label: "Usuários", icon: Users, color: "text-blue-500", chamados: results.chamadosUsuarios, n3: results.chamadosUsuarios * (state.percN3 / 100) },
-    { label: "Servidores", icon: Server, color: "text-emerald-500", chamados: results.chamadosServidores, n3: results.chamadosServidores * (state.percN3 / 100) },
-    { label: "Rede", icon: Network, color: "text-amber-500", chamados: results.chamadosRede, n3: results.chamadosRede * (state.percN3 / 100) },
-    { label: "Banco de Dados", icon: Database, color: "text-purple-500", chamados: results.chamadosBancoDados, n3: results.chamadosBancoDados * (state.percN3 / 100) },
-    { label: "Sistemas", icon: Monitor, color: "text-cyan-500", chamados: results.chamadosSistemas, n3: results.chamadosSistemas * (state.percN3 / 100) },
+function buildAreas(state: ReturnType<typeof useITSMCalculator>["state"], results: ReturnType<typeof useITSMCalculator>["results"]): AreaData[] {
+  const n0Factor = state.reducaoN0 / 100;
+  const humanFactor = 1 - n0Factor;
+
+  // Raw calls per source
+  const raw = {
+    usuarios: results.chamadosUsuarios,
+    servidores: results.chamadosServidores,
+    rede: results.chamadosRede,
+    bd: results.chamadosBancoDados,
+    sistemas: results.chamadosSistemas,
+  };
+
+  // Helper: compute area breakdown from a set of raw call sources
+  const buildArea = (sources: number[]): { bruto: number; n0: number; n1: number; n2: number; n3: number } => {
+    const bruto = sources.reduce((a, b) => a + b, 0);
+    const human = bruto * humanFactor;
+    return {
+      bruto,
+      n0: bruto * n0Factor,
+      n1: human * (state.percN1 / 100),
+      n2: human * (state.percN2 / 100),
+      n3: human * (state.percN3 / 100),
+    };
+  };
+
+  // Cost allocation: proportional to call volume
+  const totalBruto = results.volumeTotalBruto;
+  const propCost = (areaBruto: number, levelCalls: number, totalLevelCalls: number, totalLevelCost: number) => {
+    if (totalLevelCalls <= 0) return 0;
+    return (levelCalls / totalLevelCalls) * totalLevelCost;
+  };
+
+  const totalN1 = results.volumeN1;
+  const totalN2 = results.volumeN2;
+  const totalN3 = results.volumeN3;
+
+  // === Areas ===
+  const centralServico = buildArea([raw.usuarios, raw.sistemas]);
+  const monitoramento = buildArea([raw.servidores, raw.rede, raw.bd]);
+  const fieldService = buildArea([raw.usuarios]);
+  const gestaoInfra = buildArea([raw.servidores, raw.rede, raw.bd]);
+  const gestaoSistemas = buildArea([raw.sistemas]);
+
+  // Prevention hours cost (part of N3 budget, allocated to Gestão Infra)
+  const custoHorasPreventivas = results.horasPrevencao > 0
+    ? results.horasPrevencao * state.valorHoraN3
+    : 0;
+
+  // N3 cost for atendimento only (excluding prevention hours)
+  const custoN3Atendimento = results.horasAtendimentoN3 * state.valorHoraN3;
+
+  const areas: AreaData[] = [
+    {
+      nome: "Central de Serviço",
+      icon: Headphones,
+      chamadosBrutos: centralServico.bruto,
+      chamadosN0: centralServico.n0,
+      chamadosN1: centralServico.n1,
+      chamadosN2: 0,
+      chamadosN3: 0,
+      custoN1: propCost(centralServico.bruto, centralServico.n1, totalN1, results.custoN1),
+      custoN2: 0,
+      custoN3: 0,
+      custoExtra: 0,
+    },
+    {
+      nome: "Monitoramento",
+      icon: Eye,
+      chamadosBrutos: monitoramento.bruto,
+      chamadosN0: monitoramento.n0,
+      chamadosN1: monitoramento.n1,
+      chamadosN2: 0,
+      chamadosN3: 0,
+      custoN1: propCost(monitoramento.bruto, monitoramento.n1, totalN1, results.custoN1),
+      custoN2: 0,
+      custoN3: 0,
+      custoExtra: 0,
+    },
+    {
+      nome: "Field Service",
+      icon: Truck,
+      chamadosBrutos: fieldService.bruto,
+      chamadosN0: 0,
+      chamadosN1: 0,
+      chamadosN2: fieldService.n2,
+      chamadosN3: fieldService.n3,
+      custoN1: 0,
+      custoN2: propCost(fieldService.bruto, fieldService.n2, totalN2, results.custoN2),
+      custoN3: totalN3 > 0 ? (fieldService.n3 / totalN3) * custoN3Atendimento : 0,
+      custoExtra: 0,
+    },
+    {
+      nome: "Gestão Infra e Banco de Dados",
+      icon: Server,
+      chamadosBrutos: gestaoInfra.bruto,
+      chamadosN0: 0,
+      chamadosN1: 0,
+      chamadosN2: gestaoInfra.n2,
+      chamadosN3: gestaoInfra.n3,
+      custoN1: 0,
+      custoN2: propCost(gestaoInfra.bruto, gestaoInfra.n2, totalN2, results.custoN2),
+      custoN3: totalN3 > 0 ? (gestaoInfra.n3 / totalN3) * custoN3Atendimento : 0,
+      custoExtra: custoHorasPreventivas,
+      custoExtraLabel: "Rotinas p/ Prevenção",
+    },
+    {
+      nome: "Gestão de Sistemas",
+      icon: Monitor,
+      chamadosBrutos: gestaoSistemas.bruto,
+      chamadosN0: 0,
+      chamadosN1: 0,
+      chamadosN2: gestaoSistemas.n2,
+      chamadosN3: gestaoSistemas.n3,
+      custoN1: 0,
+      custoN2: propCost(gestaoSistemas.bruto, gestaoSistemas.n2, totalN2, results.custoN2),
+      custoN3: totalN3 > 0 ? (gestaoSistemas.n3 / totalN3) * custoN3Atendimento : 0,
+      custoExtra: 0,
+    },
+    {
+      nome: "Custo de Ferramentas",
+      icon: Wrench,
+      chamadosBrutos: 0,
+      chamadosN0: 0,
+      chamadosN1: 0,
+      chamadosN2: 0,
+      chamadosN3: 0,
+      custoN1: 0,
+      custoN2: 0,
+      custoN3: 0,
+      custoExtra: state.custoFixoFerramentas,
+      custoExtraLabel: "Ferramentas",
+    },
   ];
 
-  const horasN3PorCategoria = chamadosN3PorCategoria.map(c => ({
-    ...c,
-    horas: c.n3 * state.tempoMedioChamadoN3,
-  }));
+  return areas;
+}
 
+export default function Detalhamento() {
+  const { state, results } = useITSMCalculator();
+  const areas = buildAreas(state, results);
   const hasDeficit = results.horasPrevencao <= 0;
+
+  const custoTotalAreas = areas.reduce((sum, a) => sum + a.custoN1 + a.custoN2 + a.custoN3 + a.custoExtra, 0);
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -37,7 +182,7 @@ export default function Detalhamento() {
           </Link>
           <Separator orientation="vertical" className="h-5" />
           <ClipboardList className="h-5 w-5 text-primary" />
-          <h1 className="text-sm font-bold text-foreground">Detalhamento dos Cálculos</h1>
+          <h1 className="text-sm font-bold text-foreground">Detalhamento por Área</h1>
         </div>
       </header>
 
@@ -50,57 +195,86 @@ export default function Detalhamento() {
           <SummaryCard label="Preço Sugerido" value={formatBRL(results.precoVendaMensal)} highlight />
         </div>
 
-        {/* Funil de distribuição */}
+        {/* Distribuição do Funil por Área */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Layers className="h-4 w-4 text-primary" />
-              Distribuição do Funil
+              Distribuição do Funil por Área
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <FunnelCard level="N1" label="Service Desk" perc={state.percN1} volume={results.volumeN1} custo={results.custoN1} color="bg-blue-500" />
-              <FunnelCard level="N2" label="Infraestrutura" perc={state.percN2} volume={results.volumeN2} custo={results.custoN2} color="bg-amber-500" />
-              <FunnelCard level="N3" label="Especialistas" perc={state.percN3} volume={results.volumeN3} custo={results.custoN3} color="bg-red-500" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {areas.filter(a => a.chamadosBrutos > 0).map((area) => {
+                const totalHuman = area.chamadosN1 + area.chamadosN2 + area.chamadosN3;
+                return (
+                  <div key={area.nome} className="rounded-lg border p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <area.icon className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold">{area.nome}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatNumber(area.chamadosBrutos)} brutos → {formatNumber(area.chamadosN0, 1)} N0 → {formatNumber(totalHuman, 1)} humanos
+                    </div>
+                    {/* Mini funnel bars */}
+                    <div className="space-y-1.5">
+                      {area.chamadosN1 > 0 && (
+                        <FunnelBar label="N0/N1" value={area.chamadosN0 + area.chamadosN1} total={area.chamadosBrutos} color="bg-blue-500" />
+                      )}
+                      {area.chamadosN2 > 0 && (
+                        <FunnelBar label="N2" value={area.chamadosN2} total={area.chamadosBrutos} color="bg-amber-500" />
+                      )}
+                      {area.chamadosN3 > 0 && (
+                        <FunnelBar label="N3" value={area.chamadosN3} total={area.chamadosBrutos} color="bg-red-500" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
 
-        {/* Chamados por Categoria */}
+        {/* Chamados por Área */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Chamados por Categoria</CardTitle>
+            <CardTitle className="text-sm font-semibold">Chamados por Área</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">Categoria</TableHead>
-                  <TableHead className="text-xs text-right">Total</TableHead>
-                  <TableHead className="text-xs text-right">No N3 ({state.percN3}%)</TableHead>
-                  <TableHead className="text-xs text-right">Horas N3</TableHead>
+                  <TableHead className="text-xs">Área</TableHead>
+                  <TableHead className="text-xs text-right">Brutos</TableHead>
+                  <TableHead className="text-xs text-right">N0</TableHead>
+                  <TableHead className="text-xs text-right">N1</TableHead>
+                  <TableHead className="text-xs text-right">N2</TableHead>
+                  <TableHead className="text-xs text-right">N3</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {horasN3PorCategoria.map((cat) => (
-                  <TableRow key={cat.label}>
+                {areas.filter(a => a.chamadosBrutos > 0).map((area) => (
+                  <TableRow key={area.nome}>
                     <TableCell className="text-sm py-3">
                       <span className="flex items-center gap-2">
-                        <cat.icon className={`h-4 w-4 ${cat.color}`} />
-                        {cat.label}
+                        <area.icon className="h-4 w-4 text-primary" />
+                        {area.nome}
                       </span>
                     </TableCell>
-                    <TableCell className="text-sm text-right font-medium">{formatNumber(cat.chamados)}</TableCell>
-                    <TableCell className="text-sm text-right font-medium">{formatNumber(cat.n3, 1)}</TableCell>
-                    <TableCell className="text-sm text-right font-medium">{formatNumber(cat.horas, 1)}h</TableCell>
+                    <TableCell className="text-sm text-right font-medium">{formatNumber(area.chamadosBrutos)}</TableCell>
+                    <TableCell className="text-sm text-right text-muted-foreground">{formatNumber(area.chamadosN0, 1)}</TableCell>
+                    <TableCell className="text-sm text-right font-medium">{area.chamadosN1 > 0 ? formatNumber(area.chamadosN1, 1) : "—"}</TableCell>
+                    <TableCell className="text-sm text-right font-medium">{area.chamadosN2 > 0 ? formatNumber(area.chamadosN2, 1) : "—"}</TableCell>
+                    <TableCell className="text-sm text-right font-medium">{area.chamadosN3 > 0 ? formatNumber(area.chamadosN3, 1) : "—"}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow className="border-t-2 font-semibold">
                   <TableCell className="text-sm py-3">Total</TableCell>
                   <TableCell className="text-sm text-right">{formatNumber(results.volumeTotalBruto)}</TableCell>
+                  <TableCell className="text-sm text-right">{formatNumber(results.chamadosResolvidosN0, 1)}</TableCell>
+                  <TableCell className="text-sm text-right">{formatNumber(results.volumeN1, 1)}</TableCell>
+                  <TableCell className="text-sm text-right">{formatNumber(results.volumeN2, 1)}</TableCell>
                   <TableCell className="text-sm text-right">{formatNumber(results.volumeN3, 1)}</TableCell>
-                  <TableCell className="text-sm text-right">{formatNumber(results.horasAtendimentoN3, 1)}h</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -132,8 +306,6 @@ export default function Detalhamento() {
                 variant={hasDeficit ? "destructive" : "success"}
               />
             </div>
-
-            {/* Barra visual de consumo */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>Consumo de horas N3</span>
@@ -152,7 +324,6 @@ export default function Detalhamento() {
                 />
               </div>
             </div>
-
             {hasDeficit && (
               <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
                 <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
@@ -167,53 +338,62 @@ export default function Detalhamento() {
           </CardContent>
         </Card>
 
-        {/* Custos detalhados */}
+        {/* Composição de Custos por Área */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-primary" />
-              Composição de Custos
+              Composição de Custos por Área
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs">Item</TableHead>
-                  <TableHead className="text-xs text-right">Valor</TableHead>
-                  <TableHead className="text-xs">Base de Cálculo</TableHead>
+                  <TableHead className="text-xs">Área</TableHead>
+                  <TableHead className="text-xs text-right">N1</TableHead>
+                  <TableHead className="text-xs text-right">N2</TableHead>
+                  <TableHead className="text-xs text-right">N3</TableHead>
+                  <TableHead className="text-xs text-right">Outros</TableHead>
+                  <TableHead className="text-xs text-right">Total Área</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="text-sm py-3 font-medium">Custo N1</TableCell>
-                  <TableCell className="text-sm text-right font-semibold">{formatBRL(results.custoN1)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{formatNumber(results.volumeN1, 1)} chamados × {formatBRL(results.custoPorChamadoN1)}/chamado</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-sm py-3 font-medium">Custo N2</TableCell>
-                  <TableCell className="text-sm text-right font-semibold">{formatBRL(results.custoN2)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{formatNumber(state.qtdServidores)} servidores × {formatBRL(results.custoPorServidorN2)}/servidor</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-sm py-3 font-medium">Custo N3</TableCell>
-                  <TableCell className="text-sm text-right font-semibold">{formatBRL(results.custoN3)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{formatNumber(results.horasN3)}h × {formatBRL(state.valorHoraN3)}/hora</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="text-sm py-3 font-medium">Ferramentas</TableCell>
-                  <TableCell className="text-sm text-right font-semibold">{formatBRL(state.custoFixoFerramentas)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">Custo fixo mensal</TableCell>
-                </TableRow>
+                {areas.map((area) => {
+                  const totalArea = area.custoN1 + area.custoN2 + area.custoN3 + area.custoExtra;
+                  if (totalArea <= 0) return null;
+                  return (
+                    <TableRow key={area.nome}>
+                      <TableCell className="text-sm py-3">
+                        <span className="flex items-center gap-2">
+                          <area.icon className="h-4 w-4 text-primary" />
+                          <span>
+                            {area.nome}
+                            {area.custoExtraLabel && (
+                              <span className="block text-[10px] text-muted-foreground">{area.custoExtraLabel}</span>
+                            )}
+                          </span>
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm text-right">{area.custoN1 > 0 ? formatBRL(area.custoN1) : "—"}</TableCell>
+                      <TableCell className="text-sm text-right">{area.custoN2 > 0 ? formatBRL(area.custoN2) : "—"}</TableCell>
+                      <TableCell className="text-sm text-right">{area.custoN3 > 0 ? formatBRL(area.custoN3) : "—"}</TableCell>
+                      <TableCell className="text-sm text-right">{area.custoExtra > 0 ? formatBRL(area.custoExtra) : "—"}</TableCell>
+                      <TableCell className="text-sm text-right font-semibold">{formatBRL(totalArea)}</TableCell>
+                    </TableRow>
+                  );
+                })}
                 <TableRow className="border-t-2">
-                  <TableCell className="text-sm py-3 font-bold">Custo Total</TableCell>
-                  <TableCell className="text-sm text-right font-bold text-primary">{formatBRL(results.custoTotalOperacao)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">Soma de todos os custos</TableCell>
+                  <TableCell className="text-sm py-3 font-bold">Custo Total Operação</TableCell>
+                  <TableCell colSpan={4} />
+                  <TableCell className="text-sm text-right font-bold text-primary">{formatBRL(custoTotalAreas)}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-sm py-3 font-bold">Preço de Venda</TableCell>
+                  <TableCell colSpan={4} className="text-xs text-muted-foreground text-right">
+                    Margem {state.margemLucro}% + Impostos {state.impostosTaxas}%
+                  </TableCell>
                   <TableCell className="text-sm text-right font-bold text-primary">{formatBRL(results.precoVendaMensal)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">Margem {state.margemLucro}% + Impostos {state.impostosTaxas}%</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -238,19 +418,15 @@ function SummaryCard({ label, value, badge, highlight }: { label: string; value:
   );
 }
 
-function FunnelCard({ level, label, perc, volume, custo, color }: { level: string; label: string; perc: number; volume: number; custo: number; color: string }) {
+function FunnelBar({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
+  const perc = total > 0 ? (value / total) * 100 : 0;
   return (
-    <div className="rounded-lg border p-4 space-y-2">
-      <div className="flex items-center gap-2">
-        <span className={`h-3 w-3 rounded-full ${color}`} />
-        <span className="text-sm font-semibold">{level}</span>
-        <Badge variant="outline" className="ml-auto text-xs">{perc}%</Badge>
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] w-8 text-muted-foreground">{label}</span>
+      <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(100, perc)}%` }} />
       </div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <div className="space-y-0.5">
-        <p className="text-sm font-medium">{formatNumber(volume)} chamados</p>
-        <p className="text-sm font-bold text-primary">{formatBRL(custo)}</p>
-      </div>
+      <span className="text-[10px] w-10 text-right font-medium">{formatNumber(value, 1)}</span>
     </div>
   );
 }
@@ -258,12 +434,12 @@ function FunnelCard({ level, label, perc, volume, custo, color }: { level: strin
 function MetricBox({ label, value, desc, variant }: { label: string; value: string; desc: string; variant?: "destructive" | "success" }) {
   return (
     <div className={`rounded-lg border p-4 ${
-      variant === "destructive" ? "border-destructive/30 bg-destructive/5" : 
+      variant === "destructive" ? "border-destructive/30 bg-destructive/5" :
       variant === "success" ? "border-emerald-500/30 bg-emerald-50/50" : ""
     }`}>
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`text-lg font-bold mt-1 ${
-        variant === "destructive" ? "text-destructive" : 
+        variant === "destructive" ? "text-destructive" :
         variant === "success" ? "text-emerald-600" : "text-foreground"
       }`}>{value}</p>
       <p className="text-[11px] text-muted-foreground mt-0.5">{desc}</p>
