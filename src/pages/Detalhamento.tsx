@@ -1,4 +1,5 @@
-import { useITSMCalculator, formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
+import { useITSMContext } from "@/contexts/ITSMContext";
+import { formatNumber, formatBRL, ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ interface AreaData {
   custoExtraLabel?: string;
 }
 
-function buildAreas(state: ReturnType<typeof useITSMCalculator>["state"], results: ReturnType<typeof useITSMCalculator>["results"]): AreaData[] {
+function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
   const n0Factor = state.reducaoN0 / 100;
   const humanFactor = 1 - n0Factor;
 
@@ -164,7 +165,7 @@ function buildAreas(state: ReturnType<typeof useITSMCalculator>["state"], result
 }
 
 export default function Detalhamento() {
-  const { state, results } = useITSMCalculator();
+  const { state, results } = useITSMContext();
   const areas = buildAreas(state, results);
   const hasDeficit = results.horasPrevencao <= 0;
 
