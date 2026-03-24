@@ -3,7 +3,7 @@ import ConfigPanel from "@/components/itsm/ConfigPanel";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import ResultsPanel from "@/components/itsm/ResultsPanel";
 import MetricsPanel from "@/components/itsm/MetricsPanel";
-import { Calculator, ClipboardList } from "lucide-react";
+import { Calculator, ClipboardList, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,20 @@ const Index = () => {
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
           <Calculator className="h-5 w-5 text-primary" />
           <h1 className="text-sm font-bold text-foreground">Calculadora de Precificação ITSM</h1>
-          <Link to="/detalhamento" className="ml-auto">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-              <ClipboardList className="h-3.5 w-3.5" />
-              Detalhamento
-            </Button>
-          </Link>
+          <div className="ml-auto flex gap-2">
+            <Link to="/equipe-n1">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                <Users className="h-3.5 w-3.5" />
+                Equipe N1
+              </Button>
+            </Link>
+            <Link to="/detalhamento">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                <ClipboardList className="h-3.5 w-3.5" />
+                Detalhamento
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
