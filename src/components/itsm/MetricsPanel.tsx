@@ -2,9 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Button } from "@/components/ui/button";
 import { ITSMState, ITSMResults, formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
-import { Gauge, Users, Server, Clock, Info } from "lucide-react";
+import { Gauge, Users, Server, Clock, Info, ExternalLink } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Link } from "react-router-dom";
 
 interface Props {
   state: ITSMState;
@@ -61,44 +63,28 @@ export default function MetricsPanel({ state, results, update }: Props) {
         <h2 className="text-sm font-semibold text-foreground">Métricas e Parâmetros</h2>
       </div>
 
-      {/* N1 - Posição de Atendimento */}
+      {/* N1 - Posição de Atendimento (fed from Equipe N1 page) */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5 text-blue-500" />
-            N1 — Posição de Atendimento
-          </CardTitle>
-          <p className="text-[10px] text-muted-foreground">4 pessoas · Regime 12×36</p>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-primary" />
+              N1 — Posição de Atendimento
+            </CardTitle>
+            <Link to="/equipe-n1">
+              <Button variant="ghost" size="sm" className="h-6 gap-1 text-[10px] text-primary">
+                <ExternalLink className="h-3 w-3" />
+                Detalhar
+              </Button>
+            </Link>
+          </div>
+          <p className="text-[10px] text-muted-foreground">Custos alimentados pela página Equipe N1</p>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <NumInput
-              label="Custo/Pessoa"
-              value={state.custoPessoaN1}
-              onChange={(v) => update("custoPessoaN1", v)}
-              prefix="R$"
-              step={100}
-              tooltip="Custo mensal de cada pessoa na posição (salário + encargos)"
-            />
-            <NumInput
-              label="Capacidade"
-              value={state.capacidadeChamadosN1}
-              onChange={(v) => update("capacidadeChamadosN1", v)}
-              step={50}
-              tooltip="Chamados/mês que uma posição consegue atender"
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <Label className="text-xs text-muted-foreground">Gestão</Label>
-              <span className="text-xs font-semibold text-foreground">{state.percGestaoN1}%</span>
-            </div>
-            <Slider value={[state.percGestaoN1]} onValueChange={([v]) => update("percGestaoN1", v)} min={0} max={50} step={1} />
-          </div>
-          <div className="space-y-1">
-            <MetricResult label="Custo Posição" value={formatBRL(results.custoPosicaoN1)} />
-            <MetricResult label="Custo/Chamado" value={formatBRL(results.custoPorChamadoN1)} />
-          </div>
+        <CardContent className="space-y-1">
+          <MetricResult label="Custo/Pessoa" value={formatBRL(state.custoPessoaN1)} />
+          <MetricResult label="Custo Posição (4p)" value={formatBRL(results.custoPosicaoN1)} />
+          <MetricResult label="Capacidade/Posição" value={`${formatNumber(state.capacidadeChamadosN1)} chamados`} />
+          <MetricResult label="Custo/Chamado" value={formatBRL(results.custoPorChamadoN1)} />
         </CardContent>
       </Card>
 

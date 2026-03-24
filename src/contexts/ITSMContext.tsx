@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useEffect } from "react";
 import { useITSMCalculator, ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { useN1TeamState, N1TeamState, N1TeamResults } from "@/hooks/useN1TeamState";
 
@@ -21,6 +21,13 @@ const ITSMContext = createContext<ITSMContextType | null>(null);
 export function ITSMProvider({ children }: { children: ReactNode }) {
   const calc = useITSMCalculator();
   const n1 = useN1TeamState();
+
+  // Sync N1 team detailed costs → main calculator
+  useEffect(() => {
+    calc.update("custoPessoaN1", n1.results.custoPorPessoa);
+    calc.update("capacidadeChamadosN1", n1.teamState.capacidadePorPosicao);
+    calc.update("percGestaoN1", 0); // already included in N1 team indirect costs
+  }, [n1.results.custoPorPessoa, n1.teamState.capacidadePorPosicao]);
 
   const value: ITSMContextType = {
     ...calc,
