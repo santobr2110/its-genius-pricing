@@ -81,9 +81,8 @@ export default function MetricsPanel({ state, results, update }: Props) {
           <p className="text-[10px] text-muted-foreground">Custos alimentados pela página Equipe N1</p>
         </CardHeader>
         <CardContent className="space-y-1">
-          <MetricResult label="Custo/Pessoa" value={formatBRL(state.custoPessoaN1)} />
-          <MetricResult label="Custo Posição (4p)" value={formatBRL(results.custoPosicaoN1)} />
-          <MetricResult label="Capacidade/Posição" value={`${formatNumber(state.capacidadeChamadosN1)} chamados`} />
+          <MetricResult label="Custo Total Equipe" value={formatBRL(results.custoPosicaoN1)} />
+          <MetricResult label="Capacidade do Time" value={`${formatNumber(state.capacidadeChamadosN1)} chamados/mês`} />
           <MetricResult label="Custo/Chamado" value={formatBRL(results.custoPorChamadoN1)} />
         </CardContent>
       </Card>
