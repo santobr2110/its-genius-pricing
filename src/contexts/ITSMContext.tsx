@@ -7,7 +7,6 @@ interface ITSMContextType {
   update: <K extends keyof ITSMState>(key: K, value: ITSMState[K]) => void;
   updateFunnel: (level: "percN1" | "percN2" | "percN3", value: number) => void;
   results: ITSMResults;
-  // N1 Team
   n1Team: N1TeamState;
   updateN1Professional: ReturnType<typeof useN1TeamState>["updateProfessional"];
   addN1Professional: ReturnType<typeof useN1TeamState>["addProfessional"];
@@ -22,12 +21,20 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const calc = useITSMCalculator();
   const n1 = useN1TeamState();
 
-  // Sync N1 team detailed costs → main calculator
+  // Sync: custo total equipe e capacidade do time → calculador principal
   useEffect(() => {
-    calc.update("custoPessoaN1", n1.results.custoPorPessoa);
-    calc.update("capacidadeChamadosN1", n1.teamState.capacidadePorPosicao);
-    calc.update("percGestaoN1", 0); // already included in N1 team indirect costs
-  }, [n1.results.custoPorPessoa, n1.teamState.capacidadePorPosicao]);
+    // custoPessoaN1 no motor antigo era "custo por pessoa" × 4 × (1+gestão%)
+    // Agora: custoPessoaN1 = custo total equipe (já inclui tudo)
+    // percGestaoN1 = 0, pois custos indiretos já estão inclusos
+    // capacidadeChamadosN1 = capacidade total do time
+    // Fórmula antiga: custoPosicaoN1 = custoPessoaN1 * 4 * (1 + 0/100) = custoPessoaN1 * 4
+    // Para que custoPosicaoN1 = custoTotalEquipe, setamos custoPessoaN1 = custoTotalEquipe / 4
+    // Mas isso é um hack. Melhor: setar custoPessoaN1 = custoTotalEquipe e ajustar fórmula.
+    // Simplest: custoPessoaN1 recebe custoTotalEquipe/4 para manter a fórmula *4 inalterada
+    calc.update("custoPessoaN1", n1.results.custoTotalEquipe / 4);
+    calc.update("capacidadeChamadosN1", n1.teamState.capacidadeTimeTotal);
+    calc.update("percGestaoN1", 0);
+  }, [n1.results.custoTotalEquipe, n1.teamState.capacidadeTimeTotal]);
 
   const value: ITSMContextType = {
     ...calc,

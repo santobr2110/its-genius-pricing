@@ -5,16 +5,15 @@ export interface N1Professional {
   cargo: string;
   quantidade: number;
   salarioBase: number;
-  encargosPerc: number; // % sobre salário (INSS, FGTS, 13º, férias etc.)
-  beneficiosFixo: number; // valor fixo por pessoa (VR, VT, plano saúde)
-  custosIndiretosPerc: number; // % overhead (infra, gestão)
+  encargosPerc: number;
+  beneficiosFixo: number;
+  custosIndiretosPerc: number;
+  escala: string; // ex: "12x36", "8x5", "6x1"
 }
 
 export interface N1TeamState {
   professionals: N1Professional[];
-  capacidadePorPessoa: number; // chamados/mês per capita
-  capacidadePorPosicao: number; // chamados/mês por posição (4 pessoas em 12x36)
-  pessoasPorPosicao: number; // quantas pessoas compõem uma posição (turno)
+  capacidadeTimeTotal: number; // chamados/mês que o time inteiro atende
 }
 
 export interface N1TeamResults {
@@ -25,9 +24,7 @@ export interface N1TeamResults {
   custoTotalEquipe: number;
   totalPessoas: number;
   custoPorPessoa: number;
-  custoPorChamadoPessoa: number;
-  custoPorChamadoPosicao: number;
-  custoPosicao: number;
+  custoPorChamado: number;
 }
 
 let nextId = 1;
@@ -39,11 +36,12 @@ const DEFAULT_PROFESSIONALS: N1Professional[] = [
   {
     id: genId(),
     cargo: "Analista de Suporte Jr",
-    quantidade: 3,
+    quantidade: 4,
     salarioBase: 2200,
     encargosPerc: 68,
     beneficiosFixo: 900,
     custosIndiretosPerc: 15,
+    escala: "12x36",
   },
   {
     id: genId(),
@@ -53,6 +51,7 @@ const DEFAULT_PROFESSIONALS: N1Professional[] = [
     encargosPerc: 68,
     beneficiosFixo: 900,
     custosIndiretosPerc: 15,
+    escala: "8x5",
   },
   {
     id: genId(),
@@ -62,14 +61,13 @@ const DEFAULT_PROFESSIONALS: N1Professional[] = [
     encargosPerc: 68,
     beneficiosFixo: 1100,
     custosIndiretosPerc: 15,
+    escala: "8x5",
   },
 ];
 
 const DEFAULT_STATE: N1TeamState = {
   professionals: DEFAULT_PROFESSIONALS,
-  capacidadePorPessoa: 400,
-  capacidadePorPosicao: 1500,
-  pessoasPorPosicao: 4,
+  capacidadeTimeTotal: 1500,
 };
 
 export function useN1TeamState() {
@@ -96,6 +94,7 @@ export function useN1TeamState() {
       encargosPerc: 68,
       beneficiosFixo: 900,
       custosIndiretosPerc: 15,
+      escala: "8x5",
     };
     setTeamState((prev) => ({
       ...prev,
@@ -139,12 +138,9 @@ export function useN1TeamState() {
 
     const custoTotalEquipe = custoTotalFolha + custoTotalEncargos + custoTotalBeneficios + custoTotalIndiretos;
     const custoPorPessoa = totalPessoas > 0 ? custoTotalEquipe / totalPessoas : 0;
-
-    const custoPosicao = custoPorPessoa * teamState.pessoasPorPosicao;
-    const custoPorChamadoPessoa =
-      teamState.capacidadePorPessoa > 0 ? custoPorPessoa / teamState.capacidadePorPessoa : 0;
-    const custoPorChamadoPosicao =
-      teamState.capacidadePorPosicao > 0 ? custoPosicao / teamState.capacidadePorPosicao : 0;
+    const custoPorChamado = teamState.capacidadeTimeTotal > 0
+      ? custoTotalEquipe / teamState.capacidadeTimeTotal
+      : 0;
 
     return {
       custoTotalFolha,
@@ -154,9 +150,7 @@ export function useN1TeamState() {
       custoTotalEquipe,
       totalPessoas,
       custoPorPessoa,
-      custoPorChamadoPessoa,
-      custoPorChamadoPosicao,
-      custoPosicao,
+      custoPorChamado,
     };
   }, [teamState]);
 

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, ArrowLeft, Plus, Trash2, Users, DollarSign, BarChart3, UserPlus } from "lucide-react";
+import { Calculator, ArrowLeft, Trash2, Users, DollarSign, BarChart3, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { N1Professional } from "@/hooks/useN1TeamState";
@@ -46,30 +46,10 @@ export default function EquipeN1() {
       <main className="mx-auto max-w-[1200px] p-4 space-y-4">
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <SummaryCard
-            icon={Users}
-            label="Total Pessoas"
-            value={String(n1Results.totalPessoas)}
-            accent="text-blue-600 bg-blue-50"
-          />
-          <SummaryCard
-            icon={DollarSign}
-            label="Custo Total Equipe"
-            value={formatBRL(n1Results.custoTotalEquipe)}
-            accent="text-emerald-600 bg-emerald-50"
-          />
-          <SummaryCard
-            icon={BarChart3}
-            label="Custo/Chamado (pessoa)"
-            value={formatBRL(n1Results.custoPorChamadoPessoa)}
-            accent="text-amber-600 bg-amber-50"
-          />
-          <SummaryCard
-            icon={BarChart3}
-            label="Custo/Chamado (posição)"
-            value={formatBRL(n1Results.custoPorChamadoPosicao)}
-            accent="text-purple-600 bg-purple-50"
-          />
+          <SummaryCard icon={Users} label="Total Pessoas" value={String(n1Results.totalPessoas)} accent="text-blue-600 bg-blue-50" />
+          <SummaryCard icon={DollarSign} label="Custo Total Equipe" value={formatBRL(n1Results.custoTotalEquipe)} accent="text-emerald-600 bg-emerald-50" />
+          <SummaryCard icon={DollarSign} label="Custo/Pessoa (médio)" value={formatBRL(n1Results.custoPorPessoa)} accent="text-amber-600 bg-amber-50" />
+          <SummaryCard icon={BarChart3} label="Custo/Chamado" value={formatBRL(n1Results.custoPorChamado)} accent="text-purple-600 bg-purple-50" />
         </div>
 
         {/* Professionals Table */}
@@ -90,8 +70,9 @@ export default function EquipeN1() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs min-w-[160px]">Cargo</TableHead>
+                    <TableHead className="text-xs min-w-[140px]">Cargo</TableHead>
                     <TableHead className="text-xs text-center w-16">Qtd</TableHead>
+                    <TableHead className="text-xs text-center w-20">Escala</TableHead>
                     <TableHead className="text-xs text-right w-28">Salário Base</TableHead>
                     <TableHead className="text-xs text-center w-20">Encargos %</TableHead>
                     <TableHead className="text-xs text-right w-28">Benefícios</TableHead>
@@ -104,68 +85,32 @@ export default function EquipeN1() {
                   {n1Team.professionals.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell className="p-1">
-                        <Input
-                          value={p.cargo}
-                          onChange={(e) => updateN1Professional(p.id, "cargo", e.target.value)}
-                          className="h-8 text-xs"
-                        />
+                        <Input value={p.cargo} onChange={(e) => updateN1Professional(p.id, "cargo", e.target.value)} className="h-8 text-xs" />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input
-                          type="number"
-                          value={p.quantidade}
-                          onChange={(e) => updateN1Professional(p.id, "quantidade", parseInt(e.target.value) || 0)}
-                          className="h-8 text-xs text-center"
-                          min={0}
-                        />
+                        <Input type="number" value={p.quantidade} onChange={(e) => updateN1Professional(p.id, "quantidade", parseInt(e.target.value) || 0)} className="h-8 text-xs text-center" min={0} />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input
-                          type="number"
-                          value={p.salarioBase}
-                          onChange={(e) => updateN1Professional(p.id, "salarioBase", parseFloat(e.target.value) || 0)}
-                          className="h-8 text-xs text-right"
-                          step={100}
-                        />
+                        <Input value={p.escala} onChange={(e) => updateN1Professional(p.id, "escala", e.target.value)} className="h-8 text-xs text-center" />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input
-                          type="number"
-                          value={p.encargosPerc}
-                          onChange={(e) => updateN1Professional(p.id, "encargosPerc", parseFloat(e.target.value) || 0)}
-                          className="h-8 text-xs text-center"
-                          step={1}
-                        />
+                        <Input type="number" value={p.salarioBase} onChange={(e) => updateN1Professional(p.id, "salarioBase", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-right" step={100} />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input
-                          type="number"
-                          value={p.beneficiosFixo}
-                          onChange={(e) => updateN1Professional(p.id, "beneficiosFixo", parseFloat(e.target.value) || 0)}
-                          className="h-8 text-xs text-right"
-                          step={50}
-                        />
+                        <Input type="number" value={p.encargosPerc} onChange={(e) => updateN1Professional(p.id, "encargosPerc", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-center" step={1} />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input
-                          type="number"
-                          value={p.custosIndiretosPerc}
-                          onChange={(e) => updateN1Professional(p.id, "custosIndiretosPerc", parseFloat(e.target.value) || 0)}
-                          className="h-8 text-xs text-center"
-                          step={1}
-                        />
+                        <Input type="number" value={p.beneficiosFixo} onChange={(e) => updateN1Professional(p.id, "beneficiosFixo", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-right" step={50} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input type="number" value={p.custosIndiretosPerc} onChange={(e) => updateN1Professional(p.id, "custosIndiretosPerc", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-center" step={1} />
                       </TableCell>
                       <TableCell className="p-1 text-right">
                         <span className="text-xs font-semibold">{formatBRL(profCost(p))}</span>
                       </TableCell>
                       <TableCell className="p-1">
                         {n1Team.professionals.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={() => removeN1Professional(p.id)}
-                          >
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => removeN1Professional(p.id)}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
@@ -198,40 +143,20 @@ export default function EquipeN1() {
             </CardContent>
           </Card>
 
-          {/* Productivity Config */}
+          {/* Productivity */}
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-                <BarChart3 className="h-4 w-4" /> Métricas de Produtividade
+                <BarChart3 className="h-4 w-4" /> Produtividade do Time
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Pessoas por Posição (turno 12×36)</Label>
+                <Label className="text-xs text-muted-foreground">Capacidade Total do Time (chamados/mês)</Label>
                 <Input
                   type="number"
-                  value={n1Team.pessoasPorPosicao}
-                  onChange={(e) => updateN1Config("pessoasPorPosicao", parseInt(e.target.value) || 1)}
-                  className="h-8 text-sm"
-                  min={1}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Capacidade/Pessoa (chamados/mês)</Label>
-                <Input
-                  type="number"
-                  value={n1Team.capacidadePorPessoa}
-                  onChange={(e) => updateN1Config("capacidadePorPessoa", parseInt(e.target.value) || 0)}
-                  className="h-8 text-sm"
-                  step={50}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Capacidade/Posição (chamados/mês)</Label>
-                <Input
-                  type="number"
-                  value={n1Team.capacidadePorPosicao}
-                  onChange={(e) => updateN1Config("capacidadePorPosicao", parseInt(e.target.value) || 0)}
+                  value={n1Team.capacidadeTimeTotal}
+                  onChange={(e) => updateN1Config("capacidadeTimeTotal", parseInt(e.target.value) || 0)}
                   className="h-8 text-sm"
                   step={50}
                 />
@@ -239,20 +164,26 @@ export default function EquipeN1() {
 
               <div className="space-y-1.5 pt-2 border-t">
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Custo/Pessoa</span>
+                  <span className="text-muted-foreground">Total de Pessoas</span>
+                  <span className="font-semibold">{n1Results.totalPessoas}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Custo Total da Equipe</span>
+                  <span className="font-semibold">{formatBRL(n1Results.custoTotalEquipe)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Custo Médio/Pessoa</span>
                   <span className="font-semibold">{formatBRL(n1Results.custoPorPessoa)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Custo/Posição ({n1Team.pessoasPorPosicao} pessoas)</span>
-                  <span className="font-semibold">{formatBRL(n1Results.custoPosicao)}</span>
+                  <span className="text-muted-foreground">Chamados/Pessoa/Mês</span>
+                  <span className="font-semibold">
+                    {n1Results.totalPessoas > 0 ? formatNumber(n1Team.capacidadeTimeTotal / n1Results.totalPessoas, 0) : "—"}
+                  </span>
                 </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Custo/Chamado (per capita)</span>
-                  <Badge variant="secondary" className="text-xs">{formatBRL(n1Results.custoPorChamadoPessoa)}</Badge>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Custo/Chamado (posição)</span>
-                  <Badge variant="secondary" className="text-xs">{formatBRL(n1Results.custoPorChamadoPosicao)}</Badge>
+                <div className="flex justify-between text-xs pt-1 border-t">
+                  <span className="text-muted-foreground font-semibold">Custo/Chamado</span>
+                  <Badge variant="secondary" className="text-xs">{formatBRL(n1Results.custoPorChamado)}</Badge>
                 </div>
               </div>
             </CardContent>
@@ -293,10 +224,7 @@ function CostRow({ label, value, total }: { label: string; value: number; total:
         </div>
       </div>
       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-        <div
-          className="h-full rounded-full bg-primary/60 transition-all"
-          style={{ width: `${Math.min(pct, 100)}%` }}
-        />
+        <div className="h-full rounded-full bg-primary/60 transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
       </div>
     </div>
   );
