@@ -3,7 +3,7 @@ import ConfigPanel from "@/components/itsm/ConfigPanel";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import ResultsPanel from "@/components/itsm/ResultsPanel";
 import MetricsPanel from "@/components/itsm/MetricsPanel";
-import { Calculator, ClipboardList, Users } from "lucide-react";
+import { Calculator, ClipboardList, Users, DollarSign } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,12 @@ const Index = () => {
           <Calculator className="h-5 w-5 text-primary" />
           <h1 className="text-sm font-bold text-foreground">Calculadora de Precificação ITSM</h1>
           <div className="ml-auto flex gap-2">
+            <Link to="/financeiro">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                <DollarSign className="h-3.5 w-3.5" />
+                Financeiro
+              </Button>
+            </Link>
             <Link to="/equipe-n1">
               <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                 <Users className="h-3.5 w-3.5" />

@@ -95,8 +95,8 @@ const DEFAULTS: ITSMState = {
   valorHoraN3: 120,
   tempoMedioChamadoN3: 2,
   custoFixoFerramentas: 1500,
-  margemLucro: 30,
-  impostosTaxas: 15,
+  margemLucro: 45,
+  impostosTaxas: 5.65,
 };
 
 export function useITSMCalculator() {
