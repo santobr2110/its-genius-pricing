@@ -44,21 +44,21 @@ export default function ConfiguracoesFinanceiras() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5" /> Preço de Venda
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-primary">{formatBRL(results.precoVendaMensal)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
                 <Percent className="h-3.5 w-3.5" /> Preço pré-imposto
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-foreground">{formatBRL(precoPreImposto)}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5" /> Preço de Venda
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-primary">{formatBRL(results.precoVendaMensal)}</p>
             </CardContent>
           </Card>
         </div>
