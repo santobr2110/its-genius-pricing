@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { usePersistentState } from "./usePersistentState";
 
 export interface N1Professional {
   id: string;
@@ -71,7 +72,7 @@ const DEFAULT_STATE: N1TeamState = {
 };
 
 export function useN1TeamState() {
-  const [teamState, setTeamState] = useState<N1TeamState>(DEFAULT_STATE);
+  const [teamState, setTeamState] = usePersistentState<N1TeamState>("itsm:n1team:v1", DEFAULT_STATE);
 
   const updateProfessional = useCallback(
     (id: string, field: keyof Omit<N1Professional, "id">, value: number | string) => {

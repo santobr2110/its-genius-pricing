@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
+import { usePersistentState } from "./usePersistentState";
 
 export interface ITSMState {
   // Inventário
@@ -103,7 +104,7 @@ const DEFAULTS: ITSMState = {
 };
 
 export function useITSMCalculator() {
-  const [state, setState] = useState<ITSMState>(DEFAULTS);
+  const [state, setState] = usePersistentState<ITSMState>("itsm:calculator:v1", DEFAULTS);
 
   const update = <K extends keyof ITSMState>(key: K, value: ITSMState[K]) => {
     setState((prev) => ({ ...prev, [key]: value }));
