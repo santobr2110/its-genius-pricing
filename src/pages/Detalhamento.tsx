@@ -5,12 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  ArrowLeft, ClipboardList, AlertTriangle, TrendingDown, Layers,
+  ClipboardList, AlertTriangle, TrendingDown, Layers,
   Headphones, Eye, Truck, Server, Monitor, Wrench, Clock
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { buildAreas, getAreaTotal, AreaData } from "@/lib/buildAreas";
+import SortableNav from "@/components/SortableNav";
 
 export default function Detalhamento() {
   const { state, results } = useITSMContext();
@@ -23,15 +22,11 @@ export default function Detalhamento() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-12 max-w-5xl items-center gap-3 px-4">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-1.5">
-              <ArrowLeft className="h-4 w-4" />
-              Voltar
-            </Button>
-          </Link>
-          <Separator orientation="vertical" className="h-5" />
           <ClipboardList className="h-5 w-5 text-primary" />
           <h1 className="text-sm font-bold text-foreground">Detalhamento por Área</h1>
+          <div className="ml-auto">
+            <SortableNav current="detalhamento" />
+          </div>
         </div>
       </header>
 
