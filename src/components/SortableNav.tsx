@@ -16,9 +16,9 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, ClipboardList, Users, DollarSign, TrendingUp, LucideIcon } from "lucide-react";
+import { GripVertical, ClipboardList, Users, DollarSign, TrendingUp, Server, Clock, LucideIcon } from "lucide-react";
 
-export type NavItemId = "home" | "taxas" | "financeiro" | "equipe-n1" | "detalhamento";
+export type NavItemId = "home" | "taxas" | "financeiro" | "equipe-n1" | "equipe-n2" | "equipe-n3" | "detalhamento";
 
 interface NavDef {
   id: NavItemId;
@@ -31,6 +31,8 @@ const ALL_ITEMS: NavDef[] = [
   { id: "taxas", to: "/taxas-demanda", label: "Taxas de Demanda", icon: TrendingUp },
   { id: "financeiro", to: "/financeiro", label: "Financeiro", icon: DollarSign },
   { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", icon: Users },
+  { id: "equipe-n2", to: "/equipe-n2", label: "Equipe N2", icon: Server },
+  { id: "equipe-n3", to: "/equipe-n3", label: "Equipe N3", icon: Clock },
   { id: "detalhamento", to: "/detalhamento", label: "Detalhamento", icon: ClipboardList },
 ];
 

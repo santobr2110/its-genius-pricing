@@ -1,7 +1,6 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import ResultsPanel from "@/components/itsm/ResultsPanel";
-import MetricsPanel from "@/components/itsm/MetricsPanel";
 import { Calculator } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 
@@ -20,20 +19,12 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] p-4">
-        <div className="grid gap-4 lg:grid-cols-[280px_1fr_300px]">
-          {/* Left Panel - Métricas */}
-          <aside className="order-2 lg:order-1">
-            <MetricsPanel state={state} results={results} update={update} />
-          </aside>
-
-          {/* Center Panel */}
-          <section className="order-1 lg:order-2">
+      <main className="mx-auto max-w-[1400px] p-4">
+        <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+          <section>
             <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
           </section>
-
-          {/* Right Panel */}
-          <aside className="order-3">
+          <aside>
             <ResultsPanel state={state} results={results} />
           </aside>
         </div>
