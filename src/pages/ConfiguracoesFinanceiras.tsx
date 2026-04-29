@@ -156,12 +156,17 @@ export default function ConfiguracoesFinanceiras() {
               </p>
             </div>
 
-            <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground space-y-1">
-              <p className="font-semibold text-foreground">Método: Markup Divisor (por dentro)</p>
-              <p>Preço de Venda = Custo Total / (1 - (Margem% + Impostos%) / 100)</p>
-              <p>Soma atual: <span className="font-semibold text-foreground">
-                {(state.margemLucro + state.impostosTaxas).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
-              </span></p>
+            <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground space-y-1.5">
+              <p className="font-semibold text-foreground">Modelo de cálculo</p>
+              <p>1. <span className="font-medium">Margem (markup divisor):</span> Preço pré-imposto = Custo Total / (1 - Margem%/100)</p>
+              <p>2. <span className="font-medium">Imposto por fora:</span> Preço Final = Preço pré-imposto / (1 - Imposto%/100)</p>
+              <p className="pt-1 border-t border-border/50 mt-2">
+                Custo representa <span className="font-semibold text-foreground">
+                  {(100 - state.margemLucro).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span> do preço pré-imposto • Imposto de <span className="font-semibold text-foreground">
+                  {state.impostosTaxas.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span> pago pelo cliente sobre o preço final
+              </p>
             </div>
           </CardContent>
         </Card>
