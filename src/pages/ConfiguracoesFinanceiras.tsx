@@ -12,8 +12,7 @@ import { Link } from "react-router-dom";
 export default function ConfiguracoesFinanceiras() {
   const { state, update, results } = useITSMContext();
 
-  const valorMargem = results.precoVendaMensal * (state.margemLucro / 100);
-  const valorImpostos = results.precoVendaMensal * (state.impostosTaxas / 100);
+  const { valorMargem, valorImpostos, precoPreImposto } = results;
 
   return (
     <div className="min-h-screen bg-muted/30">
