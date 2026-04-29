@@ -47,7 +47,7 @@ export default function ConfigPanel({ state, update }: Props) {
               <NumInput label="Chamados/Servidor" value={state.taxaServidor} onChange={(v) => update("taxaServidor", v)} />
               <NumInput label="Chamados/Rede" value={state.taxaRede} onChange={(v) => update("taxaRede", v)} />
               <NumInput label="Chamados/BD" value={state.taxaBancoDados} onChange={(v) => update("taxaBancoDados", v)} />
-              <NumInput label="Chamados/Sistemas" value={state.taxaSistemas} onChange={(v) => update("taxaSistemas", v)} />
+              <NumInput label="Chamados/Firewall" value={state.taxaSistemas} onChange={(v) => update("taxaSistemas", v)} />
             </div>
           </AccordionContent>
         </AccordionItem>

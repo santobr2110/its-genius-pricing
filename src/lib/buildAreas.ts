@@ -116,7 +116,7 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoExtraLabel: "Rotinas p/ Prevenção",
     },
     {
-      nome: "Gestão de Sistemas",
+      nome: "Gestão de Firewall",
       icon: Monitor,
       chamadosBrutos: gestaoSistemas.bruto,
       chamadosN0: 0,
