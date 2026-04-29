@@ -54,13 +54,11 @@ export default function ConfiguracoesFinanceiras() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-                <Percent className="h-3.5 w-3.5" /> Markup Aplicado
+                <Percent className="h-3.5 w-3.5" /> Preço pré-imposto
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-foreground">
-                {(state.margemLucro + state.impostosTaxas).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
-              </p>
+              <p className="text-2xl font-bold text-foreground">{formatBRL(precoPreImposto)}</p>
             </CardContent>
           </Card>
         </div>
