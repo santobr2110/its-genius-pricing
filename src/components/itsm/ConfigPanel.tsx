@@ -1,9 +1,8 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { ITSMState } from "@/hooks/useITSMCalculator";
-import { Settings2, DollarSign, TrendingUp } from "lucide-react";
+import { Settings2, TrendingUp } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -37,7 +36,7 @@ export default function ConfigPanel({ state, update }: Props) {
         <Settings2 className="h-4 w-4 text-muted-foreground" />
         <h2 className="text-sm font-semibold text-foreground">Motor de Configurações</h2>
       </div>
-      <Accordion type="multiple" defaultValue={["taxas", "financeiro"]} className="space-y-2">
+      <Accordion type="multiple" defaultValue={["taxas"]} className="space-y-2">
         <AccordionItem value="taxas" className="border rounded-lg px-3 bg-card">
           <AccordionTrigger className="text-sm py-3 hover:no-underline">
             <span className="flex items-center gap-2"><TrendingUp className="h-3.5 w-3.5 text-primary" />Taxas de Demanda</span>
@@ -49,30 +48,6 @@ export default function ConfigPanel({ state, update }: Props) {
               <NumInput label="Chamados/Rede" value={state.taxaRede} onChange={(v) => update("taxaRede", v)} />
               <NumInput label="Chamados/BD" value={state.taxaBancoDados} onChange={(v) => update("taxaBancoDados", v)} />
               <NumInput label="Chamados/Sistemas" value={state.taxaSistemas} onChange={(v) => update("taxaSistemas", v)} />
-              
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="financeiro" className="border rounded-lg px-3 bg-card">
-          <AccordionTrigger className="text-sm py-3 hover:no-underline">
-            <span className="flex items-center gap-2"><DollarSign className="h-3.5 w-3.5 text-primary" />Configurações Financeiras</span>
-          </AccordionTrigger>
-          <AccordionContent className="pb-3 space-y-4">
-            <NumInput label="Custo Fixo Ferramentas" value={state.custoFixoFerramentas} onChange={(v) => update("custoFixoFerramentas", v)} prefix="R$" step={100} />
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label className="text-xs text-muted-foreground">Margem de Lucro</Label>
-                <span className="text-xs font-semibold text-foreground">{state.margemLucro}%</span>
-              </div>
-              <Slider value={[state.margemLucro]} onValueChange={([v]) => update("margemLucro", v)} min={0} max={60} step={1} />
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label className="text-xs text-muted-foreground">Impostos e Taxas</Label>
-                <span className="text-xs font-semibold text-foreground">{state.impostosTaxas}%</span>
-              </div>
-              <Slider value={[state.impostosTaxas]} onValueChange={([v]) => update("impostosTaxas", v)} min={0} max={40} step={1} />
             </div>
           </AccordionContent>
         </AccordionItem>
