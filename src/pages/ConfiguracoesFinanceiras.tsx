@@ -12,8 +12,7 @@ import { Link } from "react-router-dom";
 export default function ConfiguracoesFinanceiras() {
   const { state, update, results } = useITSMContext();
 
-  const valorMargem = results.precoVendaMensal * (state.margemLucro / 100);
-  const valorImpostos = results.precoVendaMensal * (state.impostosTaxas / 100);
+  const { valorMargem, valorImpostos, precoPreImposto } = results;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -55,13 +54,11 @@ export default function ConfiguracoesFinanceiras() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-                <Percent className="h-3.5 w-3.5" /> Markup Aplicado
+                <Percent className="h-3.5 w-3.5" /> Preço pré-imposto
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-foreground">
-                {(state.margemLucro + state.impostosTaxas).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
-              </p>
+              <p className="text-2xl font-bold text-foreground">{formatBRL(precoPreImposto)}</p>
             </CardContent>
           </Card>
         </div>
@@ -159,12 +156,17 @@ export default function ConfiguracoesFinanceiras() {
               </p>
             </div>
 
-            <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground space-y-1">
-              <p className="font-semibold text-foreground">Método: Markup Divisor (por dentro)</p>
-              <p>Preço de Venda = Custo Total / (1 - (Margem% + Impostos%) / 100)</p>
-              <p>Soma atual: <span className="font-semibold text-foreground">
-                {(state.margemLucro + state.impostosTaxas).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
-              </span></p>
+            <div className="rounded-lg bg-muted/50 p-4 text-xs text-muted-foreground space-y-1.5">
+              <p className="font-semibold text-foreground">Modelo de cálculo</p>
+              <p>1. <span className="font-medium">Margem (markup divisor):</span> Preço pré-imposto = Custo Total / (1 - Margem%/100)</p>
+              <p>2. <span className="font-medium">Imposto por fora:</span> Preço Final = Preço pré-imposto / (1 - Imposto%/100)</p>
+              <p className="pt-1 border-t border-border/50 mt-2">
+                Custo representa <span className="font-semibold text-foreground">
+                  {(100 - state.margemLucro).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span> do preço pré-imposto • Imposto de <span className="font-semibold text-foreground">
+                  {state.impostosTaxas.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span> pago pelo cliente sobre o preço final
+              </p>
             </div>
           </CardContent>
         </Card>

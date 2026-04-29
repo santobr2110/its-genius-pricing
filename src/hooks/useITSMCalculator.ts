@@ -67,6 +67,9 @@ export interface ITSMResults {
   chamadosBancoDados: number;
   chamadosSistemas: number;
   custoTotalOperacao: number;
+  precoPreImposto: number;
+  valorMargem: number;
+  valorImpostos: number;
   precoVendaMensal: number;
 }
 
@@ -180,9 +183,16 @@ export function useITSMCalculator() {
     const custoN3 = horasN3 * state.valorHoraN3;
 
     const custoTotalOperacao = custoN1 + custoN2 + custoN3 + state.custoFixoFerramentas;
-    const percentualCustosVenda = state.margemLucro + state.impostosTaxas;
-    const fatorDivisor = (100 - percentualCustosVenda) / 100;
-    const precoVendaMensal = fatorDivisor > 0 ? custoTotalOperacao / fatorDivisor : 0;
+    // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
+    // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
+    const fatorMargem = (100 - state.margemLucro) / 100;
+    const precoPreImposto = fatorMargem > 0 ? custoTotalOperacao / fatorMargem : 0;
+    const valorMargem = precoPreImposto - custoTotalOperacao;
+    // Impostos por fora: cliente paga sobre o preço final
+    // preco_final * (1 - imposto%) = preco_pre_imposto → preco_final = preco_pre_imposto / (1 - imposto%)
+    const fatorImposto = (100 - state.impostosTaxas) / 100;
+    const precoVendaMensal = fatorImposto > 0 ? precoPreImposto / fatorImposto : 0;
+    const valorImpostos = precoVendaMensal - precoPreImposto;
 
     return {
       totalChamadosUsuarios,
@@ -209,6 +219,9 @@ export function useITSMCalculator() {
       chamadosBancoDados,
       chamadosSistemas,
       custoTotalOperacao,
+      precoPreImposto,
+      valorMargem,
+      valorImpostos,
       precoVendaMensal,
     };
   }, [state]);
