@@ -14,12 +14,12 @@ export default function EquipeN3() {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-12 max-w-[1200px] items-center gap-2 px-4">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Clock className="h-5 w-5 text-red-500" />
-            <h1 className="text-sm font-bold text-foreground">Equipe N3 — Estrutura de Custos</h1>
+        <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
+            <Clock className="h-5 w-5 text-red-500 shrink-0" />
+            <h1 className="text-sm font-bold text-foreground truncate">Equipe N3 — Estrutura de Custos</h1>
           </Link>
-          <div className="ml-auto">
+          <div className="ml-auto shrink-0 pl-2">
             <SortableNav current="equipe-n3" />
           </div>
         </div>

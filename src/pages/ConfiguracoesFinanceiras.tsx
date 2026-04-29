@@ -17,12 +17,12 @@ export default function ConfiguracoesFinanceiras() {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-12 max-w-5xl items-center gap-3 px-4">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <DollarSign className="h-5 w-5 text-primary" />
-            <h1 className="text-sm font-bold text-foreground">Configurações Financeiras</h1>
+        <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-3 px-4">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
+            <DollarSign className="h-5 w-5 text-primary shrink-0" />
+            <h1 className="text-sm font-bold text-foreground truncate">Configurações Financeiras</h1>
           </Link>
-          <div className="ml-auto">
+          <div className="ml-auto shrink-0 pl-2">
             <SortableNav current="financeiro" />
           </div>
         </div>
