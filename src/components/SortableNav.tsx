@@ -16,7 +16,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, ClipboardList, Users, DollarSign, Calculator, LucideIcon } from "lucide-react";
+import { GripVertical, ClipboardList, Users, DollarSign, LucideIcon } from "lucide-react";
 
 export type NavItemId = "home" | "financeiro" | "equipe-n1" | "detalhamento";
 
@@ -28,7 +28,6 @@ interface NavDef {
 }
 
 const ALL_ITEMS: NavDef[] = [
-  { id: "home", to: "/", label: "Calculadora", icon: Calculator },
   { id: "financeiro", to: "/financeiro", label: "Financeiro", icon: DollarSign },
   { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", icon: Users },
   { id: "detalhamento", to: "/detalhamento", label: "Detalhamento", icon: ClipboardList },
