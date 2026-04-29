@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { buildAreas, getAreaTotal, AreaData } from "@/lib/buildAreas";
 import SortableNav from "@/components/SortableNav";
+import { Link } from "react-router-dom";
 
 export default function Detalhamento() {
   const { state, results } = useITSMContext();
@@ -22,8 +23,10 @@ export default function Detalhamento() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-12 max-w-5xl items-center gap-3 px-4">
-          <ClipboardList className="h-5 w-5 text-primary" />
-          <h1 className="text-sm font-bold text-foreground">Detalhamento por Área</h1>
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <ClipboardList className="h-5 w-5 text-primary" />
+            <h1 className="text-sm font-bold text-foreground">Detalhamento por Área</h1>
+          </Link>
           <div className="ml-auto">
             <SortableNav current="detalhamento" />
           </div>

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calculator, Trash2, Users, DollarSign, BarChart3, UserPlus } from "lucide-react";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { N1Professional } from "@/hooks/useN1TeamState";
+import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 
 export default function EquipeN1() {
@@ -32,8 +33,10 @@ export default function EquipeN1() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-12 max-w-[1200px] items-center gap-2 px-4">
-          <Calculator className="h-5 w-5 text-primary" />
-          <h1 className="text-sm font-bold text-foreground">Equipe N1 — Estrutura de Custos</h1>
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <Calculator className="h-5 w-5 text-primary" />
+            <h1 className="text-sm font-bold text-foreground">Equipe N1 — Estrutura de Custos</h1>
+          </Link>
           <div className="ml-auto">
             <SortableNav current="equipe-n1" />
           </div>

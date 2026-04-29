@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { DollarSign, TrendingUp, Percent, Wallet } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
+import { Link } from "react-router-dom";
 
 export default function ConfiguracoesFinanceiras() {
   const { state, update, results } = useITSMContext();
@@ -18,8 +19,10 @@ export default function ConfiguracoesFinanceiras() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-12 max-w-5xl items-center gap-3 px-4">
-          <DollarSign className="h-5 w-5 text-primary" />
-          <h1 className="text-sm font-bold text-foreground">Configurações Financeiras</h1>
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <DollarSign className="h-5 w-5 text-primary" />
+            <h1 className="text-sm font-bold text-foreground">Configurações Financeiras</h1>
+          </Link>
           <div className="ml-auto">
             <SortableNav current="financeiro" />
           </div>
