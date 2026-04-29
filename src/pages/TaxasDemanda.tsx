@@ -2,7 +2,7 @@ import { useITSMContext } from "@/contexts/ITSMContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TrendingUp, Users, Server, Network, Database, Monitor } from "lucide-react";
+import { TrendingUp, Users, Server, Network, Database, ShieldCheck } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import { Link } from "react-router-dom";
 import { ITSMState } from "@/hooks/useITSMCalculator";
@@ -120,12 +120,12 @@ export default function TaxasDemanda() {
               onChange={set("taxaBancoDados")}
             />
             <RateRow
-              icon={Monitor}
-              label="Sistemas"
-              description="Chamados de aplicações e sistemas corporativos"
+              icon={ShieldCheck}
+              label="Firewall"
+              description="Chamados relacionados a firewalls (regras, bloqueios, VPN, incidentes)"
               value={state.taxaSistemas}
               qty={state.qtdSistemas}
-              qtyLabel="Sistemas"
+              qtyLabel="Inventário de firewalls"
               onChange={set("taxaSistemas")}
             />
           </CardContent>
