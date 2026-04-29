@@ -1,10 +1,8 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
-import ConfigPanel from "@/components/itsm/ConfigPanel";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import ResultsPanel from "@/components/itsm/ResultsPanel";
 import MetricsPanel from "@/components/itsm/MetricsPanel";
 import { Calculator } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SortableNav from "@/components/SortableNav";
 
 const Index = () => {
@@ -24,20 +22,9 @@ const Index = () => {
 
       <main className="mx-auto max-w-[1600px] p-4">
         <div className="grid gap-4 lg:grid-cols-[280px_1fr_300px]">
-          {/* Left Panel - Tabs */}
+          {/* Left Panel - Métricas */}
           <aside className="order-2 lg:order-1">
-            <Tabs defaultValue="metricas" className="w-full">
-              <TabsList className="w-full grid grid-cols-2">
-                <TabsTrigger value="metricas" className="text-xs">Métricas</TabsTrigger>
-                <TabsTrigger value="config" className="text-xs">Config</TabsTrigger>
-              </TabsList>
-              <TabsContent value="metricas">
-                <MetricsPanel state={state} results={results} update={update} />
-              </TabsContent>
-              <TabsContent value="config">
-                <ConfigPanel state={state} update={update} />
-              </TabsContent>
-            </Tabs>
+            <MetricsPanel state={state} results={results} update={update} />
           </aside>
 
           {/* Center Panel */}
