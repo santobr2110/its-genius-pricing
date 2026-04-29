@@ -5,10 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, ArrowLeft, Trash2, Users, DollarSign, BarChart3, UserPlus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Calculator, Trash2, Users, DollarSign, BarChart3, UserPlus } from "lucide-react";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { N1Professional } from "@/hooks/useN1TeamState";
+import SortableNav from "@/components/SortableNav";
 
 export default function EquipeN1() {
   const {
@@ -34,12 +34,9 @@ export default function EquipeN1() {
         <div className="mx-auto flex h-12 max-w-[1200px] items-center gap-2 px-4">
           <Calculator className="h-5 w-5 text-primary" />
           <h1 className="text-sm font-bold text-foreground">Equipe N1 — Estrutura de Custos</h1>
-          <Link to="/" className="ml-auto">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Voltar
-            </Button>
-          </Link>
+          <div className="ml-auto">
+            <SortableNav current="equipe-n1" />
+          </div>
         </div>
       </header>
 
