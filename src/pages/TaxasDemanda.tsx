@@ -66,7 +66,7 @@ export default function TaxasDemanda() {
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-3 px-4">
           <BackHomeButton /><Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
             <TrendingUp className="h-5 w-5 text-primary shrink-0" />
-            <h1 className="text-sm font-bold text-foreground truncate">Taxas de Demanda</h1>
+            <h1 className="text-sm font-bold text-foreground truncate">Métricas e Parâmetros</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2">
             <SortableNav current="taxas" />
@@ -75,6 +75,48 @@ export default function TaxasDemanda() {
       </header>
 
       <main className="mx-auto max-w-5xl p-6 space-y-6">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Smart Monitor</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Parâmetros usados para compor o custo da camada Smart Monitor.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Custo por ativo monitorado (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={state.custoAtivoMonitorado}
+                  onChange={(e) => update("custoAtivoMonitorado", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Aplicado sobre Servidores + Rede + Firewall.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Monitor</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  max={100}
+                  value={state.percAlocacaoN1Monitor}
+                  onChange={(e) => update("percAlocacaoN1Monitor", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Volume mensal de chamados por categoria</CardTitle>
@@ -129,34 +171,6 @@ export default function TaxasDemanda() {
               qtyLabel="Inventário de firewalls"
               onChange={set("taxaSistemas")}
             />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Alocação para Smart Monitor</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Percentual do custo do chamado N1 alocado para a camada Smart Monitor (referente aos chamados de Servidores, Rede e Firewall).
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-3 items-center">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Monitor</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  max={100}
-                  value={state.percAlocacaoN1Monitor}
-                  onChange={(e) => update("percAlocacaoN1Monitor", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Aplica esse percentual sobre (custo por chamado N1 × chamados de Servidores+Rede+Firewall).
-              </p>
-            </div>
           </CardContent>
         </Card>
 
