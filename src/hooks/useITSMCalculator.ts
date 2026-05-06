@@ -39,6 +39,7 @@ export interface ITSMState {
   impostosTaxas: number;
   // Camadas de oferta
   percAlocacaoN1Monitor: number;
+  custoAtivoMonitorado: number;
 }
 
 export interface ITSMResults {
@@ -113,6 +114,7 @@ const DEFAULTS: ITSMState = {
   margemLucro: 45,
   impostosTaxas: 5.65,
   percAlocacaoN1Monitor: 30,
+  custoAtivoMonitorado: 50,
 };
 
 export function useITSMCalculator() {
@@ -210,7 +212,7 @@ export function useITSMCalculator() {
     // === Smart Monitor ===
     const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
     const smChamados = chamadosServidores + chamadosRede + chamadosSistemas;
-    const smCustoMonit = custoPorChamadoN1 * smAtivos;
+    const smCustoMonit = state.custoAtivoMonitorado * smAtivos;
     const smCustoN1Aloc = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados;
     const smartMonitor = {
       ativos: smAtivos,
