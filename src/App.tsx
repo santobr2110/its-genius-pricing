@@ -11,6 +11,7 @@ import EquipeN3 from "./pages/EquipeN3";
 import ConfiguracoesFinanceiras from "./pages/ConfiguracoesFinanceiras";
 import TaxasDemanda from "./pages/TaxasDemanda";
 import Precificacoes from "./pages/Precificacoes";
+import Operacao from "./pages/Operacao";
 import NotFound from "./pages/NotFound";
 import { ITSMProvider } from "./contexts/ITSMContext";
 
