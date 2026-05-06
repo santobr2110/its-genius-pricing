@@ -158,6 +158,7 @@ export function useN1TeamState() {
 
   return {
     teamState,
+    setTeamState,
     updateProfessional,
     addProfessional,
     removeProfessional,
