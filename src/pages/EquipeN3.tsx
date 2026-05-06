@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Clock, DollarSign, AlertTriangle } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
+import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 
@@ -15,7 +16,7 @@ export default function EquipeN3() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
+          <BackHomeButton /><Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
             <Clock className="h-5 w-5 text-red-500 shrink-0" />
             <h1 className="text-sm font-bold text-foreground truncate">Equipe N3 — Estrutura de Custos</h1>
           </Link>
