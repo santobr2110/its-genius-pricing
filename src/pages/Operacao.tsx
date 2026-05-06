@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Bot, Filter, Activity } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import SavePresetButton from "@/components/SavePresetButton";
+import BackHomeButton from "@/components/BackHomeButton";
 import { formatNumber } from "@/hooks/useITSMCalculator";
 
 const FUNNEL_COLORS = {
