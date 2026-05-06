@@ -52,7 +52,7 @@ interface NavDef {
 }
 
 const ALL_ITEMS: NavDef[] = [
-  { id: "taxas", to: "/taxas-demanda", label: "Taxas de Demanda", shortLabel: "Taxas", icon: TrendingUp },
+  { id: "taxas", to: "/taxas-demanda", label: "Métricas e Parâmetros", shortLabel: "Métricas", icon: TrendingUp },
   { id: "operacao", to: "/operacao", label: "Operação", shortLabel: "Operação", icon: Activity },
   { id: "financeiro", to: "/financeiro", label: "Financeiro", shortLabel: "Financeiro", icon: DollarSign },
   { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", shortLabel: "N1", icon: Users },
