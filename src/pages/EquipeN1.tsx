@@ -10,6 +10,7 @@ import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { N1Professional } from "@/hooks/useN1TeamState";
 import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
+import BackHomeButton from "@/components/BackHomeButton";
 
 export default function EquipeN1() {
   const {

@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { DollarSign, TrendingUp, Percent, Wallet } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
+import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 
 export default function ConfiguracoesFinanceiras() {

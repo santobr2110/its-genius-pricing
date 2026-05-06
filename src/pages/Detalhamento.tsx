@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { buildAreas, getAreaTotal, AreaData } from "@/lib/buildAreas";
 import SortableNav from "@/components/SortableNav";
+import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 
 export default function Detalhamento() {

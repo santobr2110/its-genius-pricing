@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Server, DollarSign, BarChart3 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
+import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 

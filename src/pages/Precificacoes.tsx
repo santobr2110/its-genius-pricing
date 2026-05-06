@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import SortableNav from "@/components/SortableNav";
+import BackHomeButton from "@/components/BackHomeButton";
 import { toast } from "sonner";
 
 function fmtDate(ts: number) {
