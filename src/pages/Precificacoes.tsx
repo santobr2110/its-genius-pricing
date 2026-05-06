@@ -52,7 +52,7 @@ export default function Precificacoes() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
-          <Link to="/">
+          <BackHomeButton /><Link to="/">
             <Button variant="ghost" size="sm" className="gap-1.5 h-8">
               <ArrowLeft className="h-3.5 w-3.5" />
               <span className="text-xs">Voltar</span>

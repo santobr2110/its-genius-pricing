@@ -24,7 +24,7 @@ export default function Detalhamento() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-3 px-4">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
+          <BackHomeButton /><Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
             <ClipboardList className="h-5 w-5 text-primary shrink-0" />
             <h1 className="text-sm font-bold text-foreground truncate">Detalhamento por Área</h1>
           </Link>
