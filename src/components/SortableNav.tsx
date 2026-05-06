@@ -25,6 +25,7 @@ import {
   Server,
   Clock,
   FolderOpen,
+  Activity,
   Menu,
   Check,
   LucideIcon,
