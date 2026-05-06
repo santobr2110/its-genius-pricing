@@ -11,6 +11,7 @@ import EquipeN3 from "./pages/EquipeN3";
 import ConfiguracoesFinanceiras from "./pages/ConfiguracoesFinanceiras";
 import TaxasDemanda from "./pages/TaxasDemanda";
 import Precificacoes from "./pages/Precificacoes";
+import Operacao from "./pages/Operacao";
 import NotFound from "./pages/NotFound";
 import { ITSMProvider } from "./contexts/ITSMContext";
 
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/financeiro" element={<ConfiguracoesFinanceiras />} />
             <Route path="/taxas-demanda" element={<TaxasDemanda />} />
             <Route path="/precificacoes" element={<Precificacoes />} />
+            <Route path="/operacao" element={<Operacao />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

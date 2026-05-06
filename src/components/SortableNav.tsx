@@ -25,6 +25,7 @@ import {
   Server,
   Clock,
   FolderOpen,
+  Activity,
   Menu,
   Check,
   LucideIcon,
@@ -40,7 +41,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 
-export type NavItemId = "home" | "taxas" | "financeiro" | "equipe-n1" | "equipe-n2" | "equipe-n3" | "detalhamento" | "precificacoes";
+export type NavItemId = "home" | "taxas" | "financeiro" | "equipe-n1" | "equipe-n2" | "equipe-n3" | "detalhamento" | "precificacoes" | "operacao";
 
 interface NavDef {
   id: NavItemId;
@@ -52,6 +53,7 @@ interface NavDef {
 
 const ALL_ITEMS: NavDef[] = [
   { id: "taxas", to: "/taxas-demanda", label: "Taxas de Demanda", shortLabel: "Taxas", icon: TrendingUp },
+  { id: "operacao", to: "/operacao", label: "Operação", shortLabel: "Operação", icon: Activity },
   { id: "financeiro", to: "/financeiro", label: "Financeiro", shortLabel: "Financeiro", icon: DollarSign },
   { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", shortLabel: "N1", icon: Users },
   { id: "equipe-n2", to: "/equipe-n2", label: "Equipe N2", shortLabel: "N2", icon: Server },
