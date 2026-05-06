@@ -1,9 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { ITSMState, ITSMResults, formatNumber } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Bot, Clock, Filter } from "lucide-react";
+import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
+import { Users, Server, Network, Database, ShieldCheck, Clock } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -20,13 +19,7 @@ const inventoryItems = [
   { key: "qtdSistemas" as const, label: "Firewall", icon: ShieldCheck, color: "text-cyan-500" },
 ] as const;
 
-const FUNNEL_COLORS = {
-  N1: "bg-blue-500",
-  N2: "bg-amber-500",
-  N3: "bg-red-500",
-};
-
-export default function ClientPanel({ state, update, updateFunnel, results }: Props) {
+export default function ClientPanel({ state, update }: Props) {
   return (
     <div className="space-y-4">
       {/* Inventário */}
