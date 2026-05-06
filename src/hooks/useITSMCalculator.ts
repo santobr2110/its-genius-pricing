@@ -228,7 +228,7 @@ export function useITSMCalculator() {
     };
   }, [state]);
 
-  return { state, update, updateFunnel, results };
+  return { state, setState, update, updateFunnel, results };
 }
 
 export function formatBRL(value: number): string {

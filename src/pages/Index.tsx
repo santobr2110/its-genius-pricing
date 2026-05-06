@@ -3,6 +3,7 @@ import ClientPanel from "@/components/itsm/ClientPanel";
 import ResultsPanel from "@/components/itsm/ResultsPanel";
 import { Calculator } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
+import SavePresetButton from "@/components/SavePresetButton";
 
 const Index = () => {
   const { state, update, updateFunnel, results } = useITSMContext();
@@ -15,7 +16,8 @@ const Index = () => {
             <Calculator className="h-5 w-5 text-primary shrink-0" />
             <h1 className="text-sm font-bold text-foreground truncate">Calculadora de Precificação ITSM</h1>
           </div>
-          <div className="ml-auto shrink-0 pl-2">
+          <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
+            <SavePresetButton />
             <SortableNav current="home" />
           </div>
         </div>
