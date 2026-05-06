@@ -37,6 +37,8 @@ export interface ITSMState {
   // Financeiro
   margemLucro: number;
   impostosTaxas: number;
+  // Camadas de oferta
+  percAlocacaoN1Monitor: number;
 }
 
 export interface ITSMResults {
@@ -73,6 +75,14 @@ export interface ITSMResults {
   valorMargem: number;
   valorImpostos: number;
   precoVendaMensal: number;
+  // Smart Monitor
+  smartMonitor: {
+    ativos: number;
+    chamadosAtivos: number;
+    custoMonitoramento: number;
+    custoN1Alocado: number;
+    total: number;
+  };
 }
 
 const DEFAULTS: ITSMState = {
@@ -102,6 +112,7 @@ const DEFAULTS: ITSMState = {
   custoFixoFerramentas: 1500,
   margemLucro: 45,
   impostosTaxas: 5.65,
+  percAlocacaoN1Monitor: 30,
 };
 
 export function useITSMCalculator() {
@@ -196,6 +207,19 @@ export function useITSMCalculator() {
     const precoVendaMensal = fatorImposto > 0 ? precoPreImposto / fatorImposto : 0;
     const valorImpostos = precoVendaMensal - precoPreImposto;
 
+    // === Smart Monitor ===
+    const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
+    const smChamados = chamadosServidores + chamadosRede + chamadosSistemas;
+    const smCustoMonit = custoPorChamadoN1 * smAtivos;
+    const smCustoN1Aloc = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados;
+    const smartMonitor = {
+      ativos: smAtivos,
+      chamadosAtivos: smChamados,
+      custoMonitoramento: smCustoMonit,
+      custoN1Alocado: smCustoN1Aloc,
+      total: smCustoMonit + smCustoN1Aloc,
+    };
+
     return {
       totalChamadosUsuarios,
       totalChamadosInfra,
@@ -225,6 +249,7 @@ export function useITSMCalculator() {
       valorMargem,
       valorImpostos,
       precoVendaMensal,
+      smartMonitor,
     };
   }, [state]);
 
