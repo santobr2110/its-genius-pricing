@@ -1,5 +1,6 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
 import ClientPanel from "@/components/itsm/ClientPanel";
+import SmartTiersPanel from "@/components/itsm/SmartTiersPanel";
 import { Calculator } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import SavePresetButton from "@/components/SavePresetButton";
@@ -23,7 +24,10 @@ const Index = () => {
       </header>
 
       <main className="mx-auto max-w-[900px] p-4">
-        <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
+        <div className="space-y-4">
+          <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
+          <SmartTiersPanel />
+        </div>
       </main>
     </div>
   );
