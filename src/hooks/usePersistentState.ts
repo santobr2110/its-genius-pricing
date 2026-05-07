@@ -1,4 +1,16 @@
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, useCallback, Dispatch, SetStateAction } from "react";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function mergeWithInitial<T>(value: T | undefined, initial: T): T {
+  if (value === undefined) return initial;
+  if (isRecord(initial) && isRecord(value)) {
+    return { ...initial, ...value } as T;
+  }
+  return value;
+}
 
 /**
  * Lê um snapshot salvo como "padrão do usuário" para a chave informada.
@@ -22,19 +34,26 @@ function readUserDefault<T>(key: string): T | undefined {
  * antes de cair para o `initial` hardcoded.
  */
 export function usePersistentState<T>(key: string, initial: T): [T, Dispatch<SetStateAction<T>>] {
-  const [state, setState] = useState<T>(() => {
+  const [state, setStateBase] = useState<T>(() => {
     if (typeof window === "undefined") return initial;
     try {
       const raw = window.localStorage.getItem(key);
       if (raw == null) {
         const userDefault = readUserDefault<T>(key);
-        return userDefault !== undefined ? userDefault : initial;
+        return mergeWithInitial(userDefault, initial);
       }
-      return JSON.parse(raw) as T;
+      return mergeWithInitial(JSON.parse(raw) as T, initial);
     } catch {
       return initial;
     }
   });
+
+  const setState: Dispatch<SetStateAction<T>> = useCallback((value) => {
+    setStateBase((prev) => {
+      const next = typeof value === "function" ? (value as (prevState: T) => T)(prev) : value;
+      return mergeWithInitial(next, initial);
+    });
+  }, [initial]);
 
   useEffect(() => {
     try {

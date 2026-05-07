@@ -58,6 +58,7 @@ function RateRow({ icon: Icon, label, description, value, qty, qtyLabel, onChang
 
 export default function TaxasDemanda() {
   const { state, update, results } = useITSMContext();
+  const criticidadeEscala = state.criticidadeEscala ?? [-0.3, -0.15, 0, 0.15, 0.3];
 
   const set = <K extends keyof ITSMState>(k: K) => (v: number) => update(k, v as ITSMState[K]);
 
@@ -148,9 +149,9 @@ export default function TaxasDemanda() {
                   <Input
                     type="number"
                     step={0.05}
-                    value={state.criticidadeEscala[idx] ?? 0}
+                    value={criticidadeEscala[idx] ?? 0}
                     onChange={(e) => {
-                      const next = [...state.criticidadeEscala];
+                      const next = [...criticidadeEscala];
                       next[idx] = parseFloat(e.target.value) || 0;
                       update("criticidadeEscala", next);
                     }}
