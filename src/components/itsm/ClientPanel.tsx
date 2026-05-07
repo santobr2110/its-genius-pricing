@@ -56,6 +56,7 @@ export default function ClientPanel({ state, update }: Props) {
     { key: "complexSiteBackup", label: "Site Backup" },
     { key: "complexHibridoCloudOnPrem", label: "Ambiente Híbrido Cloud/On-Premises" },
     { key: "complexOperacao24x7", label: "Operação 24x7" },
+    { key: "complexErpMercado", label: "ERP de Mercado" },
   ];
   return (
     <div className="space-y-4">
