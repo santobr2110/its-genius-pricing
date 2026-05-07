@@ -56,6 +56,18 @@ export interface ITSMState {
   tierOperationN3: boolean;
   tierPerformance: boolean;
   tierEnterprise: boolean;
+  // Field Service (sub-opção do Smart Operation)
+  tierFieldOperation: boolean;
+  percFieldN1F: number;
+  percFieldN2F: number;
+  percFieldN3F: number;
+  // Custos de equipes Field (preenchidos pelo contexto)
+  custoEquipeFieldN1: number;
+  custoEquipeFieldN2: number;
+  custoEquipeFieldN3: number;
+  capacidadeFieldN1: number;
+  capacidadeFieldN2: number;
+  capacidadeFieldN3: number;
 }
 
 export interface ITSMResults {
@@ -101,6 +113,18 @@ export interface ITSMResults {
     total: number;
   };
   humanAttendanceActive: boolean;
+  // Field Service
+  fieldService: {
+    active: boolean;
+    volumeUsuariosEscalado: number;
+    volumeN1F: number;
+    volumeN2F: number;
+    volumeN3F: number;
+    custoN1F: number;
+    custoN2F: number;
+    custoN3F: number;
+    total: number;
+  };
 }
 
 const DEFAULTS: ITSMState = {
@@ -147,6 +171,16 @@ const DEFAULTS: ITSMState = {
   tierOperationN3: false,
   tierPerformance: false,
   tierEnterprise: false,
+  tierFieldOperation: false,
+  percFieldN1F: 60,
+  percFieldN2F: 30,
+  percFieldN3F: 10,
+  custoEquipeFieldN1: 0,
+  custoEquipeFieldN2: 0,
+  custoEquipeFieldN3: 0,
+  capacidadeFieldN1: 600,
+  capacidadeFieldN2: 200,
+  capacidadeFieldN3: 80,
 };
 
 export function useITSMCalculator() {
