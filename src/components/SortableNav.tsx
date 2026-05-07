@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DndContext,
@@ -28,6 +28,10 @@ import {
   Activity,
   Menu,
   Check,
+  ChevronDown,
+  Settings2,
+  UsersRound,
+  FileText,
   LucideIcon,
 } from "lucide-react";
 import {
@@ -39,63 +43,177 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useNavigate } from "react-router-dom";
 
-export type NavItemId = "home" | "taxas" | "financeiro" | "equipe-n1" | "equipe-n2" | "equipe-n3" | "detalhamento" | "precificacoes" | "operacao";
+export type NavItemId =
+  | "home"
+  | "taxas"
+  | "financeiro"
+  | "equipe-n1"
+  | "equipe-n2"
+  | "equipe-n3"
+  | "detalhamento"
+  | "precificacoes"
+  | "operacao";
 
-interface NavDef {
+interface PageDef {
   id: NavItemId;
   to: string;
   label: string;
-  shortLabel: string;
   icon: LucideIcon;
 }
 
-const ALL_ITEMS: NavDef[] = [
-  { id: "taxas", to: "/taxas-demanda", label: "Métricas e Parâmetros", shortLabel: "Métricas", icon: TrendingUp },
-  { id: "operacao", to: "/operacao", label: "Operação", shortLabel: "Operação", icon: Activity },
-  { id: "financeiro", to: "/financeiro", label: "Financeiro", shortLabel: "Financeiro", icon: DollarSign },
-  { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", shortLabel: "N1", icon: Users },
-  { id: "equipe-n2", to: "/equipe-n2", label: "Equipe N2", shortLabel: "N2", icon: Server },
-  { id: "equipe-n3", to: "/equipe-n3", label: "Equipe N3", shortLabel: "N3", icon: Clock },
-  { id: "detalhamento", to: "/detalhamento", label: "Detalhamento", shortLabel: "Detalhes", icon: ClipboardList },
-  { id: "precificacoes", to: "/precificacoes", label: "Precificações", shortLabel: "Salvas", icon: FolderOpen },
+const PAGES: Record<NavItemId, PageDef> = {
+  home: { id: "home", to: "/", label: "Início", icon: Activity },
+  taxas: { id: "taxas", to: "/taxas-demanda", label: "Métricas e Parâmetros", icon: TrendingUp },
+  operacao: { id: "operacao", to: "/operacao", label: "Operação", icon: Activity },
+  financeiro: { id: "financeiro", to: "/financeiro", label: "Financeiro", icon: DollarSign },
+  "equipe-n1": { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", icon: Users },
+  "equipe-n2": { id: "equipe-n2", to: "/equipe-n2", label: "Equipe N2", icon: Server },
+  "equipe-n3": { id: "equipe-n3", to: "/equipe-n3", label: "Equipe N3", icon: Clock },
+  detalhamento: { id: "detalhamento", to: "/detalhamento", label: "Detalhamento", icon: ClipboardList },
+  precificacoes: { id: "precificacoes", to: "/precificacoes", label: "Precificações", icon: FolderOpen },
+};
+
+type SlotId = "menu-equipes" | "menu-config" | "menu-relatorio" | "precificacoes";
+
+interface MenuSlot {
+  kind: "menu";
+  id: SlotId;
+  label: string;
+  shortLabel: string;
+  icon: LucideIcon;
+  items: NavItemId[];
+}
+
+interface PageSlot {
+  kind: "page";
+  id: SlotId;
+  page: NavItemId;
+}
+
+type Slot = MenuSlot | PageSlot;
+
+const SLOTS: Slot[] = [
+  {
+    kind: "menu",
+    id: "menu-config",
+    label: "Configurações",
+    shortLabel: "Config",
+    icon: Settings2,
+    items: ["taxas", "operacao", "financeiro"],
+  },
+  {
+    kind: "menu",
+    id: "menu-equipes",
+    label: "Equipes",
+    shortLabel: "Equipes",
+    icon: UsersRound,
+    items: ["equipe-n1", "equipe-n2", "equipe-n3"],
+  },
+  {
+    kind: "menu",
+    id: "menu-relatorio",
+    label: "Relatório",
+    shortLabel: "Relatório",
+    icon: FileText,
+    items: ["detalhamento"],
+  },
+  { kind: "page", id: "precificacoes", page: "precificacoes" },
 ];
 
-const STORAGE_KEY = "nav-order-v1";
+const SLOT_MAP = new Map<SlotId, Slot>(SLOTS.map((s) => [s.id, s]));
+const ALL_SLOT_IDS: SlotId[] = SLOTS.map((s) => s.id);
 
-function loadOrder(): NavItemId[] {
+const STORAGE_KEY = "nav-order-v2";
+
+function loadOrder(): SlotId[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return ALL_ITEMS.map((i) => i.id);
-    const parsed = JSON.parse(raw) as NavItemId[];
-    const valid = parsed.filter((id) => ALL_ITEMS.some((i) => i.id === id));
-    const missing = ALL_ITEMS.map((i) => i.id).filter((id) => !valid.includes(id));
+    if (!raw) return ALL_SLOT_IDS;
+    const parsed = JSON.parse(raw) as SlotId[];
+    const valid = parsed.filter((id) => SLOT_MAP.has(id));
+    const missing = ALL_SLOT_IDS.filter((id) => !valid.includes(id));
     return [...valid, ...missing];
   } catch {
-    return ALL_ITEMS.map((i) => i.id);
+    return ALL_SLOT_IDS;
   }
 }
 
-interface SortableButtonProps {
-  item: NavDef;
-  isCurrent: boolean;
-  /** "full" = ícone + label completo, "short" = ícone + label curto, "icon" = só ícone */
+interface SortableSlotProps {
+  slot: Slot;
+  current?: NavItemId;
   display: "full" | "short" | "icon";
 }
 
-function SortableButton({ item, isCurrent, display }: SortableButtonProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+function SortableSlot({ slot, current, display }: SortableSlotProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: slot.id,
+  });
+  const navigate = useNavigate();
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 50 : "auto" as const,
+    zIndex: isDragging ? 50 : ("auto" as const),
   };
 
-  const Icon = item.icon;
-  const labelText = display === "full" ? item.label : display === "short" ? item.shortLabel : null;
+  const isMenu = slot.kind === "menu";
+  const isCurrent = isMenu
+    ? slot.items.includes(current as NavItemId)
+    : current === slot.page;
+
+  const Icon = isMenu ? slot.icon : PAGES[slot.page].icon;
+  const fullLabel = isMenu ? slot.label : PAGES[slot.page].label;
+  const shortLabel = isMenu ? slot.shortLabel : PAGES[slot.page].label;
+  const labelText = display === "full" ? fullLabel : display === "short" ? shortLabel : null;
+
+  const innerButton = isMenu ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-xs h-8 pl-1 pr-2 rounded-l-none"
+        >
+          <Icon className="h-3.5 w-3.5" />
+          {labelText}
+          {display !== "icon" && <ChevronDown className="h-3 w-3 opacity-60" />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="text-xs">{slot.label}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {slot.items.map((pid) => {
+          const p = PAGES[pid];
+          const PIcon = p.icon;
+          return (
+            <DropdownMenuItem
+              key={pid}
+              onClick={() => navigate(p.to)}
+              className="gap-2 text-sm"
+            >
+              <PIcon className="h-4 w-4" />
+              <span className="flex-1">{p.label}</span>
+              {current === pid && <Check className="h-3.5 w-3.5 text-primary" />}
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : isCurrent ? (
+    <div className="flex items-center gap-1.5 text-xs h-8 pl-1 pr-2 font-medium">
+      <Icon className="h-3.5 w-3.5" />
+      {labelText}
+    </div>
+  ) : (
+    <Link to={PAGES[(slot as PageSlot).page].to}>
+      <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 pl-1 pr-2 rounded-l-none">
+        <Icon className="h-3.5 w-3.5" />
+        {labelText}
+      </Button>
+    </Link>
+  );
 
   const content = (
     <div
@@ -109,33 +227,20 @@ function SortableButton({ item, isCurrent, display }: SortableButtonProps) {
         className="px-1 py-1.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
         {...attributes}
         {...listeners}
-        aria-label={`Reordenar ${item.label}`}
+        aria-label={`Reordenar ${fullLabel}`}
       >
         <GripVertical className="h-3 w-3" />
       </button>
-      {isCurrent ? (
-        <div className="flex items-center gap-1.5 text-xs h-8 pl-1 pr-2 font-medium">
-          <Icon className="h-3.5 w-3.5" />
-          {labelText}
-        </div>
-      ) : (
-        <Link to={item.to}>
-          <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8 pl-1 pr-2 rounded-l-none">
-            <Icon className="h-3.5 w-3.5" />
-            {labelText}
-          </Button>
-        </Link>
-      )}
+      {innerButton}
     </div>
   );
 
-  // Quando só ícone, envolve em tooltip pra acessibilidade
   if (display === "icon") {
     return (
       <TooltipProvider delayDuration={150}>
         <Tooltip>
           <TooltipTrigger asChild>{content}</TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">{item.label}</TooltipContent>
+          <TooltipContent side="bottom" className="text-xs">{fullLabel}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
@@ -148,7 +253,7 @@ interface Props {
 }
 
 export default function SortableNav({ current }: Props) {
-  const [order, setOrder] = useState<NavItemId[]>(() => loadOrder());
+  const [order, setOrder] = useState<SlotId[]>(() => loadOrder());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -165,16 +270,14 @@ export default function SortableNav({ current }: Props) {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-  const items = order
-    .map((id) => ALL_ITEMS.find((i) => i.id === id))
-    .filter((i): i is NavDef => Boolean(i));
+  const slots = order.map((id) => SLOT_MAP.get(id)).filter((s): s is Slot => Boolean(s));
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     setOrder((prev) => {
-      const oldIndex = prev.indexOf(active.id as NavItemId);
-      const newIndex = prev.indexOf(over.id as NavItemId);
+      const oldIndex = prev.indexOf(active.id as SlotId);
+      const newIndex = prev.indexOf(over.id as SlotId);
       if (oldIndex < 0 || newIndex < 0) return prev;
       return arrayMove(prev, oldIndex, newIndex);
     });
@@ -182,19 +285,23 @@ export default function SortableNav({ current }: Props) {
 
   const dndContent = (display: "full" | "short" | "icon") => (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={items.map((i) => i.id)} strategy={horizontalListSortingStrategy}>
+      <SortableContext items={slots.map((s) => s.id)} strategy={horizontalListSortingStrategy}>
         <div className="flex gap-1.5 items-center">
-          {items.map((item) => (
-            <SortableButton key={item.id} item={item} isCurrent={current === item.id} display={display} />
+          {slots.map((slot) => (
+            <SortableSlot key={slot.id} slot={slot} current={current} display={display} />
           ))}
         </div>
       </SortableContext>
     </DndContext>
   );
 
+  // Mobile: lista plana de páginas
+  const mobilePages: NavItemId[] = slots.flatMap((s) =>
+    s.kind === "menu" ? s.items : [s.page]
+  );
+
   return (
     <>
-      {/* Mobile: dropdown menu (sem reordenação — apenas navegação) */}
       <div className="md:hidden">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -206,17 +313,14 @@ export default function SortableNav({ current }: Props) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="text-xs">Navegação</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {items.map((item) => {
-              const Icon = item.icon;
-              const isCurrent = current === item.id;
+            {mobilePages.map((pid) => {
+              const p = PAGES[pid];
+              const Icon = p.icon;
+              const isCurrent = current === pid;
               return (
-                <DropdownMenuItem
-                  key={item.id}
-                  onClick={() => navigate(item.to)}
-                  className="gap-2 text-sm"
-                >
+                <DropdownMenuItem key={pid} onClick={() => navigate(p.to)} className="gap-2 text-sm">
                   <Icon className="h-4 w-4" />
-                  <span className="flex-1">{item.label}</span>
+                  <span className="flex-1">{p.label}</span>
                   {isCurrent && <Check className="h-3.5 w-3.5 text-primary" />}
                 </DropdownMenuItem>
               );
@@ -225,13 +329,8 @@ export default function SortableNav({ current }: Props) {
         </DropdownMenu>
       </div>
 
-      {/* Tablet (md): só ícones com tooltip */}
       <div className="hidden md:block lg:hidden">{dndContent("icon")}</div>
-
-      {/* Desktop estreito (lg): label curto */}
       <div className="hidden lg:block xl:hidden">{dndContent("short")}</div>
-
-      {/* Desktop largo (xl+): label completo */}
       <div className="hidden xl:block">{dndContent("full")}</div>
     </>
   );
