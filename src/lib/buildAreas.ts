@@ -83,7 +83,7 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       nome: "Monitoramento",
       icon: Eye,
       chamadosBrutos: state.tierMonitor ? results.smartMonitor.chamadosAtivos : monitoramento.bruto,
-      chamadosN0: human ? monitoramento.n0 : 0,
+      chamadosN0: monitoramento.n0,
       chamadosN1: state.tierMonitor
         ? results.smartMonitor.chamadosAtivos
         : monitoramento.n1,
