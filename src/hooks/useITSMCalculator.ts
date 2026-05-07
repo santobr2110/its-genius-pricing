@@ -137,6 +137,7 @@ export interface ITSMResults {
     custoN2F: number;
     custoN3F: number;
     total: number;
+    custoTriagemN1: number;
     mode: "proporcional" | "direto";
     // Transbordo (modo direto)
     overflowAtivo: boolean;
@@ -274,14 +275,15 @@ export function useITSMCalculator() {
     // N2/N3 — portanto não devem ser contabilizados em N2/N3 remoto.
     const fieldActiveCheck = state.tierOperation && state.tierFieldOperation;
     const userHumano = chamadosUsuarios * (1 - state.reducaoN0 / 100);
-    const baseN2N3 = fieldActiveCheck
+    // Quando Field está ativo, os chamados de usuários saem da base do funil
+    // remoto (N1 normal, N2 e N3) — eles passam pelo N1 apenas como triagem
+    // (mesmo mecanismo do Smart Monitor) e são atendidos pela equipe Field.
+    const baseFunil = fieldActiveCheck
       ? Math.max(0, volumeAtendimentoHumano - userHumano)
       : volumeAtendimentoHumano;
-
-    // === Funil: distribuição dos chamados humanos ===
-    const volumeN1 = volumeAtendimentoHumano * (state.percN1 / 100);
-    const volumeN2 = baseN2N3 * (state.percN2 / 100);
-    const volumeN3 = baseN2N3 * (state.percN3 / 100);
+    const volumeN1 = baseFunil * (state.percN1 / 100);
+    const volumeN2 = baseFunil * (state.percN2 / 100);
+    const volumeN3 = baseFunil * (state.percN3 / 100);
 
     // Atendimento humano só está ativo se alguma camada que envolve atendimento for selecionada
     const humanAttendanceActive =
@@ -329,6 +331,11 @@ export function useITSMCalculator() {
 
     const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
 
+    // === Triagem N1 para chamados Field (mesmo mecanismo do Smart Monitor) ===
+    // Apenas a parcela dentro da capacidade da equipe Field; o excedente
+    // (transbordo) já paga o custo cheio do N1 remoto mais adiante.
+    let custoFieldTriagemN1 = 0;
+
     // === Field Service ===
     // Demandas de usuários (já filtradas pelo N0) passam pelo N1 convencional
     // e, quando Field está ativo, são também escaladas para a equipe Field
@@ -347,6 +354,9 @@ export function useITSMCalculator() {
     let custoTransN1R = 0, custoTransN2F = 0;
 
     if (fieldActive) {
+      // Triagem N1 para os chamados absorvidos pela equipe Field
+      // (mesmo mecanismo do Smart Monitor: % alocação × custo/chamado N1).
+      // O excedente que vai para transbordo paga custo N1 cheio adiante.
       if (state.fieldAllocationMode === "direto") {
         // Quantidade configurável de profissionais por nível — custo direto
         custoFN1 = state.custoUmFieldN1 * state.fieldDirectQtdN1;
@@ -354,11 +364,13 @@ export function useITSMCalculator() {
         custoFN3 = state.custoUmFieldN3 * state.fieldDirectQtdN3;
 
         // Transbordo quando equipamentos excedem o limite parametrizado
+        let volAbsorvido = volumeUsuariosEscalado;
         if (state.qtdEquipamentos > state.fieldDirectEquipLimit && state.fieldDirectEquipLimit > 0) {
           overflowAtivo = true;
           const excedente = (state.qtdEquipamentos - state.fieldDirectEquipLimit) / state.qtdEquipamentos;
           // Volume de usuários que excede a capacidade presencial
           const volExcedente = volumeUsuariosEscalado * excedente;
+          volAbsorvido = volumeUsuariosEscalado - volExcedente;
           // Excedente passa pelo N1 remoto; aplica funil de proporção Field para
           // determinar quanto retorna como N2 Field (N2F + N3F do roteamento).
           volTransN1R = volExcedente;
@@ -368,6 +380,7 @@ export function useITSMCalculator() {
           const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
           custoTransN2F = cppFN2 * volTransN2F;
         }
+        custoFieldTriagemN1 = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * volAbsorvido;
       } else {
         const cppFN1 = state.capacidadeFieldN1 > 0 ? state.custoEquipeFieldN1 / state.capacidadeFieldN1 : 0;
         const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
@@ -375,9 +388,10 @@ export function useITSMCalculator() {
         custoFN1 = cppFN1 * fN1F;
         custoFN2 = cppFN2 * fN2F;
         custoFN3 = cppFN3 * fN3F;
+        custoFieldTriagemN1 = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * volumeUsuariosEscalado;
       }
     }
-    const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F;
+    const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
 
     const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + custoEndpointTooling + custoFieldTotal;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
@@ -409,6 +423,7 @@ export function useITSMCalculator() {
       custoN2F: custoFN2,
       custoN3F: custoFN3,
       total: custoFieldTotal,
+      custoTriagemN1: custoFieldTriagemN1,
       mode: state.fieldAllocationMode,
       overflowAtivo,
       volumeTransbordoN1Remoto: volTransN1R,

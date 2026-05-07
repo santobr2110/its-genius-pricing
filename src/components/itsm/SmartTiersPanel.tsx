@@ -259,6 +259,12 @@ export default function SmartTiersPanel() {
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN3F))}</span>
                     </div>
                   </div>
+                  <div className="flex justify-between rounded border bg-background px-2 py-1.5 text-xs">
+                    <span className="text-muted-foreground">
+                      Triagem N1 ({state.percAlocacaoN1Monitor}% do custo/chamado)
+                    </span>
+                    <span className="font-semibold">{formatBRL(toSell(fs.custoTriagemN1))}</span>
+                  </div>
                   {fs.overflowAtivo && (
                     <div className="rounded border border-orange-300 bg-orange-100/60 dark:bg-orange-900/30 px-2 py-1.5 space-y-1">
                       <p className="text-[11px] font-semibold text-orange-700 dark:text-orange-300">
