@@ -104,6 +104,7 @@ export default function ClientPanel({ state, update }: Props) {
                 max={4}
                 step={1}
                 onValueChange={(v) => update("criticidadeNivel", v[0])}
+                className="w-[90%] mx-auto"
                 trackClassName="bg-transparent"
                 rangeClassName="bg-transparent"
                 trackStyle={{ backgroundImage: gradiente }}
