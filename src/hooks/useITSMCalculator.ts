@@ -194,7 +194,14 @@ export function useITSMCalculator() {
     const horasPrevencao = Math.max(0, horasN3 - horasConsumidasN3);
     const custoN3 = horasN3 * state.valorHoraN3;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3;
+    // Smart Monitor: custo de monitoramento por ativo entra no custo total da operação.
+    // (A parcela de N1 alocada ao Smart Monitor já está incluída em custoN1.)
+    const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
+    const smChamados = chamadosServidores + chamadosRede + chamadosSistemas;
+    const smCustoMonit = state.custoAtivoMonitorado * smAtivos;
+    const smCustoN1Aloc = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados;
+
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
@@ -206,11 +213,6 @@ export function useITSMCalculator() {
     const precoVendaMensal = fatorImposto > 0 ? precoPreImposto / fatorImposto : 0;
     const valorImpostos = precoVendaMensal - precoPreImposto;
 
-    // === Smart Monitor ===
-    const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
-    const smChamados = chamadosServidores + chamadosRede + chamadosSistemas;
-    const smCustoMonit = state.custoAtivoMonitorado * smAtivos;
-    const smCustoN1Aloc = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados;
     const smartMonitor = {
       ativos: smAtivos,
       chamadosAtivos: smChamados,
