@@ -185,6 +185,9 @@ export function useITSMCalculator() {
     // Atendimento humano só está ativo se alguma camada que envolve atendimento for selecionada
     const humanAttendanceActive =
       state.tierOperation || state.tierPerformance || state.tierEnterprise;
+    // N3 só é atendido em camadas superiores (Performance/Enterprise).
+    // Smart Operation cobre apenas N0/N1/N2.
+    const n3Active = state.tierPerformance || state.tierEnterprise;
 
     // === N1: Custo por Chamado ===
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
@@ -201,8 +204,8 @@ export function useITSMCalculator() {
     const custoN2 = humanAttendanceActive ? custoPorServidorN2 * state.qtdServidores : 0;
 
     // === N3: Horas consumidas por chamados N3 ===
-    const horasN3 = humanAttendanceActive ? state.horasN3Mensais : 0;
-    const horasConsumidasN3 = humanAttendanceActive ? volumeN3 * state.tempoMedioChamadoN3 : 0;
+    const horasN3 = n3Active ? state.horasN3Mensais : 0;
+    const horasConsumidasN3 = n3Active ? volumeN3 * state.tempoMedioChamadoN3 : 0;
     const horasAtendimentoN3 = horasConsumidasN3;
     const horasPrevencao = Math.max(0, horasN3 - horasConsumidasN3);
     const custoN3 = horasN3 * state.valorHoraN3;

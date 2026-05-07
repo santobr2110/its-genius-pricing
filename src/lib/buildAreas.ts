@@ -21,6 +21,7 @@ export interface AreaData {
 export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
   const human = results.humanAttendanceActive;
   const onlyMonitor = state.tierMonitor && !state.tierOperation;
+  const n3Active = state.tierPerformance || state.tierEnterprise;
   const n0Factor = state.reducaoN0 / 100;
   const humanFactor = human ? 1 - n0Factor : 0;
 
@@ -40,7 +41,7 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       n0: bruto * n0Factor,
       n1: humanCalls * (state.percN1 / 100),
       n2: humanCalls * (state.percN2 / 100),
-      n3: humanCalls * (state.percN3 / 100),
+      n3: n3Active ? humanCalls * (state.percN3 / 100) : 0,
     };
   };
 
