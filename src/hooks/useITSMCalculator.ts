@@ -274,14 +274,15 @@ export function useITSMCalculator() {
     // N2/N3 — portanto não devem ser contabilizados em N2/N3 remoto.
     const fieldActiveCheck = state.tierOperation && state.tierFieldOperation;
     const userHumano = chamadosUsuarios * (1 - state.reducaoN0 / 100);
-    const baseN2N3 = fieldActiveCheck
+    // Quando Field está ativo, os chamados de usuários saem da base do funil
+    // remoto (N1 normal, N2 e N3) — eles passam pelo N1 apenas como triagem
+    // (mesmo mecanismo do Smart Monitor) e são atendidos pela equipe Field.
+    const baseFunil = fieldActiveCheck
       ? Math.max(0, volumeAtendimentoHumano - userHumano)
       : volumeAtendimentoHumano;
-
-    // === Funil: distribuição dos chamados humanos ===
-    const volumeN1 = volumeAtendimentoHumano * (state.percN1 / 100);
-    const volumeN2 = baseN2N3 * (state.percN2 / 100);
-    const volumeN3 = baseN2N3 * (state.percN3 / 100);
+    const volumeN1 = baseFunil * (state.percN1 / 100);
+    const volumeN2 = baseFunil * (state.percN2 / 100);
+    const volumeN3 = baseFunil * (state.percN3 / 100);
 
     // Atendimento humano só está ativo se alguma camada que envolve atendimento for selecionada
     const humanAttendanceActive =
@@ -328,6 +329,11 @@ export function useITSMCalculator() {
       : 0;
 
     const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
+
+    // === Triagem N1 para chamados Field (mesmo mecanismo do Smart Monitor) ===
+    // Apenas a parcela dentro da capacidade da equipe Field; o excedente
+    // (transbordo) já paga o custo cheio do N1 remoto mais adiante.
+    let custoFieldTriagemN1 = 0;
 
     // === Field Service ===
     // Demandas de usuários (já filtradas pelo N0) passam pelo N1 convencional
