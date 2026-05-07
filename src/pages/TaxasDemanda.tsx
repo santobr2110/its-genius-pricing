@@ -135,6 +135,38 @@ export default function TaxasDemanda() {
 
         <Card>
           <CardHeader className="pb-3">
+            <CardTitle className="text-base">Escala de Criticidade do Ambiente</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Ajuste aplicado ao volume mensal de chamados por unidade de inventário, conforme o nível de criticidade selecionado no inventário do cliente.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"].map((nome, idx) => (
+                <div key={nome} className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">{nome}</Label>
+                  <Input
+                    type="number"
+                    step={0.05}
+                    value={state.criticidadeEscala[idx] ?? 0}
+                    onChange={(e) => {
+                      const next = [...state.criticidadeEscala];
+                      next[idx] = parseFloat(e.target.value) || 0;
+                      update("criticidadeEscala", next);
+                    }}
+                    className="h-9"
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-3">
+              O valor é somado à taxa de chamados/mês por unidade de cada categoria.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
             <CardTitle className="text-base">Volume mensal de chamados por categoria</CardTitle>
             <p className="text-xs text-muted-foreground">
               Defina quantos chamados por mês cada item do inventário gera, em média.
