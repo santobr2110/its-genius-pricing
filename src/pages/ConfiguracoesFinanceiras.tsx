@@ -64,34 +64,6 @@ export default function ConfiguracoesFinanceiras() {
           </Card>
         </div>
 
-        {/* Custo Fixo */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-primary" />
-              Custos Fixos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2 max-w-md">
-              <Label className="text-xs text-muted-foreground">Custo Fixo de Ferramentas (mensal)</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                <Input
-                  type="number"
-                  step={100}
-                  value={state.custoFixoFerramentas}
-                  onChange={(e) => update("custoFixoFerramentas", parseFloat(e.target.value) || 0)}
-                  className="pl-10"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Inclui licenças, plataformas de ITSM, monitoramento e demais ferramentas.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Margem e Impostos */}
         <Card>
           <CardHeader>
