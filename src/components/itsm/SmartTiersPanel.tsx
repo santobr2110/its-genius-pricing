@@ -189,20 +189,75 @@ export default function SmartTiersPanel() {
                       {formatNumber(fs.volumeUsuariosEscalado, 1)} ch/mês escalados
                     </span>
                   </div>
+                  <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
+                    <Label className="text-[11px] text-muted-foreground">Modo de alocação</Label>
+                    <div className="ml-auto flex gap-1">
+                      {(["proporcional","direto"] as const).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => update("fieldAllocationMode", m as any)}
+                          className={`text-[11px] px-2 py-0.5 rounded border ${
+                            state.fieldAllocationMode === m
+                              ? "bg-orange-500 text-white border-orange-500"
+                              : "bg-background text-muted-foreground"
+                          }`}
+                        >
+                          {m === "proporcional" ? "Proporcional" : "Direto (1 prof./nível)"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {state.fieldAllocationMode === "direto" && (
+                    <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
+                      <Label className="text-[11px] text-muted-foreground">Limite de equipamentos (transbordo p/ remoto)</Label>
+                      <Input
+                        type="number"
+                        value={state.fieldDirectEquipLimit === 0 ? "" : state.fieldDirectEquipLimit}
+                        onChange={(e) => update("fieldDirectEquipLimit", parseInt(e.target.value) || 0)}
+                        className="h-7 text-sm w-24 ml-auto"
+                      />
+                    </div>
+                  )}
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">N1F ({state.percFieldN1F}%)</span>
+                      <span className="text-muted-foreground">
+                        N1F {state.fieldAllocationMode === "direto" ? "(1 prof.)" : `(${state.percFieldN1F}%)`}
+                      </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN1F))}</span>
                     </div>
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">N2F ({state.percFieldN2F}%)</span>
+                      <span className="text-muted-foreground">
+                        N2F {state.fieldAllocationMode === "direto" ? "(1 prof.)" : `(${state.percFieldN2F}%)`}
+                      </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN2F))}</span>
                     </div>
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">N3F ({state.percFieldN3F}%)</span>
+                      <span className="text-muted-foreground">
+                        N3F {state.fieldAllocationMode === "direto" ? "(1 prof.)" : `(${state.percFieldN3F}%)`}
+                      </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN3F))}</span>
                     </div>
                   </div>
+                  {fs.overflowAtivo && (
+                    <div className="rounded border border-orange-300 bg-orange-100/60 dark:bg-orange-900/30 px-2 py-1.5 space-y-1">
+                      <p className="text-[11px] font-semibold text-orange-700 dark:text-orange-300">
+                        Transbordo remoto · {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex justify-between rounded border bg-background px-2 py-1">
+                          <span className="text-muted-foreground">N1 remoto</span>
+                          <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN1Remoto))}</span>
+                        </div>
+                        <div className="flex justify-between rounded border bg-background px-2 py-1">
+                          <span className="text-muted-foreground">
+                            N2 Field ({formatNumber(fs.volumeTransbordoN2F, 1)} ch)
+                          </span>
+                          <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN2F))}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t pt-2">
                     <span className="text-xs font-semibold">Total Field Service (venda)</span>
                     <span className="text-sm font-bold text-primary">{formatBRL(fsVenda)}</span>
