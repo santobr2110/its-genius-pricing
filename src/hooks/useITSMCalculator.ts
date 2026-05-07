@@ -66,6 +66,10 @@ export interface ITSMState {
   fieldAllocationMode: "proporcional" | "direto";
   // Limite de equipamentos para considerar transbordo no modo direto.
   fieldDirectEquipLimit: number;
+  // Quantidade de profissionais alocados diretamente por nível (modo direto).
+  fieldDirectQtdN1: number;
+  fieldDirectQtdN2: number;
+  fieldDirectQtdN3: number;
   // Custo de 1 profissional Field por nível (alimentado pelo contexto).
   custoUmFieldN1: number;
   custoUmFieldN2: number;
@@ -193,6 +197,9 @@ const DEFAULTS: ITSMState = {
   percFieldN3F: 10,
   fieldAllocationMode: "proporcional",
   fieldDirectEquipLimit: 100,
+  fieldDirectQtdN1: 1,
+  fieldDirectQtdN2: 1,
+  fieldDirectQtdN3: 1,
   custoUmFieldN1: 0,
   custoUmFieldN2: 0,
   custoUmFieldN3: 0,
@@ -332,10 +339,10 @@ export function useITSMCalculator() {
 
     if (fieldActive) {
       if (state.fieldAllocationMode === "direto") {
-        // 1 profissional fixo por nível — custo direto
-        custoFN1 = state.custoUmFieldN1;
-        custoFN2 = state.custoUmFieldN2;
-        custoFN3 = state.custoUmFieldN3;
+        // Quantidade configurável de profissionais por nível — custo direto
+        custoFN1 = state.custoUmFieldN1 * state.fieldDirectQtdN1;
+        custoFN2 = state.custoUmFieldN2 * state.fieldDirectQtdN2;
+        custoFN3 = state.custoUmFieldN3 * state.fieldDirectQtdN3;
 
         // Transbordo quando equipamentos excedem o limite parametrizado
         if (state.qtdEquipamentos > state.fieldDirectEquipLimit && state.fieldDirectEquipLimit > 0) {
