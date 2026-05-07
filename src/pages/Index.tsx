@@ -1,4 +1,5 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
+import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import SmartTiersPanel from "@/components/itsm/SmartTiersPanel";
 import { Calculator } from "lucide-react";
@@ -18,6 +19,7 @@ const Index = () => {
           </div>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
             <SavePresetButton />
+            <SaveDefaultsButton />
             <SortableNav current="home" />
           </div>
         </div>
