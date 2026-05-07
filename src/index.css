@@ -56,43 +56,43 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Fundo cinza escuro + linhas cinza claro quase branco */
-    --background: 220 10% 14%;
-    --foreground: 220 10% 94%;
+    /* Dark mode com degradê: tons profundos azul-violeta com acento ciano */
+    --background: 230 25% 9%;
+    --foreground: 220 20% 95%;
 
-    --card: 220 10% 18%;
-    --card-foreground: 220 10% 94%;
+    --card: 232 22% 14%;
+    --card-foreground: 220 20% 95%;
 
-    --popover: 220 10% 18%;
-    --popover-foreground: 220 10% 94%;
+    --popover: 232 22% 14%;
+    --popover-foreground: 220 20% 95%;
 
-    --primary: 220 10% 94%;
-    --primary-foreground: 220 10% 10%;
+    --primary: 190 90% 55%;
+    --primary-foreground: 230 30% 10%;
 
-    --secondary: 220 10% 22%;
-    --secondary-foreground: 220 10% 94%;
+    --secondary: 235 20% 20%;
+    --secondary-foreground: 220 20% 95%;
 
-    --muted: 220 10% 22%;
-    --muted-foreground: 220 10% 72%;
+    --muted: 232 18% 18%;
+    --muted-foreground: 220 15% 70%;
 
-    --accent: 220 10% 28%;
-    --accent-foreground: 220 10% 94%;
+    --accent: 270 60% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 60% 48%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 10% 82%;
-    --input: 220 10% 26%;
-    --ring: 220 10% 82%;
+    --border: 232 20% 26%;
+    --input: 232 20% 22%;
+    --ring: 190 90% 55%;
 
-    --sidebar-background: 220 10% 10%;
-    --sidebar-foreground: 220 10% 94%;
-    --sidebar-primary: 220 10% 94%;
-    --sidebar-primary-foreground: 220 10% 10%;
-    --sidebar-accent: 220 10% 20%;
-    --sidebar-accent-foreground: 220 10% 94%;
-    --sidebar-border: 220 10% 82%;
-    --sidebar-ring: 220 10% 82%;
+    --sidebar-background: 232 25% 11%;
+    --sidebar-foreground: 220 20% 92%;
+    --sidebar-primary: 190 90% 55%;
+    --sidebar-primary-foreground: 230 30% 10%;
+    --sidebar-accent: 235 22% 18%;
+    --sidebar-accent-foreground: 220 20% 95%;
+    --sidebar-border: 232 20% 24%;
+    --sidebar-ring: 190 90% 55%;
   }
 }
 
@@ -103,5 +103,19 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(at 0% 0%, hsl(270 60% 25% / 0.45) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(190 80% 25% / 0.35) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, hsl(232 50% 15% / 0.6) 0px, transparent 60%),
+      linear-gradient(180deg, hsl(230 25% 9%) 0%, hsl(232 28% 11%) 100%);
+    background-attachment: fixed;
+  }
+
+  .dark .bg-card,
+  .dark [class*="bg-card"] {
+    background-image: linear-gradient(145deg, hsl(232 22% 16%) 0%, hsl(235 24% 12%) 100%);
   }
 }
