@@ -39,7 +39,7 @@ export default function EquipeN1() {
             <Calculator className="h-5 w-5 text-primary shrink-0" />
             <h1 className="text-sm font-bold text-foreground truncate">Equipe N1 — Estrutura de Custos</h1>
           </Link>
-          <div className="ml-auto shrink-0 pl-2">
+          <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
             <SaveDefaultsButton />
             <SortableNav current="equipe-n1" />
           </div>
