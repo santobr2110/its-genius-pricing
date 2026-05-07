@@ -211,7 +211,9 @@ export function useITSMCalculator() {
     // (A parcela de N1 alocada ao Smart Monitor já está incluída em custoN1.)
     const monitorActive = state.tierMonitor;
     const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
-    const smChamados = chamadosServidores + chamadosRede + chamadosSistemas;
+    const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas;
+    // Considera chamados evitados pelo N0
+    const smChamados = smChamadosBrutos * (1 - state.reducaoN0 / 100);
     const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivos : 0;
     const smCustoN1Aloc = monitorActive
       ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
