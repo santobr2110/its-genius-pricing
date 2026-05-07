@@ -52,6 +52,7 @@ export interface ITSMState {
   complexSiteBackup: boolean;
   complexHibridoCloudOnPrem: boolean;
   complexOperacao24x7: boolean;
+  complexErpMercado: boolean;
   tierMonitor: boolean;
   tierOperation: boolean;
   tierOperationN3: boolean;
