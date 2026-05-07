@@ -138,7 +138,7 @@ export default function TaxasDemanda() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Escala de Criticidade do Ambiente</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Ajuste aplicado ao volume mensal de chamados por unidade de inventário, conforme o nível de criticidade selecionado no inventário do cliente.
+              Multiplicador percentual aplicado às taxas de chamados/mês conforme o nível de criticidade selecionado no inventário do cliente.
             </p>
           </CardHeader>
           <CardContent>
@@ -146,22 +146,25 @@ export default function TaxasDemanda() {
               {["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"].map((nome, idx) => (
                 <div key={nome} className="space-y-1">
                   <Label className="text-xs text-muted-foreground">{nome}</Label>
-                  <Input
-                    type="number"
-                    step={0.05}
-                    value={criticidadeEscala[idx] ?? 0}
-                    onChange={(e) => {
-                      const next = [...criticidadeEscala];
-                      next[idx] = parseFloat(e.target.value) || 0;
-                      update("criticidadeEscala", next);
-                    }}
-                    className="h-9"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      step={1}
+                      value={Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100}
+                      onChange={(e) => {
+                        const next = [...criticidadeEscala];
+                        next[idx] = (parseFloat(e.target.value) || 0) / 100;
+                        update("criticidadeEscala", next);
+                      }}
+                      className="h-9 pr-7"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+                  </div>
                 </div>
               ))}
             </div>
             <p className="text-[11px] text-muted-foreground mt-3">
-              O valor é somado à taxa de chamados/mês por unidade de cada categoria.
+              O valor é aplicado como multiplicador percentual sobre a taxa de chamados/mês de cada categoria (ex.: -30% reduz a taxa em 30%).
             </p>
           </CardContent>
         </Card>
