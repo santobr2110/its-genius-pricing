@@ -38,6 +38,10 @@ export interface ITSMState {
   // Camadas de oferta
   percAlocacaoN1Monitor: number;
   custoAtivoMonitorado: number;
+  tierMonitor: boolean;
+  tierOperation: boolean;
+  tierPerformance: boolean;
+  tierEnterprise: boolean;
 }
 
 export interface ITSMResults {
@@ -82,6 +86,7 @@ export interface ITSMResults {
     custoN1Alocado: number;
     total: number;
   };
+  humanAttendanceActive: boolean;
 }
 
 const DEFAULTS: ITSMState = {
@@ -112,6 +117,10 @@ const DEFAULTS: ITSMState = {
   impostosTaxas: 5.65,
   percAlocacaoN1Monitor: 30,
   custoAtivoMonitorado: 50,
+  tierMonitor: true,
+  tierOperation: false,
+  tierPerformance: false,
+  tierEnterprise: false,
 };
 
 export function useITSMCalculator() {
@@ -173,35 +182,42 @@ export function useITSMCalculator() {
     const volumeN2 = volumeAtendimentoHumano * (state.percN2 / 100);
     const volumeN3 = volumeAtendimentoHumano * (state.percN3 / 100);
 
+    // Atendimento humano só está ativo se alguma camada que envolve atendimento for selecionada
+    const humanAttendanceActive =
+      state.tierOperation || state.tierPerformance || state.tierEnterprise;
+
     // === N1: Custo por Chamado ===
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
     const custoPorChamadoN1 = state.capacidadeChamadosN1 > 0
       ? custoPosicaoN1 / state.capacidadeChamadosN1
       : 0;
-    const custoN1 = custoPorChamadoN1 * volumeN1;
+    const custoN1 = humanAttendanceActive ? custoPorChamadoN1 * volumeN1 : 0;
 
     // === N2: Custo por Servidor (proporcional ao volume do funil) ===
     const custoTotalAnalistaN2 = state.custoAnalistaN2 * (1 + state.percGestaoN2 / 100);
     const custoPorServidorN2 = state.capacidadeServidoresN2 > 0
       ? custoTotalAnalistaN2 / state.capacidadeServidoresN2
       : 0;
-    const custoN2 = custoPorServidorN2 * state.qtdServidores;
+    const custoN2 = humanAttendanceActive ? custoPorServidorN2 * state.qtdServidores : 0;
 
     // === N3: Horas consumidas por chamados N3 ===
-    const horasN3 = state.horasN3Mensais;
-    const horasConsumidasN3 = volumeN3 * state.tempoMedioChamadoN3;
+    const horasN3 = humanAttendanceActive ? state.horasN3Mensais : 0;
+    const horasConsumidasN3 = humanAttendanceActive ? volumeN3 * state.tempoMedioChamadoN3 : 0;
     const horasAtendimentoN3 = horasConsumidasN3;
     const horasPrevencao = Math.max(0, horasN3 - horasConsumidasN3);
     const custoN3 = horasN3 * state.valorHoraN3;
 
     // Smart Monitor: custo de monitoramento por ativo entra no custo total da operação.
     // (A parcela de N1 alocada ao Smart Monitor já está incluída em custoN1.)
+    const monitorActive = state.tierMonitor;
     const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
     const smChamados = chamadosServidores + chamadosRede + chamadosSistemas;
-    const smCustoMonit = state.custoAtivoMonitorado * smAtivos;
-    const smCustoN1Aloc = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados;
+    const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivos : 0;
+    const smCustoN1Aloc = monitorActive
+      ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
+      : 0;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit;
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
@@ -251,6 +267,7 @@ export function useITSMCalculator() {
       valorImpostos,
       precoVendaMensal,
       smartMonitor,
+      humanAttendanceActive,
     };
   }, [state]);
 
