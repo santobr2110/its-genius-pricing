@@ -16,6 +16,7 @@ const groups = [
     title: "Service Desk e Microinformática",
     items: [
       { key: "qtdUsuarios" as const, label: "Usuários", icon: Users, color: "text-blue-500" },
+      { key: "qtdEquipamentos" as const, label: "Equipamento Desk/Note/Cel/Tablet", icon: Server, color: "text-indigo-500" },
     ],
   },
   {
