@@ -17,8 +17,9 @@ export interface AreaData {
 }
 
 export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
+  const human = results.humanAttendanceActive;
   const n0Factor = state.reducaoN0 / 100;
-  const humanFactor = 1 - n0Factor;
+  const humanFactor = human ? 1 - n0Factor : 0;
 
   const raw = {
     usuarios: results.chamadosUsuarios,
@@ -30,13 +31,13 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
 
   const buildArea = (sources: number[]) => {
     const bruto = sources.reduce((a, b) => a + b, 0);
-    const human = bruto * humanFactor;
+    const humanCalls = bruto * humanFactor;
     return {
       bruto,
       n0: bruto * n0Factor,
-      n1: human * (state.percN1 / 100),
-      n2: human * (state.percN2 / 100),
-      n3: human * (state.percN3 / 100),
+      n1: humanCalls * (state.percN1 / 100),
+      n2: humanCalls * (state.percN2 / 100),
+      n3: humanCalls * (state.percN3 / 100),
     };
   };
 
@@ -78,16 +79,20 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
     {
       nome: "Monitoramento",
       icon: Eye,
-      chamadosBrutos: monitoramento.bruto,
-      chamadosN0: monitoramento.n0,
-      chamadosN1: monitoramento.n1,
+      chamadosBrutos: state.tierMonitor ? results.smartMonitor.chamadosAtivos : monitoramento.bruto,
+      chamadosN0: human ? monitoramento.n0 : 0,
+      chamadosN1: state.tierMonitor
+        ? results.smartMonitor.chamadosAtivos
+        : monitoramento.n1,
       chamadosN2: 0,
       chamadosN3: 0,
-      custoN1: propCost(monitoramento.bruto, monitoramento.n1, totalN1, results.custoN1),
+      custoN1:
+        propCost(monitoramento.bruto, monitoramento.n1, totalN1, results.custoN1) +
+        results.smartMonitor.custoN1Alocado,
       custoN2: 0,
       custoN3: 0,
       custoExtra: results.smartMonitor.custoMonitoramento,
-      custoExtraLabel: "Smart Monitor (ativos)",
+      custoExtraLabel: "Infra Smart Monitor (ativos)",
     },
     {
       nome: "Field Service",
