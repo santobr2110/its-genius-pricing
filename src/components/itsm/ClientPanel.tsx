@@ -43,6 +43,10 @@ export default function ClientPanel({ state, update }: Props) {
   const escala = state.criticidadeEscala ?? [-0.3, -0.15, 0, 0.15, 0.3];
   const nivel = state.criticidadeNivel ?? 2;
   const ajusteAtual = escala[nivel] ?? 0;
+  // Cores por nível: verde → amarelo → vermelho
+  const coresNivel = ["#16a34a", "#84cc16", "#eab308", "#f97316", "#dc2626"];
+  const corAtual = coresNivel[nivel] ?? coresNivel[2];
+  const gradiente = `linear-gradient(to right, ${coresNivel.join(", ")})`;
   return (
     <div className="space-y-4">
       {/* Inventário */}
@@ -100,6 +104,10 @@ export default function ClientPanel({ state, update }: Props) {
                 max={4}
                 step={1}
                 onValueChange={(v) => update("criticidadeNivel", v[0])}
+                trackClassName="bg-transparent"
+                rangeClassName="bg-transparent"
+                trackStyle={{ backgroundImage: gradiente }}
+                thumbStyle={{ backgroundColor: corAtual, borderColor: corAtual }}
               />
               <div className="flex justify-between text-[10px] text-muted-foreground">
                 {niveis.map((n) => (
