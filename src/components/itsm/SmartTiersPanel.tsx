@@ -32,6 +32,7 @@ export default function SmartTiersPanel() {
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
+  const smN3Venda = toSell(sm.custoN3);
   const smTotalVenda = toSell(sm.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const smOperationVenda = state.tierOperation ? toSell(operacaoCustoTotal) : 0;
@@ -107,6 +108,23 @@ export default function SmartTiersPanel() {
                 </span>
                 <span className="font-semibold">{formatBRL(smN1Venda)}</span>
               </div>
+            </div>
+            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-muted-foreground">
+                  Horas N3 opcional ({formatBRL(state.valorHoraN3)}/h)
+                </Label>
+                <span className="text-xs font-semibold">
+                  {formatNumber(state.horasN3Monitor)}h · {formatBRL(smN3Venda)}
+                </span>
+              </div>
+              <Slider
+                value={[Math.min(40, Math.max(0, state.horasN3Monitor || 0))]}
+                onValueChange={([v]) => update("horasN3Monitor", v)}
+                min={0}
+                max={40}
+                step={1}
+              />
             </div>
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Monitor (venda)</span>
