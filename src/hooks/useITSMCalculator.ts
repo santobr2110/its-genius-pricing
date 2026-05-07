@@ -423,6 +423,7 @@ export function useITSMCalculator() {
       custoN2F: custoFN2,
       custoN3F: custoFN3,
       total: custoFieldTotal,
+      custoTriagemN1: custoFieldTriagemN1,
       mode: state.fieldAllocationMode,
       overflowAtivo,
       volumeTransbordoN1Remoto: volTransN1R,
