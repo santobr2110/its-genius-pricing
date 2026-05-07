@@ -15,7 +15,7 @@ const Index = () => {
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
           <div className="flex items-center gap-2 min-w-0">
             <Calculator className="h-5 w-5 text-primary shrink-0" />
-            <h1 className="text-sm font-bold text-foreground truncate">Calculadora de Precificação ITSM</h1>
+            <h1 className="font-bold text-foreground truncate text-base">Smart ITO</h1>
           </div>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
             <SavePresetButton />
