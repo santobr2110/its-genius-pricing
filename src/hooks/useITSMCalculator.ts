@@ -52,6 +52,7 @@ export interface ITSMState {
   complexSiteBackup: boolean;
   complexHibridoCloudOnPrem: boolean;
   complexOperacao24x7: boolean;
+  complexErpMercado: boolean;
   tierMonitor: boolean;
   tierOperation: boolean;
   tierOperationN3: boolean;
@@ -191,6 +192,7 @@ const DEFAULTS: ITSMState = {
   complexSiteBackup: false,
   complexHibridoCloudOnPrem: false,
   complexOperacao24x7: false,
+  complexErpMercado: false,
   tierMonitor: true,
   tierOperation: false,
   tierOperationN3: false,
