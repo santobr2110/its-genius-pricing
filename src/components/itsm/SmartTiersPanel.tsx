@@ -106,10 +106,11 @@ export default function SmartTiersPanel() {
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-foreground">Composição — Smart Operation</p>
               <span className="text-[11px] text-muted-foreground">
-                Distribuição N1 {state.percN1}% · N2 {state.percN2}% · N3 {state.percN3}%
+                Distribuição N1 {state.percN1}% · N2 {state.percN2}%
+                {state.tierOperationN3 ? ` · N3 ${state.percN3}%` : ""}
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className={`grid ${state.tierOperationN3 ? "grid-cols-3" : "grid-cols-2"} gap-2 text-xs`}>
               <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                 <span className="text-muted-foreground">N1</span>
                 <span className="font-semibold">{formatBRL(toSell(results.custoN1))}</span>
@@ -118,11 +119,24 @@ export default function SmartTiersPanel() {
                 <span className="text-muted-foreground">N2</span>
                 <span className="font-semibold">{formatBRL(toSell(results.custoN2))}</span>
               </div>
-              <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                <span className="text-muted-foreground">N3</span>
-                <span className="font-semibold">{formatBRL(toSell(results.custoN3))}</span>
-              </div>
+              {state.tierOperationN3 && (
+                <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                  <span className="text-muted-foreground">
+                    N3 ({formatNumber(state.horasN3Mensais)}h)
+                  </span>
+                  <span className="font-semibold">{formatBRL(toSell(results.custoN3))}</span>
+                </div>
+              )}
             </div>
+            <label className="flex items-center gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
+              <Checkbox
+                checked={state.tierOperationN3}
+                onCheckedChange={() => update("tierOperationN3", !state.tierOperationN3 as any)}
+              />
+              <span className="text-xs">
+                Adicionar atendimento N3 opcional ({formatNumber(state.horasN3Mensais)}h × {formatBRL(state.valorHoraN3)})
+              </span>
+            </label>
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Operation (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smOperationVenda)}</span>

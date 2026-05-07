@@ -40,6 +40,7 @@ export interface ITSMState {
   custoAtivoMonitorado: number;
   tierMonitor: boolean;
   tierOperation: boolean;
+  tierOperationN3: boolean;
   tierPerformance: boolean;
   tierEnterprise: boolean;
 }
@@ -119,6 +120,7 @@ const DEFAULTS: ITSMState = {
   custoAtivoMonitorado: 50,
   tierMonitor: true,
   tierOperation: false,
+  tierOperationN3: false,
   tierPerformance: false,
   tierEnterprise: false,
 };
@@ -185,9 +187,11 @@ export function useITSMCalculator() {
     // Atendimento humano só está ativo se alguma camada que envolve atendimento for selecionada
     const humanAttendanceActive =
       state.tierOperation || state.tierPerformance || state.tierEnterprise;
-    // N3 só é atendido em camadas superiores (Performance/Enterprise).
-    // Smart Operation cobre apenas N0/N1/N2.
-    const n3Active = state.tierPerformance || state.tierEnterprise;
+    // N3 atendido nas camadas superiores OU como opcional dentro do Smart Operation.
+    const n3Active =
+      state.tierPerformance ||
+      state.tierEnterprise ||
+      (state.tierOperation && state.tierOperationN3);
 
     // === N1: Custo por Chamado ===
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
