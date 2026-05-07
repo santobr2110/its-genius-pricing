@@ -145,7 +145,7 @@ export default function SmartTiersPanel() {
                 <Label className="text-[11px] text-muted-foreground">Horas N3/Mês</Label>
                 <Input
                   type="number"
-                  value={state.horasN3Mensais}
+                  value={state.horasN3Mensais === 0 ? "" : state.horasN3Mensais}
                   onChange={(e) => update("horasN3Mensais", parseInt(e.target.value) || 0)}
                   className="h-7 text-sm w-24 ml-auto"
                 />
