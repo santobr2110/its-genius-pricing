@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck } from "lucide-react";
+import { Users, Server, Network, Database, ShieldCheck, Laptop } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -16,7 +16,7 @@ const groups = [
     title: "Service Desk e Microinformática",
     items: [
       { key: "qtdUsuarios" as const, label: "Usuários", icon: Users, color: "text-blue-500" },
-      { key: "qtdEquipamentos" as const, label: "Equipamento Desk/Note/Cel/Tablet", icon: Server, color: "text-indigo-500" },
+      { key: "qtdEquipamentos" as const, label: "Equipamento Desk/Note/Cel/Tablet", icon: Laptop, color: "text-indigo-500" },
     ],
   },
   {
