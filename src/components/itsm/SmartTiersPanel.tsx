@@ -1,23 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useState } from "react";
 import { Activity, Zap, Gauge, Building2 } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
+import type { ITSMState } from "@/hooks/useITSMCalculator";
 
-const TIERS = [
-  { id: "monitor", label: "Smart Monitor", icon: Activity, desc: "Monitoramento de ativos (Servidores, Rede, Firewall)", available: true },
-  { id: "operation", label: "Smart Operation", icon: Zap, desc: "Em breve", available: false },
-  { id: "performance", label: "Smart Performance", icon: Gauge, desc: "Em breve", available: false },
-  { id: "enterprise", label: "Smart Enterprise", icon: Building2, desc: "Em breve", available: false },
-] as const;
+const TIERS: {
+  id: keyof ITSMState;
+  label: string;
+  icon: any;
+  desc: string;
+  available: boolean;
+}[] = [
+  { id: "tierMonitor", label: "Smart Monitor", icon: Activity, desc: "Monitoramento de ativos (Servidores, Rede, Firewall)", available: true },
+  { id: "tierOperation", label: "Smart Operation", icon: Zap, desc: "Em breve", available: false },
+  { id: "tierPerformance", label: "Smart Performance", icon: Gauge, desc: "Em breve", available: false },
+  { id: "tierEnterprise", label: "Smart Enterprise", icon: Building2, desc: "Em breve", available: false },
+];
 
 export default function SmartTiersPanel() {
-  const { results, state } = useITSMContext();
-  const [selected, setSelected] = useState<Record<string, boolean>>({ monitor: true });
-
-  const toggle = (id: string) => setSelected((s) => ({ ...s, [id]: !s[id] }));
-
+  const { results, state, update } = useITSMContext();
   const sm = results.smartMonitor;
   const fatorMargem = (100 - state.margemLucro) / 100;
   const fatorImposto = (100 - state.impostosTaxas) / 100;
@@ -27,7 +29,7 @@ export default function SmartTiersPanel() {
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
   const smTotalVenda = toSell(sm.total);
-  const totalSelecionado = selected.monitor ? smTotalVenda : 0;
+  const totalSelecionado = state.tierMonitor ? smTotalVenda : 0;
 
   return (
     <Card>
@@ -39,7 +41,7 @@ export default function SmartTiersPanel() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {TIERS.map((t) => {
             const Icon = t.icon;
-            const isSel = !!selected[t.id];
+            const isSel = !!state[t.id];
             return (
               <label
                 key={t.id}
@@ -50,7 +52,7 @@ export default function SmartTiersPanel() {
                 <Checkbox
                   checked={isSel}
                   disabled={!t.available}
-                  onCheckedChange={() => t.available && toggle(t.id)}
+                  onCheckedChange={() => t.available && update(t.id, !isSel as any)}
                   className="mt-0.5"
                 />
                 <Icon className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -63,7 +65,7 @@ export default function SmartTiersPanel() {
           })}
         </div>
 
-        {selected.monitor && (
+        {state.tierMonitor && (
           <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-foreground">Composição — Smart Monitor</p>
