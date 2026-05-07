@@ -124,6 +124,8 @@ export interface ITSMResults {
     chamadosAtivos: number;
     custoMonitoramento: number;
     custoN1Alocado: number;
+    horasN3: number;
+    custoN3: number;
     total: number;
   };
   humanAttendanceActive: boolean;
