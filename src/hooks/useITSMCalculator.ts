@@ -5,6 +5,7 @@ import { usePersistentState } from "./usePersistentState";
 export interface ITSMState {
   // Inventário
   qtdUsuarios: number;
+  qtdEquipamentos: number;
   qtdServidores: number;
   qtdAtivosRede: number;
   qtdBancosDados: number;
@@ -92,6 +93,7 @@ export interface ITSMResults {
 
 const DEFAULTS: ITSMState = {
   qtdUsuarios: 500,
+  qtdEquipamentos: 500,
   qtdServidores: 50,
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
