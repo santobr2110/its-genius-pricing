@@ -106,6 +106,9 @@ export default function ClientPanel({ state, update }: Props) {
                   <span key={n}>{n}</span>
                 ))}
               </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
+                {descritivos[nivel]}
+              </p>
             </div>
           </div>
 
