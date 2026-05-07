@@ -39,9 +39,9 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     calc.update("custoAnalistaN2", n2.results.custoTotalEquipe);
-    calc.update("capacidadeServidoresN2", n2.teamState.capacidadeServidoresTotal);
+    calc.update("capacidadeChamadosN2", n2.teamState.capacidadeChamadosTotal);
     calc.update("percGestaoN2", 0);
-  }, [n2.results.custoTotalEquipe, n2.teamState.capacidadeServidoresTotal]);
+  }, [n2.results.custoTotalEquipe, n2.teamState.capacidadeChamadosTotal]);
 
   const loadPreset = useCallback((preset: PricingPreset) => {
     calc.setState(preset.calculator);

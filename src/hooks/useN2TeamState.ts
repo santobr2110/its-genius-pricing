@@ -15,7 +15,7 @@ export interface N2Professional {
 
 export interface N2TeamState {
   professionals: N2Professional[];
-  capacidadeServidoresTotal: number; // servidores que o time inteiro consegue atender
+  capacidadeChamadosTotal: number; // chamados/mês que o time inteiro consegue atender
 }
 
 export interface N2TeamResults {
@@ -26,7 +26,7 @@ export interface N2TeamResults {
   custoTotalEquipe: number;
   totalPessoas: number;
   custoPorPessoa: number;
-  custoPorServidor: number;
+  custoPorChamado: number;
 }
 
 let nextId = 1;
@@ -59,7 +59,7 @@ const DEFAULT_PROFESSIONALS: N2Professional[] = [
 
 const DEFAULT_STATE: N2TeamState = {
   professionals: DEFAULT_PROFESSIONALS,
-  capacidadeServidoresTotal: 60,
+  capacidadeChamadosTotal: 300,
 };
 
 export function useN2TeamState() {
@@ -130,8 +130,8 @@ export function useN2TeamState() {
 
     const custoTotalEquipe = custoTotalFolha + custoTotalEncargos + custoTotalBeneficios + custoTotalIndiretos;
     const custoPorPessoa = totalPessoas > 0 ? custoTotalEquipe / totalPessoas : 0;
-    const custoPorServidor = teamState.capacidadeServidoresTotal > 0
-      ? custoTotalEquipe / teamState.capacidadeServidoresTotal
+    const custoPorChamado = teamState.capacidadeChamadosTotal > 0
+      ? custoTotalEquipe / teamState.capacidadeChamadosTotal
       : 0;
 
     return {
@@ -142,7 +142,7 @@ export function useN2TeamState() {
       custoTotalEquipe,
       totalPessoas,
       custoPorPessoa,
-      custoPorServidor,
+      custoPorChamado,
     };
   }, [teamState]);
 
