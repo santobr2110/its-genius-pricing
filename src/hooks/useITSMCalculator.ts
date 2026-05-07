@@ -93,7 +93,7 @@ export interface ITSMResults {
 
 const DEFAULTS: ITSMState = {
   qtdUsuarios: 500,
-  qtdEquipamentos: 500,
+  qtdEquipamentos: 0,
   qtdServidores: 50,
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
