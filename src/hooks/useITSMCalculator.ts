@@ -215,7 +215,9 @@ export function useITSMCalculator() {
     // Considera chamados evitados pelo N0
     const smChamados = smChamadosBrutos * (1 - state.reducaoN0 / 100);
     const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivos : 0;
-    const smCustoN1Aloc = monitorActive
+    // Quando Smart Operation está ativo, o N1 atende todos os chamados
+    // pelo funil normal — não há alocação extra do Smart Monitor.
+    const smCustoN1Aloc = monitorActive && !state.tierOperation
       ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
       : 0;
 

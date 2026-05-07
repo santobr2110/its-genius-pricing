@@ -20,6 +20,7 @@ export interface AreaData {
 
 export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
   const human = results.humanAttendanceActive;
+  const onlyMonitor = state.tierMonitor && !state.tierOperation;
   const n0Factor = state.reducaoN0 / 100;
   const humanFactor = human ? 1 - n0Factor : 0;
 
@@ -82,18 +83,16 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
     {
       nome: "Monitoramento",
       icon: Eye,
-      chamadosBrutos: state.tierMonitor ? results.smartMonitor.chamadosAtivos : monitoramento.bruto,
+      chamadosBrutos: onlyMonitor ? results.smartMonitor.chamadosAtivos : monitoramento.bruto,
       chamadosN0: monitoramento.n0,
-      chamadosN1: state.tierMonitor
-        ? results.smartMonitor.chamadosAtivos
-        : monitoramento.n1,
-      chamadosN2: 0,
-      chamadosN3: 0,
+      chamadosN1: onlyMonitor ? results.smartMonitor.chamadosAtivos : monitoramento.n1,
+      chamadosN2: onlyMonitor ? 0 : monitoramento.n2,
+      chamadosN3: onlyMonitor ? 0 : monitoramento.n3,
       custoN1:
         propCost(monitoramento.bruto, monitoramento.n1, totalN1, results.custoN1) +
         results.smartMonitor.custoN1Alocado,
-      custoN2: 0,
-      custoN3: 0,
+      custoN2: onlyMonitor ? 0 : propCost(monitoramento.bruto, monitoramento.n2, totalN2, results.custoN2),
+      custoN3: onlyMonitor ? 0 : (totalN3 > 0 ? (monitoramento.n3 / totalN3) * custoN3Atendimento : 0),
       custoFerramentas: results.smartMonitor.custoMonitoramento,
       custoFerramentasLabel: "Infra Smart Monitor (ativos)",
       custoExtra: 0,
