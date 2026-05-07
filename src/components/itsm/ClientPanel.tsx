@@ -81,7 +81,7 @@ export default function ClientPanel({ state, update }: Props) {
                     <span className="text-xs font-semibold text-foreground">
                       {niveis[nivel]}{" "}
                       <span className="text-muted-foreground font-normal">
-                        ({ajusteAtual > 0 ? "+" : ""}{ajusteAtual.toFixed(2)})
+                        ({ajusteAtual > 0 ? "+" : ""}{(ajusteAtual * 100).toFixed(0)}%)
                       </span>
                     </span>
                   </div>
