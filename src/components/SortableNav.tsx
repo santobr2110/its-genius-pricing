@@ -32,6 +32,7 @@ import {
   Settings2,
   UsersRound,
   FileText,
+  MapPin,
   LucideIcon,
 } from "lucide-react";
 import {
@@ -51,6 +52,7 @@ export type NavItemId =
   | "equipe-n1"
   | "equipe-n2"
   | "equipe-n3"
+  | "field-service"
   | "detalhamento"
   | "precificacoes"
   | "operacao";
@@ -70,6 +72,7 @@ const PAGES: Record<NavItemId, PageDef> = {
   "equipe-n1": { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", icon: Users },
   "equipe-n2": { id: "equipe-n2", to: "/equipe-n2", label: "Equipe N2", icon: Server },
   "equipe-n3": { id: "equipe-n3", to: "/equipe-n3", label: "Equipe N3", icon: Clock },
+  "field-service": { id: "field-service", to: "/field-service", label: "Field Service", icon: MapPin },
   detalhamento: { id: "detalhamento", to: "/detalhamento", label: "Detalhamento", icon: ClipboardList },
   precificacoes: { id: "precificacoes", to: "/precificacoes", label: "Precificações", icon: FolderOpen },
 };
@@ -108,7 +111,7 @@ const SLOTS: Slot[] = [
     label: "Equipes",
     shortLabel: "Equipes",
     icon: UsersRound,
-    items: ["equipe-n1", "equipe-n2", "equipe-n3"],
+    items: ["equipe-n1", "equipe-n2", "equipe-n3", "field-service"],
   },
   {
     kind: "menu",

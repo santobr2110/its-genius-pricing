@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Activity, Zap, Gauge, Building2 } from "lucide-react";
+import { Activity, Zap, Gauge, Building2, MapPin } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
@@ -34,7 +34,9 @@ export default function SmartTiersPanel() {
   const smTotalVenda = toSell(sm.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const smOperationVenda = state.tierOperation ? toSell(operacaoCustoTotal) : 0;
-  const totalSelecionado = (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda;
+  const fs = results.fieldService;
+  const fsVenda = fs.active ? toSell(fs.total) : 0;
+  const totalSelecionado = (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + fsVenda;
 
   return (
     <Card>
@@ -162,6 +164,51 @@ export default function SmartTiersPanel() {
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Operation (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smOperationVenda)}</span>
+            </div>
+
+            <div className="border-t pt-2 space-y-2">
+              <label className="flex items-start gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
+                <Checkbox
+                  checked={state.tierFieldOperation}
+                  onCheckedChange={() => update("tierFieldOperation", !state.tierFieldOperation as any)}
+                  className="mt-0.5"
+                />
+                <MapPin className="h-3.5 w-3.5 text-orange-500 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold">Adicionar Field Service</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Atendimento presencial N1/N2/N3 — chamados de usuários passam pelo N1 convencional e são escalados para a equipe Field.
+                  </p>
+                </div>
+              </label>
+              {state.tierFieldOperation && (
+                <div className="rounded-lg border border-orange-200 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-900 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold">Composição — Field Service</p>
+                    <span className="text-[11px] text-muted-foreground">
+                      {formatNumber(fs.volumeUsuariosEscalado, 1)} ch/mês escalados
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                      <span className="text-muted-foreground">N1F ({state.percFieldN1F}%)</span>
+                      <span className="font-semibold">{formatBRL(toSell(fs.custoN1F))}</span>
+                    </div>
+                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                      <span className="text-muted-foreground">N2F ({state.percFieldN2F}%)</span>
+                      <span className="font-semibold">{formatBRL(toSell(fs.custoN2F))}</span>
+                    </div>
+                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                      <span className="text-muted-foreground">N3F ({state.percFieldN3F}%)</span>
+                      <span className="font-semibold">{formatBRL(toSell(fs.custoN3F))}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span className="text-xs font-semibold">Total Field Service (venda)</span>
+                    <span className="text-sm font-bold text-primary">{formatBRL(fsVenda)}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
