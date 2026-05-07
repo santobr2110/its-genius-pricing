@@ -23,8 +23,8 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[900px] p-4">
-        <div className="space-y-4">
+      <main className="mx-auto max-w-[1400px] p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-4 items-start">
           <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
           <SmartTiersPanel />
         </div>
