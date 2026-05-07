@@ -110,7 +110,7 @@ export default function ClientPanel({ state, update }: Props) {
                 trackStyle={{ backgroundImage: gradiente }}
                 thumbStyle={{ backgroundColor: corAtual, borderColor: corAtual }}
               />
-              <div className="relative h-7 text-[10px] text-muted-foreground">
+              <div className="relative h-7 w-[90%] mx-auto text-[10px] text-muted-foreground">
                 {niveis.map((n, i) => {
                   const pct = (i / (niveis.length - 1)) * 100;
                   const partes = n.split(" ");
