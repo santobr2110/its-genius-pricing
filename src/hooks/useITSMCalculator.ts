@@ -11,6 +11,7 @@ export interface ITSMState {
   qtdBancosDados: number;
   qtdSistemas: number;
   horasN3Mensais: number;
+  horasN3Monitor: number;
   // Taxas de demanda
   taxaUsuario: number;
   taxaServidor: number;
