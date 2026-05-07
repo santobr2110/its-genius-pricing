@@ -27,7 +27,7 @@ const Index = () => {
       </header>
 
       <main className="mx-auto max-w-[1400px] p-4">
-        <ResizablePanelGroup direction="horizontal" className="hidden lg:flex min-h-[600px] items-stretch gap-0">
+        <ResizablePanelGroup direction="horizontal" className="min-h-[600px] items-stretch gap-0">
           <ResizablePanel defaultSize={25} minSize={18} maxSize={50}>
             <div className="pr-2">
               <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
@@ -40,10 +40,6 @@ const Index = () => {
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
-        <div className="lg:hidden grid grid-cols-1 gap-4 items-start">
-          <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
-          <SmartTiersPanel />
-        </div>
       </main>
     </div>
   );
