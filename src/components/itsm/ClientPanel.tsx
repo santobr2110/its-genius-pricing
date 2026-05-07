@@ -143,6 +143,27 @@ export default function ClientPanel({ state, update }: Props) {
             </div>
           </div>
 
+          <div className="space-y-2 pt-2 border-t">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Complexidade do Ambiente
+            </p>
+            <div className="rounded-lg border divide-y">
+              {complexidadeItens.map(({ key, label }) => (
+                <div key={key} className="flex items-center gap-2 p-2.5">
+                  <Layers className="h-4 w-4 shrink-0 text-violet-500" />
+                  <Label htmlFor={`cx-${key}`} className="flex-1 text-xs cursor-pointer">
+                    {label}
+                  </Label>
+                  <Switch
+                    id={`cx-${key}`}
+                    checked={Boolean(state[key])}
+                    onCheckedChange={(v) => update(key, v as ITSMState[typeof key])}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
         </CardContent>
       </Card>
 
