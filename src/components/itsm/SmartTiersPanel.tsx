@@ -158,7 +158,7 @@ export default function SmartTiersPanel() {
         )}
 
         <div className="flex justify-between border-t pt-3">
-          <span className="text-sm font-semibold">Total das camadas selecionadas (venda)</span>
+          <span className="text-sm font-semibold">Valor Total de Venda</span>
           <span className="text-base font-bold text-primary">{formatBRL(totalSelecionado)}</span>
         </div>
       </CardContent>
