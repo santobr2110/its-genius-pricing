@@ -54,14 +54,17 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     calc.update("custoEquipeFieldN1", field.results.n1f.custoTotalEquipe);
     calc.update("capacidadeFieldN1", field.state.n1f.capacidadeChamadosTotal);
+    calc.update("custoUmFieldN1", field.results.n1f.custoUmProfissional);
   }, [field.results.n1f.custoTotalEquipe, field.state.n1f.capacidadeChamadosTotal]);
   useEffect(() => {
     calc.update("custoEquipeFieldN2", field.results.n2f.custoTotalEquipe);
     calc.update("capacidadeFieldN2", field.state.n2f.capacidadeChamadosTotal);
+    calc.update("custoUmFieldN2", field.results.n2f.custoUmProfissional);
   }, [field.results.n2f.custoTotalEquipe, field.state.n2f.capacidadeChamadosTotal]);
   useEffect(() => {
     calc.update("custoEquipeFieldN3", field.results.n3f.custoTotalEquipe);
     calc.update("capacidadeFieldN3", field.state.n3f.capacidadeChamadosTotal);
+    calc.update("custoUmFieldN3", field.results.n3f.custoUmProfissional);
   }, [field.results.n3f.custoTotalEquipe, field.state.n3f.capacidadeChamadosTotal]);
 
   const loadPreset = useCallback((preset: PricingPreset) => {

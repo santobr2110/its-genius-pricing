@@ -61,6 +61,15 @@ export interface ITSMState {
   percFieldN1F: number;
   percFieldN2F: number;
   percFieldN3F: number;
+  // Modo de alocação Field: "proporcional" (capacidade da equipe cadastrada)
+  // ou "direto" (1 profissional fixo por nível e transbordo via N1 remoto + N2F).
+  fieldAllocationMode: "proporcional" | "direto";
+  // Limite de equipamentos para considerar transbordo no modo direto.
+  fieldDirectEquipLimit: number;
+  // Custo de 1 profissional Field por nível (alimentado pelo contexto).
+  custoUmFieldN1: number;
+  custoUmFieldN2: number;
+  custoUmFieldN3: number;
   // Custos de equipes Field (preenchidos pelo contexto)
   custoEquipeFieldN1: number;
   custoEquipeFieldN2: number;
@@ -124,6 +133,13 @@ export interface ITSMResults {
     custoN2F: number;
     custoN3F: number;
     total: number;
+    mode: "proporcional" | "direto";
+    // Transbordo (modo direto)
+    overflowAtivo: boolean;
+    volumeTransbordoN1Remoto: number;
+    volumeTransbordoN2F: number;
+    custoTransbordoN1Remoto: number;
+    custoTransbordoN2F: number;
   };
 }
 
@@ -175,6 +191,11 @@ const DEFAULTS: ITSMState = {
   percFieldN1F: 60,
   percFieldN2F: 30,
   percFieldN3F: 10,
+  fieldAllocationMode: "proporcional",
+  fieldDirectEquipLimit: 100,
+  custoUmFieldN1: 0,
+  custoUmFieldN2: 0,
+  custoUmFieldN3: 0,
   custoEquipeFieldN1: 0,
   custoEquipeFieldN2: 0,
   custoEquipeFieldN3: 0,
@@ -303,13 +324,44 @@ export function useITSMCalculator() {
     const fN1F = volumeUsuariosEscalado * (state.percFieldN1F / 100);
     const fN2F = volumeUsuariosEscalado * (state.percFieldN2F / 100);
     const fN3F = volumeUsuariosEscalado * (state.percFieldN3F / 100);
-    const cppFN1 = state.capacidadeFieldN1 > 0 ? state.custoEquipeFieldN1 / state.capacidadeFieldN1 : 0;
-    const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
-    const cppFN3 = state.capacidadeFieldN3 > 0 ? state.custoEquipeFieldN3 / state.capacidadeFieldN3 : 0;
-    const custoFN1 = fieldActive ? cppFN1 * fN1F : 0;
-    const custoFN2 = fieldActive ? cppFN2 * fN2F : 0;
-    const custoFN3 = fieldActive ? cppFN3 * fN3F : 0;
-    const custoFieldTotal = custoFN1 + custoFN2 + custoFN3;
+
+    let custoFN1 = 0, custoFN2 = 0, custoFN3 = 0;
+    let overflowAtivo = false;
+    let volTransN1R = 0, volTransN2F = 0;
+    let custoTransN1R = 0, custoTransN2F = 0;
+
+    if (fieldActive) {
+      if (state.fieldAllocationMode === "direto") {
+        // 1 profissional fixo por nível — custo direto
+        custoFN1 = state.custoUmFieldN1;
+        custoFN2 = state.custoUmFieldN2;
+        custoFN3 = state.custoUmFieldN3;
+
+        // Transbordo quando equipamentos excedem o limite parametrizado
+        if (state.qtdEquipamentos > state.fieldDirectEquipLimit && state.fieldDirectEquipLimit > 0) {
+          overflowAtivo = true;
+          const excedente = (state.qtdEquipamentos - state.fieldDirectEquipLimit) / state.qtdEquipamentos;
+          // Volume de usuários que excede a capacidade presencial
+          const volExcedente = volumeUsuariosEscalado * excedente;
+          // Excedente passa pelo N1 remoto; aplica funil de proporção Field para
+          // determinar quanto retorna como N2 Field (N2F + N3F do roteamento).
+          volTransN1R = volExcedente;
+          const fracN2F = (state.percFieldN2F + state.percFieldN3F) / 100;
+          volTransN2F = volExcedente * fracN2F;
+          custoTransN1R = custoPorChamadoN1 * volTransN1R;
+          const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
+          custoTransN2F = cppFN2 * volTransN2F;
+        }
+      } else {
+        const cppFN1 = state.capacidadeFieldN1 > 0 ? state.custoEquipeFieldN1 / state.capacidadeFieldN1 : 0;
+        const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
+        const cppFN3 = state.capacidadeFieldN3 > 0 ? state.custoEquipeFieldN3 / state.capacidadeFieldN3 : 0;
+        custoFN1 = cppFN1 * fN1F;
+        custoFN2 = cppFN2 * fN2F;
+        custoFN3 = cppFN3 * fN3F;
+      }
+    }
+    const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F;
 
     const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + custoEndpointTooling + custoFieldTotal;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
@@ -341,6 +393,12 @@ export function useITSMCalculator() {
       custoN2F: custoFN2,
       custoN3F: custoFN3,
       total: custoFieldTotal,
+      mode: state.fieldAllocationMode,
+      overflowAtivo,
+      volumeTransbordoN1Remoto: volTransN1R,
+      volumeTransbordoN2F: volTransN2F,
+      custoTransbordoN1Remoto: custoTransN1R,
+      custoTransbordoN2F: custoTransN2F,
     };
 
     return {

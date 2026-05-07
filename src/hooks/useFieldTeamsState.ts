@@ -35,6 +35,7 @@ export interface FieldLevelResults {
   totalPessoas: number;
   custoPorPessoa: number;
   custoPorChamado: number;
+  custoUmProfissional: number;
 }
 
 export interface FieldTeamsResults {
@@ -77,6 +78,16 @@ function computeLevelResults(s: FieldLevelState): FieldLevelResults {
     folha += f; enc += e; ben += b; ind += i; total += p.quantidade;
   }
   const custoTotalEquipe = folha + enc + ben + ind;
+  // Custo de 1 profissional (primeiro perfil cadastrado, qty=1)
+  let custoUmProfissional = 0;
+  const first = s.professionals[0];
+  if (first) {
+    const f1 = first.salarioBase;
+    const e1 = f1 * (first.encargosPerc / 100);
+    const b1 = first.beneficiosFixo;
+    const i1 = (f1 + e1 + b1) * (first.custosIndiretosPerc / 100);
+    custoUmProfissional = f1 + e1 + b1 + i1;
+  }
   return {
     custoTotalFolha: folha,
     custoTotalEncargos: enc,
@@ -86,6 +97,7 @@ function computeLevelResults(s: FieldLevelState): FieldLevelResults {
     totalPessoas: total,
     custoPorPessoa: total > 0 ? custoTotalEquipe / total : 0,
     custoPorChamado: s.capacidadeChamadosTotal > 0 ? custoTotalEquipe / s.capacidadeChamadosTotal : 0,
+    custoUmProfissional,
   };
 }
 
