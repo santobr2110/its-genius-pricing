@@ -56,41 +56,43 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Suave: cinza-esverdeado */
+    --background: 150 8% 14%;
+    --foreground: 140 12% 88%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 150 8% 17%;
+    --card-foreground: 140 12% 88%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 150 8% 17%;
+    --popover-foreground: 140 12% 88%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 145 30% 65%;
+    --primary-foreground: 150 15% 12%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 150 8% 22%;
+    --secondary-foreground: 140 12% 90%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 150 7% 22%;
+    --muted-foreground: 145 10% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 145 20% 28%;
+    --accent-foreground: 140 15% 92%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 55% 45%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 150 8% 26%;
+    --input: 150 8% 26%;
+    --ring: 145 25% 55%;
+
+    --sidebar-background: 150 9% 12%;
+    --sidebar-foreground: 140 10% 85%;
+    --sidebar-primary: 145 30% 55%;
+    --sidebar-primary-foreground: 150 15% 10%;
+    --sidebar-accent: 150 8% 20%;
+    --sidebar-accent-foreground: 140 12% 90%;
+    --sidebar-border: 150 8% 22%;
+    --sidebar-ring: 145 30% 55%;
   }
 }
 
