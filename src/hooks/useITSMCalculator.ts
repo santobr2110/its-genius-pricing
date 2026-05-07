@@ -269,10 +269,19 @@ export function useITSMCalculator() {
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
 
+    // Quando Field Service está ativo, os chamados de USUÁRIOS passam pelo N1
+    // convencional (triagem) mas são escalados para a equipe Field nos níveis
+    // N2/N3 — portanto não devem ser contabilizados em N2/N3 remoto.
+    const fieldActiveCheck = state.tierOperation && state.tierFieldOperation;
+    const userHumano = chamadosUsuarios * (1 - state.reducaoN0 / 100);
+    const baseN2N3 = fieldActiveCheck
+      ? Math.max(0, volumeAtendimentoHumano - userHumano)
+      : volumeAtendimentoHumano;
+
     // === Funil: distribuição dos chamados humanos ===
     const volumeN1 = volumeAtendimentoHumano * (state.percN1 / 100);
-    const volumeN2 = volumeAtendimentoHumano * (state.percN2 / 100);
-    const volumeN3 = volumeAtendimentoHumano * (state.percN3 / 100);
+    const volumeN2 = baseN2N3 * (state.percN2 / 100);
+    const volumeN3 = baseN2N3 * (state.percN3 / 100);
 
     // Atendimento humano só está ativo se alguma camada que envolve atendimento for selecionada
     const humanAttendanceActive =
