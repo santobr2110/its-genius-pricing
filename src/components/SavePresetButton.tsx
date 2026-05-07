@@ -16,13 +16,13 @@ import { usePricingPresets } from "@/hooks/usePricingPresets";
 import { toast } from "sonner";
 
 export default function SavePresetButton() {
-  const { state, n1Team } = useITSMContext();
+  const { state, n1Team, n2Team } = useITSMContext();
   const { save } = usePricingPresets();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
   const handleSave = () => {
-    const preset = save(name, state, n1Team);
+    const preset = save(name, state, n1Team, n2Team);
     toast.success(`Precificação "${preset.name}" salva.`);
     setName("");
     setOpen(false);
