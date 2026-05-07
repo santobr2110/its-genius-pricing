@@ -1,4 +1,5 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
+import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { formatNumber, formatBRL, ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -32,6 +33,7 @@ export default function Detalhamento() {
             <h1 className="text-sm font-bold text-foreground truncate">Detalhamento por Área</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2">
+            <SaveDefaultsButton />
             <SortableNav current="detalhamento" />
           </div>
         </div>

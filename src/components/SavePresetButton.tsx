@@ -37,7 +37,7 @@ export default function SavePresetButton() {
         onClick={() => setOpen(true)}
       >
         <Save className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Salvar</span>
+        <span className="hidden sm:inline">Salvar Precificação</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
