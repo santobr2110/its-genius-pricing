@@ -1,5 +1,5 @@
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Headphones, Eye, Truck, Server, Monitor, Wrench } from "lucide-react";
+import { Headphones, Eye, Truck, Server, Monitor } from "lucide-react";
 
 export interface AreaData {
   nome: string;
@@ -127,20 +127,6 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoN2: propCost(gestaoSistemas.bruto, gestaoSistemas.n2, totalN2, results.custoN2),
       custoN3: totalN3 > 0 ? (gestaoSistemas.n3 / totalN3) * custoN3Atendimento : 0,
       custoExtra: 0,
-    },
-    {
-      nome: "Custo de Ferramentas",
-      icon: Wrench,
-      chamadosBrutos: 0,
-      chamadosN0: 0,
-      chamadosN1: 0,
-      chamadosN2: 0,
-      chamadosN3: 0,
-      custoN1: 0,
-      custoN2: 0,
-      custoN3: 0,
-      custoExtra: state.custoFixoFerramentas,
-      custoExtraLabel: "Ferramentas",
     },
   ];
 }
