@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge } from "lucide-react";
+import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Layers } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface Props {
   state: ITSMState;
@@ -47,6 +48,15 @@ export default function ClientPanel({ state, update }: Props) {
   const coresNivel = ["#16a34a", "#84cc16", "#eab308", "#f97316", "#dc2626"];
   const corAtual = coresNivel[nivel] ?? coresNivel[2];
   const gradiente = `linear-gradient(to right, ${coresNivel.join(", ")})`;
+  const complexidadeItens: { key: keyof ITSMState; label: string }[] = [
+    { key: "complexVirtualizacaoCluster", label: "Virtualização Clusterizada" },
+    { key: "complexBancoDadosHA", label: "Banco de Dados em HA" },
+    { key: "complexFirewallHA", label: "Firewall em HA ou WAF" },
+    { key: "complexMultiSites", label: "Multi-sites" },
+    { key: "complexSiteBackup", label: "Site Backup" },
+    { key: "complexHibridoCloudOnPrem", label: "Ambiente Híbrido Cloud/On-Premises" },
+    { key: "complexOperacao24x7", label: "Operação 24x7" },
+  ];
   return (
     <div className="space-y-4">
       {/* Inventário */}
