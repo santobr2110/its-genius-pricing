@@ -83,7 +83,7 @@ export default function ConfiguracoesFinanceiras() {
                   <Input
                     type="number"
                     step={0.01}
-                    value={state.margemLucro}
+                    value={state.margemLucro === 0 ? "" : state.margemLucro}
                     onChange={(e) => update("margemLucro", parseFloat(e.target.value) || 0)}
                     className="h-8 w-24 text-right"
                   />
@@ -112,7 +112,7 @@ export default function ConfiguracoesFinanceiras() {
                   <Input
                     type="number"
                     step={0.01}
-                    value={state.impostosTaxas}
+                    value={state.impostosTaxas === 0 ? "" : state.impostosTaxas}
                     onChange={(e) => update("impostosTaxas", parseFloat(e.target.value) || 0)}
                     className="h-8 w-24 text-right"
                   />
