@@ -56,23 +56,23 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Verde oliva + detalhes em tons de laranja */
-    --background: 75 22% 16%;
-    --foreground: 45 30% 92%;
+    /* Verde bandeira + detalhes em tons de laranja */
+    --background: 140 55% 14%;
+    --foreground: 45 30% 94%;
 
-    --card: 75 20% 19%;
-    --card-foreground: 45 30% 92%;
+    --card: 140 50% 17%;
+    --card-foreground: 45 30% 94%;
 
-    --popover: 75 20% 19%;
-    --popover-foreground: 45 30% 92%;
+    --popover: 140 50% 17%;
+    --popover-foreground: 45 30% 94%;
 
     --primary: 25 85% 58%;
     --primary-foreground: 30 30% 10%;
 
-    --secondary: 75 18% 24%;
+    --secondary: 140 40% 22%;
     --secondary-foreground: 40 30% 92%;
 
-    --muted: 75 15% 24%;
+    --muted: 140 30% 22%;
     --muted-foreground: 38 25% 72%;
 
     --accent: 35 80% 55%;
@@ -82,14 +82,14 @@ All colors MUST be HSL.
     --destructive-foreground: 0 0% 98%;
 
     --border: 22 70% 50%;
-    --input: 75 18% 28%;
+    --input: 140 35% 26%;
     --ring: 18 90% 55%;
 
-    --sidebar-background: 75 24% 13%;
+    --sidebar-background: 140 60% 11%;
     --sidebar-foreground: 40 28% 90%;
     --sidebar-primary: 22 85% 55%;
     --sidebar-primary-foreground: 30 30% 10%;
-    --sidebar-accent: 75 18% 22%;
+    --sidebar-accent: 140 40% 20%;
     --sidebar-accent-foreground: 40 30% 92%;
     --sidebar-border: 30 75% 50%;
     --sidebar-ring: 18 90% 55%;
