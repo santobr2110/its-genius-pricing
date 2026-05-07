@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Laptop } from "lucide-react";
+import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -31,6 +32,8 @@ const groups = [
 ] as const;
 
 export default function ClientPanel({ state, update }: Props) {
+  const niveis = ["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"];
+  const ajusteAtual = state.criticidadeEscala[state.criticidadeNivel] ?? 0;
   return (
     <div className="space-y-4">
       {/* Inventário */}
@@ -62,6 +65,40 @@ export default function ClientPanel({ state, update }: Props) {
               </div>
             </div>
           ))}
+
+          <div className="space-y-2 pt-2 border-t">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Criticidade do Ambiente
+            </p>
+            <div className="rounded-lg border p-3 space-y-3">
+              <div className="flex items-center gap-2">
+                <Gauge className="h-5 w-5 shrink-0 text-rose-500" />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">Nível</Label>
+                    <span className="text-xs font-semibold text-foreground">
+                      {niveis[state.criticidadeNivel]}{" "}
+                      <span className="text-muted-foreground font-normal">
+                        ({ajusteAtual > 0 ? "+" : ""}{ajusteAtual.toFixed(2)})
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <Slider
+                value={[state.criticidadeNivel]}
+                min={0}
+                max={4}
+                step={1}
+                onValueChange={(v) => update("criticidadeNivel", v[0])}
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground">
+                {niveis.map((n) => (
+                  <span key={n}>{n}</span>
+                ))}
+              </div>
+            </div>
+          </div>
 
         </CardContent>
       </Card>
