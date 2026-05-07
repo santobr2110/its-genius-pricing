@@ -13,9 +13,10 @@ const TIERS: {
   icon: any;
   desc: string;
   available: boolean;
+  selectedClass?: string;
 }[] = [
-  { id: "tierMonitor", label: "Smart Monitor", icon: Activity, desc: "Monitoramento de ativos (Servidores, Rede, Firewall)", available: true },
-  { id: "tierOperation", label: "Smart Operation", icon: Zap, desc: "Atendimento humano N1/N2/N3 conforme Slicer da Operação", available: true },
+  { id: "tierMonitor", label: "Smart Monitor", icon: Activity, desc: "Monitoramento de ativos (Servidores, Rede, Firewall)", available: true, selectedClass: "border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900" },
+  { id: "tierOperation", label: "Smart Operation", icon: Zap, desc: "Atendimento humano N1/N2/N3 conforme Slicer da Operação", available: true, selectedClass: "border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900" },
   { id: "tierPerformance", label: "Smart Performance", icon: Gauge, desc: "Em breve", available: false },
   { id: "tierEnterprise", label: "Smart Enterprise", icon: Building2, desc: "Em breve", available: false },
 ];
@@ -53,7 +54,7 @@ export default function SmartTiersPanel() {
                 key={t.id}
                 className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
                   t.available && !locked ? "cursor-pointer hover:bg-muted/40" : "opacity-70 cursor-not-allowed"
-                } ${isSel ? "border-primary bg-primary/5" : ""}`}
+                } ${isSel ? (t.selectedClass ?? "border-primary bg-primary/5") : ""}`}
               >
                 <Checkbox
                   checked={isSel}
