@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge } from "lucide-react";
+import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Layers } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface Props {
   state: ITSMState;
@@ -47,6 +48,15 @@ export default function ClientPanel({ state, update }: Props) {
   const coresNivel = ["#16a34a", "#84cc16", "#eab308", "#f97316", "#dc2626"];
   const corAtual = coresNivel[nivel] ?? coresNivel[2];
   const gradiente = `linear-gradient(to right, ${coresNivel.join(", ")})`;
+  const complexidadeItens: { key: keyof ITSMState; label: string }[] = [
+    { key: "complexVirtualizacaoCluster", label: "Virtualização Clusterizada" },
+    { key: "complexBancoDadosHA", label: "Banco de Dados em HA" },
+    { key: "complexFirewallHA", label: "Firewall em HA ou WAF" },
+    { key: "complexMultiSites", label: "Multi-sites" },
+    { key: "complexSiteBackup", label: "Site Backup" },
+    { key: "complexHibridoCloudOnPrem", label: "Ambiente Híbrido Cloud/On-Premises" },
+    { key: "complexOperacao24x7", label: "Operação 24x7" },
+  ];
   return (
     <div className="space-y-4">
       {/* Inventário */}
@@ -130,6 +140,27 @@ export default function ClientPanel({ state, update }: Props) {
               <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
                 {descritivos[nivel]}
               </p>
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Complexidade do Ambiente
+            </p>
+            <div className="rounded-lg border divide-y">
+              {complexidadeItens.map(({ key, label }) => (
+                <div key={key} className="flex items-center gap-2 p-2.5">
+                  <Layers className="h-4 w-4 shrink-0 text-violet-500" />
+                  <Label htmlFor={`cx-${key}`} className="flex-1 text-xs cursor-pointer">
+                    {label}
+                  </Label>
+                  <Switch
+                    id={`cx-${key}`}
+                    checked={Boolean(state[key])}
+                    onCheckedChange={(v) => update(key, v as ITSMState[typeof key])}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
