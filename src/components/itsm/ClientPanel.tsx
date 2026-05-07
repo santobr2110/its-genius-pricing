@@ -3,8 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Layers } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
+import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
   state: ITSMState;
@@ -145,22 +145,20 @@ export default function ClientPanel({ state, update }: Props) {
 
           <section className="space-y-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Complexidade</p>
-            <div className="rounded-lg border grid grid-cols-2 gap-x-2">
-              {complexidadeItens.map(({ key, label }, idx) => (
-                <div
+            <div className="rounded-lg border grid grid-cols-2 gap-x-3 gap-y-1.5 p-2">
+              {complexidadeItens.map(({ key, label }) => (
+                <label
                   key={key}
-                  className={`flex items-center gap-2 p-2 ${idx >= 2 ? "border-t" : ""}`}
+                  htmlFor={`cx-${key}`}
+                  className="flex items-center gap-2 cursor-pointer"
                 >
-                  <Layers className="h-3.5 w-3.5 shrink-0 text-violet-500" />
-                  <Label htmlFor={`cx-${key}`} className="flex-1 text-[11px] cursor-pointer leading-tight">
-                    {label}
-                  </Label>
-                  <Switch
+                  <Checkbox
                     id={`cx-${key}`}
                     checked={Boolean(state[key])}
-                    onCheckedChange={(v) => update(key, v as ITSMState[typeof key])}
+                    onCheckedChange={(v) => update(key, Boolean(v) as ITSMState[typeof key])}
                   />
-                </div>
+                  <span className="text-[11px] leading-tight">{label}</span>
+                </label>
               ))}
             </div>
           </section>
