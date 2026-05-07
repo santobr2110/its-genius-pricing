@@ -39,6 +39,7 @@ export interface ITSMState {
   // Camadas de oferta
   percAlocacaoN1Monitor: number;
   custoAtivoMonitorado: number;
+  custoFerramentaEndpoint: number;
   tierMonitor: boolean;
   tierOperation: boolean;
   tierOperationN3: boolean;
@@ -120,6 +121,7 @@ const DEFAULTS: ITSMState = {
   impostosTaxas: 5.65,
   percAlocacaoN1Monitor: 30,
   custoAtivoMonitorado: 50,
+  custoFerramentaEndpoint: 25,
   tierMonitor: true,
   tierOperation: false,
   tierOperationN3: false,
@@ -230,7 +232,8 @@ export function useITSMCalculator() {
       ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
       : 0;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc;
+    const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + custoEndpointTooling;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
