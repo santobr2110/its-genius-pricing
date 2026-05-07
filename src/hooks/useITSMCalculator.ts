@@ -292,7 +292,7 @@ export function useITSMCalculator() {
     const n3Active =
       state.tierPerformance ||
       state.tierEnterprise ||
-      (state.tierOperation && state.tierOperationN3);
+      state.tierOperation;
 
     // === N1: Custo por Chamado ===
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
