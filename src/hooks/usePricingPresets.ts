@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ITSMState } from "./useITSMCalculator";
 import type { N1TeamState } from "./useN1TeamState";
+import type { N2TeamState } from "./useN2TeamState";
 
 export interface PricingPreset {
   id: string;
@@ -9,6 +10,7 @@ export interface PricingPreset {
   updatedAt: number;
   calculator: ITSMState;
   n1Team: N1TeamState;
+  n2Team?: N2TeamState;
 }
 
 const KEY = "itsm:presets:v1";
@@ -40,7 +42,7 @@ export function usePricingPresets() {
     return () => window.removeEventListener("itsm:presets:changed", refresh);
   }, []);
 
-  const save = useCallback((name: string, calculator: ITSMState, n1Team: N1TeamState) => {
+  const save = useCallback((name: string, calculator: ITSMState, n1Team: N1TeamState, n2Team?: N2TeamState) => {
     const now = Date.now();
     const list = read();
     const preset: PricingPreset = {
@@ -50,14 +52,15 @@ export function usePricingPresets() {
       updatedAt: now,
       calculator,
       n1Team,
+      n2Team,
     };
     write([preset, ...list]);
     return preset;
   }, []);
 
-  const overwrite = useCallback((id: string, calculator: ITSMState, n1Team: N1TeamState) => {
+  const overwrite = useCallback((id: string, calculator: ITSMState, n1Team: N1TeamState, n2Team?: N2TeamState) => {
     const list = read().map((p) =>
-      p.id === id ? { ...p, calculator, n1Team, updatedAt: Date.now() } : p
+      p.id === id ? { ...p, calculator, n1Team, n2Team, updatedAt: Date.now() } : p
     );
     write(list);
   }, []);
