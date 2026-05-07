@@ -11,6 +11,7 @@ export interface ITSMState {
   qtdBancosDados: number;
   qtdSistemas: number;
   horasN3Mensais: number;
+  horasN3Monitor: number;
   // Taxas de demanda
   taxaUsuario: number;
   taxaServidor: number;
@@ -123,6 +124,8 @@ export interface ITSMResults {
     chamadosAtivos: number;
     custoMonitoramento: number;
     custoN1Alocado: number;
+    horasN3: number;
+    custoN3: number;
     total: number;
   };
   humanAttendanceActive: boolean;
@@ -156,6 +159,7 @@ const DEFAULTS: ITSMState = {
   qtdBancosDados: 10,
   qtdSistemas: 15,
   horasN3Mensais: 80,
+  horasN3Monitor: 0,
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
@@ -328,6 +332,9 @@ export function useITSMCalculator() {
     const smCustoN1Aloc = monitorActive && !state.tierOperation
       ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
       : 0;
+    // N3 opcional dentro do Smart Monitor (horas mensais avulsas)
+    const smHorasN3 = monitorActive ? Math.max(0, state.horasN3Monitor || 0) : 0;
+    const smCustoN3 = smHorasN3 * state.valorHoraN3;
 
     const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
 
@@ -377,7 +384,7 @@ export function useITSMCalculator() {
     }
     const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + custoEndpointTooling + custoFieldTotal;
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + smCustoN3 + custoEndpointTooling + custoFieldTotal;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
@@ -394,7 +401,9 @@ export function useITSMCalculator() {
       chamadosAtivos: smChamados,
       custoMonitoramento: smCustoMonit,
       custoN1Alocado: smCustoN1Aloc,
-      total: smCustoMonit + smCustoN1Aloc,
+      horasN3: smHorasN3,
+      custoN3: smCustoN3,
+      total: smCustoMonit + smCustoN1Aloc + smCustoN3,
     };
 
     const fieldService = {
