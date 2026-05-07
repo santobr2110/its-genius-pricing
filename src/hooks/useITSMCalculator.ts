@@ -291,7 +291,27 @@ export function useITSMCalculator() {
       : 0;
 
     const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + custoEndpointTooling;
+
+    // === Field Service ===
+    // Demandas de usuários (já filtradas pelo N0) passam pelo N1 convencional
+    // e, quando Field está ativo, são também escaladas para a equipe Field
+    // distribuída entre N1F / N2F / N3F.
+    const fieldActive = state.tierOperation && state.tierFieldOperation;
+    const volumeUsuariosEscalado = fieldActive
+      ? chamadosUsuarios * (1 - state.reducaoN0 / 100)
+      : 0;
+    const fN1F = volumeUsuariosEscalado * (state.percFieldN1F / 100);
+    const fN2F = volumeUsuariosEscalado * (state.percFieldN2F / 100);
+    const fN3F = volumeUsuariosEscalado * (state.percFieldN3F / 100);
+    const cppFN1 = state.capacidadeFieldN1 > 0 ? state.custoEquipeFieldN1 / state.capacidadeFieldN1 : 0;
+    const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
+    const cppFN3 = state.capacidadeFieldN3 > 0 ? state.custoEquipeFieldN3 / state.capacidadeFieldN3 : 0;
+    const custoFN1 = fieldActive ? cppFN1 * fN1F : 0;
+    const custoFN2 = fieldActive ? cppFN2 * fN2F : 0;
+    const custoFN3 = fieldActive ? cppFN3 * fN3F : 0;
+    const custoFieldTotal = custoFN1 + custoFN2 + custoFN3;
+
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + custoEndpointTooling + custoFieldTotal;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
@@ -309,6 +329,18 @@ export function useITSMCalculator() {
       custoMonitoramento: smCustoMonit,
       custoN1Alocado: smCustoN1Aloc,
       total: smCustoMonit + smCustoN1Aloc,
+    };
+
+    const fieldService = {
+      active: fieldActive,
+      volumeUsuariosEscalado,
+      volumeN1F: fN1F,
+      volumeN2F: fN2F,
+      volumeN3F: fN3F,
+      custoN1F: custoFN1,
+      custoN2F: custoFN2,
+      custoN3F: custoFN3,
+      total: custoFieldTotal,
     };
 
     return {
@@ -342,6 +374,7 @@ export function useITSMCalculator() {
       precoVendaMensal,
       smartMonitor,
       humanAttendanceActive,
+      fieldService,
     };
   }, [state]);
 
