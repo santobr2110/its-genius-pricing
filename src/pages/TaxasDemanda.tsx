@@ -66,6 +66,8 @@ function RateRow({ icon: Icon, label, description, value, qty, qtyLabel, onChang
 export default function TaxasDemanda() {
   const { state, update, results } = useITSMContext();
   const criticidadeEscala = state.criticidadeEscala ?? [-0.3, -0.15, 0, 0.15, 0.3];
+  const criticidadeNivel = state.criticidadeNivel ?? 2;
+  const ajusteCriticidade = criticidadeEscala[criticidadeNivel] ?? 0;
 
   const set = <K extends keyof ITSMState>(k: K) => (v: number) => update(k, v as ITSMState[K]);
 
@@ -193,6 +195,7 @@ export default function TaxasDemanda() {
               qty={state.qtdUsuarios}
               qtyLabel="Inventário de usuários"
               onChange={set("taxaUsuario")}
+              ajuste={ajusteCriticidade}
             />
             <RateRow
               icon={Server}
@@ -202,6 +205,7 @@ export default function TaxasDemanda() {
               qty={state.qtdServidores}
               qtyLabel="Inventário de servidores"
               onChange={set("taxaServidor")}
+              ajuste={ajusteCriticidade}
             />
             <RateRow
               icon={Network}
@@ -211,6 +215,7 @@ export default function TaxasDemanda() {
               qty={state.qtdAtivosRede}
               qtyLabel="Ativos de rede"
               onChange={set("taxaRede")}
+              ajuste={ajusteCriticidade}
             />
             <RateRow
               icon={Database}
@@ -220,6 +225,7 @@ export default function TaxasDemanda() {
               qty={state.qtdBancosDados}
               qtyLabel="Bancos de dados"
               onChange={set("taxaBancoDados")}
+              ajuste={ajusteCriticidade}
             />
             <RateRow
               icon={ShieldCheck}
@@ -229,6 +235,7 @@ export default function TaxasDemanda() {
               qty={state.qtdSistemas}
               qtyLabel="Inventário de firewalls"
               onChange={set("taxaSistemas")}
+              ajuste={ajusteCriticidade}
             />
           </CardContent>
         </Card>
