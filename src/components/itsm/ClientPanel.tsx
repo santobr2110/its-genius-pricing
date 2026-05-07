@@ -5,7 +5,6 @@ import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Layers } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface Props {
   state: ITSMState;
@@ -64,18 +63,12 @@ export default function ClientPanel({ state, update }: Props) {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold">Perfil do Cliente</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="inventario" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-8">
-              <TabsTrigger value="inventario" className="text-[11px]">Inventário</TabsTrigger>
-              <TabsTrigger value="criticidade" className="text-[11px]">Criticidade</TabsTrigger>
-              <TabsTrigger value="complexidade" className="text-[11px]">Complexidade</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="inventario" className="space-y-3 mt-3">
-              {groups.map((group) => (
+        <CardContent className="space-y-4">
+          <section className="space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Inventário</p>
+            {groups.map((group) => (
             <div key={group.title} className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground/80">
                 {group.title}
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -95,11 +88,12 @@ export default function ClientPanel({ state, update }: Props) {
                 ))}
               </div>
             </div>
-              ))}
-            </TabsContent>
+            ))}
+          </section>
 
-            <TabsContent value="criticidade" className="mt-3">
-              <div className="rounded-lg border p-3 space-y-3">
+          <section className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Criticidade</p>
+            <div className="rounded-lg border p-3 space-y-3">
               <div className="flex items-center gap-2">
                 <Gauge className="h-5 w-5 shrink-0 text-rose-500" />
                 <div className="flex-1">
@@ -146,15 +140,19 @@ export default function ClientPanel({ state, update }: Props) {
               <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
                 {descritivos[nivel]}
               </p>
-              </div>
-            </TabsContent>
+            </div>
+          </section>
 
-            <TabsContent value="complexidade" className="mt-3">
-              <div className="rounded-lg border divide-y">
-              {complexidadeItens.map(({ key, label }) => (
-                <div key={key} className="flex items-center gap-2 p-2">
-                  <Layers className="h-4 w-4 shrink-0 text-violet-500" />
-                  <Label htmlFor={`cx-${key}`} className="flex-1 text-xs cursor-pointer">
+          <section className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Complexidade</p>
+            <div className="rounded-lg border grid grid-cols-2 gap-x-2">
+              {complexidadeItens.map(({ key, label }, idx) => (
+                <div
+                  key={key}
+                  className={`flex items-center gap-2 p-2 ${idx >= 2 ? "border-t" : ""}`}
+                >
+                  <Layers className="h-3.5 w-3.5 shrink-0 text-violet-500" />
+                  <Label htmlFor={`cx-${key}`} className="flex-1 text-[11px] cursor-pointer leading-tight">
                     {label}
                   </Label>
                   <Switch
@@ -164,9 +162,8 @@ export default function ClientPanel({ state, update }: Props) {
                   />
                 </div>
               ))}
-              </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </section>
         </CardContent>
       </Card>
     </div>
