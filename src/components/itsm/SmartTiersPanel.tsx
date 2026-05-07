@@ -19,7 +19,15 @@ export default function SmartTiersPanel() {
   const toggle = (id: string) => setSelected((s) => ({ ...s, [id]: !s[id] }));
 
   const sm = results.smartMonitor;
-  const totalSelecionado = (selected.monitor ? sm.total : 0);
+  const fatorMargem = (100 - state.margemLucro) / 100;
+  const fatorImposto = (100 - state.impostosTaxas) / 100;
+  const fatorVenda = fatorMargem > 0 && fatorImposto > 0 ? fatorMargem * fatorImposto : 0;
+  const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
+
+  const smMonitVenda = toSell(sm.custoMonitoramento);
+  const smN1Venda = toSell(sm.custoN1Alocado);
+  const smTotalVenda = toSell(sm.total);
+  const totalSelecionado = selected.monitor ? smTotalVenda : 0;
 
   return (
     <Card>
@@ -66,24 +74,24 @@ export default function SmartTiersPanel() {
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                 <span className="text-muted-foreground">Monitoramento por ativo</span>
-                <span className="font-semibold">{formatBRL(sm.custoMonitoramento)}</span>
+                <span className="font-semibold">{formatBRL(smMonitVenda)}</span>
               </div>
               <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                 <span className="text-muted-foreground">
                   Alocação N1 ({state.percAlocacaoN1Monitor}%)
                 </span>
-                <span className="font-semibold">{formatBRL(sm.custoN1Alocado)}</span>
+                <span className="font-semibold">{formatBRL(smN1Venda)}</span>
               </div>
             </div>
             <div className="flex justify-between border-t pt-2">
-              <span className="text-xs font-semibold">Total Smart Monitor</span>
-              <span className="text-sm font-bold text-primary">{formatBRL(sm.total)}</span>
+              <span className="text-xs font-semibold">Total Smart Monitor (venda)</span>
+              <span className="text-sm font-bold text-primary">{formatBRL(smTotalVenda)}</span>
             </div>
           </div>
         )}
 
         <div className="flex justify-between border-t pt-3">
-          <span className="text-sm font-semibold">Total das camadas selecionadas</span>
+          <span className="text-sm font-semibold">Total das camadas selecionadas (venda)</span>
           <span className="text-base font-bold text-primary">{formatBRL(totalSelecionado)}</span>
         </div>
       </CardContent>
