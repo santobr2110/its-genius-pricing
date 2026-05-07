@@ -137,6 +137,7 @@ export interface ITSMResults {
     custoN2F: number;
     custoN3F: number;
     total: number;
+    custoTriagemN1: number;
     mode: "proporcional" | "direto";
     // Transbordo (modo direto)
     overflowAtivo: boolean;
