@@ -18,7 +18,10 @@ export default function Detalhamento() {
   const areas = buildAreas(state, results);
   const hasDeficit = results.horasPrevencao <= 0;
 
-  const custoTotalAreas = areas.reduce((sum, a) => sum + a.custoN1 + a.custoN2 + a.custoN3 + a.custoExtra, 0);
+  const custoTotalAreas = areas.reduce(
+    (sum, a) => sum + a.custoN1 + a.custoN2 + a.custoN3 + a.custoFerramentas + a.custoExtra,
+    0,
+  );
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -202,13 +205,14 @@ export default function Detalhamento() {
                   <TableHead className="text-xs text-right">N1</TableHead>
                   <TableHead className="text-xs text-right">N2</TableHead>
                   <TableHead className="text-xs text-right">N3</TableHead>
+                  <TableHead className="text-xs text-right">Ferramentas</TableHead>
                   <TableHead className="text-xs text-right">Outros</TableHead>
                   <TableHead className="text-xs text-right">Total Área</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {areas.map((area) => {
-                  const totalArea = area.custoN1 + area.custoN2 + area.custoN3 + area.custoExtra;
+                  const totalArea = area.custoN1 + area.custoN2 + area.custoN3 + area.custoFerramentas + area.custoExtra;
                   if (totalArea <= 0) return null;
                   return (
                     <TableRow key={area.nome}>
@@ -217,6 +221,9 @@ export default function Detalhamento() {
                           <area.icon className="h-4 w-4 text-primary" />
                           <span>
                             {area.nome}
+                            {area.custoFerramentasLabel && (
+                              <span className="block text-[10px] text-muted-foreground">{area.custoFerramentasLabel}</span>
+                            )}
                             {area.custoExtraLabel && (
                               <span className="block text-[10px] text-muted-foreground">{area.custoExtraLabel}</span>
                             )}
@@ -226,6 +233,7 @@ export default function Detalhamento() {
                       <TableCell className="text-sm text-right">{area.custoN1 > 0 ? formatBRL(area.custoN1) : "—"}</TableCell>
                       <TableCell className="text-sm text-right">{area.custoN2 > 0 ? formatBRL(area.custoN2) : "—"}</TableCell>
                       <TableCell className="text-sm text-right">{area.custoN3 > 0 ? formatBRL(area.custoN3) : "—"}</TableCell>
+                      <TableCell className="text-sm text-right">{area.custoFerramentas > 0 ? formatBRL(area.custoFerramentas) : "—"}</TableCell>
                       <TableCell className="text-sm text-right">{area.custoExtra > 0 ? formatBRL(area.custoExtra) : "—"}</TableCell>
                       <TableCell className="text-sm text-right font-semibold">{formatBRL(totalArea)}</TableCell>
                     </TableRow>
@@ -233,12 +241,12 @@ export default function Detalhamento() {
                 })}
                 <TableRow className="border-t-2">
                   <TableCell className="text-sm py-3 font-bold">Custo Total Operação</TableCell>
-                  <TableCell colSpan={4} />
+                  <TableCell colSpan={5} />
                   <TableCell className="text-sm text-right font-bold text-primary">{formatBRL(custoTotalAreas)}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-sm py-3 font-bold">Preço de Venda</TableCell>
-                  <TableCell colSpan={4} className="text-xs text-muted-foreground text-right">
+                  <TableCell colSpan={5} className="text-xs text-muted-foreground text-right">
                     Margem {state.margemLucro}% + Impostos {state.impostosTaxas}%
                   </TableCell>
                   <TableCell className="text-sm text-right font-bold text-primary">{formatBRL(results.precoVendaMensal)}</TableCell>

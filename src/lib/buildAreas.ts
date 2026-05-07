@@ -12,6 +12,8 @@ export interface AreaData {
   custoN1: number;
   custoN2: number;
   custoN3: number;
+  custoFerramentas: number;
+  custoFerramentasLabel?: string;
   custoExtra: number;
   custoExtraLabel?: string;
 }
@@ -74,6 +76,7 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoN1: propCost(centralServico.bruto, centralServico.n1, totalN1, results.custoN1),
       custoN2: 0,
       custoN3: 0,
+      custoFerramentas: 0,
       custoExtra: 0,
     },
     {
@@ -91,8 +94,9 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
         results.smartMonitor.custoN1Alocado,
       custoN2: 0,
       custoN3: 0,
-      custoExtra: results.smartMonitor.custoMonitoramento,
-      custoExtraLabel: "Infra Smart Monitor (ativos)",
+      custoFerramentas: results.smartMonitor.custoMonitoramento,
+      custoFerramentasLabel: "Infra Smart Monitor (ativos)",
+      custoExtra: 0,
     },
     {
       nome: "Field Service",
@@ -105,6 +109,7 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoN1: 0,
       custoN2: propCost(fieldService.bruto, fieldService.n2, totalN2, results.custoN2),
       custoN3: totalN3 > 0 ? (fieldService.n3 / totalN3) * custoN3Atendimento : 0,
+      custoFerramentas: 0,
       custoExtra: 0,
     },
     {
@@ -118,6 +123,7 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoN1: 0,
       custoN2: propCost(gestaoInfra.bruto, gestaoInfra.n2, totalN2, results.custoN2),
       custoN3: totalN3 > 0 ? (gestaoInfra.n3 / totalN3) * custoN3Atendimento : 0,
+      custoFerramentas: 0,
       custoExtra: custoHorasPreventivas,
       custoExtraLabel: "Rotinas p/ Prevenção",
     },
@@ -132,11 +138,12 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoN1: 0,
       custoN2: propCost(gestaoSistemas.bruto, gestaoSistemas.n2, totalN2, results.custoN2),
       custoN3: totalN3 > 0 ? (gestaoSistemas.n3 / totalN3) * custoN3Atendimento : 0,
+      custoFerramentas: 0,
       custoExtra: 0,
     },
   ];
 }
 
 export function getAreaTotal(area: AreaData): number {
-  return area.custoN1 + area.custoN2 + area.custoN3 + area.custoExtra;
+  return area.custoN1 + area.custoN2 + area.custoN3 + area.custoFerramentas + area.custoExtra;
 }
