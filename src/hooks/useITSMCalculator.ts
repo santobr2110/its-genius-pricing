@@ -192,6 +192,7 @@ const DEFAULTS: ITSMState = {
   complexSiteBackup: false,
   complexHibridoCloudOnPrem: false,
   complexOperacao24x7: false,
+  complexErpMercado: false,
   tierMonitor: true,
   tierOperation: false,
   tierOperationN3: false,
