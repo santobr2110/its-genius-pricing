@@ -109,10 +109,11 @@ export default function SmartTiersPanel() {
                 <span className="font-semibold">{formatBRL(smN1Venda)}</span>
               </div>
             </div>
-            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${state.tierOperation ? "opacity-50 bg-muted/30" : "bg-background"}`}>
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
                   Horas N3 opcional ({formatBRL(state.valorHoraN3)}/h)
+                  {state.tierOperation && " · desabilitado com Smart Operation"}
                 </Label>
                 <span className="text-xs font-semibold">
                   {formatNumber(state.horasN3Monitor)}h · {formatBRL(smN3Venda)}
@@ -124,6 +125,7 @@ export default function SmartTiersPanel() {
                 min={0}
                 max={40}
                 step={1}
+                disabled={state.tierOperation}
               />
             </div>
             <div className="flex justify-between border-t pt-2">
