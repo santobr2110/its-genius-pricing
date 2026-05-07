@@ -32,8 +32,6 @@ export interface ITSMState {
   // Métricas e Parâmetros de Precificação - N3
   valorHoraN3: number;
   tempoMedioChamadoN3: number;
-  // Custos fixos
-  custoFixoFerramentas: number;
   // Financeiro
   margemLucro: number;
   impostosTaxas: number;
@@ -110,7 +108,6 @@ const DEFAULTS: ITSMState = {
   capacidadeServidoresN2: 30,
   valorHoraN3: 120,
   tempoMedioChamadoN3: 2,
-  custoFixoFerramentas: 1500,
   margemLucro: 45,
   impostosTaxas: 5.65,
   percAlocacaoN1Monitor: 30,
@@ -197,7 +194,7 @@ export function useITSMCalculator() {
     const horasPrevencao = Math.max(0, horasN3 - horasConsumidasN3);
     const custoN3 = horasN3 * state.valorHoraN3;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + state.custoFixoFerramentas;
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
