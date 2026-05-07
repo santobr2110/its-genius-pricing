@@ -33,6 +33,13 @@ const groups = [
 
 export default function ClientPanel({ state, update }: Props) {
   const niveis = ["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"];
+  const descritivos = [
+    "Ambiente Cloud Native, PaaS, sem equipamentos físicos. Alto Investimento.",
+    "Ambiente Cloud IaaS, Baremetal em Cloud suportado pelo Provedor. Investimento previsto.",
+    "Ambiente padronizado com Suporte Ativo e menos de 3 anos de vida útil. Investimento aprovado pontualmente.",
+    "Ambiente sem padrão com Suporte Ativo Renovado e mais de 3 anos de vida útil. Investimento difícil.",
+    "Ambiente sem padrão, sem Suporte Ativo, com mais de 5 anos de vida útil. Baixo investimento.",
+  ];
   const escala = state.criticidadeEscala ?? [-0.3, -0.15, 0, 0.15, 0.3];
   const nivel = state.criticidadeNivel ?? 2;
   const ajusteAtual = escala[nivel] ?? 0;
