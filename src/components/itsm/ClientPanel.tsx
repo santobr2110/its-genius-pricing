@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Layers } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface Props {
   state: ITSMState;
@@ -59,23 +60,30 @@ export default function ClientPanel({ state, update }: Props) {
   ];
   return (
     <div className="space-y-4">
-      {/* Inventário */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Inventário do Cliente</CardTitle>
+          <CardTitle className="text-sm font-semibold">Perfil do Cliente</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {groups.map((group) => (
+        <CardContent>
+          <Tabs defaultValue="inventario" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 h-8">
+              <TabsTrigger value="inventario" className="text-[11px]">Inventário</TabsTrigger>
+              <TabsTrigger value="criticidade" className="text-[11px]">Criticidade</TabsTrigger>
+              <TabsTrigger value="complexidade" className="text-[11px]">Complexidade</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="inventario" className="space-y-3 mt-3">
+              {groups.map((group) => (
             <div key={group.title} className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {group.title}
               </p>
-              <div className="grid grid-cols-1 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {group.items.map(({ key, label, icon: Icon, color }) => (
-                  <div key={key} className="flex items-center gap-2 rounded-lg border p-2.5">
-                    <Icon className={`h-5 w-5 shrink-0 ${color}`} />
-                    <div className="flex-1 space-y-0.5">
-                      <Label className="text-[11px] text-muted-foreground leading-none">{label}</Label>
+                  <div key={key} className="flex items-center gap-2 rounded-lg border p-2">
+                    <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+                    <div className="flex-1 min-w-0 space-y-0.5">
+                      <Label className="text-[10px] text-muted-foreground leading-none truncate block">{label}</Label>
                       <Input
                         type="number"
                         value={state[key]}
@@ -87,13 +95,11 @@ export default function ClientPanel({ state, update }: Props) {
                 ))}
               </div>
             </div>
-          ))}
+              ))}
+            </TabsContent>
 
-          <div className="space-y-2 pt-2 border-t">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Criticidade do Ambiente
-            </p>
-            <div className="rounded-lg border p-3 space-y-3">
+            <TabsContent value="criticidade" className="mt-3">
+              <div className="rounded-lg border p-3 space-y-3">
               <div className="flex items-center gap-2">
                 <Gauge className="h-5 w-5 shrink-0 text-rose-500" />
                 <div className="flex-1">
@@ -140,16 +146,13 @@ export default function ClientPanel({ state, update }: Props) {
               <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
                 {descritivos[nivel]}
               </p>
-            </div>
-          </div>
+              </div>
+            </TabsContent>
 
-          <div className="space-y-2 pt-2 border-t">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Complexidade do Ambiente
-            </p>
-            <div className="rounded-lg border divide-y">
+            <TabsContent value="complexidade" className="mt-3">
+              <div className="rounded-lg border divide-y">
               {complexidadeItens.map(({ key, label }) => (
-                <div key={key} className="flex items-center gap-2 p-2.5">
+                <div key={key} className="flex items-center gap-2 p-2">
                   <Layers className="h-4 w-4 shrink-0 text-violet-500" />
                   <Label htmlFor={`cx-${key}`} className="flex-1 text-xs cursor-pointer">
                     {label}
@@ -161,12 +164,11 @@ export default function ClientPanel({ state, update }: Props) {
                   />
                 </div>
               ))}
-            </div>
-          </div>
-
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
     </div>
   );
 }

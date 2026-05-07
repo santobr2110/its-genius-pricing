@@ -28,13 +28,13 @@ const Index = () => {
 
       <main className="mx-auto max-w-[1400px] p-4">
         <ResizablePanelGroup direction="horizontal" className="min-h-[600px] items-stretch gap-0">
-          <ResizablePanel defaultSize={25} minSize={18} maxSize={50}>
+          <ResizablePanel defaultSize={32} minSize={22} maxSize={50}>
             <div className="pr-2">
               <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
             </div>
           </ResizablePanel>
           <ResizableHandle withHandle className="mx-1" />
-          <ResizablePanel defaultSize={75} minSize={50}>
+          <ResizablePanel defaultSize={68} minSize={50}>
             <div className="pl-2">
               <SmartTiersPanel />
             </div>
