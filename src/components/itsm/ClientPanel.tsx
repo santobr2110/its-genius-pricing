@@ -109,16 +109,19 @@ export default function ClientPanel({ state, update }: Props) {
                 trackStyle={{ backgroundImage: gradiente }}
                 thumbStyle={{ backgroundColor: corAtual, borderColor: corAtual }}
               />
-              <div className="relative h-4 text-[10px] text-muted-foreground">
+              <div className="relative h-7 text-[10px] text-muted-foreground">
                 {niveis.map((n, i) => {
                   const pct = (i / (niveis.length - 1)) * 100;
+                  const partes = n.split(" ");
                   return (
                     <span
                       key={n}
-                      className="absolute top-0 -translate-x-1/2 whitespace-nowrap"
+                      className="absolute top-0 -translate-x-1/2 text-center leading-tight"
                       style={{ left: `${pct}%` }}
                     >
-                      {n}
+                      {partes.map((p, idx) => (
+                        <span key={idx} className="block">{p}</span>
+                      ))}
                     </span>
                   );
                 })}
