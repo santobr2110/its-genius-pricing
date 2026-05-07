@@ -40,6 +40,9 @@ export interface ITSMState {
   percAlocacaoN1Monitor: number;
   custoAtivoMonitorado: number;
   custoFerramentaEndpoint: number;
+  // Criticidade do ambiente (0..4) e escala de ajuste aplicada às taxas
+  criticidadeNivel: number;
+  criticidadeEscala: number[];
   tierMonitor: boolean;
   tierOperation: boolean;
   tierOperationN3: boolean;
@@ -122,6 +125,8 @@ const DEFAULTS: ITSMState = {
   percAlocacaoN1Monitor: 30,
   custoAtivoMonitorado: 50,
   custoFerramentaEndpoint: 25,
+  criticidadeNivel: 2,
+  criticidadeEscala: [-0.3, -0.15, 0, 0.15, 0.3],
   tierMonitor: true,
   tierOperation: false,
   tierOperationN3: false,
@@ -169,12 +174,14 @@ export function useITSMCalculator() {
   }, []);
 
   const results: ITSMResults = useMemo(() => {
+    const ajuste = state.criticidadeEscala[state.criticidadeNivel] ?? 0;
+    const adj = (t: number) => Math.max(0, t + ajuste);
     // Chamados por categoria
-    const chamadosUsuarios = state.qtdUsuarios * state.taxaUsuario;
-    const chamadosServidores = state.qtdServidores * state.taxaServidor;
-    const chamadosRede = state.qtdAtivosRede * state.taxaRede;
-    const chamadosBancoDados = state.qtdBancosDados * state.taxaBancoDados;
-    const chamadosSistemas = state.qtdSistemas * state.taxaSistemas;
+    const chamadosUsuarios = state.qtdUsuarios * adj(state.taxaUsuario);
+    const chamadosServidores = state.qtdServidores * adj(state.taxaServidor);
+    const chamadosRede = state.qtdAtivosRede * adj(state.taxaRede);
+    const chamadosBancoDados = state.qtdBancosDados * adj(state.taxaBancoDados);
+    const chamadosSistemas = state.qtdSistemas * adj(state.taxaSistemas);
 
     const totalChamadosUsuarios = chamadosUsuarios;
     const totalChamadosInfra = chamadosServidores + chamadosRede + chamadosBancoDados + chamadosSistemas;
