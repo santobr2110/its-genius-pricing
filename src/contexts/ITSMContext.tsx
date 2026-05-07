@@ -2,6 +2,7 @@ import { createContext, useContext, ReactNode, useEffect, useCallback } from "re
 import { useITSMCalculator, ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { useN1TeamState, N1TeamState, N1TeamResults } from "@/hooks/useN1TeamState";
 import { useN2TeamState, N2TeamState, N2TeamResults } from "@/hooks/useN2TeamState";
+import { useFieldTeamsState, FieldTeamsState, FieldTeamsResults, FieldLevel } from "@/hooks/useFieldTeamsState";
 import type { PricingPreset } from "@/hooks/usePricingPresets";
 
 interface ITSMContextType {
@@ -21,6 +22,12 @@ interface ITSMContextType {
   removeN2Professional: ReturnType<typeof useN2TeamState>["removeProfessional"];
   updateN2Config: ReturnType<typeof useN2TeamState>["updateTeamConfig"];
   n2Results: N2TeamResults;
+  fieldTeams: FieldTeamsState;
+  fieldResults: FieldTeamsResults;
+  updateFieldProfessional: ReturnType<typeof useFieldTeamsState>["updateProfessional"];
+  addFieldProfessional: ReturnType<typeof useFieldTeamsState>["addProfessional"];
+  removeFieldProfessional: ReturnType<typeof useFieldTeamsState>["removeProfessional"];
+  updateFieldLevelConfig: ReturnType<typeof useFieldTeamsState>["updateLevelConfig"];
   loadPreset: (preset: PricingPreset) => void;
 }
 
@@ -30,6 +37,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const calc = useITSMCalculator();
   const n1 = useN1TeamState();
   const n2 = useN2TeamState();
+  const field = useFieldTeamsState();
 
   useEffect(() => {
     calc.update("custoPessoaN1", n1.results.custoTotalEquipe / 4);
@@ -42,6 +50,19 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     calc.update("capacidadeChamadosN2", n2.teamState.capacidadeChamadosTotal);
     calc.update("percGestaoN2", 0);
   }, [n2.results.custoTotalEquipe, n2.teamState.capacidadeChamadosTotal]);
+
+  useEffect(() => {
+    calc.update("custoEquipeFieldN1", field.results.n1f.custoTotalEquipe);
+    calc.update("capacidadeFieldN1", field.state.n1f.capacidadeChamadosTotal);
+  }, [field.results.n1f.custoTotalEquipe, field.state.n1f.capacidadeChamadosTotal]);
+  useEffect(() => {
+    calc.update("custoEquipeFieldN2", field.results.n2f.custoTotalEquipe);
+    calc.update("capacidadeFieldN2", field.state.n2f.capacidadeChamadosTotal);
+  }, [field.results.n2f.custoTotalEquipe, field.state.n2f.capacidadeChamadosTotal]);
+  useEffect(() => {
+    calc.update("custoEquipeFieldN3", field.results.n3f.custoTotalEquipe);
+    calc.update("capacidadeFieldN3", field.state.n3f.capacidadeChamadosTotal);
+  }, [field.results.n3f.custoTotalEquipe, field.state.n3f.capacidadeChamadosTotal]);
 
   const loadPreset = useCallback((preset: PricingPreset) => {
     calc.setState(preset.calculator);
@@ -66,6 +87,12 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     removeN2Professional: n2.removeProfessional,
     updateN2Config: n2.updateTeamConfig,
     n2Results: n2.results,
+    fieldTeams: field.state,
+    fieldResults: field.results,
+    updateFieldProfessional: field.updateProfessional,
+    addFieldProfessional: field.addProfessional,
+    removeFieldProfessional: field.removeProfessional,
+    updateFieldLevelConfig: field.updateLevelConfig,
     loadPreset,
   };
 
