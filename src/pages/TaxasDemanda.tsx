@@ -18,10 +18,12 @@ interface RateRowProps {
   qty: number;
   qtyLabel: string;
   onChange: (v: number) => void;
+  ajuste?: number;
 }
 
-function RateRow({ icon: Icon, label, description, value, qty, qtyLabel, onChange }: RateRowProps) {
-  const total = qty * value;
+function RateRow({ icon: Icon, label, description, value, qty, qtyLabel, onChange, ajuste = 0 }: RateRowProps) {
+  const valorAjustado = Math.max(0, value * (1 + ajuste));
+  const total = qty * valorAjustado;
   return (
     <div className="grid grid-cols-1 md:grid-cols-[1fr_180px_180px] gap-3 items-center p-4 rounded-lg border bg-card">
       <div className="flex items-start gap-3">
@@ -46,7 +48,12 @@ function RateRow({ icon: Icon, label, description, value, qty, qtyLabel, onChang
       <div className="space-y-1">
         <Label className="text-xs text-muted-foreground">{qtyLabel}</Label>
         <div className="flex items-center justify-between gap-2 h-9 px-3 rounded-md border bg-muted/30">
-          <span className="text-xs text-muted-foreground">{qty.toLocaleString("pt-BR")} ×</span>
+          <span className="text-xs text-muted-foreground">
+            {qty.toLocaleString("pt-BR")} × {valorAjustado.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}
+            {ajuste !== 0 && (
+              <span className="ml-1 text-[10px]">({ajuste > 0 ? "+" : ""}{(ajuste * 100).toFixed(0)}%)</span>
+            )}
+          </span>
           <span className="text-sm font-semibold text-foreground">
             {total.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ch/mês
           </span>
@@ -59,6 +66,8 @@ function RateRow({ icon: Icon, label, description, value, qty, qtyLabel, onChang
 export default function TaxasDemanda() {
   const { state, update, results } = useITSMContext();
   const criticidadeEscala = state.criticidadeEscala ?? [-0.3, -0.15, 0, 0.15, 0.3];
+  const criticidadeNivel = state.criticidadeNivel ?? 2;
+  const ajusteCriticidade = criticidadeEscala[criticidadeNivel] ?? 0;
 
   const set = <K extends keyof ITSMState>(k: K) => (v: number) => update(k, v as ITSMState[K]);
 
@@ -186,6 +195,7 @@ export default function TaxasDemanda() {
               qty={state.qtdUsuarios}
               qtyLabel="Inventário de usuários"
               onChange={set("taxaUsuario")}
+              ajuste={ajusteCriticidade}
             />
             <RateRow
               icon={Server}
@@ -195,6 +205,7 @@ export default function TaxasDemanda() {
               qty={state.qtdServidores}
               qtyLabel="Inventário de servidores"
               onChange={set("taxaServidor")}
+              ajuste={ajusteCriticidade}
             />
             <RateRow
               icon={Network}
@@ -204,6 +215,7 @@ export default function TaxasDemanda() {
               qty={state.qtdAtivosRede}
               qtyLabel="Ativos de rede"
               onChange={set("taxaRede")}
+              ajuste={ajusteCriticidade}
             />
             <RateRow
               icon={Database}
@@ -213,6 +225,7 @@ export default function TaxasDemanda() {
               qty={state.qtdBancosDados}
               qtyLabel="Bancos de dados"
               onChange={set("taxaBancoDados")}
+              ajuste={ajusteCriticidade}
             />
             <RateRow
               icon={ShieldCheck}
@@ -222,6 +235,7 @@ export default function TaxasDemanda() {
               qty={state.qtdSistemas}
               qtyLabel="Inventário de firewalls"
               onChange={set("taxaSistemas")}
+              ajuste={ajusteCriticidade}
             />
           </CardContent>
         </Card>
