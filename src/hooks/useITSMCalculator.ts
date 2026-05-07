@@ -376,7 +376,10 @@ export function useITSMCalculator() {
           volTransN1R = volExcedente;
           const fracN2F = (state.percFieldN2F + state.percFieldN3F) / 100;
           volTransN2F = volExcedente * fracN2F;
-          custoTransN1R = custoPorChamadoN1 * volTransN1R;
+          // N1 remoto cobra apenas pelos chamados que efetivamente escalam
+          // para N2 Field (a parcela N1F% do excedente é resolvida no próprio N1
+          // via triagem do Field, sem custo cheio adicional).
+          custoTransN1R = custoPorChamadoN1 * volTransN2F;
           const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
           custoTransN2F = cppFN2 * volTransN2F;
         }
