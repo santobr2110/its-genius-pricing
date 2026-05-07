@@ -86,7 +86,8 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoN1: propCost(monitoramento.bruto, monitoramento.n1, totalN1, results.custoN1),
       custoN2: 0,
       custoN3: 0,
-      custoExtra: 0,
+      custoExtra: results.smartMonitor.custoMonitoramento,
+      custoExtraLabel: "Smart Monitor (ativos)",
     },
     {
       nome: "Field Service",
