@@ -115,6 +115,20 @@ export default function TaxasDemanda() {
                   % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
                 </p>
               </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Custo ferramenta end-point (R$/mês por equipamento)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={state.custoFerramentaEndpoint}
+                  onChange={(e) => update("custoFerramentaEndpoint", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Aplicado sobre o nº de Equipamentos Desk/Note/Cel/Tablet — compõe custo de gestão.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
