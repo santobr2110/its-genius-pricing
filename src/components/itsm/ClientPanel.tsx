@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Clock } from "lucide-react";
+import { Users, Server, Network, Database, ShieldCheck } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -62,23 +62,6 @@ export default function ClientPanel({ state, update }: Props) {
             </div>
           ))}
 
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Outros
-            </p>
-            <div className="flex items-center gap-2 rounded-lg border p-2.5">
-              <Clock className="h-5 w-5 shrink-0 text-red-500" />
-              <div className="flex-1 space-y-0.5">
-                <Label className="text-[11px] text-muted-foreground leading-none">Horas N3/Mês</Label>
-                <Input
-                  type="number"
-                  value={state.horasN3Mensais}
-                  onChange={(e) => update("horasN3Mensais", parseInt(e.target.value) || 0)}
-                  className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
-                />
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 

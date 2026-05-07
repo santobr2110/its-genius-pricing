@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Activity, Zap, Gauge, Building2 } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
@@ -134,9 +136,20 @@ export default function SmartTiersPanel() {
                 onCheckedChange={() => update("tierOperationN3", !state.tierOperationN3 as any)}
               />
               <span className="text-xs">
-                Adicionar atendimento N3 opcional ({formatNumber(state.horasN3Mensais)}h × {formatBRL(state.valorHoraN3)})
+                Adicionar atendimento N3 opcional ({formatBRL(state.valorHoraN3)}/h)
               </span>
             </label>
+            {state.tierOperationN3 && (
+              <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
+                <Label className="text-[11px] text-muted-foreground">Horas N3/Mês</Label>
+                <Input
+                  type="number"
+                  value={state.horasN3Mensais}
+                  onChange={(e) => update("horasN3Mensais", parseInt(e.target.value) || 0)}
+                  className="h-7 text-sm w-24 ml-auto"
+                />
+              </div>
+            )}
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Operation (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smOperationVenda)}</span>
