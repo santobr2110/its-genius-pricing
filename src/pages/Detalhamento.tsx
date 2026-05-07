@@ -246,7 +246,7 @@ export default function Detalhamento() {
                 </TableRow>
                 <TableRow>
                   <TableCell className="text-sm py-3 font-bold">Preço de Venda</TableCell>
-                  <TableCell colSpan={4} className="text-xs text-muted-foreground text-right">
+                  <TableCell colSpan={5} className="text-xs text-muted-foreground text-right">
                     Margem {state.margemLucro}% + Impostos {state.impostosTaxas}%
                   </TableCell>
                   <TableCell className="text-sm text-right font-bold text-primary">{formatBRL(results.precoVendaMensal)}</TableCell>
