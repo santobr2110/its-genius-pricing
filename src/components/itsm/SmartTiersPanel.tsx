@@ -16,7 +16,7 @@ const TIERS: {
   selectedClass?: string;
 }[] = [
   { id: "tierMonitor", label: "Smart Monitor", icon: Activity, desc: "Monitoramento de ativos (Servidores, Rede, Firewall)", available: true, selectedClass: "border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900" },
-  { id: "tierOperation", label: "Smart Operation", icon: Zap, desc: "Atendimento humano N1/N2/N3 conforme Slicer da Operação", available: true, selectedClass: "border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900" },
+  { id: "tierOperation", label: "Smart Operation", icon: Zap, desc: "Atendimento humano N1/N2 reativo com N3 opcional em horas", available: true, selectedClass: "border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900" },
   { id: "tierPerformance", label: "Smart Performance", icon: Gauge, desc: "Em breve", available: false },
   { id: "tierEnterprise", label: "Smart Enterprise", icon: Building2, desc: "Em breve", available: false },
 ];
