@@ -28,7 +28,7 @@ export interface ITSMState {
   // Métricas e Parâmetros de Precificação - N2
   custoAnalistaN2: number;
   percGestaoN2: number;
-  capacidadeServidoresN2: number;
+  capacidadeChamadosN2: number;
   // Métricas e Parâmetros de Precificação - N3
   valorHoraN3: number;
   tempoMedioChamadoN3: number;
@@ -61,7 +61,7 @@ export interface ITSMResults {
   custoN1: number;
   // N2
   custoTotalAnalistaN2: number;
-  custoPorServidorN2: number;
+  custoPorChamadoN2: number;
   custoN2: number;
   // N3
   horasN3: number;
@@ -111,7 +111,7 @@ const DEFAULTS: ITSMState = {
   capacidadeChamadosN1: 1500,
   custoAnalistaN2: 8000,
   percGestaoN2: 20,
-  capacidadeServidoresN2: 30,
+  capacidadeChamadosN2: 150,
   valorHoraN3: 120,
   tempoMedioChamadoN3: 2,
   margemLucro: 45,
@@ -200,12 +200,12 @@ export function useITSMCalculator() {
       : 0;
     const custoN1 = humanAttendanceActive ? custoPorChamadoN1 * volumeN1 : 0;
 
-    // === N2: Custo por Servidor (proporcional ao volume do funil) ===
+    // === N2: Custo por Chamado ===
     const custoTotalAnalistaN2 = state.custoAnalistaN2 * (1 + state.percGestaoN2 / 100);
-    const custoPorServidorN2 = state.capacidadeServidoresN2 > 0
-      ? custoTotalAnalistaN2 / state.capacidadeServidoresN2
+    const custoPorChamadoN2 = state.capacidadeChamadosN2 > 0
+      ? custoTotalAnalistaN2 / state.capacidadeChamadosN2
       : 0;
-    const custoN2 = humanAttendanceActive ? custoPorServidorN2 * state.qtdServidores : 0;
+    const custoN2 = humanAttendanceActive ? custoPorChamadoN2 * volumeN2 : 0;
 
     // === N3: Horas consumidas por chamados N3 ===
     const horasN3 = n3Active ? state.horasN3Mensais : 0;
@@ -261,7 +261,7 @@ export function useITSMCalculator() {
       custoPorChamadoN1,
       custoN1,
       custoTotalAnalistaN2,
-      custoPorServidorN2,
+      custoPorChamadoN2,
       custoN2,
       horasN3,
       horasAtendimentoN3,

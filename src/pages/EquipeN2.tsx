@@ -49,7 +49,7 @@ export default function EquipeN2() {
           <SummaryCard icon={Users} label="Total Pessoas" value={String(n2Results.totalPessoas)} accent="text-blue-600 bg-blue-50" />
           <SummaryCard icon={DollarSign} label="Custo Total Equipe" value={formatBRL(n2Results.custoTotalEquipe)} accent="text-emerald-600 bg-emerald-50" />
           <SummaryCard icon={DollarSign} label="Custo/Pessoa (médio)" value={formatBRL(n2Results.custoPorPessoa)} accent="text-amber-600 bg-amber-50" />
-          <SummaryCard icon={BarChart3} label="Custo/Servidor" value={formatBRL(n2Results.custoPorServidor)} accent="text-purple-600 bg-purple-50" />
+          <SummaryCard icon={BarChart3} label="Custo/Chamado" value={formatBRL(n2Results.custoPorChamado)} accent="text-purple-600 bg-purple-50" />
         </div>
 
         <Card>
@@ -149,13 +149,13 @@ export default function EquipeN2() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Capacidade Total do Time (servidores)</Label>
+                <Label className="text-xs text-muted-foreground">Capacidade Total do Time (chamados/mês)</Label>
                 <Input
                   type="number"
-                  value={n2Team.capacidadeServidoresTotal}
-                  onChange={(e) => updateN2Config("capacidadeServidoresTotal", parseInt(e.target.value) || 0)}
+                  value={n2Team.capacidadeChamadosTotal}
+                  onChange={(e) => updateN2Config("capacidadeChamadosTotal", parseInt(e.target.value) || 0)}
                   className="h-8 text-sm"
-                  step={5}
+                  step={10}
                 />
               </div>
 
@@ -173,14 +173,14 @@ export default function EquipeN2() {
                   <span className="font-semibold">{formatBRL(n2Results.custoPorPessoa)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Servidores/Pessoa</span>
+                  <span className="text-muted-foreground">Chamados/Pessoa</span>
                   <span className="font-semibold">
-                    {n2Results.totalPessoas > 0 ? formatNumber(n2Team.capacidadeServidoresTotal / n2Results.totalPessoas, 0) : "—"}
+                    {n2Results.totalPessoas > 0 ? formatNumber(n2Team.capacidadeChamadosTotal / n2Results.totalPessoas, 0) : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between text-xs pt-1 border-t">
-                  <span className="text-muted-foreground font-semibold">Custo/Servidor</span>
-                  <Badge variant="secondary" className="text-xs">{formatBRL(n2Results.custoPorServidor)}</Badge>
+                  <span className="text-muted-foreground font-semibold">Custo/Chamado</span>
+                  <Badge variant="secondary" className="text-xs">{formatBRL(n2Results.custoPorChamado)}</Badge>
                 </div>
               </div>
             </CardContent>

@@ -107,11 +107,11 @@ export default function MetricsPanel({ state, results, update }: Props) {
               tooltip="Custo mensal do analista (salário + encargos)"
             />
             <NumInput
-              label="Cap. Servidores"
-              value={state.capacidadeServidoresN2}
-              onChange={(v) => update("capacidadeServidoresN2", v)}
+              label="Cap. Chamados"
+              value={state.capacidadeChamadosN2}
+              onChange={(v) => update("capacidadeChamadosN2", v)}
               step={1}
-              tooltip="Servidores que um analista consegue atender"
+              tooltip="Chamados/mês que um analista consegue atender"
             />
           </div>
           <div className="space-y-2">
@@ -123,7 +123,7 @@ export default function MetricsPanel({ state, results, update }: Props) {
           </div>
           <div className="space-y-1">
             <MetricResult label="Custo/Analista Total" value={formatBRL(results.custoTotalAnalistaN2)} />
-            <MetricResult label="Custo/Servidor" value={formatBRL(results.custoPorServidorN2)} />
+            <MetricResult label="Custo/Chamado" value={formatBRL(results.custoPorChamadoN2)} />
           </div>
         </CardContent>
       </Card>
