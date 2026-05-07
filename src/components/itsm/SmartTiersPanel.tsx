@@ -189,28 +189,8 @@ export default function SmartTiersPanel() {
                       {formatNumber(fs.volumeUsuariosEscalado, 1)} ch/mês escalados
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
-                    <Label className="text-[11px] text-muted-foreground">Modo de alocação</Label>
-                    <div className="ml-auto flex gap-1">
-                      {(["proporcional","direto"] as const).map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => update("fieldAllocationMode", m as any)}
-                          className={`text-[11px] px-2 py-0.5 rounded border ${
-                            state.fieldAllocationMode === m
-                              ? "bg-orange-500 text-white border-orange-500"
-                              : "bg-background text-muted-foreground"
-                          }`}
-                        >
-                          {m === "proporcional" ? "Proporcional" : "Direto (1 prof./nível)"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {state.fieldAllocationMode === "direto" && (
-                    <>
-                      <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
+                  <>
+                    <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
                         <Label className="text-[11px] text-muted-foreground">Limite de equipamentos (transbordo p/ remoto)</Label>
                         <Input
                           type="number"
@@ -237,24 +217,23 @@ export default function SmartTiersPanel() {
                           </div>
                         ))}
                       </div>
-                    </>
-                  )}
+                  </>
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                       <span className="text-muted-foreground">
-                        N1F {state.fieldAllocationMode === "direto" ? `(${state.fieldDirectQtdN1} prof.)` : `(${state.percFieldN1F}%)`}
+                        N1F ({state.fieldDirectQtdN1} prof.)
                       </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN1F))}</span>
                     </div>
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                       <span className="text-muted-foreground">
-                        N2F {state.fieldAllocationMode === "direto" ? `(${state.fieldDirectQtdN2} prof.)` : `(${state.percFieldN2F}%)`}
+                        N2F ({state.fieldDirectQtdN2} prof.)
                       </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN2F))}</span>
                     </div>
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                       <span className="text-muted-foreground">
-                        N3F {state.fieldAllocationMode === "direto" ? `(${state.fieldDirectQtdN3} prof.)` : `(${state.percFieldN3F}%)`}
+                        N3F ({state.fieldDirectQtdN3} prof.)
                       </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN3F))}</span>
                     </div>
