@@ -157,6 +157,7 @@ const DEFAULTS: ITSMState = {
   qtdBancosDados: 10,
   qtdSistemas: 15,
   horasN3Mensais: 80,
+  horasN3Monitor: 0,
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
