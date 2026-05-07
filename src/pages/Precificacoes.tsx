@@ -55,9 +55,9 @@ export default function Precificacoes() {
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
           <BackHomeButton />
           <h1 className="text-sm font-bold truncate">Precificações Salvas</h1>
-          <div className="ml-auto shrink-0 pl-2">
+          <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
             <SaveDefaultsButton />
-            <SortableNav />
+            <SortableNav current="precificacoes" />
           </div>
         </div>
       </header>
