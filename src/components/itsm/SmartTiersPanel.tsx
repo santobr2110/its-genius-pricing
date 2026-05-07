@@ -75,7 +75,7 @@ export default function SmartTiersPanel() {
         </div>
 
         {state.tierMonitor && (
-          <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+          <div className="rounded-lg border border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900 p-3 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-foreground">Composição — Smart Monitor</p>
               <span className="text-[11px] text-muted-foreground">
@@ -104,7 +104,7 @@ export default function SmartTiersPanel() {
         )}
 
         {state.tierOperation && (
-          <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900 p-3 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-foreground">Composição — Smart Operation</p>
               <span className="text-[11px] text-muted-foreground">
