@@ -174,7 +174,9 @@ export function useITSMCalculator() {
   }, []);
 
   const results: ITSMResults = useMemo(() => {
-    const ajuste = state.criticidadeEscala[state.criticidadeNivel] ?? 0;
+    const escala = state.criticidadeEscala ?? DEFAULTS.criticidadeEscala;
+    const nivel = state.criticidadeNivel ?? DEFAULTS.criticidadeNivel;
+    const ajuste = escala[nivel] ?? 0;
     const adj = (t: number) => Math.max(0, t + ajuste);
     // Chamados por categoria
     const chamadosUsuarios = state.qtdUsuarios * adj(state.taxaUsuario);
