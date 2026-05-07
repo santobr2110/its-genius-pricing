@@ -2,15 +2,33 @@ import { useITSMContext } from "@/contexts/ITSMContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Server, DollarSign, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Server, Trash2, Users, DollarSign, BarChart3, UserPlus } from "lucide-react";
+import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
+import { N2Professional } from "@/hooks/useN2TeamState";
+import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
-import { Link } from "react-router-dom";
-import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 
 export default function EquipeN2() {
-  const { state, update, results } = useITSMContext();
+  const {
+    n2Team,
+    updateN2Professional,
+    addN2Professional,
+    removeN2Professional,
+    updateN2Config,
+    n2Results,
+  } = useITSMContext();
+
+  const profCost = (p: N2Professional) => {
+    const folha = p.salarioBase * p.quantidade;
+    const enc = folha * (p.encargosPerc / 100);
+    const ben = p.beneficiosFixo * p.quantidade;
+    const ind = (folha + enc + ben) * (p.custosIndiretosPerc / 100);
+    return folha + enc + ben + ind;
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -27,87 +45,184 @@ export default function EquipeN2() {
       </header>
 
       <main className="mx-auto max-w-[1200px] p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <SummaryCard icon={DollarSign} label="Custo Total Analista" value={formatBRL(results.custoTotalAnalistaN2)} />
-          <SummaryCard icon={Server} label="Capacidade" value={`${formatNumber(state.capacidadeServidoresN2)} servidores`} />
-          <SummaryCard icon={BarChart3} label="Custo / Servidor" value={formatBRL(results.custoPorServidorN2)} />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <SummaryCard icon={Users} label="Total Pessoas" value={String(n2Results.totalPessoas)} accent="text-blue-600 bg-blue-50" />
+          <SummaryCard icon={DollarSign} label="Custo Total Equipe" value={formatBRL(n2Results.custoTotalEquipe)} accent="text-emerald-600 bg-emerald-50" />
+          <SummaryCard icon={DollarSign} label="Custo/Pessoa (médio)" value={formatBRL(n2Results.custoPorPessoa)} accent="text-amber-600 bg-amber-50" />
+          <SummaryCard icon={BarChart3} label="Custo/Servidor" value={formatBRL(n2Results.custoPorServidor)} accent="text-purple-600 bg-purple-50" />
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold">Parâmetros do Analista N2</CardTitle>
-            <p className="text-xs text-muted-foreground">1 analista · Regime 8×5 · Detalhamento simplificado (será expandido como N1)</p>
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
+                <Users className="h-4 w-4" /> Perfis Profissionais
+              </CardTitle>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={addN2Professional}>
+                <UserPlus className="h-3.5 w-3.5" />
+                Adicionar Perfil
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-5 max-w-2xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Custo / Analista (mensal)</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                  <Input
-                    type="number"
-                    step={100}
-                    value={state.custoAnalistaN2}
-                    onChange={(e) => update("custoAnalistaN2", parseFloat(e.target.value) || 0)}
-                    className="pl-10"
-                  />
-                </div>
-                <p className="text-[11px] text-muted-foreground">Salário + encargos do analista</p>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs min-w-[140px]">Cargo</TableHead>
+                    <TableHead className="text-xs text-center w-16">Qtd</TableHead>
+                    <TableHead className="text-xs text-center w-20">Escala</TableHead>
+                    <TableHead className="text-xs text-right w-28">Salário Base</TableHead>
+                    <TableHead className="text-xs text-center w-20">Encargos %</TableHead>
+                    <TableHead className="text-xs text-right w-28">Benefícios</TableHead>
+                    <TableHead className="text-xs text-center w-20">Indiretos %</TableHead>
+                    <TableHead className="text-xs text-right w-28">Custo Total</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {n2Team.professionals.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="p-1">
+                        <Input value={p.cargo} onChange={(e) => updateN2Professional(p.id, "cargo", e.target.value)} className="h-8 text-xs" />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input type="number" value={p.quantidade} onChange={(e) => updateN2Professional(p.id, "quantidade", parseInt(e.target.value) || 0)} className="h-8 text-xs text-center" min={0} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input value={p.escala} onChange={(e) => updateN2Professional(p.id, "escala", e.target.value)} className="h-8 text-xs text-center" />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input type="number" value={p.salarioBase} onChange={(e) => updateN2Professional(p.id, "salarioBase", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-right" step={100} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input type="number" value={p.encargosPerc} onChange={(e) => updateN2Professional(p.id, "encargosPerc", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-center" step={1} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input type="number" value={p.beneficiosFixo} onChange={(e) => updateN2Professional(p.id, "beneficiosFixo", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-right" step={50} />
+                      </TableCell>
+                      <TableCell className="p-1">
+                        <Input type="number" value={p.custosIndiretosPerc} onChange={(e) => updateN2Professional(p.id, "custosIndiretosPerc", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-center" step={1} />
+                      </TableCell>
+                      <TableCell className="p-1 text-right">
+                        <span className="text-xs font-semibold">{formatBRL(profCost(p))}</span>
+                      </TableCell>
+                      <TableCell className="p-1">
+                        {n2Team.professionals.length > 1 && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => removeN2Professional(p.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
+                <DollarSign className="h-4 w-4" /> Composição de Custos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <CostRow label="Folha de Pagamento" value={n2Results.custoTotalFolha} total={n2Results.custoTotalEquipe} />
+              <CostRow label="Encargos Trabalhistas" value={n2Results.custoTotalEncargos} total={n2Results.custoTotalEquipe} />
+              <CostRow label="Benefícios" value={n2Results.custoTotalBeneficios} total={n2Results.custoTotalEquipe} />
+              <CostRow label="Custos Indiretos" value={n2Results.custoTotalIndiretos} total={n2Results.custoTotalEquipe} />
+              <div className="border-t pt-2 flex justify-between items-center">
+                <span className="text-xs font-bold">Total</span>
+                <span className="text-sm font-bold">{formatBRL(n2Results.custoTotalEquipe)}</span>
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Capacidade de servidores por analista</Label>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
+                <BarChart3 className="h-4 w-4" /> Produtividade do Time
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Capacidade Total do Time (servidores)</Label>
                 <Input
                   type="number"
-                  step={1}
-                  value={state.capacidadeServidoresN2}
-                  onChange={(e) => update("capacidadeServidoresN2", parseFloat(e.target.value) || 0)}
+                  value={n2Team.capacidadeServidoresTotal}
+                  onChange={(e) => updateN2Config("capacidadeServidoresTotal", parseInt(e.target.value) || 0)}
+                  className="h-8 text-sm"
+                  step={5}
                 />
-                <p className="text-[11px] text-muted-foreground">Quantos servidores um analista consegue atender</p>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label className="text-sm font-medium">Custos de Gestão</Label>
-                <span className="text-sm font-semibold">{state.percGestaoN2}%</span>
+              <div className="space-y-1.5 pt-2 border-t">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Total de Pessoas</span>
+                  <span className="font-semibold">{n2Results.totalPessoas}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Custo Total da Equipe</span>
+                  <span className="font-semibold">{formatBRL(n2Results.custoTotalEquipe)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Custo Médio/Pessoa</span>
+                  <span className="font-semibold">{formatBRL(n2Results.custoPorPessoa)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Servidores/Pessoa</span>
+                  <span className="font-semibold">
+                    {n2Results.totalPessoas > 0 ? formatNumber(n2Team.capacidadeServidoresTotal / n2Results.totalPessoas, 0) : "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs pt-1 border-t">
+                  <span className="text-muted-foreground font-semibold">Custo/Servidor</span>
+                  <Badge variant="secondary" className="text-xs">{formatBRL(n2Results.custoPorServidor)}</Badge>
+                </div>
               </div>
-              <Slider
-                value={[state.percGestaoN2]}
-                onValueChange={([v]) => update("percGestaoN2", v)}
-                min={0}
-                max={50}
-                step={1}
-              />
-              <p className="text-[11px] text-muted-foreground">Percentual aplicado sobre o custo do analista para cobrir gestão e overhead</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-muted/30 border-dashed">
-          <CardContent className="p-4 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground mb-1">Próximos passos</p>
-            Esta página será expandida para incluir tabela de perfis profissionais, encargos, benefícios e custos indiretos detalhados (mesmo padrão da Equipe N1).
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );
 }
 
-function SummaryCard({ icon: Icon, label, value }: { icon: typeof Server; label: string; value: string }) {
+function SummaryCard({ icon: Icon, label, value, accent }: {
+  icon: React.ElementType; label: string; value: string; accent: string;
+}) {
   return (
     <Card>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-md bg-amber-50 text-amber-600">
-            <Icon className="h-4 w-4" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] text-muted-foreground">{label}</p>
-            <p className="text-base font-bold text-foreground truncate">{value}</p>
-          </div>
+      <CardContent className="flex items-center gap-3 p-3">
+        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${accent}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] text-muted-foreground truncate">{label}</p>
+          <p className="text-sm font-bold text-foreground truncate leading-tight">{value}</p>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function CostRow({ label, value, total }: { label: string; value: number; total: number }) {
+  const pct = total > 0 ? (value / total) * 100 : 0;
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <div className="flex gap-2">
+          <span className="font-semibold">{formatBRL(value)}</span>
+          <span className="text-muted-foreground w-10 text-right">{formatNumber(pct, 1)}%</span>
+        </div>
+      </div>
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className="h-full rounded-full bg-primary/60 transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
+      </div>
+    </div>
   );
 }
