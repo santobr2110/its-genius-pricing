@@ -104,6 +104,10 @@ export default function ClientPanel({ state, update }: Props) {
                 max={4}
                 step={1}
                 onValueChange={(v) => update("criticidadeNivel", v[0])}
+                trackClassName="bg-transparent"
+                rangeClassName="bg-transparent"
+                trackStyle={{ backgroundImage: gradiente }}
+                thumbStyle={{ backgroundColor: corAtual, borderColor: corAtual }}
               />
               <div className="flex justify-between text-[10px] text-muted-foreground">
                 {niveis.map((n) => (
