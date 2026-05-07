@@ -44,6 +44,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export type NavItemId =
   | "home"
@@ -306,6 +307,8 @@ export default function SortableNav({ current }: Props) {
   return (
     <>
       <div className="md:hidden">
+        <div className="inline-flex items-center gap-1">
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1.5">
@@ -330,11 +333,12 @@ export default function SortableNav({ current }: Props) {
             })}
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
 
-      <div className="hidden md:block lg:hidden">{dndContent("icon")}</div>
-      <div className="hidden lg:block xl:hidden">{dndContent("short")}</div>
-      <div className="hidden xl:block">{dndContent("full")}</div>
+      <div className="hidden md:flex lg:hidden items-center gap-1">{dndContent("icon")}<ThemeToggle /></div>
+      <div className="hidden lg:flex xl:hidden items-center gap-1">{dndContent("short")}<ThemeToggle /></div>
+      <div className="hidden xl:flex items-center gap-1">{dndContent("full")}<ThemeToggle /></div>
     </>
   );
 }
