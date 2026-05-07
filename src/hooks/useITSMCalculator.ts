@@ -334,8 +334,8 @@ export function useITSMCalculator() {
     const smCustoN1Aloc = monitorActive && !state.tierOperation
       ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
       : 0;
-    // N3 opcional dentro do Smart Monitor (horas mensais avulsas)
-    const smHorasN3 = monitorActive ? Math.max(0, state.horasN3Monitor || 0) : 0;
+    // N3 opcional dentro do Smart Monitor (horas mensais avulsas) — desabilitado quando Smart Operation está ativo
+    const smHorasN3 = monitorActive && !state.tierOperation ? Math.max(0, state.horasN3Monitor || 0) : 0;
     const smCustoN3 = smHorasN3 * state.valorHoraN3;
 
     const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
