@@ -354,43 +354,26 @@ export function useITSMCalculator() {
     let custoTransN1R = 0, custoTransN2F = 0;
 
     if (fieldActive) {
-      // Triagem N1 para os chamados absorvidos pela equipe Field
-      // (mesmo mecanismo do Smart Monitor: % alocação × custo/chamado N1).
-      // O excedente que vai para transbordo paga custo N1 cheio adiante.
-      if (state.fieldAllocationMode === "direto") {
-        // Quantidade configurável de profissionais por nível — custo direto
-        custoFN1 = state.custoUmFieldN1 * state.fieldDirectQtdN1;
-        custoFN2 = state.custoUmFieldN2 * state.fieldDirectQtdN2;
-        custoFN3 = state.custoUmFieldN3 * state.fieldDirectQtdN3;
+      // Alocação direta: quantidade configurável de profissionais por nível.
+      custoFN1 = state.custoUmFieldN1 * state.fieldDirectQtdN1;
+      custoFN2 = state.custoUmFieldN2 * state.fieldDirectQtdN2;
+      custoFN3 = state.custoUmFieldN3 * state.fieldDirectQtdN3;
 
-        // Transbordo quando equipamentos excedem o limite parametrizado
-        let volAbsorvido = volumeUsuariosEscalado;
-        if (state.qtdEquipamentos > state.fieldDirectEquipLimit && state.fieldDirectEquipLimit > 0) {
-          overflowAtivo = true;
-          const excedente = (state.qtdEquipamentos - state.fieldDirectEquipLimit) / state.qtdEquipamentos;
-          // Volume de usuários que excede a capacidade presencial
-          const volExcedente = volumeUsuariosEscalado * excedente;
-          volAbsorvido = volumeUsuariosEscalado - volExcedente;
-          // Excedente passa pelo N1 remoto; aplica funil de proporção Field para
-          // determinar quanto retorna como N2 Field (N2F + N3F do roteamento).
-          volTransN1R = volExcedente;
-          const fracN2F = (state.percFieldN2F + state.percFieldN3F) / 100;
-          volTransN2F = volExcedente * fracN2F;
-          // Todo o volume excedente é atendido pelo N1 remoto (custo cheio).
-          custoTransN1R = custoPorChamadoN1 * volTransN1R;
-          const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
-          custoTransN2F = cppFN2 * volTransN2F;
-        }
-        custoFieldTriagemN1 = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * volAbsorvido;
-      } else {
-        const cppFN1 = state.capacidadeFieldN1 > 0 ? state.custoEquipeFieldN1 / state.capacidadeFieldN1 : 0;
+      let volAbsorvido = volumeUsuariosEscalado;
+      if (state.qtdEquipamentos > state.fieldDirectEquipLimit && state.fieldDirectEquipLimit > 0) {
+        overflowAtivo = true;
+        const excedente = (state.qtdEquipamentos - state.fieldDirectEquipLimit) / state.qtdEquipamentos;
+        const volExcedente = volumeUsuariosEscalado * excedente;
+        volAbsorvido = volumeUsuariosEscalado - volExcedente;
+        volTransN1R = volExcedente;
+        const fracN2F = (state.percFieldN2F + state.percFieldN3F) / 100;
+        volTransN2F = volExcedente * fracN2F;
+        custoTransN1R = custoPorChamadoN1 * volTransN1R;
         const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
-        const cppFN3 = state.capacidadeFieldN3 > 0 ? state.custoEquipeFieldN3 / state.capacidadeFieldN3 : 0;
-        custoFN1 = cppFN1 * fN1F;
-        custoFN2 = cppFN2 * fN2F;
-        custoFN3 = cppFN3 * fN3F;
-        custoFieldTriagemN1 = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * volumeUsuariosEscalado;
+        custoTransN2F = cppFN2 * volTransN2F;
       }
+      // Triagem N1 (mesmo mecanismo do Smart Monitor) sobre o volume absorvido pela equipe Field.
+      custoFieldTriagemN1 = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * volAbsorvido;
     }
     const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
 
