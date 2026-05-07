@@ -59,7 +59,15 @@ export default function SmartTiersPanel() {
                 <Checkbox
                   checked={isSel}
                   disabled={!t.available || locked}
-                  onCheckedChange={() => t.available && !locked && update(t.id, !isSel as any)}
+                  onCheckedChange={() => {
+                    if (!t.available || locked) return;
+                    const next = !isSel;
+                    update(t.id, next as any);
+                    // Smart Operation exige Smart Monitor ativo
+                    if (t.id === "tierOperation" && next && !state.tierMonitor) {
+                      update("tierMonitor", true as any);
+                    }
+                  }}
                   className="mt-0.5"
                 />
                 <Icon className="h-4 w-4 text-primary shrink-0 mt-0.5" />
