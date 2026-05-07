@@ -33,7 +33,9 @@ const groups = [
 
 export default function ClientPanel({ state, update }: Props) {
   const niveis = ["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"];
-  const ajusteAtual = state.criticidadeEscala[state.criticidadeNivel] ?? 0;
+  const escala = state.criticidadeEscala ?? [-0.3, -0.15, 0, 0.15, 0.3];
+  const nivel = state.criticidadeNivel ?? 2;
+  const ajusteAtual = escala[nivel] ?? 0;
   return (
     <div className="space-y-4">
       {/* Inventário */}
@@ -77,7 +79,7 @@ export default function ClientPanel({ state, update }: Props) {
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">Nível</Label>
                     <span className="text-xs font-semibold text-foreground">
-                      {niveis[state.criticidadeNivel]}{" "}
+                      {niveis[nivel]}{" "}
                       <span className="text-muted-foreground font-normal">
                         ({ajusteAtual > 0 ? "+" : ""}{ajusteAtual.toFixed(2)})
                       </span>
@@ -86,7 +88,7 @@ export default function ClientPanel({ state, update }: Props) {
                 </div>
               </div>
               <Slider
-                value={[state.criticidadeNivel]}
+                value={[nivel]}
                 min={0}
                 max={4}
                 step={1}
