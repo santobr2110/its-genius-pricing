@@ -43,6 +43,14 @@ export interface ITSMState {
   // Criticidade do ambiente (0..4) e escala de ajuste aplicada às taxas
   criticidadeNivel: number;
   criticidadeEscala: number[];
+  // Complexidade do ambiente (flags)
+  complexVirtualizacaoCluster: boolean;
+  complexBancoDadosHA: boolean;
+  complexFirewallHA: boolean;
+  complexMultiSites: boolean;
+  complexSiteBackup: boolean;
+  complexHibridoCloudOnPrem: boolean;
+  complexOperacao24x7: boolean;
   tierMonitor: boolean;
   tierOperation: boolean;
   tierOperationN3: boolean;
@@ -127,6 +135,13 @@ const DEFAULTS: ITSMState = {
   custoFerramentaEndpoint: 25,
   criticidadeNivel: 2,
   criticidadeEscala: [-0.3, -0.15, 0, 0.15, 0.3],
+  complexVirtualizacaoCluster: false,
+  complexBancoDadosHA: false,
+  complexFirewallHA: false,
+  complexMultiSites: false,
+  complexSiteBackup: false,
+  complexHibridoCloudOnPrem: false,
+  complexOperacao24x7: false,
   tierMonitor: true,
   tierOperation: false,
   tierOperationN3: false,
