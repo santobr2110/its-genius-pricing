@@ -39,7 +39,7 @@ export default function EquipeN2() {
             <Server className="h-5 w-5 text-amber-500 shrink-0" />
             <h1 className="text-sm font-bold text-foreground truncate">Equipe N2 — Estrutura de Custos</h1>
           </Link>
-          <div className="ml-auto shrink-0 pl-2">
+          <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
             <SaveDefaultsButton />
             <SortableNav current="equipe-n2" />
           </div>
