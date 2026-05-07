@@ -2,7 +2,7 @@ import { useITSMContext } from "@/contexts/ITSMContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Clock, DollarSign, AlertTriangle } from "lucide-react";
+import { Clock, DollarSign } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
@@ -10,7 +10,6 @@ import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 
 export default function EquipeN3() {
   const { state, update, results } = useITSMContext();
-  const semHorasDisponiveis = results.horasPrevencao <= 0;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -27,41 +26,18 @@ export default function EquipeN3() {
       </header>
 
       <main className="mx-auto max-w-[1200px] p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <SummaryCard label="Horas/Mês contratadas" value={`${formatNumber(state.horasN3Mensais)}h`} />
-          <SummaryCard label="Horas em atendimento" value={`${formatNumber(results.horasAtendimentoN3, 1)}h`} />
-          <SummaryCard label="Horas para prevenção" value={`${formatNumber(results.horasPrevencao, 1)}h`} alert={semHorasDisponiveis} />
-          <SummaryCard label="Custo Total N3" value={formatBRL(results.custoN3)} highlight />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <SummaryCard label="Valor / Hora N3" value={formatBRL(state.valorHoraN3)} />
+          <SummaryCard label="Tempo médio / chamado" value={`${formatNumber(state.tempoMedioChamadoN3, 1)}h`} highlight />
         </div>
-
-        {semHorasDisponiveis && (
-          <Card className="border-destructive/50 bg-destructive/5">
-            <CardContent className="p-3 flex items-start gap-2 text-xs">
-              <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-destructive">Sem horas disponíveis para prevenção</p>
-                <p className="text-muted-foreground">As horas contratadas estão sendo totalmente consumidas em atendimento. Considere aumentar o pacote de horas mensal.</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-semibold">Parâmetros do Especialista N3</CardTitle>
-            <p className="text-xs text-muted-foreground">Pacote de horas mensal de especialistas — usado para atendimento e prevenção</p>
+            <p className="text-xs text-muted-foreground">Custo por hora e tempo médio de atendimento</p>
           </CardHeader>
           <CardContent className="space-y-4 max-w-2xl">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Horas / Mês (pacote)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  value={state.horasN3Mensais}
-                  onChange={(e) => update("horasN3Mensais", parseFloat(e.target.value) || 0)}
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Valor / Hora N3</Label>
                 <div className="relative">
