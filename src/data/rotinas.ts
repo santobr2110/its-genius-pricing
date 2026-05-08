@@ -104,19 +104,20 @@ export function rotinaMultiplicador(
   if (r.oferta === "Performance" && r.complexidade === "Complexo" && r.complexFlag) {
     return complex[r.complexFlag] ? 1 : 0;
   }
-  if (r.ativo === "Ambiente") {
-    // Sem ativo específico: considera o inventário total como gating.
-    const total =
-      inv.qtdUsuarios +
-      inv.qtdEquipamentos +
-      inv.qtdServidores +
-      inv.qtdAtivosRede +
-      inv.qtdBancosDados +
-      inv.qtdSistemas;
-    return total > 0 ? 1 : 0;
-  }
-  const qtdAtivo = inventarioMultiplicador(r.ativo, inv);
+  // Quantidade do inventário vinculado à rotina. Para rotinas sem ativo
+  // específico ("Ambiente"), considera-se o inventário total como gating.
+  const qtdAtivo =
+    r.ativo === "Ambiente"
+      ? inv.qtdUsuarios +
+        inv.qtdEquipamentos +
+        inv.qtdServidores +
+        inv.qtdAtivosRede +
+        inv.qtdBancosDados +
+        inv.qtdSistemas
+      : inventarioMultiplicador(r.ativo, inv);
   if (qtdAtivo === 0) return 0;
+  // Abrangência "Ambiente": 1 execução por rotina (independente da quantidade).
+  // Abrangência "Individual": multiplica pela quantidade de itens vinculados.
   return r.abrangencia === "Ambiente" ? 1 : qtdAtivo;
 }
 
