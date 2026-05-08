@@ -115,7 +115,7 @@ export default function Detalhamento() {
         </section>
 
         {/* SMART MONITOR */}
-        <TierBlock active={state.tierMonitor} color="sky" icon={Activity}
+        <TierBlock active={state.tierMonitor} color="sky" icon={Activity} tierIndex={1}
           title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
           valor={state.tierMonitor ? sm.total : 0}>
           <SubTitle>Componentes monitorados</SubTitle>
@@ -139,7 +139,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART OPERATION */}
-        <TierBlock active={state.tierOperation} color="emerald" icon={Zap}
+        <TierBlock active={state.tierOperation} color="emerald" icon={Rocket} tierIndex={2}
           title="Smart Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
           valor={state.tierOperation ? results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3) : 0}>
           <SubTitle>O que está incluído</SubTitle>
@@ -181,7 +181,7 @@ export default function Detalhamento() {
 
         {/* FIELD SERVICE */}
         {state.tierFieldOperation && (
-          <TierBlock active={true} color="amber" icon={MapPin}
+          <TierBlock active={true} color="amber" icon={Wrench} tierIndex={3}
             title="Field Service" tagline="Suporte presencial onde o usuário precisa"
             valor={fs.total}>
             <SubTitle>Equipe presencial alocada</SubTitle>
@@ -203,7 +203,7 @@ export default function Detalhamento() {
         )}
 
         {/* SMART PERFORMANCE */}
-        <TierBlock active={state.tierPerformance} color="violet" icon={Gauge}
+        <TierBlock active={state.tierPerformance} color="violet" icon={TrendingUp} tierIndex={4}
           title="Smart Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
           valor={state.tierPerformance ? results.custoN3 : 0}>
           <SubTitle>O que está incluído</SubTitle>
@@ -243,7 +243,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART ENTERPRISE */}
-        <TierBlock active={state.tierEnterprise} color="rose" icon={Crown}
+        <TierBlock active={state.tierEnterprise} color="rose" icon={Crown} tierIndex={5}
           title="Smart Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
