@@ -4,10 +4,11 @@ import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
-  Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity,
+  Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -36,6 +37,21 @@ export default function Detalhamento() {
   const { state, results } = useITSMContext();
   const sm = results.smartMonitor;
   const fs = results.fieldService;
+
+  const handleExportPDF = async () => {
+    const el = document.getElementById("proposicao-printable");
+    if (!el) return;
+    const html2pdf = (await import("html2pdf.js")).default;
+    const opt = {
+      margin: [10, 10, 10, 10] as [number, number, number, number],
+      filename: `proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" as const },
+      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+    };
+    await html2pdf().set(opt).from(el).save();
+  };
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
@@ -98,16 +114,20 @@ export default function Detalhamento() {
           <BackHomeButton />
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
             <ClipboardList className="h-5 w-5 text-primary shrink-0" />
-            <h1 className="text-sm font-bold text-foreground truncate">Detalhamento da Proposta</h1>
+            <h1 className="text-sm font-bold text-foreground truncate">Proposição</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={handleExportPDF} className="gap-1.5">
+              <FileDown className="h-4 w-4" />
+              <span className="hidden sm:inline">Exportar PDF</span>
+            </Button>
             <SaveDefaultsButton />
             <SortableNav current="detalhamento" />
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl p-6 space-y-6">
+      <main id="proposicao-printable" className="mx-auto max-w-5xl p-6 space-y-6">
         <section className="text-center pt-2 pb-1">
           <div className="inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
