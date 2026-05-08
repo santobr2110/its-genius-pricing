@@ -38,10 +38,11 @@ export default function Detalhamento() {
   const sm = results.smartMonitor;
   const fs = results.fieldService;
 
-  const handleExportImage = async () => {
+  const handleExportPDF = async () => {
     const el = document.getElementById("proposicao-printable");
     if (!el) return;
     const html2canvas = (await import("html2canvas")).default;
+    const { jsPDF } = await import("jspdf");
     const canvas = await html2canvas(el, {
       scale: 2,
       useCORS: true,
@@ -51,8 +52,6 @@ export default function Detalhamento() {
       onclone: (doc: Document) => {
         const printable = doc.getElementById("proposicao-printable");
         if (printable) printable.classList.add("pdf-export-background");
-        // html2canvas não suporta `background-clip: text`, então o gradiente
-        // acaba cobrindo o texto. Substituímos por cor sólida na exportação.
         doc.querySelectorAll<HTMLElement>(".bg-clip-text.text-transparent").forEach((node) => {
           node.style.background = "none";
           node.style.backgroundImage = "none";
@@ -63,10 +62,23 @@ export default function Detalhamento() {
         });
       },
     });
-    const link = document.createElement("a");
-    link.download = `proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    const imgData = canvas.toDataURL("image/png");
+    const pdfWidth = 210; // A4 mm
+    const pdfHeight = 297;
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pdf = new jsPDF("p", "mm", "a4");
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+    }
+    pdf.save(`proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
