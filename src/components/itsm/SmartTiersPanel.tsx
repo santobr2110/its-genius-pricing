@@ -231,6 +231,71 @@ export default function SmartTiersPanel() {
               <span className="text-sm font-bold text-primary">{formatBRL(smOperationVenda)}</span>
             </div>
 
+            {rotinasOperation.items.length > 0 && (
+              <div className="rounded border bg-background p-2 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <ListChecks className="h-3.5 w-3.5 text-emerald-600" />
+                    <p className="text-xs font-semibold">Rotinas vinculadas (Operation)</p>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">
+                    custo/ch ponderado: {formatBRL(rotinasOperation.custoPorChamadoMix)}
+                  </span>
+                </div>
+                <div className="max-h-56 overflow-auto rounded border">
+                  <table className="w-full text-[11px]">
+                    <thead className="bg-muted/50 sticky top-0">
+                      <tr>
+                        <th className="text-left px-2 py-1 font-medium">Rotina</th>
+                        <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+                        <th className="text-right px-2 py-1 font-medium w-14">CAC</th>
+                        <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
+                        <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rotinasOperation.items.map((i) => (
+                        <tr key={i.id} className="border-t">
+                          <td className="px-2 py-1">
+                            <span className="text-muted-foreground">{i.grupo} · </span>
+                            {i.rotina}
+                            {i.automacao && (
+                              <span className="ml-1 text-[9px] text-primary">[auto]</span>
+                            )}
+                          </td>
+                          <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
+                          <td className="px-2 py-1 text-right tabular-nums">{i.cac.toFixed(2)}</td>
+                          <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
+                          <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-muted/40 sticky bottom-0">
+                      <tr>
+                        <td className="px-2 py-1 font-semibold">Total</td>
+                        <td className="px-2 py-1 text-right font-semibold tabular-nums">
+                          {rotinasOperation.totals.demanda.toFixed(1)}
+                        </td>
+                        <td className="px-2 py-1 text-right font-semibold tabular-nums">
+                          {rotinasOperation.totals.cac.toFixed(2)}
+                        </td>
+                        <td className="px-2 py-1 text-right font-semibold tabular-nums">
+                          {formatBRL(rotinasOperation.totals.custo)}
+                        </td>
+                        <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">
+                          {formatBRL(rotinasOperation.totals.venda)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Venda calculada com custo médio por chamado ponderado pelo funil
+                  (N1 {state.percN1}% · N2 {state.percN2}% · N3 {state.percN3}%) e divisor de markup/impostos.
+                </p>
+              </div>
+            )}
+
             <div className="border-t pt-2 space-y-2">
               <label className="flex items-start gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
                 <Checkbox
