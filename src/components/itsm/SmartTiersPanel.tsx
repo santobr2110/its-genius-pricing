@@ -575,6 +575,62 @@ export default function SmartTiersPanel() {
                       </div>
                     </div>
                   )}
+                  {rotinasField.items.length > 0 && (
+                    <div className="rounded border bg-background p-2 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <ListChecks className="h-3.5 w-3.5 text-orange-600" />
+                          <p className="text-xs font-semibold">Rotinas Field (Microinformática)</p>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">
+                          custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
+                        </span>
+                      </div>
+                      <div className="max-h-56 overflow-auto rounded border">
+                        <table className="w-full text-[11px]">
+                          <thead className="bg-muted sticky top-0">
+                            <tr>
+                              <th className="text-left px-2 py-1 font-medium">Rotina</th>
+                              <th className="text-left px-2 py-1 font-medium w-20">Oferta</th>
+                              <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+                              <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
+                              <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rotinasField.items.map((i) => (
+                              <tr key={i.id} className="border-t">
+                                <td className="px-2 py-1">
+                                  {i.rotina}
+                                  {i.automacao && (
+                                    <span className="ml-1 text-[9px] text-primary">[auto]</span>
+                                  )}
+                                </td>
+                                <td className="px-2 py-1 text-[10px] text-muted-foreground">{i.oferta}</td>
+                                <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
+                                <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
+                                <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot className="bg-muted sticky bottom-0">
+                            <tr>
+                              <td className="px-2 py-1 font-semibold" colSpan={2}>Total</td>
+                              <td className="px-2 py-1 text-right font-semibold tabular-nums">
+                                {rotinasField.totals.demanda.toFixed(1)}
+                              </td>
+                              <td className="px-2 py-1 text-right font-semibold tabular-nums">
+                                {formatBRL(rotinasField.totals.custo)}
+                              </td>
+                              <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">
+                                {formatBRL(rotinasField.totals.venda)}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between border-t pt-2">
                     <span className="text-xs font-semibold">Total Field Service (venda)</span>
                     <span className="text-sm font-bold text-primary">{formatBRL(fsVenda)}</span>
