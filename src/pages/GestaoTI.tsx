@@ -164,13 +164,23 @@ export default function GestaoTI() {
     ROTINAS_DEFAULT,
   );
 
-  // Migração: normaliza grupo "BACKUP" → "Backup" em dados persistidos antigos
+  // Migração: normaliza grupo "BACKUP" → "Backup" e abrangencia para enum em dados antigos
   useEffect(() => {
-    if (rotinas.some((r) => r.grupo === "BACKUP")) {
-      setRotinas((prev) =>
-        prev.map((r) => (r.grupo === "BACKUP" ? { ...r, grupo: "Backup" } : r)),
-      );
-    }
+    let changed = false;
+    const next = rotinas.map((r) => {
+      let patch: Partial<Rotina> = {};
+      if (r.grupo === "BACKUP") {
+        patch.grupo = "Backup";
+        changed = true;
+      }
+      if (r.abrangencia !== "Ambiente" && r.abrangencia !== "Individual") {
+        const u = r.unidade.toLowerCase();
+        patch.abrangencia = u.includes("ambiente") ? "Ambiente" : "Individual";
+        changed = true;
+      }
+      return Object.keys(patch).length ? { ...r, ...patch } : r;
+    });
+    if (changed) setRotinas(next);
   }, []);
   const [gmuds, setGmuds] = usePersistentState<Gmud[]>(
     "gestao-ti:gmuds",
