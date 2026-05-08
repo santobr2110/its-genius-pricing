@@ -3,7 +3,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Activity, Zap, Gauge, Building2, MapPin, ListChecks } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
@@ -61,6 +60,14 @@ export default function SmartTiersPanel() {
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
   const pctLivre = Math.max(0, 100 - corteOwner);
+  const setPctTam = (value: number) => {
+    const nextTam = Math.max(0, Math.min(100 - pctOwner, value));
+    setN3Cortes([nextTam, nextTam + pctOwner]);
+  };
+  const setPctOwner = (value: number) => {
+    const nextOwner = Math.max(0, Math.min(100 - pctTam, value));
+    setN3Cortes([pctTam, pctTam + nextOwner]);
+  };
   const horasTotaisN3 = state.horasN3Mensais || 0;
   const horasTam = (horasTotaisN3 * pctTam) / 100;
   const horasOwner = (horasTotaisN3 * pctOwner) / 100;
