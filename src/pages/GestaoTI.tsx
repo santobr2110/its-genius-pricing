@@ -625,11 +625,13 @@ function RotinaGroupTable({
   rotinas,
   onUpdate,
   inventario,
+  showComplexidadeMove = false,
 }: {
   grupo: string;
   rotinas: Rotina[];
   onUpdate: (id: string, patch: Partial<Rotina>) => void;
   inventario: InventarioCounts;
+  showComplexidadeMove?: boolean;
 }) {
   const totalChamados = rotinas.reduce((s, r) => s + r.chamadosMes, 0);
   const totalDemanda = rotinas.reduce(
@@ -660,6 +662,7 @@ function RotinaGroupTable({
             <TableHead className="w-[110px]">Freq/mês</TableHead>
             <TableHead className="w-[130px]">Demanda/mês</TableHead>
             <TableHead className="w-[100px]">CAC</TableHead>
+            {showComplexidadeMove && <TableHead className="w-[60px] text-center">Mover</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -752,6 +755,28 @@ function RotinaGroupTable({
               <TableCell className="text-sm font-medium tabular-nums">
                 {r.cac.toFixed(2)}
               </TableCell>
+              {showComplexidadeMove && (
+                <TableCell className="text-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    title={
+                      (r.complexidade ?? "Padrão") === "Padrão"
+                        ? "Mover para Ambiente Complexo"
+                        : "Mover para Ambiente Padrão"
+                    }
+                    onClick={() =>
+                      onUpdate(r.id, {
+                        complexidade:
+                          (r.complexidade ?? "Padrão") === "Padrão" ? "Complexo" : "Padrão",
+                      })
+                    }
+                  >
+                    <ArrowLeftRight className="h-3.5 w-3.5" />
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
             );
           })}
