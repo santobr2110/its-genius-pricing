@@ -304,7 +304,7 @@ export default function SmartTiersPanel() {
                     <p className="text-xs font-semibold">Rotinas vinculadas (Operation)</p>
                   </div>
                   <span className="text-[10px] text-muted-foreground">
-                    custo/ch ponderado: {formatBRL(rotinasOperation.custoPorChamadoMix)}
+                    custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
                   </span>
                 </div>
                 <div className="max-h-56 overflow-auto rounded border">
