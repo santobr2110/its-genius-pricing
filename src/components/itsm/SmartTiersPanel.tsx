@@ -440,7 +440,7 @@ export default function SmartTiersPanel() {
             </div>
             )}
 
-            <div className="border-t pt-3 space-y-3">
+            <div className="border-t pt-3">
               <label className="flex items-start gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
                 <Checkbox
                   checked={state.tierFieldOperation}
@@ -451,102 +451,98 @@ export default function SmartTiersPanel() {
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold">Adicionar Field Service</p>
                   <p className="text-[11px] text-muted-foreground">
-                    Atendimento presencial N1/N2/N3 — chamados de usuários passam pelo N1 convencional e são escalados para a equipe Field.
+                    Atendimento presencial N1/N2/N3 — composição detalhada no bloco Field Service abaixo.
                   </p>
                 </div>
               </label>
-              {state.tierFieldOperation && (
-                <div className="rounded-lg border border-orange-200 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-900 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold">Composição — Field Service</p>
-                    <span className="text-[11px] text-muted-foreground">
-                      {formatNumber(fs.volumeUsuariosEscalado, 1)} ch/mês escalados
-                    </span>
-                  </div>
-                  <>
-                    <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
-                        <Label className="text-[11px] text-muted-foreground">Limite de equipamentos (transbordo p/ remoto)</Label>
-                        <Input
-                          type="number"
-                          value={state.fieldDirectEquipLimit === 0 ? "" : state.fieldDirectEquipLimit}
-                          onChange={(e) => update("fieldDirectEquipLimit", parseInt(e.target.value) || 0)}
-                          className="h-7 text-sm w-24 ml-auto"
-                        />
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {([
-                          ["fieldDirectQtdN1", "Qtd N1F"],
-                          ["fieldDirectQtdN2", "Qtd N2F"],
-                          ["fieldDirectQtdN3", "Qtd N3F"],
-                        ] as const).map(([key, label]) => (
-                          <div key={key} className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
-                            <Label className="text-[11px] text-muted-foreground">{label}</Label>
-                            <Input
-                              type="number"
-                              min={0}
-                              value={state[key] === 0 ? "" : (state[key] as number)}
-                              onChange={(e) => update(key, parseInt(e.target.value) || 0)}
-                              className="h-7 text-sm ml-auto"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                  </>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">
-                        N1F ({state.fieldDirectQtdN1} prof.)
-                      </span>
-                      <span className="font-semibold">{formatBRL(toSell(fs.custoN1F))}</span>
-                    </div>
-                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">
-                        N2F ({state.fieldDirectQtdN2} prof.)
-                      </span>
-                      <span className="font-semibold">{formatBRL(toSell(fs.custoN2F))}</span>
-                    </div>
-                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">
-                        N3F ({state.fieldDirectQtdN3} prof.)
-                      </span>
-                      <span className="font-semibold">{formatBRL(toSell(fs.custoN3F))}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between rounded border bg-background px-2 py-1.5 text-xs">
-                    <span className="text-muted-foreground">
-                      Triagem N1 ({state.percAlocacaoN1Monitor}% do custo/chamado)
-                    </span>
-                    <span className="font-semibold">{formatBRL(toSell(fs.custoTriagemN1))}</span>
-                  </div>
-                  {fs.overflowAtivo && (
-                    <div className="rounded border border-orange-300 bg-orange-100/60 dark:bg-orange-900/30 px-2 py-1.5 space-y-1">
-                      <p className="text-[11px] font-semibold text-orange-700 dark:text-orange-300">
-                        Transbordo remoto · {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial
-                      </p>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="flex justify-between rounded border bg-background px-2 py-1">
-                          <span className="text-muted-foreground">N1 remoto</span>
-                          <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN1Remoto))}</span>
-                        </div>
-                        <div className="flex justify-between rounded border bg-background px-2 py-1">
-                          <span className="text-muted-foreground">
-                            N2 Field ({formatNumber(fs.volumeTransbordoN2F, 1)} ch)
-                          </span>
-                          <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN2F))}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-xs font-semibold">Total Field Service (venda)</span>
-                    <span className="text-sm font-bold text-primary">{formatBRL(fsVenda)}</span>
-                  </div>
-                </div>
-              )}
             </div>
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Operation (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smOperationVenda)}</span>
+            </div>
+          </div>
+        )}
+
+        {state.tierFieldOperation && (
+          <div className="rounded-lg border border-orange-200 bg-orange-50/60 dark:bg-orange-950/20 dark:border-orange-900 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-foreground">Composição — Field Service</p>
+              <span className="text-[11px] text-muted-foreground">
+                {formatNumber(fs.volumeUsuariosEscalado, 1)} ch/mês escalados
+              </span>
+            </div>
+            <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
+              <Label className="text-[11px] text-muted-foreground">Limite de equipamentos (transbordo p/ remoto)</Label>
+              <Input
+                type="number"
+                value={state.fieldDirectEquipLimit === 0 ? "" : state.fieldDirectEquipLimit}
+                onChange={(e) => update("fieldDirectEquipLimit", parseInt(e.target.value) || 0)}
+                className="h-7 text-sm w-24 ml-auto"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                ["fieldDirectQtdN1", "Qtd N1F"],
+                ["fieldDirectQtdN2", "Qtd N2F"],
+                ["fieldDirectQtdN3", "Qtd N3F"],
+              ] as const).map(([key, label]) => (
+                <div key={key} className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
+                  <Label className="text-[11px] text-muted-foreground">{label}</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={state[key] === 0 ? "" : (state[key] as number)}
+                    onChange={(e) => update(key, parseInt(e.target.value) || 0)}
+                    className="h-7 text-sm ml-auto"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                <span className="text-muted-foreground">N1F ({state.fieldDirectQtdN1} prof.)</span>
+                <span className="font-semibold">{formatBRL(toSell(fs.custoN1F))}</span>
+              </div>
+              <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                <span className="text-muted-foreground">N2F ({state.fieldDirectQtdN2} prof.)</span>
+                <span className="font-semibold">{formatBRL(toSell(fs.custoN2F))}</span>
+              </div>
+              <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                <span className="text-muted-foreground">N3F ({state.fieldDirectQtdN3} prof.)</span>
+                <span className="font-semibold">{formatBRL(toSell(fs.custoN3F))}</span>
+              </div>
+            </div>
+            <div className="flex justify-between rounded border bg-background px-2 py-1.5 text-xs">
+              <span className="text-muted-foreground">
+                Triagem N1 ({state.percAlocacaoN1Monitor}% do custo/chamado)
+              </span>
+              <span className="font-semibold">{formatBRL(toSell(fs.custoTriagemN1))}</span>
+            </div>
+            {fs.overflowAtivo && (
+              <div className="rounded border border-orange-300 bg-orange-100/60 dark:bg-orange-900/30 px-2 py-1.5 space-y-1">
+                <p className="text-[11px] font-semibold text-orange-700 dark:text-orange-300">
+                  Transbordo remoto · {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex justify-between rounded border bg-background px-2 py-1">
+                    <span className="text-muted-foreground">N1 remoto</span>
+                    <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN1Remoto))}</span>
+                  </div>
+                  <div className="flex justify-between rounded border bg-background px-2 py-1">
+                    <span className="text-muted-foreground">
+                      N2 Field ({formatNumber(fs.volumeTransbordoN2F, 1)} ch)
+                    </span>
+                    <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN2F))}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <p className="text-[10px] text-muted-foreground italic">
+              Rotinas de Microinformática vinculadas ao Field aparecem nos blocos de Smart Operation e Smart Performance.
+            </p>
+            <div className="flex justify-between border-t pt-2">
+              <span className="text-xs font-semibold">Total Field Service (venda)</span>
+              <span className="text-sm font-bold text-primary">{formatBRL(fsVenda)}</span>
             </div>
           </div>
         )}
