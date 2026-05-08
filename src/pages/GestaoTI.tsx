@@ -195,6 +195,7 @@ export default function GestaoTI() {
     oferta: Oferta;
     complexidade?: Complexidade;
     ativo: AtivoTipo;
+    abrangencia?: string;
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
@@ -208,6 +209,7 @@ export default function GestaoTI() {
       oferta: data.oferta,
       unidade: "Ambiente",
       ativo: data.ativo,
+      abrangencia: data.abrangencia?.trim() || data.ativo,
       automacao: data.automacao,
       frequencia: data.frequencia,
       chamadosMes,
