@@ -64,7 +64,13 @@ export default function SmartTiersPanel() {
   const horasTotaisN3 = state.horasN3Mensais || 0;
   const horasTam = (horasTotaisN3 * pctTam) / 100;
   const horasOwner = (horasTotaisN3 * pctOwner) / 100;
-  const horasLivre = (horasTotaisN3 * pctLivre) / 100;
+  // Horas consumidas pelo atendimento de chamados N3 (do funil)
+  const horasChamadosN3 = results.horasAtendimentoN3 || 0;
+  const pctChamadosN3 = horasTotaisN3 > 0 ? (horasChamadosN3 / horasTotaisN3) * 100 : 0;
+  // Livre = sobra após chamados + TAM + Owner
+  const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasTam - horasOwner);
+  const pctLivreReal = horasTotaisN3 > 0 ? (horasLivre / horasTotaisN3) * 100 : 0;
+  const livreEstourado = horasChamadosN3 + horasTam + horasOwner > horasTotaisN3;
 
   const inv = {
     qtdUsuarios: state.qtdUsuarios,
@@ -616,7 +622,11 @@ export default function SmartTiersPanel() {
                     className="block h-5 w-5 rounded-full border-2 border-sky-500 bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
                   />
                 </SliderPrimitive.Root>
-                <div className="grid grid-cols-3 gap-1 text-[11px]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 text-[11px]">
+                  <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Chamados · {pctChamadosN3.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(horasChamadosN3, 1)}h</div>
+                  </div>
                   <div className="rounded bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">TAM · {pctTam}%</div>
                     <div className="font-semibold">{formatNumber(horasTam)}h</div>
@@ -625,9 +635,9 @@ export default function SmartTiersPanel() {
                     <div className="text-muted-foreground">Owner · {pctOwner}%</div>
                     <div className="font-semibold">{formatNumber(horasOwner)}h</div>
                   </div>
-                  <div className="rounded bg-violet-500/10 border border-violet-500/30 px-1.5 py-1">
-                    <div className="text-muted-foreground">Livre · {pctLivre}%</div>
-                    <div className="font-semibold">{formatNumber(horasLivre)}h</div>
+                  <div className={`rounded px-1.5 py-1 border ${livreEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
+                    <div className="text-muted-foreground">Livre · {pctLivreReal.toFixed(0)}%</div>
+                    <div className={`font-semibold ${livreEstourado ? "text-destructive" : ""}`}>{formatNumber(horasLivre, 1)}h</div>
                   </div>
                 </div>
               </div>
