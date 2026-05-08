@@ -238,11 +238,6 @@ export default function SmartTiersPanel() {
                 step={1}
               />
             </div>
-            <div className="flex justify-between border-t pt-2">
-              <span className="text-xs font-semibold">Total Smart Operation (venda)</span>
-              <span className="text-sm font-bold text-primary">{formatBRL(smOperationVenda)}</span>
-            </div>
-
             {rotinasOperation.items.length > 0 && (
               <div className="rounded border bg-background p-2 space-y-1.5">
                 <div className="flex items-center justify-between">
@@ -411,6 +406,10 @@ export default function SmartTiersPanel() {
                   </div>
                 </div>
               )}
+            </div>
+            <div className="flex justify-between border-t pt-2">
+              <span className="text-xs font-semibold">Total Smart Operation (venda)</span>
+              <span className="text-sm font-bold text-primary">{formatBRL(smOperationVenda)}</span>
             </div>
           </div>
         )}
