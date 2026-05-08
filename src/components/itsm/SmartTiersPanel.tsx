@@ -130,7 +130,8 @@ export default function SmartTiersPanel() {
           : 1;
         const custo = demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
+        const isField = r.grupo.toLowerCase().includes("microinform");
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, isField, demanda, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -171,7 +172,8 @@ export default function SmartTiersPanel() {
           ? horasMes * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horas, horasMes, cac, custo, venda };
+        const isField = r.grupo.toLowerCase().includes("microinform");
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, isField, demanda, horas, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -387,6 +389,9 @@ export default function SmartTiersPanel() {
                             {i.rotina}
                             {i.automacao && (
                               <span className="ml-1 text-[9px] text-primary">[auto]</span>
+                            )}
+                            {i.isField && (
+                              <span className="ml-1 inline-flex items-center rounded bg-orange-500/15 px-1 text-[9px] font-semibold text-orange-700 dark:text-orange-300">Field</span>
                             )}
                           </td>
                           <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
@@ -691,7 +696,7 @@ function PerformanceBlock({
   titulo: string;
   vazio: string;
   data: {
-    items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
+    items: { id: string; grupo: string; rotina: string; automacao: boolean; isField?: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
     totals: { demanda: number; horasMes: number; cac: number; custo: number; venda: number };
     isComplex: boolean;
   };
@@ -736,6 +741,9 @@ function PerformanceBlock({
                     <span className="text-muted-foreground">{i.grupo} · </span>
                     {i.rotina}
                     {i.automacao && <span className="ml-1 text-[9px] text-primary">[auto]</span>}
+                    {i.isField && (
+                      <span className="ml-1 inline-flex items-center rounded bg-orange-500/15 px-1 text-[9px] font-semibold text-orange-700 dark:text-orange-300">Field</span>
+                    )}
                     {isComplex && (
                       <span className="ml-1 text-[9px] text-muted-foreground">({i.horas}h/exec)</span>
                     )}
