@@ -33,6 +33,7 @@ import {
   UsersRound,
   FileText,
   MapPin,
+  ServerCog,
   LucideIcon,
 } from "lucide-react";
 import {
@@ -50,6 +51,7 @@ export type NavItemId =
   | "home"
   | "taxas"
   | "financeiro"
+  | "gestao-ti"
   | "equipe-n1"
   | "equipe-n2"
   | "equipe-n3"
@@ -70,6 +72,7 @@ const PAGES: Record<NavItemId, PageDef> = {
   taxas: { id: "taxas", to: "/taxas-demanda", label: "Métricas e Parâmetros", icon: TrendingUp },
   operacao: { id: "operacao", to: "/operacao", label: "Operação", icon: Activity },
   financeiro: { id: "financeiro", to: "/financeiro", label: "Financeiro", icon: DollarSign },
+  "gestao-ti": { id: "gestao-ti", to: "/gestao-ti", label: "Gestão de TI", icon: ServerCog },
   "equipe-n1": { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", icon: Users },
   "equipe-n2": { id: "equipe-n2", to: "/equipe-n2", label: "Equipe N2", icon: Server },
   "equipe-n3": { id: "equipe-n3", to: "/equipe-n3", label: "Equipe N3", icon: Clock },
@@ -104,7 +107,7 @@ const SLOTS: Slot[] = [
     label: "Configurações",
     shortLabel: "Config",
     icon: Settings2,
-    items: ["taxas", "operacao", "financeiro"],
+    items: ["taxas", "operacao", "financeiro", "gestao-ti"],
   },
   {
     kind: "menu",
