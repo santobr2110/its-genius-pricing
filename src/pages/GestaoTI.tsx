@@ -179,7 +179,7 @@ export default function GestaoTI() {
     let automatizadosDemanda = 0;
     rotinas.forEach((r) => {
       const t = byOferta[r.oferta];
-      const mult = inventarioMultiplicador(r.ativo, inventario);
+      const mult = rotinaMultiplicador(r, inventario, complexFlags);
       const demanda = r.chamadosMes * mult;
       t.count += 1;
       t.chamados += r.chamadosMes;
@@ -201,7 +201,23 @@ export default function GestaoTI() {
     });
     const totalChamados = byOferta.Operation.chamados + byOferta.Performance.chamados;
     return { byOferta, automatizadosCount, automatizadosChamados, totalChamados, totalDemanda, automatizadosDemanda };
-  }, [rotinas, inventario.qtdUsuarios, inventario.qtdEquipamentos, inventario.qtdServidores, inventario.qtdAtivosRede, inventario.qtdBancosDados, inventario.qtdSistemas]);
+  }, [
+    rotinas,
+    inventario.qtdUsuarios,
+    inventario.qtdEquipamentos,
+    inventario.qtdServidores,
+    inventario.qtdAtivosRede,
+    inventario.qtdBancosDados,
+    inventario.qtdSistemas,
+    complexFlags.complexVirtualizacaoCluster,
+    complexFlags.complexBancoDadosHA,
+    complexFlags.complexFirewallHA,
+    complexFlags.complexMultiSites,
+    complexFlags.complexSiteBackup,
+    complexFlags.complexHibridoCloudOnPrem,
+    complexFlags.complexOperacao24x7,
+    complexFlags.complexErpMercado,
+  ]);
 
   const gmudTotals = useMemo(() => {
     const byTipo: Record<GmudTipo, { count: number; chamados: number; cac: number }> = {
