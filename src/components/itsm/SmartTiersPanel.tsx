@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Activity, Zap, Gauge, Building2, MapPin, ListChecks } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
@@ -572,7 +573,7 @@ export default function SmartTiersPanel() {
                     arraste os marcadores
                   </span>
                 </div>
-                <Slider
+                <SliderPrimitive.Root
                   value={[corteTam, corteOwner]}
                   onValueChange={(vs) => {
                     if (vs.length < 2) return;
@@ -584,7 +585,19 @@ export default function SmartTiersPanel() {
                   max={100}
                   step={1}
                   minStepsBetweenThumbs={0}
-                />
+                  className="relative flex w-full touch-none select-none items-center"
+                >
+                  <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
+                    <SliderPrimitive.Range className="absolute h-full bg-primary" />
+                  </SliderPrimitive.Track>
+                  <SliderPrimitive.Thumb
+                    className="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                  />
+                  <SliderPrimitive.Thumb
+                    className="block h-5 w-5 border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                    style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)', borderRadius: 0 }}
+                  />
+                </SliderPrimitive.Root>
                 <div className="grid grid-cols-3 gap-1 text-[11px]">
                   <div className="rounded bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">TAM · {pctTam}%</div>
