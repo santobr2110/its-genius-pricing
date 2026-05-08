@@ -8,7 +8,8 @@ import {
   ClipboardList, AlertTriangle, Layers, Users, Server, Network, Database, Shield,
   Laptop, Activity, Gauge, Workflow, Eye, Headphones, Wrench, Truck, Crown,
   Sparkles, Clock, Calculator, Receipt, TrendingUp, CheckCircle2, Circle,
-  ArrowRight, Boxes, Target, Coins, Flame,
+  ArrowRight, Boxes, Target, Coins, Flame, ShieldCheck, Zap, HeartHandshake,
+  TrendingDown, Award,
 } from "lucide-react";
 import { buildAreas } from "@/lib/buildAreas";
 import SortableNav from "@/components/SortableNav";
@@ -26,17 +27,47 @@ export default function Detalhamento() {
 
   const tiers = [
     { key: "tierMonitor", label: "Smart Monitor", icon: Eye, active: state.tierMonitor,
-      desc: "Monitoramento proativo de servidores, rede e firewalls. Inclui ferramentas e triagem N1." },
+      tagline: "Olhos abertos 24/7 sobre sua infraestrutura",
+      benefits: [
+        "Monitoramento proativo de servidores, rede e firewalls",
+        "Detecção de incidentes antes que afetem o usuário final",
+        "Triagem técnica feita pelo time N1",
+      ] },
     { key: "tierOperation", label: "Smart Operation", icon: Headphones, active: state.tierOperation,
-      desc: "Atendimento humano completo via funil N1/N2 com Service Desk como ponto único de contato." },
+      tagline: "Service Desk como ponto único de contato",
+      benefits: [
+        "Atendimento humano completo via funil N1 e N2",
+        "Resolução estruturada com SLA controlado",
+        "Indicadores e relatórios mensais de operação",
+      ] },
     { key: "tierOperationN3", label: "N3 em Operation", icon: Wrench, active: state.tierOperationN3,
-      desc: "Especialistas N3 incluídos dentro do Smart Operation para resolução técnica avançada." },
+      tagline: "Especialistas sêniores na sua linha de frente",
+      benefits: [
+        "Engenheiros N3 dedicados à resolução de casos complexos",
+        "Reduz dependência de fornecedores pontuais",
+        "Acelera o tempo de resolução em incidentes críticos",
+      ] },
     { key: "tierFieldOperation", label: "Field Service", icon: Truck, active: state.tierFieldOperation,
-      desc: "Atendimento presencial para usuários finais, distribuído entre N1F/N2F/N3F." },
+      tagline: "Suporte presencial onde o usuário precisa",
+      benefits: [
+        "Atendimento in loco para incidentes de hardware e desktop",
+        "Equipe local distribuída entre N1F, N2F e N3F",
+        "Cobertura adicional com transbordo remoto se necessário",
+      ] },
     { key: "tierPerformance", label: "Smart Performance", icon: Activity, active: state.tierPerformance,
-      desc: "Rotinas preventivas e otimização contínua usando o saldo de horas N3 disponível." },
+      tagline: "Do reativo para o preventivo",
+      benefits: [
+        "Rotinas preventivas executadas por engenheiros N3",
+        "Otimização contínua de performance e disponibilidade",
+        "Aproveitamento inteligente das horas técnicas contratadas",
+      ] },
     { key: "tierEnterprise", label: "Smart Enterprise", icon: Crown, active: state.tierEnterprise,
-      desc: "Camada estratégica com governança, GMUDs e gestão executiva do ambiente." },
+      tagline: "Governança e visão executiva da TI",
+      benefits: [
+        "Gestão estratégica do ambiente e roadmap tecnológico",
+        "Comitê executivo, GMUDs e governança de mudanças",
+        "Alinhamento contínuo entre TI e negócio",
+      ] },
   ];
 
   const tiersAtivos = tiers.filter(t => t.active);
@@ -66,10 +97,10 @@ export default function Detalhamento() {
     (s, a) => s + a.custoN1 + a.custoN2 + a.custoN3 + a.custoFerramentas + a.custoExtra, 0,
   );
 
-  // Narrativa executiva
-  const narrativa = `Esta proposta foi dimensionada para um ambiente com ${formatNumber(state.qtdUsuarios)} usuários e ${formatNumber(
-    state.qtdServidores + state.qtdAtivosRede + state.qtdBancosDados + state.qtdSistemas
-  )} ativos de infraestrutura, com perfil de risco "${NIVEIS[state.criticidadeNivel]}" (${ajustePerc >= 0 ? "+" : ""}${ajustePerc.toFixed(0)}% sobre as taxas base). O modelo projeta ${formatNumber(results.volumeTotalBruto)} chamados/mês, dos quais ${formatNumber(results.chamadosResolvidosN0, 0)} são absorvidos automaticamente pelo N0 (${state.reducaoN0}%) e ${formatNumber(results.volumeAtendimentoHumano, 0)} seguem para atendimento humano distribuídos no funil ${state.percN1}/${state.percN2}/${state.percN3}.`;
+  const totalAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdBancosDados + state.qtdSistemas;
+  const custoPorChamadoMedio = results.volumeAtendimentoHumano > 0
+    ? results.precoVendaMensal / results.volumeAtendimentoHumano
+    : 0;
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -89,45 +120,88 @@ export default function Detalhamento() {
 
       <main className="mx-auto max-w-6xl p-6 space-y-8">
 
-        {/* HERO — Sumário executivo */}
-        <section className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-accent/10 p-8">
-          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-          <div className="relative space-y-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Sumário da Proposta</span>
+        {/* CAPA COMERCIAL */}
+        <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-primary/15 via-background to-accent/10 p-8 md:p-12">
+          <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-primary/15 blur-3xl" />
+          <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
+          <div className="relative grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+            <div className="lg:col-span-3 space-y-5">
+              <div className="inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Proposta Comercial</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
+                Operação de TI sob medida para um ambiente de <span className="text-primary">{formatNumber(state.qtdUsuarios)} usuários</span> e <span className="text-primary">{formatNumber(totalAtivos)} ativos</span>.
+              </h1>
+              <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">
+                Um modelo de serviço completo, dimensionado para absorver {formatNumber(results.volumeTotalBruto)} chamados/mês, evitar {state.reducaoN0}% deles automaticamente e entregar previsibilidade de custo, qualidade e governança.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {tiersAtivos.map(t => (
+                  <span key={t.key} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                    <t.icon className="h-3 w-3" />
+                    {t.label}
+                  </span>
+                ))}
+              </div>
             </div>
-            <p className="text-base leading-relaxed text-foreground/90 max-w-4xl">{narrativa}</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-              <HeroStat icon={Boxes} label="Chamados Brutos / mês" value={formatNumber(results.volumeTotalBruto)} />
-              <HeroStat icon={Workflow} label="Atendimento Humano" value={formatNumber(results.volumeAtendimentoHumano, 0)} sub={`${100 - state.reducaoN0}% do bruto`} />
-              <HeroStat icon={Layers} label="Camadas Ativas" value={`${tiersAtivos.length}`} sub={tiersAtivos.map(t => t.label.replace("Smart ", "")).join(" · ")} />
-              <HeroStat icon={Coins} label="Preço Mensal" value={formatBRL(results.precoVendaMensal)} highlight />
+            <div className="lg:col-span-2">
+              <div className="rounded-2xl border-2 border-primary/40 bg-card/80 backdrop-blur p-6 shadow-xl">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Investimento Mensal</p>
+                <p className="mt-2 text-4xl md:text-5xl font-bold text-primary tracking-tight">{formatBRL(results.precoVendaMensal)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Tudo incluso · sem custos surpresa</p>
+                <div className="mt-5 grid grid-cols-2 gap-3 text-center border-t pt-4">
+                  <div>
+                    <p className="text-lg font-bold">{custoPorChamadoMedio > 0 ? formatBRL(custoPorChamadoMedio) : "—"}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">por chamado atendido</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{tiersAtivos.length}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">camadas ativas</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* CAMADAS SELECIONADAS */}
-        <Section icon={Layers} title="Camadas de Oferta Selecionadas" subtitle="Cada camada habilita componentes específicos no cálculo abaixo">
+        {/* PILARES DE VALOR */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <ValuePillar icon={ShieldCheck} title="Previsibilidade" desc="Custo fixo mensal com escopo claro do que está incluído." />
+          <ValuePillar icon={Zap} title="Automação que poupa" desc={`${state.reducaoN0}% dos chamados resolvidos antes de chegarem a uma pessoa.`} />
+          <ValuePillar icon={HeartHandshake} title="Equipe dedicada" desc="N1, N2 e N3 dimensionados para o seu volume real de demanda." />
+          <ValuePillar icon={Award} title="Governança" desc="Indicadores, SLA e visão executiva de toda a operação." />
+        </section>
+
+        {/* O QUE ESTÁ INCLUÍDO */}
+        <Section icon={Layers} title="O que está incluído nesta proposta" subtitle="Cada camada selecionada agrega capacidades específicas à sua operação">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {tiers.map((t) => (
-              <div key={t.key} className={`rounded-xl border p-4 transition ${t.active ? "border-primary/40 bg-primary/5 shadow-sm" : "border-dashed border-muted-foreground/20 bg-muted/20 opacity-60"}`}>
+              <div key={t.key} className={`relative rounded-xl border p-5 transition ${t.active ? "border-primary/40 bg-gradient-to-br from-primary/5 to-transparent shadow-sm" : "border-dashed border-muted-foreground/20 bg-muted/20 opacity-50"}`}>
+                {t.active && (
+                  <span className="absolute -top-2 right-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 shadow">Incluído</span>
+                )}
                 <div className="flex items-start gap-3">
-                  <div className={`rounded-lg p-2 ${t.active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    <t.icon className="h-4 w-4" />
+                  <div className={`rounded-xl p-2.5 ${t.active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
+                    <t.icon className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">{t.label}</span>
-                      {t.active ? (
-                        <Badge variant="default" className="text-[9px] h-4 gap-1"><CheckCircle2 className="h-2.5 w-2.5" />Ativa</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[9px] h-4 gap-1 text-muted-foreground"><Circle className="h-2.5 w-2.5" />Inativa</Badge>
-                      )}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t.desc}</p>
+                    <p className="text-sm font-bold">{t.label}</p>
+                    <p className="text-[11px] text-muted-foreground italic leading-snug">{t.tagline}</p>
                   </div>
                 </div>
+                <ul className="mt-3 space-y-1.5">
+                  {t.benefits.map((b, i) => (
+                    <li key={i} className="flex items-start gap-2 text-[12px] leading-snug">
+                      {t.active ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                      ) : (
+                        <Circle className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0" />
+                      )}
+                      <span className={t.active ? "" : "text-muted-foreground/70"}>{b}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
