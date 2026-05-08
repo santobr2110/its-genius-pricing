@@ -939,6 +939,7 @@ function NovaRotinaDialog({
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
+    horasExecucao?: number;
   }) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -952,6 +953,7 @@ function NovaRotinaDialog({
   const [complexFlag, setComplexFlag] = useState<ComplexFlagKey>("complexVirtualizacaoCluster");
   const [automacao, setAutomacao] = useState(false);
   const [frequencia, setFrequencia] = useState<Frequencia>("Mensal");
+  const [horasExecucao, setHorasExecucao] = useState<number>(4);
 
   const isPerf = oferta === "Performance";
   const isComplexo = isPerf && complexidade === "Complexo";
@@ -969,6 +971,7 @@ function NovaRotinaDialog({
     setComplexFlag("complexVirtualizacaoCluster");
     setAutomacao(false);
     setFrequencia("Mensal");
+    setHorasExecucao(4);
   };
 
   const salvar = () => {
@@ -982,6 +985,7 @@ function NovaRotinaDialog({
       complexFlag: isComplexo ? complexFlag : undefined,
       automacao,
       frequencia,
+      horasExecucao: isComplexo ? horasExecucao : undefined,
     });
     reset();
     setOpen(false);
