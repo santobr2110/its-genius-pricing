@@ -84,6 +84,27 @@ export default function Detalhamento() {
   };
   const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
+  // Custo médio por chamado de rotina ponderado (mesma fórmula do painel principal)
+  const custoChN3Mix = state.tempoMedioChamadoN3 * state.valorHoraN3;
+  const somaRotina = (state.percRotinaN1 + state.percRotinaN2 + state.percRotinaN3) || 100;
+  const wRotN1 = state.percRotinaN1 / somaRotina;
+  const wRotN2 = state.percRotinaN2 / somaRotina;
+  const wRotN3 = state.percRotinaN3 / somaRotina;
+  const custoPorChamadoMix =
+    wRotN1 * results.custoPorChamadoN1 +
+    wRotN2 * results.custoPorChamadoN2 +
+    wRotN3 * custoChN3Mix;
+  const fatorAutoPerc = Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100;
+
+  const rotinaCusto = (r: Rotina, demanda: number) => {
+    const fa = r.automacao ? fatorAutoPerc : 1;
+    if (r.oferta === "Performance" && (r.complexidade ?? "Padrão") === "Complexo") {
+      const horas = r.horasExecucao ?? 4;
+      return demanda * horas * state.valorHoraN3 * fa;
+    }
+    return demanda * custoPorChamadoMix * fa;
+  };
+
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
     rotinas
       .filter(r => r.oferta === oferta)
@@ -93,7 +114,9 @@ export default function Detalhamento() {
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda: r.chamadosMes * mult, mult };
+        const demanda = r.chamadosMes * mult;
+        const custo = rotinaCusto(r, demanda);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
       })
       .filter(i => i.demanda > 0);
 
@@ -109,11 +132,35 @@ export default function Detalhamento() {
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, oferta: r.oferta, demanda: r.chamadosMes * mult, mult };
+        const demanda = r.chamadosMes * mult;
+        const custo = rotinaCusto(r, demanda);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, oferta: r.oferta, demanda, mult, custo };
       })
       .filter(i => i.demanda > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotinas, state]);
+
+  const sumCusto = (arr: { custo: number }[]) => arr.reduce((a, b) => a + b.custo, 0);
+  const custoRotinasOp = sumCusto(rotinasOp);
+  const custoRotinasPerfPadrao = sumCusto(rotinasPerfPadrao);
+  const custoRotinasPerfComplexo = sumCusto(rotinasPerfComplexo);
+  const custoRotinasField = sumCusto(rotinasField);
+
+  // Valores de venda por camada (alinhados ao painel principal)
+  const toSell = (c: number) => c * fatorVenda;
+  const valorMonitor = state.tierMonitor ? toSell(sm.total) : 0;
+  const custoOperacaoBase =
+    results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
+  const valorFieldService = state.tierFieldOperation
+    ? toSell(fs.total) + toSell(custoRotinasField)
+    : 0;
+  const valorOperation = state.tierOperation
+    ? toSell(custoOperacaoBase) + toSell(custoRotinasOp) + valorFieldService
+    : 0;
+  const valorPerformance = state.tierPerformance
+    ? toSell(results.custoN3) + toSell(custoRotinasPerfPadrao) + toSell(custoRotinasPerfComplexo)
+    : 0;
+  const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
 
   const horasAtendN3 = results.horasAtendimentoN3;
   const horasPrev = Math.max(0, horasTotaisN3 - horasAtendN3);
@@ -154,7 +201,7 @@ export default function Detalhamento() {
         {/* SMART MONITOR */}
         <TierBlock active={state.tierMonitor} color="sky" icon={Activity} tierIndex={1}
           title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
-          valor={state.tierMonitor ? sm.total : 0}>
+          valor={valorMonitor}>
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
@@ -178,7 +225,7 @@ export default function Detalhamento() {
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="emerald" icon={Rocket} tierIndex={2}
           title="Smart Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
-          valor={state.tierOperation ? results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3) : 0}>
+          valor={valorOperation}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
             <Bullet color="emerald">Funil N1 ({state.percN1}%) e N2 ({state.percN2}%) reativo com SLA controlado</Bullet>
@@ -220,7 +267,7 @@ export default function Detalhamento() {
         {state.tierFieldOperation && (
           <TierBlock active={true} color="amber" icon={Wrench} tierIndex={3}
             title="Field Service" tagline="Suporte presencial onde o usuário precisa"
-            valor={fs.total}>
+            valor={valorFieldService}>
             <SubTitle>Equipe presencial alocada</SubTitle>
             <div className="grid grid-cols-3 gap-2">
               <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} sub={formatBRL(fs.custoN1F)} />
@@ -248,7 +295,7 @@ export default function Detalhamento() {
         {/* SMART PERFORMANCE */}
         <TierBlock active={state.tierPerformance} color="violet" icon={TrendingUp} tierIndex={4}
           title="Smart Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
-          valor={state.tierPerformance ? results.custoN3 : 0}>
+          valor={valorPerformance}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
             <Bullet color="violet">Rotinas preventivas avançadas executadas pelo N3</Bullet>
@@ -302,14 +349,14 @@ export default function Detalhamento() {
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Investimento Mensal Total</p>
-                <p className="mt-1 text-3xl md:text-4xl font-bold text-primary">{formatBRL(results.precoVendaMensal)}</p>
+                <p className="mt-1 text-3xl md:text-4xl font-bold text-primary">{formatBRL(investimentoTotal)}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Margem {state.margemLucro}% · Tributos {state.impostosTaxas}%
                 </p>
               </div>
               <div className="text-right text-xs space-y-1">
-                <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(results.precoVendaMensal * 12)}</strong></div>
-                {state.qtdUsuarios > 0 && <div><span className="text-muted-foreground">Por usuário/mês: </span><strong>{formatBRL(results.precoVendaMensal / state.qtdUsuarios)}</strong></div>}
+                <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(investimentoTotal * 12)}</strong></div>
+                {state.qtdUsuarios > 0 && <div><span className="text-muted-foreground">Por usuário/mês: </span><strong>{formatBRL(investimentoTotal / state.qtdUsuarios)}</strong></div>}
               </div>
             </div>
           </CardContent>
@@ -374,7 +421,7 @@ function TierBlock({
           </div>
           {valor > 0 && (
             <div className="text-right shrink-0">
-              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Custo mensal</p>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
               <p className={`text-xl font-extrabold bg-gradient-to-r ${theme.valueGrad} bg-clip-text text-transparent tabular-nums`}>{formatBRL(valor)}</p>
             </div>
           )}
