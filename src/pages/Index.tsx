@@ -29,7 +29,7 @@ const Index = () => {
       <main className="mx-auto max-w-[1400px] p-4">
         <ResizablePanelGroup
           direction="horizontal"
-          className="gap-0 min-h-[600px]"
+          className="items-start gap-0 min-h-[600px]"
           style={{ height: "auto", overflow: "visible" }}
         >
           <ResizablePanel
