@@ -554,37 +554,52 @@ export default function SmartTiersPanel() {
                   {formatNumber(state.horasN3Mensais)}h/mês · {formatBRL(toSell(results.custoN3))}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-1 rounded-md border bg-muted/40 p-0.5">
-                {(["TAM", "Owner", "Livre"] as const).map((m) => {
-                  const active = n3Modo === m;
-                  return (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => {
-                        setN3Modo(m);
-                        if (m !== "Livre") update("horasN3Mensais", N3_MODO_HORAS[m] as any);
-                      }}
-                      className={`text-[11px] font-medium rounded px-2 py-1 transition-colors ${
-                        active
-                          ? "bg-background text-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  );
-                })}
-              </div>
               <Slider
                 value={[Math.min(40, Math.max(20, state.horasN3Mensais || 20))]}
                 onValueChange={([v]) => update("horasN3Mensais", v)}
                 min={20}
                 max={40}
                 step={1}
-                disabled={n3Modo !== "Livre"}
-                className={n3Modo !== "Livre" ? "opacity-50" : ""}
               />
+
+              {/* Distribuição das horas N3 entre TAM / Owner / Livre */}
+              <div className="pt-1 space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[11px] text-muted-foreground">
+                    Distribuição das horas N3
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground">
+                    arraste os marcadores
+                  </span>
+                </div>
+                <Slider
+                  value={[corteTam, corteOwner]}
+                  onValueChange={(vs) => {
+                    if (vs.length < 2) return;
+                    const a = Math.min(vs[0], vs[1]);
+                    const b = Math.max(vs[0], vs[1]);
+                    setN3Cortes([a, b]);
+                  }}
+                  min={0}
+                  max={100}
+                  step={1}
+                  minStepsBetweenThumbs={0}
+                />
+                <div className="grid grid-cols-3 gap-1 text-[11px]">
+                  <div className="rounded bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">TAM · {pctTam}%</div>
+                    <div className="font-semibold">{formatNumber(horasTam)}h</div>
+                  </div>
+                  <div className="rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Owner · {pctOwner}%</div>
+                    <div className="font-semibold">{formatNumber(horasOwner)}h</div>
+                  </div>
+                  <div className="rounded bg-violet-500/10 border border-violet-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Livre · {pctLivre}%</div>
+                    <div className="font-semibold">{formatNumber(horasLivre)}h</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <PerformanceBlock
