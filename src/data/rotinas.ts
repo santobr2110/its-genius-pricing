@@ -1,4 +1,6 @@
 export type Oferta = "Operation" | "Performance";
+export type Complexidade = "Padrão" | "Complexo";
+export const COMPLEXIDADES: Complexidade[] = ["Padrão", "Complexo"];
 export type Frequencia =
   | "Semanal"
   | "Quinzenal"
@@ -104,6 +106,8 @@ export interface Rotina {
   frequencia: Frequencia;
   chamadosMes: number;
   cac: number;
+  /** Apenas relevante para oferta Performance. Default "Padrão". */
+  complexidade?: Complexidade;
 }
 
 const r = (
@@ -114,6 +118,7 @@ const r = (
   unidade: string,
   automacao: boolean,
   frequencia: Frequencia,
+  complexidade: Complexidade = "Padrão",
 ): Rotina => {
   const chamadosMes = FREQ_TO_CHAMADOS[frequencia];
   return {
@@ -127,6 +132,7 @@ const r = (
     frequencia,
     chamadosMes,
     cac: +(chamadosMes * CAC_FACTOR).toFixed(4),
+    complexidade,
   };
 };
 
