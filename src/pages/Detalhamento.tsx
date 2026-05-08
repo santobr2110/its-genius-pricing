@@ -84,6 +84,27 @@ export default function Detalhamento() {
   };
   const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
+  // Custo médio por chamado de rotina ponderado (mesma fórmula do painel principal)
+  const custoChN3Mix = state.tempoMedioChamadoN3 * state.valorHoraN3;
+  const somaRotina = (state.percRotinaN1 + state.percRotinaN2 + state.percRotinaN3) || 100;
+  const wRotN1 = state.percRotinaN1 / somaRotina;
+  const wRotN2 = state.percRotinaN2 / somaRotina;
+  const wRotN3 = state.percRotinaN3 / somaRotina;
+  const custoPorChamadoMix =
+    wRotN1 * results.custoPorChamadoN1 +
+    wRotN2 * results.custoPorChamadoN2 +
+    wRotN3 * custoChN3Mix;
+  const fatorAutoPerc = Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100;
+
+  const rotinaCusto = (r: Rotina, demanda: number) => {
+    const fa = r.automacao ? fatorAutoPerc : 1;
+    if (r.oferta === "Performance" && (r.complexidade ?? "Padrão") === "Complexo") {
+      const horas = r.horasExecucao ?? 4;
+      return demanda * horas * state.valorHoraN3 * fa;
+    }
+    return demanda * custoPorChamadoMix * fa;
+  };
+
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
     rotinas
       .filter(r => r.oferta === oferta)
@@ -93,7 +114,9 @@ export default function Detalhamento() {
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda: r.chamadosMes * mult, mult };
+        const demanda = r.chamadosMes * mult;
+        const custo = rotinaCusto(r, demanda);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
       })
       .filter(i => i.demanda > 0);
 
@@ -109,11 +132,35 @@ export default function Detalhamento() {
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, oferta: r.oferta, demanda: r.chamadosMes * mult, mult };
+        const demanda = r.chamadosMes * mult;
+        const custo = rotinaCusto(r, demanda);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, oferta: r.oferta, demanda, mult, custo };
       })
       .filter(i => i.demanda > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotinas, state]);
+
+  const sumCusto = (arr: { custo: number }[]) => arr.reduce((a, b) => a + b.custo, 0);
+  const custoRotinasOp = sumCusto(rotinasOp);
+  const custoRotinasPerfPadrao = sumCusto(rotinasPerfPadrao);
+  const custoRotinasPerfComplexo = sumCusto(rotinasPerfComplexo);
+  const custoRotinasField = sumCusto(rotinasField);
+
+  // Valores de venda por camada (alinhados ao painel principal)
+  const toSell = (c: number) => c * fatorVenda;
+  const valorMonitor = state.tierMonitor ? toSell(sm.total) : 0;
+  const custoOperacaoBase =
+    results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
+  const valorFieldService = state.tierFieldOperation
+    ? toSell(fs.total) + toSell(custoRotinasField)
+    : 0;
+  const valorOperation = state.tierOperation
+    ? toSell(custoOperacaoBase) + toSell(custoRotinasOp) + valorFieldService
+    : 0;
+  const valorPerformance = state.tierPerformance
+    ? toSell(results.custoN3) + toSell(custoRotinasPerfPadrao) + toSell(custoRotinasPerfComplexo)
+    : 0;
+  const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
 
   const horasAtendN3 = results.horasAtendimentoN3;
   const horasPrev = Math.max(0, horasTotaisN3 - horasAtendN3);
