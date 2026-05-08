@@ -909,3 +909,217 @@ function RotinaGroupTable({
     </div>
   );
 }
+
+function NovaRotinaDialog({
+  gruposExistentes,
+  onSubmit,
+}: {
+  gruposExistentes: string[];
+  onSubmit: (data: {
+    grupo: string;
+    rotina: string;
+    oferta: Oferta;
+    complexidade?: Complexidade;
+    ativo: AtivoTipo;
+    complexFlag?: ComplexFlagKey;
+    automacao: boolean;
+    frequencia: Frequencia;
+  }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [grupoMode, setGrupoMode] = useState<"existente" | "novo">("existente");
+  const [grupo, setGrupo] = useState(gruposExistentes[0] ?? "");
+  const [novoGrupo, setNovoGrupo] = useState("");
+  const [rotina, setRotina] = useState("");
+  const [oferta, setOferta] = useState<Oferta>("Operation");
+  const [complexidade, setComplexidade] = useState<Complexidade>("Padrão");
+  const [ativo, setAtivo] = useState<AtivoTipo>("Ambiente");
+  const [complexFlag, setComplexFlag] = useState<ComplexFlagKey>("complexVirtualizacaoCluster");
+  const [automacao, setAutomacao] = useState(false);
+  const [frequencia, setFrequencia] = useState<Frequencia>("Mensal");
+
+  const isPerf = oferta === "Performance";
+  const isComplexo = isPerf && complexidade === "Complexo";
+  const grupoFinal = grupoMode === "novo" ? novoGrupo : grupo;
+  const podeSalvar = grupoFinal.trim().length > 0 && rotina.trim().length > 0;
+
+  const reset = () => {
+    setGrupoMode("existente");
+    setGrupo(gruposExistentes[0] ?? "");
+    setNovoGrupo("");
+    setRotina("");
+    setOferta("Operation");
+    setComplexidade("Padrão");
+    setAtivo("Ambiente");
+    setComplexFlag("complexVirtualizacaoCluster");
+    setAutomacao(false);
+    setFrequencia("Mensal");
+  };
+
+  const salvar = () => {
+    if (!podeSalvar) return;
+    onSubmit({
+      grupo: grupoFinal,
+      rotina,
+      oferta,
+      complexidade: isPerf ? complexidade : undefined,
+      ativo,
+      complexFlag: isComplexo ? complexFlag : undefined,
+      automacao,
+      frequencia,
+    });
+    reset();
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="gap-1.5">
+          <Plus className="h-3.5 w-3.5" />
+          <span className="text-xs">Nova rotina</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Nova rotina</DialogTitle>
+          <DialogDescription>
+            Defina oferta, grupo e parâmetros de execução. O CAC é calculado a partir da frequência.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Oferta</Label>
+              <Select value={oferta} onValueChange={(v: Oferta) => setOferta(v)}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Operation">Operation</SelectItem>
+                  <SelectItem value="Performance">Performance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {isPerf && (
+              <div className="space-y-1">
+                <Label className="text-xs">Sub-quadro</Label>
+                <Select value={complexidade} onValueChange={(v: Complexidade) => setComplexidade(v)}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Padrão">Ambiente Padrão</SelectItem>
+                    <SelectItem value="Complexo">Ambiente Complexo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs">Grupo</Label>
+            <div className="flex gap-2">
+              <Select value={grupoMode} onValueChange={(v: "existente" | "novo") => setGrupoMode(v)}>
+                <SelectTrigger className="h-9 text-sm w-32 shrink-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="existente">Existente</SelectItem>
+                  <SelectItem value="novo">Novo</SelectItem>
+                </SelectContent>
+              </Select>
+              {grupoMode === "existente" ? (
+                <Select value={grupo} onValueChange={setGrupo}>
+                  <SelectTrigger className="h-9 text-sm flex-1">
+                    <SelectValue placeholder="Selecione um grupo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gruposExistentes.map((g) => (
+                      <SelectItem key={g} value={g}>{g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={novoGrupo}
+                  onChange={(e) => setNovoGrupo(e.target.value)}
+                  placeholder="Nome do novo grupo"
+                  className="h-9 text-sm flex-1"
+                />
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs">Descrição da rotina</Label>
+            <Input
+              value={rotina}
+              onChange={(e) => setRotina(e.target.value)}
+              placeholder="Ex: Health Check do banco"
+              className="h-9 text-sm"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <Label className="text-xs">{isComplexo ? "Item de complexidade vinculado" : "Ativo vinculado"}</Label>
+            {isComplexo ? (
+              <Select value={complexFlag} onValueChange={(v: ComplexFlagKey) => setComplexFlag(v)}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {COMPLEX_FLAG_KEYS.map((k) => (
+                    <SelectItem key={k} value={k}>{COMPLEX_FLAG_LABELS[k]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Select value={ativo} onValueChange={(v: AtivoTipo) => setAtivo(v)}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ATIVO_TIPOS.map((a) => (
+                    <SelectItem key={a} value={a}>{a}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Frequência</Label>
+              <Select value={frequencia} onValueChange={(v: Frequencia) => setFrequencia(v)}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FREQUENCIAS.map((f) => (
+                    <SelectItem key={f} value={f}>{f}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Automação</Label>
+              <div className="flex items-center gap-2 h-9">
+                <Switch checked={automacao} onCheckedChange={setAutomacao} />
+                <span className="text-xs text-muted-foreground">{automacao ? "Sim" : "Não"}</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-muted-foreground">
+            Freq/mês: {FREQ_TO_CHAMADOS[frequencia]} • CAC: {(FREQ_TO_CHAMADOS[frequencia] * CAC_FACTOR).toFixed(2)}
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => { reset(); setOpen(false); }}>Cancelar</Button>
+          <Button onClick={salvar} disabled={!podeSalvar}>Adicionar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
