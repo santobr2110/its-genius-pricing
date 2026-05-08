@@ -78,6 +78,64 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
   }, {});
 }
 
+function EscalaRotinasPanel() {
+  const { state, update } = useITSMContext();
+  const total = state.percRotinaN1 + state.percRotinaN2 + state.percRotinaN3;
+  const setLevel = (key: "percRotinaN1" | "percRotinaN2" | "percRotinaN3", value: number) => {
+    const v = Math.max(0, Math.min(100, Math.round(value)));
+    const others: ("percRotinaN1" | "percRotinaN2" | "percRotinaN3")[] = (
+      ["percRotinaN1", "percRotinaN2", "percRotinaN3"] as const
+    ).filter((k) => k !== key);
+    const remaining = 100 - v;
+    const sumOthers = state[others[0]] + state[others[1]];
+    let a = 0;
+    let b = 0;
+    if (sumOthers > 0) {
+      a = Math.round((state[others[0]] / sumOthers) * remaining);
+      b = remaining - a;
+    } else {
+      a = Math.round(remaining / 2);
+      b = remaining - a;
+    }
+    update(key, v);
+    update(others[0], a);
+    update(others[1], b);
+  };
+  return (
+    <div className="mb-4 rounded-lg border bg-muted/30 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <p className="text-sm font-semibold">Escala de distribuição das rotinas</p>
+          <p className="text-[11px] text-muted-foreground">
+            Define como os chamados gerados por rotinas são distribuídos entre N1, N2 e N3 — usado para o custo/hora ponderado das rotinas (independente do funil de chamados).
+          </p>
+        </div>
+        <Badge variant={total === 100 ? "secondary" : "destructive"}>Total {total}%</Badge>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {([
+          ["percRotinaN1", "N1"],
+          ["percRotinaN2", "N2"],
+          ["percRotinaN3", "N3"],
+        ] as const).map(([key, label]) => (
+          <div key={key} className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
+            <Label className="text-xs w-8">{label}</Label>
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              value={state[key]}
+              onChange={(e) => setLevel(key, parseInt(e.target.value) || 0)}
+              className="h-8 text-sm"
+            />
+            <span className="text-xs text-muted-foreground">%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function GestaoTI() {
   const { state: itsm, update: updateItsm } = useITSMContext();
   const inventario: InventarioCounts = {
