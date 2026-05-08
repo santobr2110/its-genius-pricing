@@ -598,7 +598,7 @@ function RotinaGroupTable({
               </TableCell>
               <TableCell>
                 <Select
-                  value={r.ativo}
+                  value={r.ativo ?? "Ambiente"}
                   onValueChange={(v: AtivoTipo) => onUpdate(r.id, { ativo: v })}
                 >
                   <SelectTrigger className="h-8 text-sm">
