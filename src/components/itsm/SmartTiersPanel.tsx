@@ -482,11 +482,108 @@ export default function SmartTiersPanel() {
           </div>
         )}
 
+        {state.tierPerformance && (
+          <div className="rounded-lg border border-violet-200 bg-violet-50/60 dark:bg-violet-950/20 dark:border-violet-900 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-foreground">Composição — Smart Performance</p>
+              <span className="text-[11px] text-muted-foreground">
+                custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
+              </span>
+            </div>
+
+            <PerformanceBlock
+              titulo="Rotinas Performance · Ambiente Padrão"
+              vazio="Nenhuma rotina padrão com demanda ativa no inventário."
+              data={rotinasPerfPadrao}
+            />
+
+            {algumComplexAtivo ? (
+              <PerformanceBlock
+                titulo="Rotinas Performance · Ambiente Complexo"
+                vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
+                data={rotinasPerfComplexo}
+              />
+            ) : (
+              <p className="text-[11px] text-muted-foreground italic">
+                Ative itens no painel de Complexidade para incluir rotinas de Ambiente Complexo.
+              </p>
+            )}
+
+            <div className="flex justify-between border-t pt-2">
+              <span className="text-xs font-semibold">Total Smart Performance (venda)</span>
+              <span className="text-sm font-bold text-primary">{formatBRL(smPerformanceVenda)}</span>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between border-t pt-3">
           <span className="text-sm font-semibold">Valor Total de Venda</span>
           <span className="text-base font-bold text-primary">{formatBRL(totalSelecionado)}</span>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function PerformanceBlock({
+  titulo,
+  vazio,
+  data,
+}: {
+  titulo: string;
+  vazio: string;
+  data: {
+    items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; cac: number; custo: number; venda: number }[];
+    totals: { demanda: number; cac: number; custo: number; venda: number };
+  };
+}) {
+  return (
+    <div className="rounded border bg-background p-2 space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <ListChecks className="h-3.5 w-3.5 text-violet-600" />
+        <p className="text-xs font-semibold">{titulo}</p>
+      </div>
+      {data.items.length === 0 ? (
+        <p className="text-[11px] text-muted-foreground italic px-1 py-2">{vazio}</p>
+      ) : (
+        <div className="max-h-56 overflow-auto rounded border">
+          <table className="w-full text-[11px]">
+            <thead className="bg-muted/50 sticky top-0">
+              <tr>
+                <th className="text-left px-2 py-1 font-medium">Rotina</th>
+                <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+                <th className="text-right px-2 py-1 font-medium w-14">CAC</th>
+                <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
+                <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items.map((i) => (
+                <tr key={i.id} className="border-t">
+                  <td className="px-2 py-1">
+                    <span className="text-muted-foreground">{i.grupo} · </span>
+                    {i.rotina}
+                    {i.automacao && <span className="ml-1 text-[9px] text-primary">[auto]</span>}
+                  </td>
+                  <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
+                  <td className="px-2 py-1 text-right tabular-nums">{i.cac.toFixed(2)}</td>
+                  <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
+                  <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot className="bg-muted/40 sticky bottom-0">
+              <tr>
+                <td className="px-2 py-1 font-semibold">Total</td>
+                <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.demanda.toFixed(1)}</td>
+                <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.cac.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right font-semibold tabular-nums">{formatBRL(data.totals.custo)}</td>
+                <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(data.totals.venda)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
