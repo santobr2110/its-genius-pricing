@@ -61,7 +61,10 @@ export default function SmartTiersPanel() {
         const mult = inventarioMultiplicador(r.ativo, inv);
         const demanda = r.chamadosMes * mult;
         const cac = r.cac * mult;
-        const custo = demanda * custoPorChamadoMix;
+        const fatorAuto = r.automacao
+          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
+          : 1;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
       })
