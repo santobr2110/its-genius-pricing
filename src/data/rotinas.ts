@@ -51,6 +51,10 @@ export const ATIVO_TIPOS: AtivoTipo[] = [
   "Usuário",
 ];
 
+export type Abrangencia = "Ambiente" | "Individual";
+
+export const ABRANGENCIAS: Abrangencia[] = ["Ambiente", "Individual"];
+
 export interface InventarioCounts {
   qtdUsuarios: number;
   qtdEquipamentos: number;
@@ -90,7 +94,8 @@ export type ComplexFlags = Record<ComplexFlagKey, boolean>;
  * - Rotinas Performance "Complexo" com `complexFlag` definida: 1 quando a flag
  *   está ativa no inventário de complexidade do cliente, 0 caso contrário.
  *   A "execução de 1 vez" é representada por `chamadosMes * 1`.
- * - Demais rotinas: multiplicador padrão do inventário (ativo vinculado).
+ * - Demais rotinas: multiplicador padrão do inventário (ativo vinculado),
+ *   exceto quando abrangencia é "Ambiente" (escopo geral do ambiente).
  */
 export function rotinaMultiplicador(
   r: Rotina,
@@ -100,9 +105,9 @@ export function rotinaMultiplicador(
   if (r.oferta === "Performance" && r.complexidade === "Complexo" && r.complexFlag) {
     return complex[r.complexFlag] ? 1 : 0;
   }
-  // Rotinas vinculadas a "Ambiente" só fazem sentido se houver qualquer
+  // Rotinas de abrangência "Ambiente" só fazem sentido se houver qualquer
   // item de inventário > 0. Caso contrário, somem da oferta.
-  if (r.ativo === "Ambiente") {
+  if (r.abrangencia === "Ambiente") {
     const total =
       inv.qtdUsuarios +
       inv.qtdEquipamentos +
@@ -157,9 +162,9 @@ export interface Rotina {
   oferta: Oferta;
   unidade: string;
   ativo: AtivoTipo;
-  /** Texto livre descrevendo o escopo da rotina (independente do inventário).
-   *  Ex.: "Por servidor", "Ambiente inteiro", "Por banco de dados". */
-  abrangencia?: string;
+  /** Escopo da rotina: "Ambiente" (aplica-se ao ambiente inteiro, 1 execução)
+   *  ou "Individual" (aplica-se a cada item do inventário vinculado). */
+  abrangencia: Abrangencia;
   automacao: boolean;
   frequencia: Frequencia;
   chamadosMes: number;
@@ -185,6 +190,9 @@ const r = (
   complexidade: Complexidade = "Padrão",
 ): Rotina => {
   const chamadosMes = FREQ_TO_CHAMADOS[frequencia];
+  const u = unidade.toLowerCase();
+  const abrangencia: Abrangencia =
+    u.includes("ambiente") ? "Ambiente" : "Individual";
   return {
     id,
     grupo,
@@ -192,7 +200,7 @@ const r = (
     oferta,
     unidade,
     ativo: ativoFromUnidade(unidade),
-    abrangencia: unidade,
+    abrangencia,
     automacao,
     frequencia,
     chamadosMes,

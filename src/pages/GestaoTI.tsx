@@ -42,6 +42,7 @@ import {
   FREQ_TO_CHAMADOS,
   CAC_FACTOR,
   ATIVO_TIPOS,
+  ABRANGENCIAS,
   inventarioMultiplicador,
   type Rotina,
   type Frequencia,
@@ -51,6 +52,7 @@ import {
   type Complexidade,
   type ComplexFlagKey,
   type ComplexFlags,
+  type Abrangencia,
   COMPLEX_FLAG_KEYS,
   COMPLEX_FLAG_LABELS,
   rotinaMultiplicador,
@@ -162,13 +164,23 @@ export default function GestaoTI() {
     ROTINAS_DEFAULT,
   );
 
-  // Migração: normaliza grupo "BACKUP" → "Backup" em dados persistidos antigos
+  // Migração: normaliza grupo "BACKUP" → "Backup" e abrangencia para enum em dados antigos
   useEffect(() => {
-    if (rotinas.some((r) => r.grupo === "BACKUP")) {
-      setRotinas((prev) =>
-        prev.map((r) => (r.grupo === "BACKUP" ? { ...r, grupo: "Backup" } : r)),
-      );
-    }
+    let changed = false;
+    const next = rotinas.map((r) => {
+      let patch: Partial<Rotina> = {};
+      if (r.grupo === "BACKUP") {
+        patch.grupo = "Backup";
+        changed = true;
+      }
+      if (r.abrangencia !== "Ambiente" && r.abrangencia !== "Individual") {
+        const u = r.unidade.toLowerCase();
+        patch.abrangencia = u.includes("ambiente") ? "Ambiente" : "Individual";
+        changed = true;
+      }
+      return Object.keys(patch).length ? { ...r, ...patch } : r;
+    });
+    if (changed) setRotinas(next);
   }, []);
   const [gmuds, setGmuds] = usePersistentState<Gmud[]>(
     "gestao-ti:gmuds",
@@ -195,7 +207,7 @@ export default function GestaoTI() {
     oferta: Oferta;
     complexidade?: Complexidade;
     ativo: AtivoTipo;
-    abrangencia?: string;
+    abrangencia?: Abrangencia;
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
@@ -209,7 +221,7 @@ export default function GestaoTI() {
       oferta: data.oferta,
       unidade: "Ambiente",
       ativo: data.ativo,
-      abrangencia: data.abrangencia?.trim() || data.ativo,
+      abrangencia: data.abrangencia ?? "Ambiente",
       automacao: data.automacao,
       frequencia: data.frequencia,
       chamadosMes,
@@ -846,12 +858,19 @@ function RotinaGroupCards({
                 <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
                   Abrangência
                 </Label>
-                <Input
-                  value={r.abrangencia ?? ""}
-                  onChange={(e) => onUpdate(r.id, { abrangencia: e.target.value })}
-                  placeholder="Escopo da rotina"
-                  className="h-8 text-xs"
-                />
+                <Select
+                  value={r.abrangencia}
+                  onValueChange={(v: Abrangencia) => onUpdate(r.id, { abrangencia: v })}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ABRANGENCIAS.map((a) => (
+                      <SelectItem key={a} value={a}>{a}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Vínculo de inventário */}
@@ -1024,7 +1043,7 @@ function NovaRotinaDialog({
     oferta: Oferta;
     complexidade?: Complexidade;
     ativo: AtivoTipo;
-    abrangencia?: string;
+    abrangencia?: Abrangencia;
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
@@ -1039,7 +1058,7 @@ function NovaRotinaDialog({
   const [oferta, setOferta] = useState<Oferta>("Operation");
   const [complexidade, setComplexidade] = useState<Complexidade>("Padrão");
   const [ativo, setAtivo] = useState<AtivoTipo>("Ambiente");
-  const [abrangencia, setAbrangencia] = useState("");
+  const [abrangencia, setAbrangencia] = useState<Abrangencia>("Ambiente");
   const [complexFlag, setComplexFlag] = useState<ComplexFlagKey>("complexVirtualizacaoCluster");
   const [automacao, setAutomacao] = useState(false);
   const [frequencia, setFrequencia] = useState<Frequencia>("Mensal");
@@ -1058,7 +1077,7 @@ function NovaRotinaDialog({
     setOferta("Operation");
     setComplexidade("Padrão");
     setAtivo("Ambiente");
-    setAbrangencia("");
+    setAbrangencia("Ambiente");
     setComplexFlag("complexVirtualizacaoCluster");
     setAutomacao(false);
     setFrequencia("Mensal");
@@ -1174,14 +1193,21 @@ function NovaRotinaDialog({
 
           <div className="space-y-1">
             <Label className="text-xs">Abrangência</Label>
-            <Input
+            <Select
               value={abrangencia}
-              onChange={(e) => setAbrangencia(e.target.value)}
-              placeholder="Escopo da rotina (ex: Por servidor, Ambiente inteiro)"
-              className="h-9 text-sm"
-            />
+              onValueChange={(v: Abrangencia) => setAbrangencia(v)}
+            >
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ABRANGENCIAS.map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <p className="text-[10px] text-muted-foreground">
-              Texto livre — descreve o escopo. Independente do vínculo de inventário.
+              "Ambiente" = 1 execução por ambiente. "Individual" = por item do inventário vinculado.
             </p>
           </div>
 
