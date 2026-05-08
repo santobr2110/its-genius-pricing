@@ -545,12 +545,36 @@ export default function SmartTiersPanel() {
                   {formatNumber(state.horasN3Mensais)}h/mês · {formatBRL(toSell(results.custoN3))}
                 </span>
               </div>
+              <div className="grid grid-cols-3 gap-1 rounded-md border bg-muted/40 p-0.5">
+                {(["TAM", "Owner", "Livre"] as const).map((m) => {
+                  const active = n3Modo === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => {
+                        setN3Modo(m);
+                        if (m !== "Livre") update("horasN3Mensais", N3_MODO_HORAS[m] as any);
+                      }}
+                      className={`text-[11px] font-medium rounded px-2 py-1 transition-colors ${
+                        active
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
               <Slider
                 value={[Math.min(40, Math.max(20, state.horasN3Mensais || 20))]}
                 onValueChange={([v]) => update("horasN3Mensais", v)}
                 min={20}
                 max={40}
                 step={1}
+                disabled={n3Modo !== "Livre"}
+                className={n3Modo !== "Livre" ? "opacity-50" : ""}
               />
             </div>
 
