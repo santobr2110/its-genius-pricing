@@ -172,8 +172,12 @@ export default function SmartTiersPanel() {
           {TIERS.map((t) => {
             const Icon = t.icon;
             const isSel = !!state[t.id];
-            // Smart Monitor não pode ser removido quando Smart Operation estiver ativo
-            const locked = t.id === "tierMonitor" && state.tierOperation;
+            // Bloqueios de dependência:
+            // - Smart Monitor é obrigatório quando Operation OU Performance estiver ativo
+            // - Smart Operation é obrigatório quando Performance estiver ativo
+            const locked =
+              (t.id === "tierMonitor" && (state.tierOperation || state.tierPerformance)) ||
+              (t.id === "tierOperation" && state.tierPerformance);
             return (
               <label
                 key={t.id}
@@ -192,6 +196,11 @@ export default function SmartTiersPanel() {
                     if (t.id === "tierOperation" && next && !state.tierMonitor) {
                       update("tierMonitor", true as any);
                     }
+                    // Smart Performance exige Smart Monitor + Operation ativos
+                    if (t.id === "tierPerformance" && next) {
+                      if (!state.tierMonitor) update("tierMonitor", true as any);
+                      if (!state.tierOperation) update("tierOperation", true as any);
+                    }
                   }}
                   className="mt-0.5"
                 />
@@ -200,7 +209,8 @@ export default function SmartTiersPanel() {
                   <p className="text-sm font-semibold">{t.label}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {t.desc}
-                    {locked && " · obrigatório com Smart Operation"}
+                    {locked && t.id === "tierMonitor" && (state.tierPerformance ? " · obrigatório com Smart Performance" : " · obrigatório com Smart Operation")}
+                    {locked && t.id === "tierOperation" && " · obrigatório com Smart Performance"}
                   </p>
                 </div>
               </label>
