@@ -50,11 +50,20 @@ export default function SmartTiersPanel() {
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
-  const [n3Modo, setN3Modo] = usePersistentState<"TAM" | "Owner" | "Livre">(
-    "gestao-ti:smartPerf:n3Modo",
-    "Livre",
+  // Distribuição percentual das horas N3 entre as 3 funções (TAM / Owner / Livre).
+  // Os dois "cortes" definem os limites: [0..corteTam] = TAM, [corteTam..corteOwner] = Owner, [corteOwner..100] = Livre.
+  const [n3Cortes, setN3Cortes] = usePersistentState<[number, number]>(
+    "gestao-ti:smartPerf:n3Cortes",
+    [33, 66],
   );
-  const N3_MODO_HORAS: Record<"TAM" | "Owner", number> = { TAM: 20, Owner: 40 };
+  const [corteTam, corteOwner] = n3Cortes;
+  const pctTam = corteTam;
+  const pctOwner = Math.max(0, corteOwner - corteTam);
+  const pctLivre = Math.max(0, 100 - corteOwner);
+  const horasTotaisN3 = state.horasN3Mensais || 0;
+  const horasTam = (horasTotaisN3 * pctTam) / 100;
+  const horasOwner = (horasTotaisN3 * pctOwner) / 100;
+  const horasLivre = (horasTotaisN3 * pctLivre) / 100;
 
   const inv = {
     qtdUsuarios: state.qtdUsuarios,
