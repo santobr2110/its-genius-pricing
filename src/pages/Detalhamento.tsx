@@ -356,7 +356,6 @@ export default function Detalhamento() {
               </div>
               <div className="text-right text-xs space-y-1">
                 <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(investimentoTotal * 12)}</strong></div>
-                {state.qtdUsuarios > 0 && <div><span className="text-muted-foreground">Por usuário/mês: </span><strong>{formatBRL(investimentoTotal / state.qtdUsuarios)}</strong></div>}
               </div>
             </div>
           </CardContent>
