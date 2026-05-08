@@ -114,12 +114,8 @@ export default function SmartTiersPanel() {
   const rotinasOperation = useMemo(() => {
     const items = rotinas
       .filter((r) => r.oferta === "Operation")
-      .filter((r) => {
-        // Rotinas de Microinformática só entram quando Field Service está ativo
-        const isMicro = r.grupo.toLowerCase().includes("microinform");
-        if (isMicro) return state.tierFieldOperation;
-        return true;
-      })
+      // Rotinas de Microinformática são exibidas dentro do bloco Field Service
+      .filter((r) => !r.grupo.toLowerCase().includes("microinform"))
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -130,8 +126,7 @@ export default function SmartTiersPanel() {
           : 1;
         const custo = demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        const isField = r.grupo.toLowerCase().includes("microinform");
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, isField, demanda, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -153,11 +148,7 @@ export default function SmartTiersPanel() {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
       .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
-      .filter((r) => {
-        const isMicro = r.grupo.toLowerCase().includes("microinform");
-        if (isMicro) return state.tierFieldOperation;
-        return true;
-      })
+      .filter((r) => !r.grupo.toLowerCase().includes("microinform"))
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -172,8 +163,7 @@ export default function SmartTiersPanel() {
           ? horasMes * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        const isField = r.grupo.toLowerCase().includes("microinform");
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, isField, demanda, horas, horasMes, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horas, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -202,13 +192,59 @@ export default function SmartTiersPanel() {
     [rotinas, state, results, fatorVenda],
   );
 
+  // Rotinas de Field Service (Microinformática) — agregam Operation + Performance
+  // num único bloco exibido dentro da composição de Field Service.
+  const rotinasField = useMemo(() => {
+    if (!state.tierFieldOperation) {
+      return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
+    }
+    const items = rotinas
+      .filter((r) => r.grupo.toLowerCase().includes("microinform"))
+      .map((r) => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const cac = r.cac * mult;
+        const fatorAuto = r.automacao
+          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
+          : 1;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const venda = toSell(custo);
+        return {
+          id: r.id,
+          grupo: r.grupo,
+          rotina: r.rotina,
+          oferta: r.oferta,
+          automacao: r.automacao,
+          demanda,
+          cac,
+          custo,
+          venda,
+        };
+      })
+      .filter((i) => i.demanda > 0)
+      .sort((a, b) => b.venda - a.venda);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.cac += i.cac;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, cac: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotinas, state, results, fatorVenda]);
+
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
   const smN3Venda = toSell(sm.custoN3);
   const smTotalVenda = toSell(sm.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
-  const fsVenda = fs.active ? toSell(fs.total) : 0;
+  const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
   const smOperationVenda = state.tierOperation
     ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + rotinasOperation.totals.venda + fsVenda
     : 0;
