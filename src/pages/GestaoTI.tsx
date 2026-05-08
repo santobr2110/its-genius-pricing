@@ -848,12 +848,19 @@ function RotinaGroupCards({
                 <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
                   Abrangência
                 </Label>
-                <Input
-                  value={r.abrangencia ?? ""}
-                  onChange={(e) => onUpdate(r.id, { abrangencia: e.target.value })}
-                  placeholder="Escopo da rotina"
-                  className="h-8 text-xs"
-                />
+                <Select
+                  value={r.abrangencia}
+                  onValueChange={(v: Abrangencia) => onUpdate(r.id, { abrangencia: v })}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ABRANGENCIAS.map((a) => (
+                      <SelectItem key={a} value={a}>{a}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Vínculo de inventário */}
