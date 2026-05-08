@@ -197,7 +197,7 @@ export default function GestaoTI() {
     oferta: Oferta;
     complexidade?: Complexidade;
     ativo: AtivoTipo;
-    abrangencia?: string;
+    abrangencia?: Abrangencia;
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
