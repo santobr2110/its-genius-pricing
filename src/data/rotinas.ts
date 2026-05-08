@@ -154,6 +154,9 @@ export interface Rotina {
   /** Apenas relevante para Performance + Complexo: vincula a rotina a uma
    *  flag de complexidade do inventário do cliente (1 execução quando ativa). */
   complexFlag?: ComplexFlagKey;
+  /** Horas previstas por execução. Usado para calcular custo de rotinas
+   *  Performance em Ambiente Complexo (custo = horas * valor/hora N3). */
+  horasExecucao?: number;
 }
 
 const r = (
