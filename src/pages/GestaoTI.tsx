@@ -657,17 +657,19 @@ function RotinaGroupTable({
   rotinas,
   onUpdate,
   inventario,
+  complexFlags,
   showComplexidadeMove = false,
 }: {
   grupo: string;
   rotinas: Rotina[];
   onUpdate: (id: string, patch: Partial<Rotina>) => void;
   inventario: InventarioCounts;
+  complexFlags: ComplexFlags;
   showComplexidadeMove?: boolean;
 }) {
   const totalChamados = rotinas.reduce((s, r) => s + r.chamadosMes, 0);
   const totalDemanda = rotinas.reduce(
-    (s, r) => s + r.chamadosMes * inventarioMultiplicador(r.ativo, inventario),
+    (s, r) => s + r.chamadosMes * rotinaMultiplicador(r, inventario, complexFlags),
     0,
   );
   const totalCac = rotinas.reduce((s, r) => s + r.cac, 0);
@@ -688,7 +690,7 @@ function RotinaGroupTable({
           <TableRow>
             <TableHead className="min-w-[260px]">Rotina</TableHead>
             <TableHead className="w-[130px]">Oferta</TableHead>
-            <TableHead className="w-[150px]">Ativo vinculado</TableHead>
+            <TableHead className="w-[200px]">Vínculo</TableHead>
             <TableHead className="w-[100px]">Automação</TableHead>
             <TableHead className="w-[150px]">Frequência</TableHead>
             <TableHead className="w-[110px]">Freq/mês</TableHead>
@@ -699,7 +701,8 @@ function RotinaGroupTable({
         </TableHeader>
         <TableBody>
           {rotinas.map((r) => {
-            const mult = inventarioMultiplicador(r.ativo, inventario);
+            const isComplexPerf = r.oferta === "Performance" && r.complexidade === "Complexo";
+            const mult = rotinaMultiplicador(r, inventario, complexFlags);
             const demanda = r.chamadosMes * mult;
             return (
             <TableRow key={r.id}>
@@ -725,21 +728,39 @@ function RotinaGroupTable({
                 </Select>
               </TableCell>
               <TableCell>
-                <Select
-                  value={r.ativo ?? "Ambiente"}
-                  onValueChange={(v: AtivoTipo) => onUpdate(r.id, { ativo: v })}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ATIVO_TIPOS.map((a) => (
-                      <SelectItem key={a} value={a}>
-                        {a} {a !== "Ambiente" && `(${inventarioMultiplicador(a, inventario)})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isComplexPerf ? (
+                  <Select
+                    value={r.complexFlag ?? ""}
+                    onValueChange={(v: ComplexFlagKey) => onUpdate(r.id, { complexFlag: v })}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue placeholder="Selecione complexidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COMPLEX_FLAG_KEYS.map((k) => (
+                        <SelectItem key={k} value={k}>
+                          {COMPLEX_FLAG_LABELS[k]} {complexFlags[k] ? "(1)" : "(0)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Select
+                    value={r.ativo ?? "Ambiente"}
+                    onValueChange={(v: AtivoTipo) => onUpdate(r.id, { ativo: v })}
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ATIVO_TIPOS.map((a) => (
+                        <SelectItem key={a} value={a}>
+                          {a} {a !== "Ambiente" && `(${inventarioMultiplicador(a, inventario)})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
