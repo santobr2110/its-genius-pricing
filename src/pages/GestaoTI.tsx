@@ -1024,6 +1024,7 @@ function NovaRotinaDialog({
     oferta: Oferta;
     complexidade?: Complexidade;
     ativo: AtivoTipo;
+    abrangencia?: string;
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
@@ -1038,6 +1039,7 @@ function NovaRotinaDialog({
   const [oferta, setOferta] = useState<Oferta>("Operation");
   const [complexidade, setComplexidade] = useState<Complexidade>("Padrão");
   const [ativo, setAtivo] = useState<AtivoTipo>("Ambiente");
+  const [abrangencia, setAbrangencia] = useState("");
   const [complexFlag, setComplexFlag] = useState<ComplexFlagKey>("complexVirtualizacaoCluster");
   const [automacao, setAutomacao] = useState(false);
   const [frequencia, setFrequencia] = useState<Frequencia>("Mensal");
@@ -1056,6 +1058,7 @@ function NovaRotinaDialog({
     setOferta("Operation");
     setComplexidade("Padrão");
     setAtivo("Ambiente");
+    setAbrangencia("");
     setComplexFlag("complexVirtualizacaoCluster");
     setAutomacao(false);
     setFrequencia("Mensal");
@@ -1070,6 +1073,7 @@ function NovaRotinaDialog({
       oferta,
       complexidade: isPerf ? complexidade : undefined,
       ativo,
+      abrangencia,
       complexFlag: isComplexo ? complexFlag : undefined,
       automacao,
       frequencia,
