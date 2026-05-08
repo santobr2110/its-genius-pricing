@@ -236,6 +236,12 @@ export default function Detalhamento() {
                 <strong>Transbordo ativo:</strong> {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial e são tratados via N1 remoto + N2F.
               </div>
             )}
+            {rotinasField.length > 0 && (
+              <>
+                <SubTitle className="mt-4">Rotinas Field — Microinformática ({rotinasField.length})</SubTitle>
+                <RoutineList items={rotinasField} accent="amber" />
+              </>
+            )}
           </TierBlock>
         )}
 
