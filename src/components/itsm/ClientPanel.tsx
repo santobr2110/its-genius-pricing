@@ -93,13 +93,8 @@ export default function ClientPanel({ state, update }: Props) {
           </section>
 
           <section className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Risco</p>
-              {!state.tierPerformance && (
-                <span className="text-[10px] text-muted-foreground italic">Ative Smart Performance para editar</span>
-              )}
-            </div>
-            <div className={`rounded-lg border p-3 space-y-3 ${!state.tierPerformance ? "opacity-50" : ""}`}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Risco</p>
+            <div className="rounded-lg border p-3 space-y-3">
               <div className="flex items-center gap-2">
                 <Gauge className="h-5 w-5 shrink-0 text-rose-500" />
                 <div className="flex-1">
@@ -120,7 +115,6 @@ export default function ClientPanel({ state, update }: Props) {
                 max={4}
                 step={1}
                 onValueChange={(v) => update("criticidadeNivel", v[0])}
-                disabled={!state.tierPerformance}
                 className="w-[90%] mx-auto"
                 trackClassName="bg-transparent"
                 rangeClassName="bg-transparent"
