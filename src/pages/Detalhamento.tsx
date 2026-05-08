@@ -574,3 +574,78 @@ function ValuePillar({ icon: Icon, title, desc }: { icon: React.ElementType; tit
     </div>
   );
 }
+
+const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon: string; glow: string; bar: string; badgeBg: string }> = {
+  sky:     { ring: "border-sky-300 dark:border-sky-700",      bg: "from-sky-50 via-card to-sky-50/40 dark:from-sky-950/40 dark:via-card dark:to-sky-950/20",          chip: "bg-sky-500/15 text-sky-700 dark:text-sky-300",         icon: "bg-gradient-to-br from-sky-400 to-sky-600 text-white",        glow: "bg-sky-400/30",        bar: "from-sky-400 to-sky-600",        badgeBg: "bg-sky-500" },
+  emerald: { ring: "border-emerald-300 dark:border-emerald-700", bg: "from-emerald-50 via-card to-emerald-50/40 dark:from-emerald-950/40 dark:via-card dark:to-emerald-950/20", chip: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", icon: "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white", glow: "bg-emerald-400/30",   bar: "from-emerald-400 to-emerald-600", badgeBg: "bg-emerald-500" },
+  teal:    { ring: "border-teal-300 dark:border-teal-700",    bg: "from-teal-50 via-card to-teal-50/40 dark:from-teal-950/40 dark:via-card dark:to-teal-950/20",    chip: "bg-teal-500/15 text-teal-700 dark:text-teal-300",      icon: "bg-gradient-to-br from-teal-400 to-teal-600 text-white",     glow: "bg-teal-400/30",      bar: "from-teal-400 to-teal-600",      badgeBg: "bg-teal-500" },
+  amber:   { ring: "border-amber-300 dark:border-amber-700",  bg: "from-amber-50 via-card to-amber-50/40 dark:from-amber-950/40 dark:via-card dark:to-amber-950/20",  chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300",   icon: "bg-gradient-to-br from-amber-400 to-orange-500 text-white",  glow: "bg-amber-400/30",     bar: "from-amber-400 to-orange-500",   badgeBg: "bg-amber-500" },
+  violet:  { ring: "border-violet-300 dark:border-violet-700", bg: "from-violet-50 via-card to-fuchsia-50/40 dark:from-violet-950/40 dark:via-card dark:to-fuchsia-950/20", chip: "bg-violet-500/15 text-violet-700 dark:text-violet-300", icon: "bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white", glow: "bg-violet-400/30",   bar: "from-violet-500 to-fuchsia-600", badgeBg: "bg-violet-500" },
+  rose:    { ring: "border-rose-300 dark:border-rose-700",    bg: "from-rose-50 via-card to-rose-50/40 dark:from-rose-950/40 dark:via-card dark:to-rose-950/20",    chip: "bg-rose-500/15 text-rose-700 dark:text-rose-300",      icon: "bg-gradient-to-br from-rose-400 to-pink-600 text-white",     glow: "bg-rose-400/30",      bar: "from-rose-400 to-pink-600",      badgeBg: "bg-rose-500" },
+};
+
+interface TierCardData {
+  key: string; label: string; icon: React.ElementType; active: boolean;
+  color: string; tagline: string; benefits: string[];
+}
+
+function TierCard({ tier }: { tier: TierCardData }) {
+  const theme = TIER_THEMES[tier.color] ?? TIER_THEMES.emerald;
+  const Icon = tier.icon;
+  if (!tier.active) {
+    return (
+      <div className="relative rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/10 p-5 opacity-60">
+        <div className="flex items-start gap-3">
+          <div className="rounded-xl p-3 bg-muted text-muted-foreground">
+            <Icon className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-bold text-muted-foreground">{tier.label}</p>
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                <Circle className="h-2.5 w-2.5" />Não incluso
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground italic leading-snug mt-0.5">{tier.tagline}</p>
+          </div>
+        </div>
+        <ul className="mt-4 space-y-1.5">
+          {tier.benefits.map((b, i) => (
+            <li key={i} className="flex items-start gap-2 text-[12px] leading-snug text-muted-foreground/70">
+              <Circle className="h-3 w-3 text-muted-foreground/30 mt-1 shrink-0" />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} p-5 shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5`}>
+      <div className={`absolute -top-16 -right-16 h-40 w-40 rounded-full ${theme.glow} blur-3xl pointer-events-none`} />
+      <span className={`absolute top-0 right-0 ${theme.badgeBg} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-3 py-1 rounded-bl-xl shadow-md`}>
+        Incluído
+      </span>
+      <div className={`h-1 w-full rounded-full bg-gradient-to-r ${theme.bar} mb-4`} />
+      <div className="flex items-start gap-3 relative">
+        <div className={`rounded-xl p-3 shadow-lg ${theme.icon}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-base font-extrabold tracking-tight">{tier.label}</p>
+          <p className={`text-[11px] font-medium italic leading-snug mt-0.5 inline-block px-2 py-0.5 rounded-full ${theme.chip}`}>
+            {tier.tagline}
+          </p>
+        </div>
+      </div>
+      <ul className="mt-4 space-y-2 relative">
+        {tier.benefits.map((b, i) => (
+          <li key={i} className="flex items-start gap-2 text-[12.5px] leading-snug">
+            <CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${theme.chip.split(" ")[1]}`} />
+            <span className="text-foreground/90">{b}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
