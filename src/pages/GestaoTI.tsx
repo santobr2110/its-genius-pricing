@@ -68,9 +68,20 @@ export default function GestaoTI() {
   const resetAll = () => setRotinas(ROTINAS_DEFAULT);
 
   const totals = useMemo(() => {
-    const byOferta: Record<Oferta, { count: number; chamados: number; cac: number }> = {
-      Operation: { count: 0, chamados: 0, cac: 0 },
-      Performance: { count: 0, chamados: 0, cac: 0 },
+    const byOferta: Record<
+      Oferta,
+      {
+        count: number;
+        chamados: number;
+        cac: number;
+        chamadosAuto: number;
+        chamadosManual: number;
+        countAuto: number;
+        countManual: number;
+      }
+    > = {
+      Operation: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0 },
+      Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0 },
     };
     let automatizadosCount = 0;
     let automatizadosChamados = 0;
@@ -80,8 +91,13 @@ export default function GestaoTI() {
       t.chamados += r.chamadosMes;
       t.cac += r.cac;
       if (r.automacao) {
+        t.chamadosAuto += r.chamadosMes;
+        t.countAuto += 1;
         automatizadosCount += 1;
         automatizadosChamados += r.chamadosMes;
+      } else {
+        t.chamadosManual += r.chamadosMes;
+        t.countManual += 1;
       }
     });
     const totalChamados = byOferta.Operation.chamados + byOferta.Performance.chamados;
@@ -157,6 +173,62 @@ export default function GestaoTI() {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" /> Totais mensais por oferta
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Oferta</TableHead>
+                  <TableHead className="text-right">Com automação</TableHead>
+                  <TableHead className="text-right">Sem automação</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {OFERTAS.map((o) => {
+                  const t = totals.byOferta[o];
+                  return (
+                    <TableRow key={o}>
+                      <TableCell className="font-medium">{o}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        <span className="font-semibold text-primary">{t.chamadosAuto.toFixed(1)}</span>
+                        <span className="text-xs text-muted-foreground ml-1">({t.countAuto})</span>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        <span className="font-semibold">{t.chamadosManual.toFixed(1)}</span>
+                        <span className="text-xs text-muted-foreground ml-1">({t.countManual})</span>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums font-semibold">
+                        {t.chamados.toFixed(1)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                <TableRow className="bg-muted/40">
+                  <TableCell className="font-semibold">Total</TableCell>
+                  <TableCell className="text-right tabular-nums font-semibold text-primary">
+                    {(totals.byOferta.Operation.chamadosAuto + totals.byOferta.Performance.chamadosAuto).toFixed(1)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums font-semibold">
+                    {(totals.byOferta.Operation.chamadosManual + totals.byOferta.Performance.chamadosManual).toFixed(1)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums font-bold">
+                    {totals.totalChamados.toFixed(1)}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <p className="text-xs text-muted-foreground mt-3">
+              Valores em chamados/mês. Entre parênteses: quantidade de rotinas.
+            </p>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
