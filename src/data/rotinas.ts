@@ -94,7 +94,8 @@ export type ComplexFlags = Record<ComplexFlagKey, boolean>;
  * - Rotinas Performance "Complexo" com `complexFlag` definida: 1 quando a flag
  *   está ativa no inventário de complexidade do cliente, 0 caso contrário.
  *   A "execução de 1 vez" é representada por `chamadosMes * 1`.
- * - Demais rotinas: multiplicador padrão do inventário (ativo vinculado).
+ * - Demais rotinas: multiplicador padrão do inventário (ativo vinculado),
+ *   exceto quando abrangencia é "Ambiente" (escopo geral do ambiente).
  */
 export function rotinaMultiplicador(
   r: Rotina,
@@ -104,9 +105,9 @@ export function rotinaMultiplicador(
   if (r.oferta === "Performance" && r.complexidade === "Complexo" && r.complexFlag) {
     return complex[r.complexFlag] ? 1 : 0;
   }
-  // Rotinas vinculadas a "Ambiente" só fazem sentido se houver qualquer
+  // Rotinas de abrangência "Ambiente" só fazem sentido se houver qualquer
   // item de inventário > 0. Caso contrário, somem da oferta.
-  if (r.ativo === "Ambiente") {
+  if (r.abrangencia === "Ambiente") {
     const total =
       inv.qtdUsuarios +
       inv.qtdEquipamentos +
