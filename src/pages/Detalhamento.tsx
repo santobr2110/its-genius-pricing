@@ -38,27 +38,25 @@ export default function Detalhamento() {
   const sm = results.smartMonitor;
   const fs = results.fieldService;
 
-  const handleExportPDF = async () => {
+  const handleExportImage = async () => {
     const el = document.getElementById("proposicao-printable");
     if (!el) return;
-    const html2pdf = (await import("html2pdf.js")).default;
-    const opt = {
-      margin: [0, 0, 0, 0] as [number, number, number, number],
-      filename: `proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`,
-      image: { type: "png" as const, quality: 1 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#0e1b14",
-        onclone: (doc: Document) => {
-          const printable = doc.getElementById("proposicao-printable");
-          if (printable) printable.classList.add("pdf-export-background");
-        },
+    const html2canvas = (await import("html2canvas")).default;
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#0e1b14",
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight,
+      onclone: (doc: Document) => {
+        const printable = doc.getElementById("proposicao-printable");
+        if (printable) printable.classList.add("pdf-export-background");
       },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" as const },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-    };
-    await html2pdf().set(opt).from(el).save();
+    });
+    const link = document.createElement("a");
+    link.download = `proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   };
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
@@ -183,9 +181,9 @@ export default function Detalhamento() {
             <h1 className="text-sm font-bold text-foreground truncate">Proposição</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={handleExportPDF} className="gap-1.5">
+            <Button size="sm" variant="outline" onClick={handleExportImage} className="gap-1.5">
               <FileDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Exportar PDF</span>
+              <span className="hidden sm:inline">Exportar Imagem</span>
             </Button>
             <SaveDefaultsButton />
             <SortableNav current="detalhamento" />
