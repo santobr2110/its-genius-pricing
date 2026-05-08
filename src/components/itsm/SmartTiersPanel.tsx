@@ -200,6 +200,7 @@ export default function SmartTiersPanel() {
     }
     const items = rotinas
       .filter((r) => r.grupo.toLowerCase().includes("microinform"))
+      .filter((r) => (r.oferta === "Performance" ? state.tierPerformance : true))
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
