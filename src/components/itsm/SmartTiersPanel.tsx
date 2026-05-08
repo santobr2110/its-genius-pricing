@@ -62,12 +62,17 @@ export default function SmartTiersPanel() {
   };
   const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
-  // Custo médio por chamado ponderado (compartilhado entre Operation e Performance)
+  // Custo médio por chamado de rotina ponderado pela escala de rotinas
+  // (independente do funil de chamados de usuários/infra).
   const custoChN3Mix = state.tempoMedioChamadoN3 * state.valorHoraN3;
+  const somaRotina = (state.percRotinaN1 + state.percRotinaN2 + state.percRotinaN3) || 100;
+  const wRotN1 = state.percRotinaN1 / somaRotina;
+  const wRotN2 = state.percRotinaN2 / somaRotina;
+  const wRotN3 = state.percRotinaN3 / somaRotina;
   const custoPorChamadoMix =
-    (state.percN1 / 100) * results.custoPorChamadoN1 +
-    (state.percN2 / 100) * results.custoPorChamadoN2 +
-    (state.percN3 / 100) * custoChN3Mix;
+    wRotN1 * results.custoPorChamadoN1 +
+    wRotN2 * results.custoPorChamadoN2 +
+    wRotN3 * custoChN3Mix;
 
   const rotinasOperation = useMemo(() => {
     const items = rotinas
