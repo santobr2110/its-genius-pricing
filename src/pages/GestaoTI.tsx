@@ -748,6 +748,7 @@ function RotinaGroupTable({
             <TableHead className="w-[150px]">Frequência</TableHead>
             <TableHead className="w-[110px]">Freq/mês</TableHead>
             <TableHead className="w-[130px]">Demanda/mês</TableHead>
+            {showComplexidadeMove && <TableHead className="w-[90px]">Horas exec</TableHead>}
             <TableHead className="w-[100px]">CAC</TableHead>
             {showComplexidadeMove && <TableHead className="w-[60px] text-center">Mover</TableHead>}
             {onRemove && <TableHead className="w-[50px] text-center"></TableHead>}
@@ -859,6 +860,24 @@ function RotinaGroupTable({
                   ({r.chamadosMes.toFixed(1)}×{mult})
                 </span>
               </TableCell>
+              {showComplexidadeMove && (
+                <TableCell>
+                  {isComplexPerf ? (
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.5}
+                      value={r.horasExecucao ?? 4}
+                      onChange={(e) =>
+                        onUpdate(r.id, { horasExecucao: parseFloat(e.target.value) || 0 })
+                      }
+                      className="h-8 text-sm"
+                    />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+              )}
               <TableCell className="text-sm font-medium tabular-nums">
                 {r.cac.toFixed(2)}
               </TableCell>
