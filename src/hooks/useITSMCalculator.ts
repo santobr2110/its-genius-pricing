@@ -223,6 +223,9 @@ const DEFAULTS: ITSMState = {
   capacidadeFieldN2: 200,
   capacidadeFieldN3: 80,
   percCustoRotinaAutomatizada: 20,
+  percRotinaN1: 30,
+  percRotinaN2: 50,
+  percRotinaN3: 20,
 };
 
 export function useITSMCalculator() {
