@@ -837,9 +837,25 @@ function RotinaGroupCards({
                   className="h-8 text-sm font-medium"
                 />
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge variant={r.oferta === "Performance" ? "default" : "secondary"} className="text-[10px]">
-                    {r.oferta}
-                  </Badge>
+                  <Select
+                    value={r.oferta}
+                    onValueChange={(v: Oferta) =>
+                      onUpdate(r.id, {
+                        oferta: v,
+                        complexidade: v === "Performance" ? (r.complexidade ?? "Padrão") : undefined,
+                        complexFlag: v === "Performance" ? r.complexFlag : undefined,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-6 w-[110px] text-[10px] px-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {OFERTAS.map((o) => (
+                        <SelectItem key={o} value={o}>{o}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {r.automacao && (
                     <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
                       Automatizada
