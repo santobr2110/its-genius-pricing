@@ -447,6 +447,7 @@ export default function GestaoTI() {
                       rotinas={grupos[grupo]}
                       onUpdate={updateRotina}
                       inventario={inventario}
+                      complexFlags={complexFlags}
                       showComplexidadeMove={oferta === "Performance"}
                     />
                   ));
