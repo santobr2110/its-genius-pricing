@@ -211,7 +211,7 @@ export default function GestaoTI() {
       oferta: data.oferta,
       unidade: "Ambiente",
       ativo: data.ativo,
-      abrangencia: data.abrangencia?.trim() || data.ativo,
+      abrangencia: data.abrangencia ?? "Ambiente",
       automacao: data.automacao,
       frequencia: data.frequencia,
       chamadosMes,
