@@ -31,10 +31,15 @@ import {
   FREQUENCIAS,
   FREQ_TO_CHAMADOS,
   CAC_FACTOR,
+  ATIVO_TIPOS,
+  inventarioMultiplicador,
   type Rotina,
   type Frequencia,
   type Oferta,
+  type AtivoTipo,
+  type InventarioCounts,
 } from "@/data/rotinas";
+import { useITSMContext } from "@/contexts/ITSMContext";
 import {
   GMUDS_DEFAULT,
   GMUD_TIPOS,
@@ -58,6 +63,16 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
 }
 
 export default function GestaoTI() {
+  const { state: itsm } = useITSMContext();
+  const inventario: InventarioCounts = {
+    qtdUsuarios: itsm.qtdUsuarios,
+    qtdEquipamentos: itsm.qtdEquipamentos,
+    qtdServidores: itsm.qtdServidores,
+    qtdAtivosRede: itsm.qtdAtivosRede,
+    qtdBancosDados: itsm.qtdBancosDados,
+    qtdSistemas: itsm.qtdSistemas,
+  };
+
   const [rotinas, setRotinas] = usePersistentState<Rotina[]>(
     "gestao-ti:rotinas",
     ROTINAS_DEFAULT,
@@ -125,31 +140,43 @@ export default function GestaoTI() {
         chamadosManual: number;
         countAuto: number;
         countManual: number;
+        demanda: number;
+        demandaAuto: number;
+        demandaManual: number;
       }
     > = {
-      Operation: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0 },
-      Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0 },
+      Operation: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
+      Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
     };
     let automatizadosCount = 0;
     let automatizadosChamados = 0;
+    let totalDemanda = 0;
+    let automatizadosDemanda = 0;
     rotinas.forEach((r) => {
       const t = byOferta[r.oferta];
+      const mult = inventarioMultiplicador(r.ativo, inventario);
+      const demanda = r.chamadosMes * mult;
       t.count += 1;
       t.chamados += r.chamadosMes;
       t.cac += r.cac;
+      t.demanda += demanda;
+      totalDemanda += demanda;
       if (r.automacao) {
         t.chamadosAuto += r.chamadosMes;
         t.countAuto += 1;
+        t.demandaAuto += demanda;
+        automatizadosDemanda += demanda;
         automatizadosCount += 1;
         automatizadosChamados += r.chamadosMes;
       } else {
         t.chamadosManual += r.chamadosMes;
         t.countManual += 1;
+        t.demandaManual += demanda;
       }
     });
     const totalChamados = byOferta.Operation.chamados + byOferta.Performance.chamados;
-    return { byOferta, automatizadosCount, automatizadosChamados, totalChamados };
-  }, [rotinas]);
+    return { byOferta, automatizadosCount, automatizadosChamados, totalChamados, totalDemanda, automatizadosDemanda };
+  }, [rotinas, inventario.qtdUsuarios, inventario.qtdEquipamentos, inventario.qtdServidores, inventario.qtdAtivosRede, inventario.qtdBancosDados, inventario.qtdSistemas]);
 
   const gmudTotals = useMemo(() => {
     const byTipo: Record<GmudTipo, { count: number; chamados: number; cac: number }> = {
@@ -258,15 +285,16 @@ export default function GestaoTI() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <PhoneCall className="h-4 w-4 text-primary" /> Chamados de rotina / mês
+                <PhoneCall className="h-4 w-4 text-primary" /> Demanda de chamados / mês
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Execuções mensais geradas pelas rotinas (derivadas da frequência).
+                Chamados gerados pelas rotinas considerando o inventário do cliente
+                (frequência × quantidade do ativo vinculado).
               </p>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2 mb-3">
-                <p className="text-3xl font-bold">{totals.totalChamados.toFixed(1)}</p>
+                <p className="text-3xl font-bold">{totals.totalDemanda.toFixed(1)}</p>
                 <span className="text-xs text-muted-foreground">chamados/mês</span>
               </div>
               <Table>
@@ -285,13 +313,13 @@ export default function GestaoTI() {
                       <TableRow key={o}>
                         <TableCell className="font-medium">{o}</TableCell>
                         <TableCell className="text-right tabular-nums text-primary font-semibold">
-                          {t.chamadosAuto.toFixed(1)}
+                          {t.demandaAuto.toFixed(1)}
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
-                          {t.chamadosManual.toFixed(1)}
+                          {t.demandaManual.toFixed(1)}
                         </TableCell>
                         <TableCell className="text-right tabular-nums font-semibold">
-                          {t.chamados.toFixed(1)}
+                          {t.demanda.toFixed(1)}
                         </TableCell>
                       </TableRow>
                     );
@@ -299,18 +327,20 @@ export default function GestaoTI() {
                   <TableRow className="bg-muted/40">
                     <TableCell className="font-semibold">Total</TableCell>
                     <TableCell className="text-right tabular-nums font-semibold text-primary">
-                      {totals.automatizadosChamados.toFixed(1)}
+                      {totals.automatizadosDemanda.toFixed(1)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums font-semibold">
-                      {(totals.totalChamados - totals.automatizadosChamados).toFixed(1)}
+                      {(totals.totalDemanda - totals.automatizadosDemanda).toFixed(1)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums font-bold">
-                      {totals.totalChamados.toFixed(1)}
+                      {totals.totalDemanda.toFixed(1)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
-              <p className="text-xs text-muted-foreground mt-2">Valores em chamados por mês.</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Valores em chamados por mês, ajustados pelo inventário cadastrado.
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -346,6 +376,7 @@ export default function GestaoTI() {
                         grupo={grupo}
                         rotinas={grupos[grupo]}
                         onUpdate={updateRotina}
+                        inventario={inventario}
                       />
                     ))}
                   </TabsContent>
@@ -515,12 +546,18 @@ function RotinaGroupTable({
   grupo,
   rotinas,
   onUpdate,
+  inventario,
 }: {
   grupo: string;
   rotinas: Rotina[];
   onUpdate: (id: string, patch: Partial<Rotina>) => void;
+  inventario: InventarioCounts;
 }) {
   const totalChamados = rotinas.reduce((s, r) => s + r.chamadosMes, 0);
+  const totalDemanda = rotinas.reduce(
+    (s, r) => s + r.chamadosMes * inventarioMultiplicador(r.ativo, inventario),
+    0,
+  );
   const totalCac = rotinas.reduce((s, r) => s + r.cac, 0);
 
   return (
@@ -531,22 +568,26 @@ function RotinaGroupTable({
           <Badge variant="outline">{rotinas.length}</Badge>
         </div>
         <div className="text-xs text-muted-foreground">
-          {totalChamados.toFixed(1)} chamados/mês • CAC {totalCac.toFixed(2)}
+          {totalChamados.toFixed(1)} freq/mês • {totalDemanda.toFixed(1)} chamados/mês • CAC {totalCac.toFixed(2)}
         </div>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="min-w-[260px]">Rotina</TableHead>
-            <TableHead className="w-[140px]">Unidade</TableHead>
+            <TableHead className="w-[150px]">Ativo vinculado</TableHead>
             <TableHead className="w-[100px]">Automação</TableHead>
             <TableHead className="w-[150px]">Frequência</TableHead>
-            <TableHead className="w-[130px]">Chamados/mês</TableHead>
+            <TableHead className="w-[110px]">Freq/mês</TableHead>
+            <TableHead className="w-[130px]">Demanda/mês</TableHead>
             <TableHead className="w-[100px]">CAC</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rotinas.map((r) => (
+          {rotinas.map((r) => {
+            const mult = inventarioMultiplicador(r.ativo, inventario);
+            const demanda = r.chamadosMes * mult;
+            return (
             <TableRow key={r.id}>
               <TableCell>
                 <Input
@@ -556,11 +597,21 @@ function RotinaGroupTable({
                 />
               </TableCell>
               <TableCell>
-                <Input
-                  value={r.unidade}
-                  onChange={(e) => onUpdate(r.id, { unidade: e.target.value })}
-                  className="h-8 text-sm"
-                />
+                <Select
+                  value={r.ativo ?? "Ambiente"}
+                  onValueChange={(v: AtivoTipo) => onUpdate(r.id, { ativo: v })}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ATIVO_TIPOS.map((a) => (
+                      <SelectItem key={a} value={a}>
+                        {a} {a !== "Ambiente" && `(${inventarioMultiplicador(a, inventario)})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -599,11 +650,18 @@ function RotinaGroupTable({
                   className="h-8 text-sm"
                 />
               </TableCell>
+              <TableCell className="text-sm font-semibold tabular-nums text-primary">
+                {demanda.toFixed(1)}
+                <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                  ({r.chamadosMes.toFixed(1)}×{mult})
+                </span>
+              </TableCell>
               <TableCell className="text-sm font-medium tabular-nums">
                 {r.cac.toFixed(2)}
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     </div>
