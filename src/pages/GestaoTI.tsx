@@ -72,13 +72,20 @@ export default function GestaoTI() {
       Operation: { count: 0, chamados: 0, cac: 0 },
       Performance: { count: 0, chamados: 0, cac: 0 },
     };
+    let automatizadosCount = 0;
+    let automatizadosChamados = 0;
     rotinas.forEach((r) => {
       const t = byOferta[r.oferta];
       t.count += 1;
       t.chamados += r.chamadosMes;
       t.cac += r.cac;
+      if (r.automacao) {
+        automatizadosCount += 1;
+        automatizadosChamados += r.chamadosMes;
+      }
     });
-    return byOferta;
+    const totalChamados = byOferta.Operation.chamados + byOferta.Performance.chamados;
+    return { byOferta, automatizadosCount, automatizadosChamados, totalChamados };
   }, [rotinas]);
 
   return (
@@ -101,7 +108,7 @@ export default function GestaoTI() {
       </header>
 
       <main className="mx-auto max-w-[1400px] p-6 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs text-muted-foreground font-medium">Total de rotinas</CardTitle>
@@ -115,9 +122,9 @@ export default function GestaoTI() {
               <CardTitle className="text-xs text-muted-foreground font-medium">Operation</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{totals.Operation.count}</p>
+              <p className="text-2xl font-bold">{totals.byOferta.Operation.count}</p>
               <p className="text-xs text-muted-foreground">
-                {totals.Operation.chamados.toFixed(1)} chamados/mês • CAC {totals.Operation.cac.toFixed(2)}
+                {totals.byOferta.Operation.chamados.toFixed(1)} chamados/mês • CAC {totals.byOferta.Operation.cac.toFixed(2)}
               </p>
             </CardContent>
           </Card>
@@ -126,9 +133,26 @@ export default function GestaoTI() {
               <CardTitle className="text-xs text-muted-foreground font-medium">Performance</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{totals.Performance.count}</p>
+              <p className="text-2xl font-bold">{totals.byOferta.Performance.count}</p>
               <p className="text-xs text-muted-foreground">
-                {totals.Performance.chamados.toFixed(1)} chamados/mês • CAC {totals.Performance.cac.toFixed(2)}
+                {totals.byOferta.Performance.chamados.toFixed(1)} chamados/mês • CAC {totals.byOferta.Performance.cac.toFixed(2)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-primary/40">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-primary" /> Chamados automatizados
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold text-primary">{totals.automatizadosChamados.toFixed(1)}</p>
+              <p className="text-xs text-muted-foreground">
+                {totals.automatizadosCount} rotina(s) •{" "}
+                {totals.totalChamados > 0
+                  ? ((totals.automatizadosChamados / totals.totalChamados) * 100).toFixed(1)
+                  : "0.0"}
+                % do total
               </p>
             </CardContent>
           </Card>
@@ -143,11 +167,11 @@ export default function GestaoTI() {
           <CardContent>
             <Tabs defaultValue="Operation">
               <TabsList>
-                {OFERTAS.map((o) => (
+              {OFERTAS.map((o) => (
                   <TabsTrigger key={o} value={o}>
                     {o}{" "}
                     <Badge variant="secondary" className="ml-2">
-                      {totals[o].count}
+                    {totals.byOferta[o].count}
                     </Badge>
                   </TabsTrigger>
                 ))}
