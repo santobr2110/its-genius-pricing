@@ -93,8 +93,13 @@ export default function ClientPanel({ state, update }: Props) {
           </section>
 
           <section className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Risco</p>
-            <div className="rounded-lg border p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Risco</p>
+              {!state.tierPerformance && (
+                <span className="text-[10px] text-muted-foreground italic">Ative Smart Performance para editar</span>
+              )}
+            </div>
+            <div className={`rounded-lg border p-3 space-y-3 ${!state.tierPerformance ? "opacity-50" : ""}`}>
               <div className="flex items-center gap-2">
                 <Gauge className="h-5 w-5 shrink-0 text-rose-500" />
                 <div className="flex-1">
@@ -115,6 +120,7 @@ export default function ClientPanel({ state, update }: Props) {
                 max={4}
                 step={1}
                 onValueChange={(v) => update("criticidadeNivel", v[0])}
+                disabled={!state.tierPerformance}
                 className="w-[90%] mx-auto"
                 trackClassName="bg-transparent"
                 rangeClassName="bg-transparent"
@@ -145,17 +151,23 @@ export default function ClientPanel({ state, update }: Props) {
           </section>
 
           <section className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Complexidade</p>
-            <div className="rounded-lg border grid grid-cols-2 gap-x-3 gap-y-1.5 p-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Complexidade</p>
+              {!state.tierPerformance && (
+                <span className="text-[10px] text-muted-foreground italic">Ative Smart Performance para editar</span>
+              )}
+            </div>
+            <div className={`rounded-lg border grid grid-cols-2 gap-x-3 gap-y-1.5 p-2 ${!state.tierPerformance ? "opacity-50" : ""}`}>
               {complexidadeItens.map(({ key, label }) => (
                 <label
                   key={key}
                   htmlFor={`cx-${key}`}
-                  className="flex items-center gap-2 cursor-pointer"
+                  className={`flex items-center gap-2 ${state.tierPerformance ? "cursor-pointer" : "cursor-not-allowed"}`}
                 >
                   <Checkbox
                     id={`cx-${key}`}
                     checked={Boolean(state[key])}
+                    disabled={!state.tierPerformance}
                     onCheckedChange={(v) => update(key, Boolean(v) as ITSMState[typeof key])}
                   />
                   <span className="text-[11px] leading-tight">{label}</span>
