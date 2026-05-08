@@ -132,9 +132,9 @@ const r = (
 
 export const ROTINAS_DEFAULT: Rotina[] = [
   r("aud-1", "Auditoria", "Auditoria Rotinas/CAC", "Operation", "Ambiente", false, "Quinzenal"),
-  r("bkp-1", "BACKUP", "Segurança do ambiente/ferramenta de backup", "Performance", "Ambiente", false, "Semestral"),
-  r("bkp-2", "BACKUP", "Validação do Backup", "Operation", "Ambiente", false, "Bimestral"),
-  r("bkp-3", "BACKUP", "Health Check", "Operation", "Ambiente", true, "Semanal"),
+  r("bkp-1", "Backup", "Segurança do ambiente/ferramenta de backup", "Performance", "Ambiente", false, "Semestral"),
+  r("bkp-2", "Backup", "Validação do Backup", "Operation", "Ambiente", false, "Bimestral"),
+  r("bkp-3", "Backup", "Health Check", "Operation", "Ambiente", true, "Semanal"),
   r("av-1", "Antivírus", "Health Check", "Operation", "Ambiente", false, "Mensal"),
   r("av-2", "Antivírus", "Revisão da política da ferramenta", "Performance", "Ambiente", false, "Trimestral"),
   r("ito-1", "Book ITO", "Apresentação Book ITO", "Operation", "Ambiente", true, "Mensal"),
