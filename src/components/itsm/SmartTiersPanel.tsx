@@ -209,7 +209,7 @@ export default function SmartTiersPanel() {
         <CardTitle className="text-sm font-semibold">Camadas de Oferta</CardTitle>
         <p className="text-xs text-muted-foreground">Selecione as camadas que comporão a precificação.</p>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {TIERS.map((t) => {
             const Icon = t.icon;
@@ -268,7 +268,7 @@ export default function SmartTiersPanel() {
         </div>
 
         {state.tierMonitor && (
-          <div className="rounded-lg border border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900 p-3 space-y-2">
+          <div className="rounded-lg border border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-foreground">Composição — Smart Monitor</p>
               <span className="text-[11px] text-muted-foreground">
@@ -316,7 +316,7 @@ export default function SmartTiersPanel() {
         )}
 
         {state.tierOperation && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900 p-3 space-y-2">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-foreground">Composição — Smart Operation</p>
               <span className="text-[11px] text-muted-foreground">
@@ -427,7 +427,7 @@ export default function SmartTiersPanel() {
             </div>
             )}
 
-            <div className="border-t pt-2 space-y-2">
+            <div className="border-t pt-3 space-y-3">
               <label className="flex items-start gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
                 <Checkbox
                   checked={state.tierFieldOperation}
@@ -443,7 +443,7 @@ export default function SmartTiersPanel() {
                 </div>
               </label>
               {state.tierFieldOperation && (
-                <div className="rounded-lg border border-orange-200 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-900 p-3 space-y-2">
+                <div className="rounded-lg border border-orange-200 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-900 p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-semibold">Composição — Field Service</p>
                     <span className="text-[11px] text-muted-foreground">
@@ -539,7 +539,7 @@ export default function SmartTiersPanel() {
         )}
 
         {state.tierPerformance && (
-          <div className="rounded-lg border border-violet-200 bg-violet-50/60 dark:bg-violet-950/20 dark:border-violet-900 p-3 space-y-2">
+          <div className="rounded-lg border border-violet-200 bg-violet-50/60 dark:bg-violet-950/20 dark:border-violet-900 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-foreground">Composição — Smart Performance</p>
               <span className="text-[11px] text-muted-foreground">
