@@ -45,6 +45,12 @@ export default function Detalhamento() {
   const pctLivre = Math.max(0, 100 - corteOwner);
   const horasTotaisN3 = state.horasN3Mensais || 0;
 
+  // Fator de venda (markup divisor + impostos) — converte custo em preço de venda
+  const fatorMargem = (100 - state.margemLucro) / 100;
+  const fatorImposto = (100 - state.impostosTaxas) / 100;
+  const fatorVenda = (fatorMargem > 0 && fatorImposto > 0) ? 1 / (fatorMargem * fatorImposto) : 1;
+  const valorHoraN3Venda = state.valorHoraN3 * fatorVenda;
+
   const inv = {
     qtdUsuarios: state.qtdUsuarios, qtdEquipamentos: state.qtdEquipamentos,
     qtdServidores: state.qtdServidores, qtdAtivosRede: state.qtdAtivosRede,
@@ -173,7 +179,7 @@ export default function Detalhamento() {
               previstas={horasPrev}
               chamadosN3={results.volumeN3}
               tempoMedio={state.tempoMedioChamadoN3}
-              valorHora={state.valorHoraN3}
+              valorHora={valorHoraN3Venda}
               modo="operation"
             />
           )}
@@ -235,7 +241,7 @@ export default function Detalhamento() {
               previstas={horasPrev}
               chamadosN3={results.volumeN3}
               tempoMedio={state.tempoMedioChamadoN3}
-              valorHora={state.valorHoraN3}
+              valorHora={valorHoraN3Venda}
               modo="performance"
               distribuicao={{ tam: pctTam, owner: pctOwner, livre: pctLivre }}
             />
@@ -436,15 +442,24 @@ function N3HoursBox({
   const horasTam = distribuicao ? (total * distribuicao.tam) / 100 : 0;
   const horasOwner = distribuicao ? (total * distribuicao.owner) / 100 : 0;
   const horasLivre = distribuicao ? (total * distribuicao.livre) / 100 : 0;
+  const valorTotalVenda = total * valorHora;
 
   return (
-    <div className="mt-4 rounded-xl border bg-background/70 p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-primary" />
-          <p className="text-sm font-bold">Horas N3 contratadas: {formatNumber(total)}h/mês</p>
+    <div className="mt-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background/90 to-background/60 backdrop-blur-sm p-4 space-y-4 shadow-md">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="rounded-xl p-2 bg-gradient-to-br from-primary/20 to-primary/5">
+            <Clock className="h-4 w-4 text-primary" strokeWidth={2.5} />
+          </div>
+          <div>
+            <p className="text-sm font-extrabold">Horas N3 contratadas</p>
+            <p className="text-[11px] text-muted-foreground">{formatNumber(total)}h/mês × {formatBRL(valorHora)}/h <span className="text-[9px] uppercase tracking-wider">(venda)</span></p>
+          </div>
         </div>
-        <span className="text-xs text-muted-foreground">{formatBRL(valorHora)}/h</span>
+        <div className="text-right">
+          <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
+          <p className="text-base font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tabular-nums">{formatBRL(valorTotalVenda)}</p>
+        </div>
       </div>
 
       <div className="space-y-1">
@@ -470,27 +485,78 @@ function N3HoursBox({
       )}
 
       {modo === "performance" && distribuicao && (
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground mb-2">Distribuição de uso das horas</p>
-          <div className="grid grid-cols-3 gap-2 text-[11px]">
-            <div className="rounded bg-emerald-500/10 border border-emerald-500/30 px-2 py-1.5">
-              <div className="text-muted-foreground">TAM · {distribuicao.tam}%</div>
-              <div className="font-bold">{formatNumber(horasTam)}h</div>
-              <div className="text-[10px] text-muted-foreground">Acompanhamento técnico</div>
-            </div>
-            <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
-              <div className="text-muted-foreground">Owner · {distribuicao.owner}%</div>
-              <div className="font-bold">{formatNumber(horasOwner)}h</div>
-              <div className="text-[10px] text-muted-foreground">Rotinas preventivas</div>
-            </div>
-            <div className="rounded bg-violet-500/10 border border-violet-500/30 px-2 py-1.5">
-              <div className="text-muted-foreground">Livre · {distribuicao.livre}%</div>
-              <div className="font-bold">{formatNumber(horasLivre)}h</div>
-              <div className="text-[10px] text-muted-foreground">Demandas sob solicitação</div>
-            </div>
+        <div className="space-y-3 pt-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-foreground/80">Divisão de uso das horas N3</p>
+          </div>
+
+          {/* Barra segmentada */}
+          <div className="flex h-7 w-full rounded-full overflow-hidden shadow-inner border bg-muted">
+            {distribuicao.tam > 0 && (
+              <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-extrabold transition-all" style={{ width: `${distribuicao.tam}%` }}>
+                {distribuicao.tam >= 8 && `TAM ${distribuicao.tam}%`}
+              </div>
+            )}
+            {distribuicao.owner > 0 && (
+              <div className="bg-gradient-to-r from-sky-400 to-sky-600 flex items-center justify-center text-white text-[10px] font-extrabold transition-all" style={{ width: `${distribuicao.owner}%` }}>
+                {distribuicao.owner >= 8 && `Owner ${distribuicao.owner}%`}
+              </div>
+            )}
+            {distribuicao.livre > 0 && (
+              <div className="bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center justify-center text-white text-[10px] font-extrabold transition-all" style={{ width: `${distribuicao.livre}%` }}>
+                {distribuicao.livre >= 8 && `Livre ${distribuicao.livre}%`}
+              </div>
+            )}
+          </div>
+
+          {/* Cards detalhados */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <DistCard color="emerald" pct={distribuicao.tam} horas={horasTam} valor={horasTam * valorHora}
+              titulo="TAM" subtitulo="Technical Account Manager"
+              desc="Acompanhamento técnico, governança do contrato e relacionamento com o cliente." />
+            <DistCard color="sky" pct={distribuicao.owner} horas={horasOwner} valor={horasOwner * valorHora}
+              titulo="Owner" subtitulo="Especialista dedicado"
+              desc="Execução das rotinas preventivas e melhorias contínuas no ambiente." />
+            <DistCard color="violet" pct={distribuicao.livre} horas={horasLivre} valor={horasLivre * valorHora}
+              titulo="Livre" subtitulo="Demanda sob solicitação"
+              desc="Banco de horas para projetos, mudanças e demandas pontuais do cliente." />
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function DistCard({
+  color, pct, horas, valor, titulo, subtitulo, desc,
+}: {
+  color: "emerald" | "sky" | "violet";
+  pct: number; horas: number; valor: number;
+  titulo: string; subtitulo: string; desc: string;
+}) {
+  const styles = {
+    emerald: { bg: "from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20", border: "border-emerald-300/60 dark:border-emerald-700/60", dot: "bg-gradient-to-br from-emerald-400 to-emerald-600", text: "text-emerald-700 dark:text-emerald-300" },
+    sky:     { bg: "from-sky-50 to-sky-100/50 dark:from-sky-950/40 dark:to-sky-900/20",                 border: "border-sky-300/60 dark:border-sky-700/60",         dot: "bg-gradient-to-br from-sky-400 to-sky-600",         text: "text-sky-700 dark:text-sky-300" },
+    violet:  { bg: "from-violet-50 to-fuchsia-100/50 dark:from-violet-950/40 dark:to-fuchsia-900/20",   border: "border-violet-300/60 dark:border-violet-700/60",   dot: "bg-gradient-to-br from-violet-500 to-fuchsia-600",  text: "text-violet-700 dark:text-violet-300" },
+  }[color];
+  const dimmed = pct === 0;
+  return (
+    <div className={`relative rounded-xl border-2 ${styles.border} bg-gradient-to-br ${styles.bg} p-3 ${dimmed ? "opacity-50" : ""}`}>
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${styles.dot} shadow-sm`} />
+          <p className={`text-sm font-extrabold ${styles.text}`}>{titulo}</p>
+        </div>
+        <span className={`text-[10px] font-extrabold ${styles.text} tabular-nums`}>{pct}%</span>
+      </div>
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{subtitulo}</p>
+      <div className="mt-2 flex items-baseline gap-1.5">
+        <span className="text-lg font-extrabold tabular-nums">{formatNumber(horas, 1)}</span>
+        <span className="text-[10px] text-muted-foreground font-semibold">h/mês</span>
+      </div>
+      <p className="text-[11px] font-bold tabular-nums text-foreground/80">{formatBRL(valor)}<span className="text-[9px] text-muted-foreground font-normal">/mês</span></p>
+      <p className="text-[10px] text-muted-foreground mt-1.5 leading-snug">{desc}</p>
     </div>
   );
 }
