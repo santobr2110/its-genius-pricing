@@ -39,7 +39,7 @@ const Index = () => {
             maxSize={50}
             style={{ overflow: "visible" }}
           >
-            <div className="pr-2 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="pr-2">
               <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
             </div>
           </ResizablePanel>
