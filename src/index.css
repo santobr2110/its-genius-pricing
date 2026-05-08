@@ -118,4 +118,14 @@ All colors MUST be HSL.
   .dark [class*="bg-card"] {
     background-image: linear-gradient(145deg, hsl(152 28% 15%) 0%, hsl(150 30% 11%) 100%);
   }
+
+  .proposicao-printable,
+  .pdf-export-background {
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(at 0% 0%, hsl(142 70% 22% / 0.5) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(170 70% 22% / 0.4) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, hsl(150 50% 12% / 0.6) 0px, transparent 60%),
+      linear-gradient(180deg, hsl(150 30% 8%) 0%, hsl(152 32% 11%) 100%);
+  }
 }
