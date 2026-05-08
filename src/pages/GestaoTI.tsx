@@ -1067,7 +1067,7 @@ function NovaRotinaDialog({
     setOferta("Operation");
     setComplexidade("Padrão");
     setAtivo("Ambiente");
-    setAbrangencia("");
+    setAbrangencia("Ambiente");
     setComplexFlag("complexVirtualizacaoCluster");
     setAutomacao(false);
     setFrequencia("Mensal");
