@@ -1,8 +1,9 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ServerCog, RotateCcw, Sparkles, GitBranch, Plus, Trash2, ArrowLeftRight } from "lucide-react";
+import { ServerCog, RotateCcw, Sparkles, GitBranch, Plus, Trash2, ArrowLeftRight, LineChart } from "lucide-react";
 import BackHomeButton from "@/components/BackHomeButton";
 import SortableNav from "@/components/SortableNav";
+import AcompanhamentoAvancado from "@/components/itsm/AcompanhamentoAvancado";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListChecks, PhoneCall } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -378,6 +379,9 @@ export default function GestaoTI() {
             </TabsTrigger>
             <TabsTrigger value="gmud" className="gap-1.5">
               <GitBranch className="h-3.5 w-3.5" /> GMUD
+            </TabsTrigger>
+            <TabsTrigger value="acompanhamento" className="gap-1.5">
+              <LineChart className="h-3.5 w-3.5" /> Acompanhamento Avançado
             </TabsTrigger>
           </TabsList>
 
