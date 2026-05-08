@@ -1183,14 +1183,21 @@ function NovaRotinaDialog({
 
           <div className="space-y-1">
             <Label className="text-xs">Abrangência</Label>
-            <Input
+            <Select
               value={abrangencia}
-              onChange={(e) => setAbrangencia(e.target.value)}
-              placeholder="Escopo da rotina (ex: Por servidor, Ambiente inteiro)"
-              className="h-9 text-sm"
-            />
+              onValueChange={(v: Abrangencia) => setAbrangencia(v)}
+            >
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ABRANGENCIAS.map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <p className="text-[10px] text-muted-foreground">
-              Texto livre — descreve o escopo. Independente do vínculo de inventário.
+              "Ambiente" = 1 execução por ambiente. "Individual" = por item do inventário vinculado.
             </p>
           </div>
 
