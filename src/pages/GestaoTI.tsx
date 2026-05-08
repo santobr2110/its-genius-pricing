@@ -131,6 +131,46 @@ export default function GestaoTI() {
     );
   };
 
+  const addRotina = (data: {
+    grupo: string;
+    rotina: string;
+    oferta: Oferta;
+    complexidade?: Complexidade;
+    ativo: AtivoTipo;
+    complexFlag?: ComplexFlagKey;
+    automacao: boolean;
+    frequencia: Frequencia;
+  }) => {
+    const chamadosMes = FREQ_TO_CHAMADOS[data.frequencia];
+    const nova: Rotina = {
+      id: `rt-${Date.now()}`,
+      grupo: data.grupo.trim() || "Novo grupo",
+      rotina: data.rotina.trim() || "Nova rotina",
+      oferta: data.oferta,
+      unidade: "Ambiente",
+      ativo: data.ativo,
+      automacao: data.automacao,
+      frequencia: data.frequencia,
+      chamadosMes,
+      cac: +(chamadosMes * CAC_FACTOR).toFixed(4),
+      complexidade: data.oferta === "Performance" ? (data.complexidade ?? "Padrão") : undefined,
+      complexFlag:
+        data.oferta === "Performance" && data.complexidade === "Complexo"
+          ? data.complexFlag
+          : undefined,
+    };
+    setRotinas((prev) => [...prev, nova]);
+  };
+
+  const removeRotina = (id: string) => {
+    setRotinas((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const grupoNomesExistentes = useMemo(
+    () => Array.from(new Set(rotinas.map((r) => r.grupo))).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [rotinas],
+  );
+
   const resetAll = () => setRotinas(ROTINAS_DEFAULT);
   const resetGmuds = () => setGmuds(GMUDS_DEFAULT);
 
