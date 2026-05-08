@@ -30,12 +30,74 @@ export const FREQ_TO_CHAMADOS: Record<Frequencia, number> = {
 
 export const CAC_FACTOR = 0.2;
 
+export type AtivoTipo =
+  | "Ambiente"
+  | "Servidor"
+  | "Ativo de Rede"
+  | "Banco de Dados"
+  | "Firewall"
+  | "Equipamento"
+  | "Usuário";
+
+export const ATIVO_TIPOS: AtivoTipo[] = [
+  "Ambiente",
+  "Servidor",
+  "Ativo de Rede",
+  "Banco de Dados",
+  "Firewall",
+  "Equipamento",
+  "Usuário",
+];
+
+export interface InventarioCounts {
+  qtdUsuarios: number;
+  qtdEquipamentos: number;
+  qtdServidores: number;
+  qtdAtivosRede: number;
+  qtdBancosDados: number;
+  qtdSistemas: number; // Firewall
+}
+
+export function inventarioMultiplicador(
+  ativo: AtivoTipo,
+  inv: InventarioCounts,
+): number {
+  switch (ativo) {
+    case "Ambiente":
+      return 1;
+    case "Servidor":
+      return inv.qtdServidores;
+    case "Ativo de Rede":
+      return inv.qtdAtivosRede;
+    case "Banco de Dados":
+      return inv.qtdBancosDados;
+    case "Firewall":
+      return inv.qtdSistemas;
+    case "Equipamento":
+      return inv.qtdEquipamentos;
+    case "Usuário":
+      return inv.qtdUsuarios;
+  }
+}
+
+function ativoFromUnidade(unidade: string): AtivoTipo {
+  const u = unidade.toLowerCase();
+  if (u.includes("banco")) return "Banco de Dados";
+  if (u.includes("firewall")) return "Firewall";
+  if (u.includes("ativo de rede")) return "Ativo de Rede";
+  if (u.includes("servidor")) return "Servidor";
+  if (u.includes("equipamento")) return "Equipamento";
+  if (u.includes("usuário") || u.includes("usuario")) return "Usuário";
+  return "Ambiente";
+}
+
 export interface Rotina {
   id: string;
   grupo: string;
   rotina: string;
   oferta: Oferta;
   unidade: string;
+  ativo: AtivoTipo;
   automacao: boolean;
   frequencia: Frequencia;
   chamadosMes: number;
@@ -58,6 +120,7 @@ const r = (
     rotina,
     oferta,
     unidade,
+    ativo: ativoFromUnidade(unidade),
     automacao,
     frequencia,
     chamadosMes,
