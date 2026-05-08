@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ServerCog, RotateCcw, Sparkles } from "lucide-react";
+import { ServerCog, RotateCcw, Sparkles, GitBranch, Plus, Trash2 } from "lucide-react";
 import BackHomeButton from "@/components/BackHomeButton";
 import SortableNav from "@/components/SortableNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +35,17 @@ import {
   type Frequencia,
   type Oferta,
 } from "@/data/rotinas";
+import {
+  GMUDS_DEFAULT,
+  GMUD_TIPOS,
+  GMUD_COMPLEXIDADES,
+  GMUD_OFERTAS,
+  CAC_FACTOR_GMUD,
+  type Gmud,
+  type GmudTipo,
+  type GmudComplexidade,
+  type GmudOferta,
+} from "@/data/gmuds";
 
 const OFERTAS: Oferta[] = ["Operation", "Performance"];
 
@@ -50,6 +61,10 @@ export default function GestaoTI() {
   const [rotinas, setRotinas] = usePersistentState<Rotina[]>(
     "gestao-ti:rotinas",
     ROTINAS_DEFAULT,
+  );
+  const [gmuds, setGmuds] = usePersistentState<Gmud[]>(
+    "gestao-ti:gmuds",
+    GMUDS_DEFAULT,
   );
 
   const updateRotina = (id: string, patch: Partial<Rotina>) => {
@@ -67,6 +82,37 @@ export default function GestaoTI() {
   };
 
   const resetAll = () => setRotinas(ROTINAS_DEFAULT);
+  const resetGmuds = () => setGmuds(GMUDS_DEFAULT);
+
+  const updateGmud = (id: string, patch: Partial<Gmud>) => {
+    setGmuds((prev) =>
+      prev.map((g) => {
+        if (g.id !== id) return g;
+        const next = { ...g, ...patch };
+        next.cac = +(next.chamadosMes * CAC_FACTOR_GMUD).toFixed(4);
+        return next;
+      }),
+    );
+  };
+
+  const addGmud = () => {
+    setGmuds((prev) => [
+      ...prev,
+      {
+        id: `gmud-${Date.now()}`,
+        tipo: "Normal",
+        descricao: "Nova GMUD",
+        complexidade: "Média",
+        oferta: "Operation",
+        chamadosMes: 1,
+        cac: 0.2,
+      },
+    ]);
+  };
+
+  const removeGmud = (id: string) => {
+    setGmuds((prev) => prev.filter((g) => g.id !== id));
+  };
 
   const totals = useMemo(() => {
     const byOferta: Record<
@@ -105,6 +151,25 @@ export default function GestaoTI() {
     return { byOferta, automatizadosCount, automatizadosChamados, totalChamados };
   }, [rotinas]);
 
+  const gmudTotals = useMemo(() => {
+    const byTipo: Record<GmudTipo, { count: number; chamados: number; cac: number }> = {
+      Padrão: { count: 0, chamados: 0, cac: 0 },
+      Normal: { count: 0, chamados: 0, cac: 0 },
+      Emergencial: { count: 0, chamados: 0, cac: 0 },
+    };
+    let totalChamados = 0;
+    let totalCac = 0;
+    gmuds.forEach((g) => {
+      const t = byTipo[g.tipo];
+      t.count += 1;
+      t.chamados += g.chamadosMes;
+      t.cac += g.cac;
+      totalChamados += g.chamadosMes;
+      totalCac += g.cac;
+    });
+    return { byTipo, totalChamados, totalCac };
+  }, [gmuds]);
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -125,6 +190,17 @@ export default function GestaoTI() {
       </header>
 
       <main className="mx-auto max-w-[1400px] p-6 space-y-6">
+        <Tabs defaultValue="rotinas" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="rotinas" className="gap-1.5">
+              <ListChecks className="h-3.5 w-3.5" /> Rotinas
+            </TabsTrigger>
+            <TabsTrigger value="gmud" className="gap-1.5">
+              <GitBranch className="h-3.5 w-3.5" /> GMUD
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="rotinas" className="space-y-6 mt-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Quadro 1: Rotinas (catálogo) */}
           <Card>
@@ -278,6 +354,158 @@ export default function GestaoTI() {
             </Tabs>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="gmud" className="space-y-6 mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs text-muted-foreground font-medium">GMUDs cadastradas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-2xl font-bold">{gmuds.length}</p>
+                </CardContent>
+              </Card>
+              {GMUD_TIPOS.map((tipo) => (
+                <Card key={tipo}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs text-muted-foreground font-medium">{tipo}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold">{gmudTotals.byTipo[tipo].count}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {gmudTotals.byTipo[tipo].chamados.toFixed(1)} chamados/mês
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <GitBranch className="h-4 w-4 text-primary" /> Gestão de Mudanças (GMUD)
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={resetGmuds} className="gap-1.5">
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span className="text-xs">Restaurar padrão</span>
+                  </Button>
+                  <Button size="sm" onClick={addGmud} className="gap-1.5">
+                    <Plus className="h-3.5 w-3.5" />
+                    <span className="text-xs">Nova GMUD</span>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[140px]">Tipo</TableHead>
+                      <TableHead className="min-w-[260px]">Descrição</TableHead>
+                      <TableHead className="w-[130px]">Complexidade</TableHead>
+                      <TableHead className="w-[140px]">Oferta</TableHead>
+                      <TableHead className="w-[130px]">Chamados/mês</TableHead>
+                      <TableHead className="w-[90px]">CAC</TableHead>
+                      <TableHead className="w-[60px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {gmuds.map((g) => (
+                      <TableRow key={g.id}>
+                        <TableCell>
+                          <Select
+                            value={g.tipo}
+                            onValueChange={(v: GmudTipo) => updateGmud(g.id, { tipo: v })}
+                          >
+                            <SelectTrigger className="h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {GMUD_TIPOS.map((t) => (
+                                <SelectItem key={t} value={t}>{t}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={g.descricao}
+                            onChange={(e) => updateGmud(g.id, { descricao: e.target.value })}
+                            className="h-8 text-sm"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={g.complexidade}
+                            onValueChange={(v: GmudComplexidade) => updateGmud(g.id, { complexidade: v })}
+                          >
+                            <SelectTrigger className="h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {GMUD_COMPLEXIDADES.map((c) => (
+                                <SelectItem key={c} value={c}>{c}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={g.oferta}
+                            onValueChange={(v: GmudOferta) => updateGmud(g.id, { oferta: v })}
+                          >
+                            <SelectTrigger className="h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {GMUD_OFERTAS.map((o) => (
+                                <SelectItem key={o} value={o}>{o}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            step={0.1}
+                            value={g.chamadosMes}
+                            onChange={(e) => updateGmud(g.id, { chamadosMes: parseFloat(e.target.value) || 0 })}
+                            className="h-8 text-sm"
+                          />
+                        </TableCell>
+                        <TableCell className="text-sm font-medium tabular-nums">
+                          {g.cac.toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => removeGmud(g.id)}
+                            aria-label="Remover GMUD"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="bg-muted/40">
+                      <TableCell colSpan={4} className="font-semibold">Total</TableCell>
+                      <TableCell className="tabular-nums font-bold">
+                        {gmudTotals.totalChamados.toFixed(1)}
+                      </TableCell>
+                      <TableCell className="tabular-nums font-bold">
+                        {gmudTotals.totalCac.toFixed(2)}
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
