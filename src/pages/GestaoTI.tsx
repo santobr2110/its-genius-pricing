@@ -482,6 +482,7 @@ export default function GestaoTI() {
             />
           </CardHeader>
           <CardContent>
+            <EscalaRotinasPanel />
             <Tabs defaultValue="Operation">
               <TabsList>
               {OFERTAS.map((o) => (
