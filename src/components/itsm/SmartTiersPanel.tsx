@@ -106,6 +106,7 @@ export default function SmartTiersPanel() {
   }, [rotinas, state, results, fatorVenda]);
 
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
+    const isComplex = complexidade === "Complexo";
     const items = rotinas
       .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
       .map((r) => {
@@ -115,23 +116,28 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const horas = r.horasExecucao ?? 4;
+        const horasMes = isComplex ? demanda * horas : 0;
+        const custo = isComplex
+          ? horasMes * state.valorHoraN3 * fatorAuto
+          : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horas, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
+        acc.horasMes += i.horasMes;
         acc.cac += i.cac;
         acc.custo += i.custo;
         acc.venda += i.venda;
         return acc;
       },
-      { demanda: 0, cac: 0, custo: 0, venda: 0 },
+      { demanda: 0, horasMes: 0, cac: 0, custo: 0, venda: 0 },
     );
-    return { items, totals };
+    return { items, totals, isComplex };
   };
 
   const rotinasPerfPadrao = useMemo(
@@ -502,6 +508,8 @@ export default function SmartTiersPanel() {
                 titulo="Rotinas Performance · Ambiente Complexo"
                 vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
                 data={rotinasPerfComplexo}
+                hourRate={state.valorHoraN3}
+                hourRateSell={toSell(state.valorHoraN3)}
               />
             ) : (
               <p className="text-[11px] text-muted-foreground italic">
