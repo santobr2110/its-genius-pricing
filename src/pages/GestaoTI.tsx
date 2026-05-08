@@ -467,10 +467,14 @@ export default function GestaoTI() {
         </div>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
             <CardTitle className="text-base flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" /> Rotinas operacionais
             </CardTitle>
+            <NovaRotinaDialog
+              gruposExistentes={grupoNomesExistentes}
+              onSubmit={addRotina}
+            />
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="Operation">
@@ -496,6 +500,7 @@ export default function GestaoTI() {
                       grupo={grupo}
                       rotinas={grupos[grupo]}
                       onUpdate={updateRotina}
+                      onRemove={removeRotina}
                       inventario={inventario}
                       complexFlags={complexFlags}
                       showComplexidadeMove={oferta === "Performance"}
