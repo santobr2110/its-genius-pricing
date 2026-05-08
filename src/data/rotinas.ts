@@ -190,6 +190,9 @@ const r = (
   complexidade: Complexidade = "Padrão",
 ): Rotina => {
   const chamadosMes = FREQ_TO_CHAMADOS[frequencia];
+  const u = unidade.toLowerCase();
+  const abrangencia: Abrangencia =
+    u.includes("ambiente") ? "Ambiente" : "Individual";
   return {
     id,
     grupo,
@@ -197,7 +200,7 @@ const r = (
     oferta,
     unidade,
     ativo: ativoFromUnidade(unidade),
-    abrangencia: unidade,
+    abrangencia,
     automacao,
     frequencia,
     chamadosMes,
