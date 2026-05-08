@@ -319,7 +319,7 @@ export default function SmartTiersPanel() {
                 </div>
                 <div className="max-h-56 overflow-auto rounded border">
                   <table className="w-full text-[11px]">
-                    <thead className="bg-muted/50 sticky top-0">
+                    <thead className="bg-muted sticky top-0">
                       <tr>
                         <th className="text-left px-2 py-1 font-medium">Rotina</th>
                         <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
@@ -345,7 +345,7 @@ export default function SmartTiersPanel() {
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot className="bg-muted/40 sticky bottom-0">
+                    <tfoot className="bg-muted sticky bottom-0">
                       <tr>
                         <td className="px-2 py-1 font-semibold">Total</td>
                         <td className="px-2 py-1 text-right font-semibold tabular-nums">
@@ -548,7 +548,7 @@ function PerformanceBlock({
       ) : (
         <div className="max-h-56 overflow-auto rounded border">
           <table className="w-full text-[11px]">
-            <thead className="bg-muted/50 sticky top-0">
+            <thead className="bg-muted sticky top-0">
               <tr>
                 <th className="text-left px-2 py-1 font-medium">Rotina</th>
                 <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
@@ -572,7 +572,7 @@ function PerformanceBlock({
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-muted/40 sticky bottom-0">
+            <tfoot className="bg-muted sticky bottom-0">
               <tr>
                 <td className="px-2 py-1 font-semibold">Total</td>
                 <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.demanda.toFixed(1)}</td>
