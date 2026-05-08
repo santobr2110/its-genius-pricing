@@ -128,6 +128,18 @@ export default function Detalhamento() {
 
       <main className="mx-auto max-w-6xl p-6 space-y-8">
 
+        {/* TÍTULO DO RELATÓRIO */}
+        <section className="text-center pt-2 pb-1">
+          <div className="inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">Proposta Comercial</span>
+          </div>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+            Proposição de Smart ITO
+          </h1>
+          <div className="mt-4 h-1 w-24 mx-auto rounded-full bg-gradient-to-r from-primary to-accent" />
+        </section>
+
         {/* PILARES DE VALOR */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <ValuePillar icon={ShieldCheck} title="Previsibilidade" desc="Custo fixo mensal com escopo claro do que está incluído." />
