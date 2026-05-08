@@ -140,31 +140,43 @@ export default function GestaoTI() {
         chamadosManual: number;
         countAuto: number;
         countManual: number;
+        demanda: number;
+        demandaAuto: number;
+        demandaManual: number;
       }
     > = {
-      Operation: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0 },
-      Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0 },
+      Operation: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
+      Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
     };
     let automatizadosCount = 0;
     let automatizadosChamados = 0;
+    let totalDemanda = 0;
+    let automatizadosDemanda = 0;
     rotinas.forEach((r) => {
       const t = byOferta[r.oferta];
+      const mult = inventarioMultiplicador(r.ativo, inventario);
+      const demanda = r.chamadosMes * mult;
       t.count += 1;
       t.chamados += r.chamadosMes;
       t.cac += r.cac;
+      t.demanda += demanda;
+      totalDemanda += demanda;
       if (r.automacao) {
         t.chamadosAuto += r.chamadosMes;
         t.countAuto += 1;
+        t.demandaAuto += demanda;
+        automatizadosDemanda += demanda;
         automatizadosCount += 1;
         automatizadosChamados += r.chamadosMes;
       } else {
         t.chamadosManual += r.chamadosMes;
         t.countManual += 1;
+        t.demandaManual += demanda;
       }
     });
     const totalChamados = byOferta.Operation.chamados + byOferta.Performance.chamados;
-    return { byOferta, automatizadosCount, automatizadosChamados, totalChamados };
-  }, [rotinas]);
+    return { byOferta, automatizadosCount, automatizadosChamados, totalChamados, totalDemanda, automatizadosDemanda };
+  }, [rotinas, inventario.qtdUsuarios, inventario.qtdEquipamentos, inventario.qtdServidores, inventario.qtdAtivosRede, inventario.qtdBancosDados, inventario.qtdSistemas]);
 
   const gmudTotals = useMemo(() => {
     const byTipo: Record<GmudTipo, { count: number; chamados: number; cac: number }> = {
