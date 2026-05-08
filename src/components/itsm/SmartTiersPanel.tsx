@@ -57,6 +57,12 @@ export default function SmartTiersPanel() {
 
     const items = rotinas
       .filter((r) => r.oferta === "Operation")
+      .filter((r) => {
+        // Rotinas de Microinformática só entram quando Field Service está ativo
+        const isMicro = r.grupo.toLowerCase().includes("microinform");
+        if (isMicro) return state.tierFieldOperation;
+        return true;
+      })
       .map((r) => {
         const mult = inventarioMultiplicador(r.ativo, inv);
         const demanda = r.chamadosMes * mult;
