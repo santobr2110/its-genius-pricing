@@ -39,6 +39,11 @@ import {
   type AtivoTipo,
   type InventarioCounts,
   type Complexidade,
+  type ComplexFlagKey,
+  type ComplexFlags,
+  COMPLEX_FLAG_KEYS,
+  COMPLEX_FLAG_LABELS,
+  rotinaMultiplicador,
 } from "@/data/rotinas";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import {
@@ -72,6 +77,16 @@ export default function GestaoTI() {
     qtdAtivosRede: itsm.qtdAtivosRede,
     qtdBancosDados: itsm.qtdBancosDados,
     qtdSistemas: itsm.qtdSistemas,
+  };
+  const complexFlags: ComplexFlags = {
+    complexVirtualizacaoCluster: itsm.complexVirtualizacaoCluster,
+    complexBancoDadosHA: itsm.complexBancoDadosHA,
+    complexFirewallHA: itsm.complexFirewallHA,
+    complexMultiSites: itsm.complexMultiSites,
+    complexSiteBackup: itsm.complexSiteBackup,
+    complexHibridoCloudOnPrem: itsm.complexHibridoCloudOnPrem,
+    complexOperacao24x7: itsm.complexOperacao24x7,
+    complexErpMercado: itsm.complexErpMercado,
   };
 
   const [rotinas, setRotinas] = usePersistentState<Rotina[]>(
