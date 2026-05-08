@@ -140,6 +140,7 @@ export default function GestaoTI() {
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
+    horasExecucao?: number;
   }) => {
     const chamadosMes = FREQ_TO_CHAMADOS[data.frequencia];
     const nova: Rotina = {
@@ -157,6 +158,10 @@ export default function GestaoTI() {
       complexFlag:
         data.oferta === "Performance" && data.complexidade === "Complexo"
           ? data.complexFlag
+          : undefined,
+      horasExecucao:
+        data.oferta === "Performance" && data.complexidade === "Complexo"
+          ? data.horasExecucao ?? 4
           : undefined,
     };
     setRotinas((prev) => [...prev, nova]);
