@@ -42,22 +42,34 @@ export default function SmartTiersPanel() {
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
 
-  const rotinasOperation = useMemo(() => {
-    const inv = {
-      qtdUsuarios: state.qtdUsuarios,
-      qtdEquipamentos: state.qtdEquipamentos,
-      qtdServidores: state.qtdServidores,
-      qtdAtivosRede: state.qtdAtivosRede,
-      qtdBancosDados: state.qtdBancosDados,
-      qtdSistemas: state.qtdSistemas,
-    };
-    // Custo médio por chamado ponderado pela proporção do funil N1/N2/N3
-    const custoChN3 = state.tempoMedioChamadoN3 * state.valorHoraN3;
-    const custoPorChamadoMix =
-      (state.percN1 / 100) * results.custoPorChamadoN1 +
-      (state.percN2 / 100) * results.custoPorChamadoN2 +
-      (state.percN3 / 100) * custoChN3;
+  const inv = {
+    qtdUsuarios: state.qtdUsuarios,
+    qtdEquipamentos: state.qtdEquipamentos,
+    qtdServidores: state.qtdServidores,
+    qtdAtivosRede: state.qtdAtivosRede,
+    qtdBancosDados: state.qtdBancosDados,
+    qtdSistemas: state.qtdSistemas,
+  };
+  const complexFlags: ComplexFlags = {
+    complexVirtualizacaoCluster: state.complexVirtualizacaoCluster,
+    complexBancoDadosHA: state.complexBancoDadosHA,
+    complexFirewallHA: state.complexFirewallHA,
+    complexMultiSites: state.complexMultiSites,
+    complexSiteBackup: state.complexSiteBackup,
+    complexHibridoCloudOnPrem: state.complexHibridoCloudOnPrem,
+    complexOperacao24x7: state.complexOperacao24x7,
+    complexErpMercado: state.complexErpMercado,
+  };
+  const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
+  // Custo médio por chamado ponderado (compartilhado entre Operation e Performance)
+  const custoChN3Mix = state.tempoMedioChamadoN3 * state.valorHoraN3;
+  const custoPorChamadoMix =
+    (state.percN1 / 100) * results.custoPorChamadoN1 +
+    (state.percN2 / 100) * results.custoPorChamadoN2 +
+    (state.percN3 / 100) * custoChN3Mix;
+
+  const rotinasOperation = useMemo(() => {
     const items = rotinas
       .filter((r) => r.oferta === "Operation")
       .filter((r) => {
@@ -90,8 +102,48 @@ export default function SmartTiersPanel() {
       },
       { demanda: 0, cac: 0, custo: 0, venda: 0 },
     );
-    return { items, totals, custoPorChamadoMix };
+    return { items, totals };
   }, [rotinas, state, results, fatorVenda]);
+
+  const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
+    const items = rotinas
+      .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
+      .map((r) => {
+        const mult = rotinaMultiplicador(r, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const cac = r.cac * mult;
+        const fatorAuto = r.automacao
+          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
+          : 1;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const venda = toSell(custo);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
+      })
+      .filter((i) => i.demanda > 0)
+      .sort((a, b) => b.venda - a.venda);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.cac += i.cac;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, cac: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+  };
+
+  const rotinasPerfPadrao = useMemo(
+    () => buildPerformance("Padrão"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state, results, fatorVenda],
+  );
+  const rotinasPerfComplexo = useMemo(
+    () => buildPerformance("Complexo"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state, results, fatorVenda],
+  );
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
@@ -103,8 +155,11 @@ export default function SmartTiersPanel() {
   const smOperationVenda = state.tierOperation
     ? toSell(operacaoCustoTotal) + rotinasOperation.totals.venda
     : 0;
+  const smPerformanceVenda = state.tierPerformance
+    ? rotinasPerfPadrao.totals.venda + rotinasPerfComplexo.totals.venda
+    : 0;
   const totalSelecionado =
-    (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + fsVenda;
+    (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + fsVenda + smPerformanceVenda;
 
   return (
     <Card>
