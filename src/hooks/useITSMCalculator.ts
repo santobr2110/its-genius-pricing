@@ -85,6 +85,10 @@ export interface ITSMState {
   capacidadeFieldN3: number;
   // Percentual do custo de chamado aplicado em rotinas automatizadas (0–100)
   percCustoRotinaAutomatizada: number;
+  // Distribuição dos chamados gerados por rotinas entre os times (independente do funil)
+  percRotinaN1: number;
+  percRotinaN2: number;
+  percRotinaN3: number;
 }
 
 export interface ITSMResults {
@@ -219,6 +223,9 @@ const DEFAULTS: ITSMState = {
   capacidadeFieldN2: 200,
   capacidadeFieldN3: 80,
   percCustoRotinaAutomatizada: 20,
+  percRotinaN1: 30,
+  percRotinaN2: 50,
+  percRotinaN3: 20,
 };
 
 export function useITSMCalculator() {
