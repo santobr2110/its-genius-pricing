@@ -27,6 +27,7 @@ export default function Detalhamento() {
 
   const tiers = [
     { key: "tierMonitor", label: "Smart Monitor", icon: Eye, active: state.tierMonitor,
+      color: "sky",
       tagline: "Olhos abertos 24/7 sobre sua infraestrutura",
       benefits: [
         "Monitoramento proativo de servidores, rede e firewalls",
@@ -34,13 +35,16 @@ export default function Detalhamento() {
         "Triagem técnica feita pelo time N1",
       ] },
     { key: "tierOperation", label: "Smart Operation", icon: Headphones, active: state.tierOperation,
+      color: "emerald",
       tagline: "Service Desk como ponto único de contato",
       benefits: [
         "Atendimento humano completo via funil N1 e N2",
+        "Rotinas preventivas básicas para sustentar a operação",
         "Resolução estruturada com SLA controlado",
         "Indicadores e relatórios mensais de operação",
       ] },
     { key: "tierOperationN3", label: "N3 em Operation", icon: Wrench, active: state.tierOperationN3,
+      color: "teal",
       tagline: "Especialistas sêniores na sua linha de frente",
       benefits: [
         "Engenheiros N3 dedicados à resolução de casos complexos",
@@ -48,6 +52,7 @@ export default function Detalhamento() {
         "Acelera o tempo de resolução em incidentes críticos",
       ] },
     { key: "tierFieldOperation", label: "Field Service", icon: Truck, active: state.tierFieldOperation,
+      color: "amber",
       tagline: "Suporte presencial onde o usuário precisa",
       benefits: [
         "Atendimento in loco para incidentes de hardware e desktop",
@@ -55,13 +60,16 @@ export default function Detalhamento() {
         "Cobertura adicional com transbordo remoto se necessário",
       ] },
     { key: "tierPerformance", label: "Smart Performance", icon: Activity, active: state.tierPerformance,
+      color: "violet",
       tagline: "Do reativo para o preventivo",
       benefits: [
-        "Rotinas preventivas executadas por engenheiros N3",
-        "Otimização contínua de performance e disponibilidade",
+        "Rotinas preventivas avançadas executadas por engenheiros N3",
+        "Cobertura completa para ambientes complexos (HA, multi-site, 24x7, ERP)",
+        "Otimização contínua de performance, capacidade e disponibilidade",
         "Aproveitamento inteligente das horas técnicas contratadas",
       ] },
     { key: "tierEnterprise", label: "Smart Enterprise", icon: Crown, active: state.tierEnterprise,
+      color: "rose",
       tagline: "Governança e visão executiva da TI",
       benefits: [
         "Gestão estratégica do ambiente e roadmap tecnológico",
@@ -174,36 +182,9 @@ export default function Detalhamento() {
         </section>
 
         {/* O QUE ESTÁ INCLUÍDO */}
-        <Section icon={Layers} title="O que está incluído nesta proposta" subtitle="Cada camada selecionada agrega capacidades específicas à sua operação">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {tiers.map((t) => (
-              <div key={t.key} className={`relative rounded-xl border p-5 transition ${t.active ? "border-primary/40 bg-gradient-to-br from-primary/5 to-transparent shadow-sm" : "border-dashed border-muted-foreground/20 bg-muted/20 opacity-50"}`}>
-                {t.active && (
-                  <span className="absolute -top-2 right-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 shadow">Incluído</span>
-                )}
-                <div className="flex items-start gap-3">
-                  <div className={`rounded-xl p-2.5 ${t.active ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    <t.icon className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold">{t.label}</p>
-                    <p className="text-[11px] text-muted-foreground italic leading-snug">{t.tagline}</p>
-                  </div>
-                </div>
-                <ul className="mt-3 space-y-1.5">
-                  {t.benefits.map((b, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[12px] leading-snug">
-                      {t.active ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
-                      ) : (
-                        <Circle className="h-3.5 w-3.5 text-muted-foreground/40 mt-0.5 shrink-0" />
-                      )}
-                      <span className={t.active ? "" : "text-muted-foreground/70"}>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+        <Section icon={Layers} title="O que está incluído nesta proposta" subtitle="Cada camada agrega capacidades específicas — em destaque, as que compõem o seu plano">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {tiers.map((t) => <TierCard key={t.key} tier={t} />)}
           </div>
         </Section>
 
@@ -590,6 +571,81 @@ function ValuePillar({ icon: Icon, title, desc }: { icon: React.ElementType; tit
       </div>
       <p className="mt-3 text-sm font-bold">{title}</p>
       <p className="text-[11px] text-muted-foreground leading-snug mt-1">{desc}</p>
+    </div>
+  );
+}
+
+const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon: string; glow: string; bar: string; badgeBg: string }> = {
+  sky:     { ring: "border-sky-300 dark:border-sky-700",      bg: "from-sky-50 via-card to-sky-50/40 dark:from-sky-950/40 dark:via-card dark:to-sky-950/20",          chip: "bg-sky-500/15 text-sky-700 dark:text-sky-300",         icon: "bg-gradient-to-br from-sky-400 to-sky-600 text-white",        glow: "bg-sky-400/30",        bar: "from-sky-400 to-sky-600",        badgeBg: "bg-sky-500" },
+  emerald: { ring: "border-emerald-300 dark:border-emerald-700", bg: "from-emerald-50 via-card to-emerald-50/40 dark:from-emerald-950/40 dark:via-card dark:to-emerald-950/20", chip: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", icon: "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white", glow: "bg-emerald-400/30",   bar: "from-emerald-400 to-emerald-600", badgeBg: "bg-emerald-500" },
+  teal:    { ring: "border-teal-300 dark:border-teal-700",    bg: "from-teal-50 via-card to-teal-50/40 dark:from-teal-950/40 dark:via-card dark:to-teal-950/20",    chip: "bg-teal-500/15 text-teal-700 dark:text-teal-300",      icon: "bg-gradient-to-br from-teal-400 to-teal-600 text-white",     glow: "bg-teal-400/30",      bar: "from-teal-400 to-teal-600",      badgeBg: "bg-teal-500" },
+  amber:   { ring: "border-amber-300 dark:border-amber-700",  bg: "from-amber-50 via-card to-amber-50/40 dark:from-amber-950/40 dark:via-card dark:to-amber-950/20",  chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300",   icon: "bg-gradient-to-br from-amber-400 to-orange-500 text-white",  glow: "bg-amber-400/30",     bar: "from-amber-400 to-orange-500",   badgeBg: "bg-amber-500" },
+  violet:  { ring: "border-violet-300 dark:border-violet-700", bg: "from-violet-50 via-card to-fuchsia-50/40 dark:from-violet-950/40 dark:via-card dark:to-fuchsia-950/20", chip: "bg-violet-500/15 text-violet-700 dark:text-violet-300", icon: "bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white", glow: "bg-violet-400/30",   bar: "from-violet-500 to-fuchsia-600", badgeBg: "bg-violet-500" },
+  rose:    { ring: "border-rose-300 dark:border-rose-700",    bg: "from-rose-50 via-card to-rose-50/40 dark:from-rose-950/40 dark:via-card dark:to-rose-950/20",    chip: "bg-rose-500/15 text-rose-700 dark:text-rose-300",      icon: "bg-gradient-to-br from-rose-400 to-pink-600 text-white",     glow: "bg-rose-400/30",      bar: "from-rose-400 to-pink-600",      badgeBg: "bg-rose-500" },
+};
+
+interface TierCardData {
+  key: string; label: string; icon: React.ElementType; active: boolean;
+  color: string; tagline: string; benefits: string[];
+}
+
+function TierCard({ tier }: { tier: TierCardData }) {
+  const theme = TIER_THEMES[tier.color] ?? TIER_THEMES.emerald;
+  const Icon = tier.icon;
+  if (!tier.active) {
+    return (
+      <div className="relative rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/10 p-5 opacity-60">
+        <div className="flex items-start gap-3">
+          <div className="rounded-xl p-3 bg-muted text-muted-foreground">
+            <Icon className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-bold text-muted-foreground">{tier.label}</p>
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                <Circle className="h-2.5 w-2.5" />Não incluso
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground italic leading-snug mt-0.5">{tier.tagline}</p>
+          </div>
+        </div>
+        <ul className="mt-4 space-y-1.5">
+          {tier.benefits.map((b, i) => (
+            <li key={i} className="flex items-start gap-2 text-[12px] leading-snug text-muted-foreground/70">
+              <Circle className="h-3 w-3 text-muted-foreground/30 mt-1 shrink-0" />
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} p-5 shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5`}>
+      <div className={`absolute -top-16 -right-16 h-40 w-40 rounded-full ${theme.glow} blur-3xl pointer-events-none`} />
+      <span className={`absolute top-0 right-0 ${theme.badgeBg} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-3 py-1 rounded-bl-xl shadow-md`}>
+        Incluído
+      </span>
+      <div className={`h-1 w-full rounded-full bg-gradient-to-r ${theme.bar} mb-4`} />
+      <div className="flex items-start gap-3 relative">
+        <div className={`rounded-xl p-3 shadow-lg ${theme.icon}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-base font-extrabold tracking-tight">{tier.label}</p>
+          <p className={`text-[11px] font-medium italic leading-snug mt-0.5 inline-block px-2 py-0.5 rounded-full ${theme.chip}`}>
+            {tier.tagline}
+          </p>
+        </div>
+      </div>
+      <ul className="mt-4 space-y-2 relative">
+        {tier.benefits.map((b, i) => (
+          <li key={i} className="flex items-start gap-2 text-[12.5px] leading-snug">
+            <CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${theme.chip.split(" ")[1]}`} />
+            <span className="text-foreground/90">{b}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
