@@ -1130,6 +1130,20 @@ function NovaRotinaDialog({
             </div>
           </div>
 
+          {isComplexo && (
+            <div className="space-y-1">
+              <Label className="text-xs">Horas por execução (custo via valor/hora N3)</Label>
+              <Input
+                type="number"
+                min={0}
+                step={0.5}
+                value={horasExecucao}
+                onChange={(e) => setHorasExecucao(parseFloat(e.target.value) || 0)}
+                className="h-9 text-sm"
+              />
+            </div>
+          )}
+
           <p className="text-[11px] text-muted-foreground">
             Freq/mês: {FREQ_TO_CHAMADOS[frequencia]} • CAC: {(FREQ_TO_CHAMADOS[frequencia] * CAC_FACTOR).toFixed(2)}
           </p>
