@@ -429,21 +429,36 @@ export default function Detalhamento() {
           </Table>
         </Section>
 
-        {/* FORMAÇÃO DO PREÇO */}
-        <Section icon={Receipt} title="Formação do Preço de Venda" subtitle="Do custo operacional ao preço final praticado">
-          <div className="rounded-xl border bg-gradient-to-br from-card to-primary/5 p-6 space-y-3">
-            <PriceLine label="Custo Total da Operação" value={results.custoTotalOperacao} />
-            <PriceOp icon={TrendingUp} label={`+ Margem de Lucro (${state.margemLucro}% — divisor markup)`} value={results.valorMargem} accent="emerald" />
-            <PriceLine label="Preço pré-imposto" value={results.precoPreImposto} muted />
-            <PriceOp icon={Receipt} label={`+ Impostos e Taxas (${state.impostosTaxas}% por fora)`} value={results.valorImpostos} accent="amber" />
-            <div className="border-t pt-3">
-              <PriceLine label="Preço de Venda Mensal" value={results.precoVendaMensal} highlight />
+        {/* INVESTIMENTO */}
+        <Section icon={Receipt} title="Seu Investimento" subtitle="Transparência total sobre como o valor é composto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="md:col-span-2 rounded-xl border bg-gradient-to-br from-card to-primary/5 p-6 space-y-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Composição</p>
+              <PriceLine label="Operação completa" value={results.custoTotalOperacao} />
+              <PriceOp icon={TrendingUp} label={`Margem operacional (${state.margemLucro}%)`} value={results.valorMargem} accent="emerald" />
+              <PriceLine label="Subtotal" value={results.precoPreImposto} muted />
+              <PriceOp icon={Receipt} label={`Tributos e taxas (${state.impostosTaxas}%)`} value={results.valorImpostos} accent="amber" />
             </div>
-            <p className="text-[11px] text-muted-foreground italic pt-1">
-              Método "divisor de markup": a margem é aplicada sobre o preço final, não sobre o custo. Impostos calculados por fora para preservar o líquido.
-            </p>
+            <div className="rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 to-accent/10 p-6 flex flex-col justify-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Investimento Mensal</p>
+              <p className="mt-2 text-3xl md:text-4xl font-bold text-primary tracking-tight">{formatBRL(results.precoVendaMensal)}</p>
+              <div className="mt-4 pt-4 border-t border-primary/20 space-y-1.5 text-xs">
+                <div className="flex justify-between"><span className="text-muted-foreground">Anual</span><span className="font-semibold">{formatBRL(results.precoVendaMensal * 12)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Por usuário/mês</span><span className="font-semibold">{state.qtdUsuarios > 0 ? formatBRL(results.precoVendaMensal / state.qtdUsuarios) : "—"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Por chamado</span><span className="font-semibold">{custoPorChamadoMedio > 0 ? formatBRL(custoPorChamadoMedio) : "—"}</span></div>
+              </div>
+            </div>
           </div>
         </Section>
+
+        {/* CALL TO ACTION */}
+        <section className="rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-background to-accent/10 p-8 text-center space-y-3">
+          <Award className="h-8 w-8 text-primary mx-auto" />
+          <h2 className="text-xl font-bold tracking-tight">Pronto para uma operação de TI sem surpresas?</h2>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+            Esta proposta foi dimensionada com base no seu inventário real e nos níveis de serviço necessários para sustentar seu negócio. Vamos conversar sobre os próximos passos.
+          </p>
+        </section>
 
       </main>
     </div>
@@ -563,6 +578,18 @@ function PriceOp({ icon: Icon, label, value, accent }: { icon: React.ElementType
         {label}
       </span>
       <span className={`text-sm font-medium ${color}`}>{formatBRL(value)}</span>
+    </div>
+  );
+}
+
+function ValuePillar({ icon: Icon, title, desc }: { icon: React.ElementType; title: string; desc: string }) {
+  return (
+    <div className="rounded-xl border bg-card p-4 hover:shadow-md transition">
+      <div className="rounded-lg bg-primary/10 text-primary w-9 h-9 flex items-center justify-center">
+        <Icon className="h-4 w-4" />
+      </div>
+      <p className="mt-3 text-sm font-bold">{title}</p>
+      <p className="text-[11px] text-muted-foreground leading-snug mt-1">{desc}</p>
     </div>
   );
 }
