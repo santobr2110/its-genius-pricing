@@ -441,8 +441,14 @@ function N3HoursBox({
   const deficit = consumidas > total;
   const horasTam = distribuicao ? (total * distribuicao.tam) / 100 : 0;
   const horasOwner = distribuicao ? (total * distribuicao.owner) / 100 : 0;
-  const horasLivre = distribuicao ? (total * distribuicao.livre) / 100 : 0;
+  // Livre = sobra após chamados + TAM + Owner
+  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasTam - horasOwner) : 0;
+  const pctChamados = total > 0 ? (consumidas / total) * 100 : 0;
+  const pctTam = distribuicao?.tam ?? 0;
+  const pctOwner = distribuicao?.owner ?? 0;
+  const pctLivre = total > 0 ? (horasLivre / total) * 100 : 0;
   const valorTotalVenda = total * valorHora;
+  const livreNegativo = distribuicao && (consumidas + horasTam + horasOwner) > total;
 
   return (
     <div className="mt-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background/90 to-background/60 backdrop-blur-sm p-4 space-y-4 shadow-md">
@@ -491,37 +497,55 @@ function N3HoursBox({
             <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-foreground/80">Divisão de uso das horas N3</p>
           </div>
 
-          {/* Barra segmentada */}
+          {/* Barra segmentada — chamados + TAM + Owner + Livre */}
           <div className="flex h-7 w-full rounded-full overflow-hidden shadow-inner border bg-muted">
-            {distribuicao.tam > 0 && (
-              <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-extrabold transition-all" style={{ width: `${distribuicao.tam}%` }}>
-                {distribuicao.tam >= 8 && `TAM ${distribuicao.tam}%`}
+            {pctChamados > 0 && (
+              <div className="bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${Math.min(100, pctChamados)}%` }}>
+                {pctChamados >= 10 && `Chamados ${pctChamados.toFixed(0)}%`}
               </div>
             )}
-            {distribuicao.owner > 0 && (
-              <div className="bg-gradient-to-r from-sky-400 to-sky-600 flex items-center justify-center text-white text-[10px] font-extrabold transition-all" style={{ width: `${distribuicao.owner}%` }}>
-                {distribuicao.owner >= 8 && `Owner ${distribuicao.owner}%`}
+            {pctTam > 0 && (
+              <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctTam}%` }}>
+                {pctTam >= 8 && `TAM ${pctTam}%`}
               </div>
             )}
-            {distribuicao.livre > 0 && (
-              <div className="bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center justify-center text-white text-[10px] font-extrabold transition-all" style={{ width: `${distribuicao.livre}%` }}>
-                {distribuicao.livre >= 8 && `Livre ${distribuicao.livre}%`}
+            {pctOwner > 0 && (
+              <div className="bg-gradient-to-r from-sky-400 to-sky-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctOwner}%` }}>
+                {pctOwner >= 8 && `Owner ${pctOwner}%`}
+              </div>
+            )}
+            {pctLivre > 0 && (
+              <div className="bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctLivre}%` }}>
+                {pctLivre >= 8 && `Livre ${pctLivre.toFixed(0)}%`}
               </div>
             )}
           </div>
 
+          <p className="text-[10px] text-muted-foreground italic">
+            Livre = Total contratado − Chamados N3 − Horas TAM − Horas Owner
+          </p>
+
           {/* Cards detalhados */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <DistCard color="emerald" pct={distribuicao.tam} horas={horasTam} valor={horasTam * valorHora}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
+              titulo="Chamados" subtitulo="Atendimento reativo N3"
+              desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
+            <DistCard color="emerald" pct={pctTam} horas={horasTam} valor={horasTam * valorHora}
               titulo="TAM" subtitulo="Technical Account Manager"
               desc="Acompanhamento técnico, governança do contrato e relacionamento com o cliente." />
-            <DistCard color="sky" pct={distribuicao.owner} horas={horasOwner} valor={horasOwner * valorHora}
+            <DistCard color="sky" pct={pctOwner} horas={horasOwner} valor={horasOwner * valorHora}
               titulo="Owner" subtitulo="Especialista dedicado"
               desc="Execução das rotinas preventivas e melhorias contínuas no ambiente." />
-            <DistCard color="violet" pct={distribuicao.livre} horas={horasLivre} valor={horasLivre * valorHora}
-              titulo="Livre" subtitulo="Demanda sob solicitação"
-              desc="Banco de horas para projetos, mudanças e demandas pontuais do cliente." />
+            <DistCard color="violet" pct={pctLivre} horas={horasLivre} valor={horasLivre * valorHora}
+              titulo="Livre" subtitulo="Saldo disponível"
+              desc="Horas remanescentes para projetos, mudanças e demandas pontuais." alerta={livreNegativo} />
           </div>
+
+          {livreNegativo && (
+            <div className="rounded-lg border-2 border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px]">
+              <strong className="text-destructive">⚠ Saldo livre zerado:</strong> a soma de Chamados + TAM + Owner já consome todas as horas N3 contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -529,26 +553,27 @@ function N3HoursBox({
 }
 
 function DistCard({
-  color, pct, horas, valor, titulo, subtitulo, desc,
+  color, pct, horas, valor, titulo, subtitulo, desc, alerta,
 }: {
-  color: "emerald" | "sky" | "violet";
+  color: "emerald" | "sky" | "violet" | "amber";
   pct: number; horas: number; valor: number;
-  titulo: string; subtitulo: string; desc: string;
+  titulo: string; subtitulo: string; desc: string; alerta?: boolean;
 }) {
   const styles = {
     emerald: { bg: "from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20", border: "border-emerald-300/60 dark:border-emerald-700/60", dot: "bg-gradient-to-br from-emerald-400 to-emerald-600", text: "text-emerald-700 dark:text-emerald-300" },
     sky:     { bg: "from-sky-50 to-sky-100/50 dark:from-sky-950/40 dark:to-sky-900/20",                 border: "border-sky-300/60 dark:border-sky-700/60",         dot: "bg-gradient-to-br from-sky-400 to-sky-600",         text: "text-sky-700 dark:text-sky-300" },
     violet:  { bg: "from-violet-50 to-fuchsia-100/50 dark:from-violet-950/40 dark:to-fuchsia-900/20",   border: "border-violet-300/60 dark:border-violet-700/60",   dot: "bg-gradient-to-br from-violet-500 to-fuchsia-600",  text: "text-violet-700 dark:text-violet-300" },
+    amber:   { bg: "from-amber-50 to-orange-100/50 dark:from-amber-950/40 dark:to-orange-900/20",       border: "border-amber-300/60 dark:border-amber-700/60",     dot: "bg-gradient-to-br from-amber-400 to-orange-500",    text: "text-amber-700 dark:text-amber-300" },
   }[color];
-  const dimmed = pct === 0;
+  const dimmed = pct === 0 && !alerta;
   return (
-    <div className={`relative rounded-xl border-2 ${styles.border} bg-gradient-to-br ${styles.bg} p-3 ${dimmed ? "opacity-50" : ""}`}>
+    <div className={`relative rounded-xl border-2 ${alerta ? "border-destructive/60" : styles.border} bg-gradient-to-br ${styles.bg} p-3 ${dimmed ? "opacity-50" : ""}`}>
       <div className="flex items-center justify-between gap-2 mb-1.5">
         <div className="flex items-center gap-2 min-w-0">
           <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${styles.dot} shadow-sm`} />
           <p className={`text-sm font-extrabold ${styles.text}`}>{titulo}</p>
         </div>
-        <span className={`text-[10px] font-extrabold ${styles.text} tabular-nums`}>{pct}%</span>
+        <span className={`text-[10px] font-extrabold ${styles.text} tabular-nums`}>{pct.toFixed(0)}%</span>
       </div>
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{subtitulo}</p>
       <div className="mt-2 flex items-baseline gap-1.5">
