@@ -765,6 +765,10 @@ export default function GestaoTI() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="acompanhamento" className="space-y-6 mt-0">
+            <AcompanhamentoAvancado />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
