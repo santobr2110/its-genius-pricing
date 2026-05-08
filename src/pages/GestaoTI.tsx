@@ -767,7 +767,7 @@ export default function GestaoTI() {
   );
 }
 
-function RotinaGroupTable({
+function RotinaGroupCards({
   grupo,
   rotinas,
   onUpdate,
@@ -802,57 +802,67 @@ function RotinaGroupTable({
           {totalChamados.toFixed(1)} freq/mês • {totalDemanda.toFixed(1)} chamados/mês • CAC {totalCac.toFixed(2)}
         </div>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="min-w-[260px]">Rotina</TableHead>
-            <TableHead className="w-[130px]">Oferta</TableHead>
-            <TableHead className="w-[200px]">Vínculo</TableHead>
-            <TableHead className="w-[100px]">Automação</TableHead>
-            <TableHead className="w-[150px]">Frequência</TableHead>
-            <TableHead className="w-[110px]">Freq/mês</TableHead>
-            <TableHead className="w-[130px]">Demanda/mês</TableHead>
-            {showComplexidadeMove && <TableHead className="w-[90px]">Horas exec</TableHead>}
-            <TableHead className="w-[100px]">CAC</TableHead>
-            {showComplexidadeMove && <TableHead className="w-[60px] text-center">Mover</TableHead>}
-            {onRemove && <TableHead className="w-[50px] text-center"></TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rotinas.map((r) => {
-            const isComplexPerf = r.oferta === "Performance" && r.complexidade === "Complexo";
-            const mult = rotinaMultiplicador(r, inventario, complexFlags);
-            const demanda = r.chamadosMes * mult;
-            return (
-            <TableRow key={r.id}>
-              <TableCell>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-3">
+        {rotinas.map((r) => {
+          const isComplexPerf = r.oferta === "Performance" && r.complexidade === "Complexo";
+          const mult = rotinaMultiplicador(r, inventario, complexFlags);
+          const demanda = r.chamadosMes * mult;
+          const semDemanda = mult === 0;
+          return (
+            <div
+              key={r.id}
+              className={`rounded-md border bg-background p-3 space-y-2.5 transition-opacity ${
+                semDemanda ? "opacity-60 border-dashed" : ""
+              }`}
+            >
+              {/* Topo: nome + badges */}
+              <div className="space-y-1.5">
                 <Input
                   value={r.rotina}
                   onChange={(e) => onUpdate(r.id, { rotina: e.target.value })}
-                  className="h-8 text-sm"
+                  className="h-8 text-sm font-medium"
                 />
-              </TableCell>
-              <TableCell>
-                <Select
-                  value={r.oferta}
-                  onValueChange={(v: Oferta) => onUpdate(r.id, { oferta: v })}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Operation">Operation</SelectItem>
-                    <SelectItem value="Performance">Performance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge variant={r.oferta === "Performance" ? "default" : "secondary"} className="text-[10px]">
+                    {r.oferta}
+                  </Badge>
+                  {r.automacao && (
+                    <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
+                      Automatizada
+                    </Badge>
+                  )}
+                  {semDemanda && (
+                    <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">
+                      Sem demanda
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Abrangência */}
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Abrangência
+                </Label>
+                <Input
+                  value={r.abrangencia ?? ""}
+                  onChange={(e) => onUpdate(r.id, { abrangencia: e.target.value })}
+                  placeholder="Escopo da rotina"
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              {/* Vínculo de inventário */}
+              <div className="space-y-1">
+                <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {isComplexPerf ? "Item de complexidade" : "Inventário vinculado"}
+                </Label>
                 {isComplexPerf ? (
                   <Select
                     value={r.complexFlag ?? ""}
                     onValueChange={(v: ComplexFlagKey) => onUpdate(r.id, { complexFlag: v })}
                   >
-                    <SelectTrigger className="h-8 text-sm">
+                    <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Selecione complexidade" />
                     </SelectTrigger>
                     <SelectContent>
@@ -868,65 +878,72 @@ function RotinaGroupTable({
                     value={r.ativo ?? "Ambiente"}
                     onValueChange={(v: AtivoTipo) => onUpdate(r.id, { ativo: v })}
                   >
-                    <SelectTrigger className="h-8 text-sm">
+                    <SelectTrigger className="h-8 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {ATIVO_TIPOS.map((a) => (
                         <SelectItem key={a} value={a}>
-                          {a} {a !== "Ambiente" && `(${inventarioMultiplicador(a, inventario)})`}
+                          {a} ({inventarioMultiplicador(a, inventario)})
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 )}
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={r.automacao}
-                    onCheckedChange={(v) => onUpdate(r.id, { automacao: v })}
-                  />
-                  <span className="text-xs text-muted-foreground">{r.automacao ? "Sim" : "Não"}</span>
+              </div>
+
+              {/* Frequência + Freq/mês */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Frequência
+                  </Label>
+                  <Select
+                    value={r.frequencia}
+                    onValueChange={(v: Frequencia) => onUpdate(r.id, { frequencia: v })}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FREQUENCIAS.map((f) => (
+                        <SelectItem key={f} value={f}>{f}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </TableCell>
-              <TableCell>
-                <Select
-                  value={r.frequencia}
-                  onValueChange={(v: Frequencia) => onUpdate(r.id, { frequencia: v })}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FREQUENCIAS.map((f) => (
-                      <SelectItem key={f} value={f}>
-                        {f}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </TableCell>
-              <TableCell>
-                <Input
-                  type="number"
-                  step={0.1}
-                  value={r.chamadosMes}
-                  onChange={(e) =>
-                    onUpdate(r.id, { chamadosMes: parseFloat(e.target.value) || 0 })
-                  }
-                  className="h-8 text-sm"
-                />
-              </TableCell>
-              <TableCell className="text-sm font-semibold tabular-nums text-primary">
-                {demanda.toFixed(1)}
-                <span className="ml-1 text-[10px] font-normal text-muted-foreground">
-                  ({r.chamadosMes.toFixed(1)}×{mult})
-                </span>
-              </TableCell>
-              {showComplexidadeMove && (
-                <TableCell>
-                  {isComplexPerf ? (
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Freq/mês
+                  </Label>
+                  <Input
+                    type="number"
+                    step={0.1}
+                    value={r.chamadosMes}
+                    onChange={(e) => onUpdate(r.id, { chamadosMes: parseFloat(e.target.value) || 0 })}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Métricas calculadas */}
+              <div className="grid grid-cols-3 gap-2 rounded-md bg-muted/40 p-2">
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Demanda/mês</p>
+                  <p className="text-sm font-semibold text-primary tabular-nums">
+                    {demanda.toFixed(1)}
+                  </p>
+                  <p className="text-[9px] text-muted-foreground">
+                    {r.chamadosMes.toFixed(1)}×{mult}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">CAC</p>
+                  <p className="text-sm font-semibold tabular-nums">{r.cac.toFixed(2)}</p>
+                </div>
+                {isComplexPerf && (
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground">Horas/exec</Label>
                     <Input
                       type="number"
                       min={0}
@@ -935,56 +952,61 @@ function RotinaGroupTable({
                       onChange={(e) =>
                         onUpdate(r.id, { horasExecucao: parseFloat(e.target.value) || 0 })
                       }
-                      className="h-8 text-sm"
+                      className="h-7 text-xs"
                     />
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Rodapé: ações */}
+              <div className="flex items-center justify-between pt-1 border-t">
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={r.automacao}
+                    onCheckedChange={(v) => onUpdate(r.id, { automacao: v })}
+                  />
+                  <span className="text-[10px] text-muted-foreground">
+                    {r.automacao ? "Automação" : "Manual"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {showComplexidadeMove && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      title={
+                        (r.complexidade ?? "Padrão") === "Padrão"
+                          ? "Mover para Ambiente Complexo"
+                          : "Mover para Ambiente Padrão"
+                      }
+                      onClick={() =>
+                        onUpdate(r.id, {
+                          complexidade:
+                            (r.complexidade ?? "Padrão") === "Padrão" ? "Complexo" : "Padrão",
+                        })
+                      }
+                    >
+                      <ArrowLeftRight className="h-3.5 w-3.5" />
+                    </Button>
                   )}
-                </TableCell>
-              )}
-              <TableCell className="text-sm font-medium tabular-nums">
-                {r.cac.toFixed(2)}
-              </TableCell>
-              {showComplexidadeMove && (
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    title={
-                      (r.complexidade ?? "Padrão") === "Padrão"
-                        ? "Mover para Ambiente Complexo"
-                        : "Mover para Ambiente Padrão"
-                    }
-                    onClick={() =>
-                      onUpdate(r.id, {
-                        complexidade:
-                          (r.complexidade ?? "Padrão") === "Padrão" ? "Complexo" : "Padrão",
-                      })
-                    }
-                  >
-                    <ArrowLeftRight className="h-3.5 w-3.5" />
-                  </Button>
-                </TableCell>
-              )}
-              {onRemove && (
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-destructive hover:text-destructive"
-                    title="Excluir rotina"
-                    onClick={() => onRemove(r.id)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </TableCell>
-              )}
-            </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                  {onRemove && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      title="Excluir rotina"
+                      onClick={() => onRemove(r.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
