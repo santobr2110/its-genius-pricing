@@ -13,6 +13,7 @@ import TaxasDemanda from "./pages/TaxasDemanda";
 import Precificacoes from "./pages/Precificacoes";
 import Operacao from "./pages/Operacao";
 import FieldService from "./pages/FieldService";
+import GestaoTI from "./pages/GestaoTI";
 import NotFound from "./pages/NotFound";
 import { ITSMProvider } from "./contexts/ITSMContext";
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/precificacoes" element={<Precificacoes />} />
             <Route path="/operacao" element={<Operacao />} />
             <Route path="/field-service" element={<FieldService />} />
+            <Route path="/gestao-ti" element={<GestaoTI />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
