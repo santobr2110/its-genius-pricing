@@ -50,6 +50,11 @@ export default function SmartTiersPanel() {
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [n3Modo, setN3Modo] = usePersistentState<"TAM" | "Owner" | "Livre">(
+    "gestao-ti:smartPerf:n3Modo",
+    "Livre",
+  );
+  const N3_MODO_HORAS: Record<"TAM" | "Owner", number> = { TAM: 20, Owner: 40 };
 
   const inv = {
     qtdUsuarios: state.qtdUsuarios,
