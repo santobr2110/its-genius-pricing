@@ -130,7 +130,8 @@ export default function SmartTiersPanel() {
           : 1;
         const custo = demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
+        const isField = r.grupo.toLowerCase().includes("microinform");
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, isField, demanda, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -171,7 +172,8 @@ export default function SmartTiersPanel() {
           ? horasMes * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horas, horasMes, cac, custo, venda };
+        const isField = r.grupo.toLowerCase().includes("microinform");
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, isField, demanda, horas, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
