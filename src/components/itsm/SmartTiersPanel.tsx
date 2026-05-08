@@ -3,7 +3,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import * as SliderPrimitive from "@radix-ui/react-slider";
 import { Activity, Zap, Gauge, Building2, MapPin, ListChecks } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
@@ -61,6 +60,14 @@ export default function SmartTiersPanel() {
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
   const pctLivre = Math.max(0, 100 - corteOwner);
+  const setPctTam = (value: number) => {
+    const nextTam = Math.max(0, Math.min(100 - pctOwner, value));
+    setN3Cortes([nextTam, nextTam + pctOwner]);
+  };
+  const setPctOwner = (value: number) => {
+    const nextOwner = Math.max(0, Math.min(100 - pctTam, value));
+    setN3Cortes([pctTam, pctTam + nextOwner]);
+  };
   const horasTotaisN3 = state.horasN3Mensais || 0;
   const horasTam = (horasTotaisN3 * pctTam) / 100;
   const horasOwner = (horasTotaisN3 * pctOwner) / 100;
@@ -592,49 +599,50 @@ export default function SmartTiersPanel() {
 
               {/* Distribuição das horas N3 entre TAM / Owner / Livre */}
               <div className="pt-2 space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <Label className="text-[11px] text-muted-foreground font-semibold">
                     Distribuição das horas N3
                   </Label>
-                  <span className="text-[10px] text-muted-foreground italic">
-                    arraste os marcadores 🟢 TAM · 🔵 Owner
-                  </span>
+                  <span className="text-[10px] text-muted-foreground">Livre recalculado automaticamente</span>
                 </div>
-                <div className="relative pt-3 pb-1">
-                  {/* Track segmentado colorido (atrás do slider) */}
-                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex h-3 rounded-full overflow-hidden border bg-muted pointer-events-none">
+                <div className="space-y-3 rounded border bg-muted/20 p-2">
+                  <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
                     <div className="bg-gradient-to-r from-emerald-400 to-emerald-500" style={{ width: `${pctTam}%` }} />
                     <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctOwner}%` }} />
                     <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${pctLivre}%` }} />
                   </div>
-                  <SliderPrimitive.Root
-                    value={[corteTam, corteOwner]}
-                    onValueChange={(vs) => {
-                      if (vs.length < 2) return;
-                      const a = Math.max(0, Math.min(100, vs[0]));
-                      const b = Math.max(0, Math.min(100, vs[1]));
-                      const lo = Math.min(a, b);
-                      const hi = Math.max(a, b);
-                      setN3Cortes([lo, hi]);
-                    }}
-                    min={0}
-                    max={100}
-                    step={1}
-                    minStepsBetweenThumbs={5}
-                    className="relative flex w-full touch-none select-none items-center h-6"
-                  >
-                    <SliderPrimitive.Track className="relative h-3 w-full grow overflow-hidden rounded-full bg-transparent">
-                      <SliderPrimitive.Range className="absolute h-full bg-transparent" />
-                    </SliderPrimitive.Track>
-                    <SliderPrimitive.Thumb
-                      aria-label="Limite TAM"
-                      className="block h-6 w-6 rounded-full border-[3px] border-emerald-600 bg-white shadow-lg ring-offset-background transition-transform hover:scale-110 active:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 cursor-grab active:cursor-grabbing"
-                    />
-                    <SliderPrimitive.Thumb
-                      aria-label="Limite Owner"
-                      className="block h-6 w-6 rounded-full border-[3px] border-sky-600 bg-white shadow-lg ring-offset-background transition-transform hover:scale-110 active:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 cursor-grab active:cursor-grabbing"
-                    />
-                  </SliderPrimitive.Root>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-300">TAM</span>
+                        <span className="tabular-nums text-muted-foreground">{pctTam}% · {formatNumber(horasTam)}h</span>
+                      </div>
+                      <Slider
+                        value={[pctTam]}
+                        onValueChange={([v]) => setPctTam(v)}
+                        min={0}
+                        max={100 - pctOwner}
+                        step={1}
+                        rangeClassName="bg-emerald-500"
+                        thumbClassName="h-6 w-6 border-emerald-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-sky-700 dark:text-sky-300">Owner</span>
+                        <span className="tabular-nums text-muted-foreground">{pctOwner}% · {formatNumber(horasOwner)}h</span>
+                      </div>
+                      <Slider
+                        value={[pctOwner]}
+                        onValueChange={([v]) => setPctOwner(v)}
+                        min={0}
+                        max={100 - pctTam}
+                        step={1}
+                        rangeClassName="bg-sky-500"
+                        thumbClassName="h-6 w-6 border-sky-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 text-[11px]">
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
