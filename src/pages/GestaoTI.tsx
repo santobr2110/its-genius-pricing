@@ -559,7 +559,7 @@ export default function GestaoTI() {
                   const grupos = groupBy(lista, (r) => r.grupo);
                   const nomes = Object.keys(grupos).sort((a, b) => a.localeCompare(b, "pt-BR"));
                   return nomes.map((grupo) => (
-                    <RotinaGroupTable
+                    <RotinaGroupCards
                       key={grupo}
                       grupo={grupo}
                       rotinas={grupos[grupo]}
