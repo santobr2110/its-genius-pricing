@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ServerCog, RotateCcw, Sparkles, GitBranch, Plus, Trash2 } from "lucide-react";
+import { ServerCog, RotateCcw, Sparkles, GitBranch, Plus, Trash2, ArrowLeftRight } from "lucide-react";
 import BackHomeButton from "@/components/BackHomeButton";
 import SortableNav from "@/components/SortableNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +38,7 @@ import {
   type Oferta,
   type AtivoTipo,
   type InventarioCounts,
+  type Complexidade,
 } from "@/data/rotinas";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import {
@@ -405,19 +406,57 @@ export default function GestaoTI() {
 
               {OFERTAS.map((oferta) => {
                 const filtered = rotinas.filter((r) => r.oferta === oferta);
-                const grupos = groupBy(filtered, (r) => r.grupo);
-                const grupoNomes = Object.keys(grupos).sort((a, b) => a.localeCompare(b, "pt-BR"));
+                const renderGrupos = (lista: Rotina[]) => {
+                  const grupos = groupBy(lista, (r) => r.grupo);
+                  const nomes = Object.keys(grupos).sort((a, b) => a.localeCompare(b, "pt-BR"));
+                  return nomes.map((grupo) => (
+                    <RotinaGroupTable
+                      key={grupo}
+                      grupo={grupo}
+                      rotinas={grupos[grupo]}
+                      onUpdate={updateRotina}
+                      inventario={inventario}
+                      showComplexidadeMove={oferta === "Performance"}
+                    />
+                  ));
+                };
+                if (oferta === "Performance") {
+                  const padrao = filtered.filter((r) => (r.complexidade ?? "Padrão") === "Padrão");
+                  const complexo = filtered.filter((r) => r.complexidade === "Complexo");
+                  return (
+                    <TabsContent key={oferta} value={oferta} className="space-y-8 mt-4">
+                      <section className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                            Ambiente Padrão
+                          </h3>
+                          <Badge variant="secondary">{padrao.length}</Badge>
+                        </div>
+                        {padrao.length === 0 ? (
+                          <p className="text-xs text-muted-foreground italic">Nenhuma rotina neste sub-quadro.</p>
+                        ) : (
+                          renderGrupos(padrao)
+                        )}
+                      </section>
+                      <section className="space-y-4">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                            Ambiente Complexo
+                          </h3>
+                          <Badge variant="secondary">{complexo.length}</Badge>
+                        </div>
+                        {complexo.length === 0 ? (
+                          <p className="text-xs text-muted-foreground italic">Nenhuma rotina neste sub-quadro.</p>
+                        ) : (
+                          renderGrupos(complexo)
+                        )}
+                      </section>
+                    </TabsContent>
+                  );
+                }
                 return (
                   <TabsContent key={oferta} value={oferta} className="space-y-6 mt-4">
-                    {grupoNomes.map((grupo) => (
-                      <RotinaGroupTable
-                        key={grupo}
-                        grupo={grupo}
-                        rotinas={grupos[grupo]}
-                        onUpdate={updateRotina}
-                        inventario={inventario}
-                      />
-                    ))}
+                    {renderGrupos(filtered)}
                   </TabsContent>
                 );
               })}
@@ -586,11 +625,13 @@ function RotinaGroupTable({
   rotinas,
   onUpdate,
   inventario,
+  showComplexidadeMove = false,
 }: {
   grupo: string;
   rotinas: Rotina[];
   onUpdate: (id: string, patch: Partial<Rotina>) => void;
   inventario: InventarioCounts;
+  showComplexidadeMove?: boolean;
 }) {
   const totalChamados = rotinas.reduce((s, r) => s + r.chamadosMes, 0);
   const totalDemanda = rotinas.reduce(
@@ -621,6 +662,7 @@ function RotinaGroupTable({
             <TableHead className="w-[110px]">Freq/mês</TableHead>
             <TableHead className="w-[130px]">Demanda/mês</TableHead>
             <TableHead className="w-[100px]">CAC</TableHead>
+            {showComplexidadeMove && <TableHead className="w-[60px] text-center">Mover</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -713,6 +755,28 @@ function RotinaGroupTable({
               <TableCell className="text-sm font-medium tabular-nums">
                 {r.cac.toFixed(2)}
               </TableCell>
+              {showComplexidadeMove && (
+                <TableCell className="text-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    title={
+                      (r.complexidade ?? "Padrão") === "Padrão"
+                        ? "Mover para Ambiente Complexo"
+                        : "Mover para Ambiente Padrão"
+                    }
+                    onClick={() =>
+                      onUpdate(r.id, {
+                        complexidade:
+                          (r.complexidade ?? "Padrão") === "Padrão" ? "Complexo" : "Padrão",
+                      })
+                    }
+                  >
+                    <ArrowLeftRight className="h-3.5 w-3.5" />
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
             );
           })}
