@@ -51,6 +51,10 @@ export const ATIVO_TIPOS: AtivoTipo[] = [
   "Usuário",
 ];
 
+export type Abrangencia = "Ambiente" | "Individual";
+
+export const ABRANGENCIAS: Abrangencia[] = ["Ambiente", "Individual"];
+
 export interface InventarioCounts {
   qtdUsuarios: number;
   qtdEquipamentos: number;
