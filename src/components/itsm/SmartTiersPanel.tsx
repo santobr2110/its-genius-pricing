@@ -525,7 +525,9 @@ export default function SmartTiersPanel() {
                 <Label className="text-[11px] text-muted-foreground">
                   Atendimento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
                 </Label>
-                <span className="text-xs font-semibold">{formatNumber(state.horasN3Mensais)}h/mês</span>
+                <span className="text-xs font-semibold">
+                  {formatNumber(state.horasN3Mensais)}h/mês · {formatBRL(toSell(results.custoN3))}
+                </span>
               </div>
               <Slider
                 value={[Math.min(40, Math.max(20, state.horasN3Mensais || 20))]}
