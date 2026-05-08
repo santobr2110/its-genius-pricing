@@ -5,7 +5,7 @@ import BackHomeButton from "@/components/BackHomeButton";
 import SortableNav from "@/components/SortableNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Info, ListChecks, PhoneCall } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -139,120 +139,119 @@ export default function GestaoTI() {
           </AlertDescription>
         </Alert>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Quadro 1: Rotinas (catálogo) */}
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground font-medium">Rotinas cadastradas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{rotinas.length}</p>
-              <p className="text-xs text-muted-foreground">
-                {totals.byOferta.Operation.count} Operation • {totals.byOferta.Performance.count} Performance
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground font-medium">Chamados de rotina/mês</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{totals.totalChamados.toFixed(1)}</p>
-              <p className="text-xs text-muted-foreground">
-                Soma das execuções mensais de todas as rotinas
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-primary/40">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-primary" /> Automatizados/mês
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <ListChecks className="h-4 w-4 text-primary" /> Rotinas cadastradas
               </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Atividades recorrentes do catálogo (itens da tabela abaixo).
+              </p>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-primary">{totals.automatizadosChamados.toFixed(1)}</p>
-              <p className="text-xs text-muted-foreground">
-                {totals.totalChamados > 0
-                  ? ((totals.automatizadosChamados / totals.totalChamados) * 100).toFixed(1)
-                  : "0.0"}
-                % do total • {totals.automatizadosCount} rotina(s)
-              </p>
+              <div className="flex items-baseline gap-2 mb-3">
+                <p className="text-3xl font-bold">{rotinas.length}</p>
+                <span className="text-xs text-muted-foreground">no total</span>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Oferta</TableHead>
+                    <TableHead className="text-right">Com automação</TableHead>
+                    <TableHead className="text-right">Sem automação</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {OFERTAS.map((o) => {
+                    const t = totals.byOferta[o];
+                    return (
+                      <TableRow key={o}>
+                        <TableCell className="font-medium">{o}</TableCell>
+                        <TableCell className="text-right tabular-nums text-primary font-semibold">{t.countAuto}</TableCell>
+                        <TableCell className="text-right tabular-nums">{t.countManual}</TableCell>
+                        <TableCell className="text-right tabular-nums font-semibold">{t.count}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  <TableRow className="bg-muted/40">
+                    <TableCell className="font-semibold">Total</TableCell>
+                    <TableCell className="text-right tabular-nums font-semibold text-primary">
+                      {totals.automatizadosCount}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums font-semibold">
+                      {rotinas.length - totals.automatizadosCount}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums font-bold">{rotinas.length}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="text-xs text-muted-foreground mt-2">Valores em quantidade de rotinas.</p>
             </CardContent>
           </Card>
+
+          {/* Quadro 2: Chamados de rotina (execuções mensais) */}
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground font-medium">Manuais/mês</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <PhoneCall className="h-4 w-4 text-primary" /> Chamados de rotina / mês
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Execuções mensais geradas pelas rotinas (derivadas da frequência).
+              </p>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">
-                {(totals.totalChamados - totals.automatizadosChamados).toFixed(1)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {rotinas.length - totals.automatizadosCount} rotina(s) sem automação
-              </p>
+              <div className="flex items-baseline gap-2 mb-3">
+                <p className="text-3xl font-bold">{totals.totalChamados.toFixed(1)}</p>
+                <span className="text-xs text-muted-foreground">chamados/mês</span>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Oferta</TableHead>
+                    <TableHead className="text-right">Com automação</TableHead>
+                    <TableHead className="text-right">Sem automação</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {OFERTAS.map((o) => {
+                    const t = totals.byOferta[o];
+                    return (
+                      <TableRow key={o}>
+                        <TableCell className="font-medium">{o}</TableCell>
+                        <TableCell className="text-right tabular-nums text-primary font-semibold">
+                          {t.chamadosAuto.toFixed(1)}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {t.chamadosManual.toFixed(1)}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums font-semibold">
+                          {t.chamados.toFixed(1)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  <TableRow className="bg-muted/40">
+                    <TableCell className="font-semibold">Total</TableCell>
+                    <TableCell className="text-right tabular-nums font-semibold text-primary">
+                      {totals.automatizadosChamados.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums font-semibold">
+                      {(totals.totalChamados - totals.automatizadosChamados).toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums font-bold">
+                      {totals.totalChamados.toFixed(1)}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <p className="text-xs text-muted-foreground mt-2">Valores em chamados por mês.</p>
             </CardContent>
           </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" /> Chamados de rotina por mês — por oferta
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Oferta</TableHead>
-                  <TableHead className="text-right">Rotinas</TableHead>
-                  <TableHead className="text-right">Com automação</TableHead>
-                  <TableHead className="text-right">Sem automação</TableHead>
-                  <TableHead className="text-right">Total chamados/mês</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {OFERTAS.map((o) => {
-                  const t = totals.byOferta[o];
-                  return (
-                    <TableRow key={o}>
-                      <TableCell className="font-medium">{o}</TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">
-                        {t.count}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        <span className="font-semibold text-primary">{t.chamadosAuto.toFixed(1)}</span>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        <span className="font-semibold">{t.chamadosManual.toFixed(1)}</span>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums font-semibold">
-                        {t.chamados.toFixed(1)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                <TableRow className="bg-muted/40">
-                  <TableCell className="font-semibold">Total</TableCell>
-                  <TableCell className="text-right tabular-nums font-semibold">
-                    {rotinas.length}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums font-semibold text-primary">
-                    {(totals.byOferta.Operation.chamadosAuto + totals.byOferta.Performance.chamadosAuto).toFixed(1)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums font-semibold">
-                    {(totals.byOferta.Operation.chamadosManual + totals.byOferta.Performance.chamadosManual).toFixed(1)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums font-bold">
-                    {totals.totalChamados.toFixed(1)}
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            <p className="text-xs text-muted-foreground mt-3">
-              "Rotinas" = quantidade de itens no catálogo. "Com/Sem automação" = soma das execuções mensais (chamados/mês).
-            </p>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>
