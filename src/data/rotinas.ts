@@ -162,9 +162,9 @@ export interface Rotina {
   oferta: Oferta;
   unidade: string;
   ativo: AtivoTipo;
-  /** Texto livre descrevendo o escopo da rotina (independente do inventário).
-   *  Ex.: "Por servidor", "Ambiente inteiro", "Por banco de dados". */
-  abrangencia?: string;
+  /** Escopo da rotina: "Ambiente" (aplica-se ao ambiente inteiro, 1 execução)
+   *  ou "Individual" (aplica-se a cada item do inventário vinculado). */
+  abrangencia: Abrangencia;
   automacao: boolean;
   frequencia: Frequencia;
   chamadosMes: number;
