@@ -83,10 +83,7 @@ export default function SmartTiersPanel() {
         return true;
       })
       .map((r) => {
-        const rotina =
-          r.id === "lnx-1" || r.id === "win-1" || r.id === "win-2"
-            ? { ...r, ativo: "Servidor" as const, unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" as const }
-            : r;
+        const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
         const demanda = r.chamadosMes * mult;
         const cac = r.cac * mult;
