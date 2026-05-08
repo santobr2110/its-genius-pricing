@@ -130,7 +130,8 @@ export default function SmartTiersPanel() {
         return true;
       })
       .map((r) => {
-        const mult = rotinaMultiplicador(r, inv, complexFlags);
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
         const demanda = r.chamadosMes * mult;
         const cac = r.cac * mult;
         const fatorAuto = r.automacao
