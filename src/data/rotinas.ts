@@ -100,6 +100,18 @@ export function rotinaMultiplicador(
   if (r.oferta === "Performance" && r.complexidade === "Complexo" && r.complexFlag) {
     return complex[r.complexFlag] ? 1 : 0;
   }
+  // Rotinas vinculadas a "Ambiente" só fazem sentido se houver qualquer
+  // item de inventário > 0. Caso contrário, somem da oferta.
+  if (r.ativo === "Ambiente") {
+    const total =
+      inv.qtdUsuarios +
+      inv.qtdEquipamentos +
+      inv.qtdServidores +
+      inv.qtdAtivosRede +
+      inv.qtdBancosDados +
+      inv.qtdSistemas;
+    return total > 0 ? 1 : 0;
+  }
   return inventarioMultiplicador(r.ativo, inv);
 }
 
@@ -145,6 +157,9 @@ export interface Rotina {
   oferta: Oferta;
   unidade: string;
   ativo: AtivoTipo;
+  /** Texto livre descrevendo o escopo da rotina (independente do inventário).
+   *  Ex.: "Por servidor", "Ambiente inteiro", "Por banco de dados". */
+  abrangencia?: string;
   automacao: boolean;
   frequencia: Frequencia;
   chamadosMes: number;
