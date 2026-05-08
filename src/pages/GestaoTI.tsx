@@ -31,10 +31,15 @@ import {
   FREQUENCIAS,
   FREQ_TO_CHAMADOS,
   CAC_FACTOR,
+  ATIVO_TIPOS,
+  inventarioMultiplicador,
   type Rotina,
   type Frequencia,
   type Oferta,
+  type AtivoTipo,
+  type InventarioCounts,
 } from "@/data/rotinas";
+import { useITSMContext } from "@/contexts/ITSMContext";
 import {
   GMUDS_DEFAULT,
   GMUD_TIPOS,
@@ -58,6 +63,16 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
 }
 
 export default function GestaoTI() {
+  const { state: itsm } = useITSMContext();
+  const inventario: InventarioCounts = {
+    qtdUsuarios: itsm.qtdUsuarios,
+    qtdEquipamentos: itsm.qtdEquipamentos,
+    qtdServidores: itsm.qtdServidores,
+    qtdAtivosRede: itsm.qtdAtivosRede,
+    qtdBancosDados: itsm.qtdBancosDados,
+    qtdSistemas: itsm.qtdSistemas,
+  };
+
   const [rotinas, setRotinas] = usePersistentState<Rotina[]>(
     "gestao-ti:rotinas",
     ROTINAS_DEFAULT,
