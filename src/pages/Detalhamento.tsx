@@ -43,10 +43,18 @@ export default function Detalhamento() {
     if (!el) return;
     const html2pdf = (await import("html2pdf.js")).default;
     const opt = {
-      margin: [10, 10, 10, 10] as [number, number, number, number],
+      margin: [0, 0, 0, 0] as [number, number, number, number],
       filename: `proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`,
-      image: { type: "jpeg" as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: null },
+      image: { type: "png" as const, quality: 1 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#0e1b14",
+        onclone: (doc: Document) => {
+          const printable = doc.getElementById("proposicao-printable");
+          if (printable) printable.classList.add("pdf-export-background");
+        },
+      },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" as const },
       pagebreak: { mode: ["avoid-all", "css", "legacy"] },
     };
@@ -185,7 +193,7 @@ export default function Detalhamento() {
         </div>
       </header>
 
-      <main id="proposicao-printable" className="mx-auto max-w-5xl p-6 space-y-6">
+      <main id="proposicao-printable" className="proposicao-printable mx-auto max-w-5xl p-6 space-y-6">
         <section className="text-center pt-2 pb-1">
           <div className="inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
