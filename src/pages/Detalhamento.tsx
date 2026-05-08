@@ -51,6 +51,16 @@ export default function Detalhamento() {
       onclone: (doc: Document) => {
         const printable = doc.getElementById("proposicao-printable");
         if (printable) printable.classList.add("pdf-export-background");
+        // html2canvas não suporta `background-clip: text`, então o gradiente
+        // acaba cobrindo o texto. Substituímos por cor sólida na exportação.
+        doc.querySelectorAll<HTMLElement>(".bg-clip-text.text-transparent").forEach((node) => {
+          node.style.background = "none";
+          node.style.backgroundImage = "none";
+          node.style.webkitBackgroundClip = "border-box";
+          node.style.backgroundClip = "border-box";
+          node.style.webkitTextFillColor = "";
+          node.style.color = "hsl(var(--primary))";
+        });
       },
     });
     const link = document.createElement("a");
