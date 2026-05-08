@@ -376,6 +376,7 @@ export default function GestaoTI() {
                         grupo={grupo}
                         rotinas={grupos[grupo]}
                         onUpdate={updateRotina}
+                        inventario={inventario}
                       />
                     ))}
                   </TabsContent>
