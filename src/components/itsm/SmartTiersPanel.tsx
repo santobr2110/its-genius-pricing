@@ -576,7 +576,7 @@ function PerformanceBlock({
                   {isComplex ? "Exec/mês" : "Ch/mês"}
                 </th>
                 {isComplex && <th className="text-right px-2 py-1 font-medium w-16">Horas/mês</th>}
-                <th className="text-right px-2 py-1 font-medium w-14">CAC</th>
+                {!isComplex && <th className="text-right px-2 py-1 font-medium w-14">CAC</th>}
                 <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
                 <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
               </tr>
@@ -596,7 +596,9 @@ function PerformanceBlock({
                   {isComplex && (
                     <td className="px-2 py-1 text-right tabular-nums">{i.horasMes.toFixed(1)}</td>
                   )}
-                  <td className="px-2 py-1 text-right tabular-nums">{i.cac.toFixed(2)}</td>
+                  {!isComplex && (
+                    <td className="px-2 py-1 text-right tabular-nums">{i.cac.toFixed(2)}</td>
+                  )}
                   <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
                   <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
                 </tr>
@@ -609,7 +611,9 @@ function PerformanceBlock({
                 {isComplex && (
                   <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.horasMes.toFixed(1)}</td>
                 )}
-                <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.cac.toFixed(2)}</td>
+                {!isComplex && (
+                  <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.cac.toFixed(2)}</td>
+                )}
                 <td className="px-2 py-1 text-right font-semibold tabular-nums">{formatBRL(data.totals.custo)}</td>
                 <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(data.totals.venda)}</td>
               </tr>
