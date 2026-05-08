@@ -201,7 +201,7 @@ export default function Detalhamento() {
         {/* SMART MONITOR */}
         <TierBlock active={state.tierMonitor} color="sky" icon={Activity} tierIndex={1}
           title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
-          valor={state.tierMonitor ? sm.total : 0}>
+          valor={valorMonitor}>
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
@@ -225,7 +225,7 @@ export default function Detalhamento() {
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="emerald" icon={Rocket} tierIndex={2}
           title="Smart Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
-          valor={state.tierOperation ? results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3) : 0}>
+          valor={valorOperation}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
             <Bullet color="emerald">Funil N1 ({state.percN1}%) e N2 ({state.percN2}%) reativo com SLA controlado</Bullet>
@@ -267,7 +267,7 @@ export default function Detalhamento() {
         {state.tierFieldOperation && (
           <TierBlock active={true} color="amber" icon={Wrench} tierIndex={3}
             title="Field Service" tagline="Suporte presencial onde o usuário precisa"
-            valor={fs.total}>
+            valor={valorFieldService}>
             <SubTitle>Equipe presencial alocada</SubTitle>
             <div className="grid grid-cols-3 gap-2">
               <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} sub={formatBRL(fs.custoN1F)} />
@@ -295,7 +295,7 @@ export default function Detalhamento() {
         {/* SMART PERFORMANCE */}
         <TierBlock active={state.tierPerformance} color="violet" icon={TrendingUp} tierIndex={4}
           title="Smart Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
-          valor={state.tierPerformance ? results.custoN3 : 0}>
+          valor={valorPerformance}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
             <Bullet color="violet">Rotinas preventivas avançadas executadas pelo N3</Bullet>
@@ -349,14 +349,14 @@ export default function Detalhamento() {
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Investimento Mensal Total</p>
-                <p className="mt-1 text-3xl md:text-4xl font-bold text-primary">{formatBRL(results.precoVendaMensal)}</p>
+                <p className="mt-1 text-3xl md:text-4xl font-bold text-primary">{formatBRL(investimentoTotal)}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Margem {state.margemLucro}% · Tributos {state.impostosTaxas}%
                 </p>
               </div>
               <div className="text-right text-xs space-y-1">
-                <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(results.precoVendaMensal * 12)}</strong></div>
-                {state.qtdUsuarios > 0 && <div><span className="text-muted-foreground">Por usuário/mês: </span><strong>{formatBRL(results.precoVendaMensal / state.qtdUsuarios)}</strong></div>}
+                <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(investimentoTotal * 12)}</strong></div>
+                {state.qtdUsuarios > 0 && <div><span className="text-muted-foreground">Por usuário/mês: </span><strong>{formatBRL(investimentoTotal / state.qtdUsuarios)}</strong></div>}
               </div>
             </div>
           </CardContent>
