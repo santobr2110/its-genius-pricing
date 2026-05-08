@@ -537,19 +537,32 @@ function PerformanceBlock({
   titulo,
   vazio,
   data,
+  hourRate,
+  hourRateSell,
 }: {
   titulo: string;
   vazio: string;
   data: {
-    items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; cac: number; custo: number; venda: number }[];
-    totals: { demanda: number; cac: number; custo: number; venda: number };
+    items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
+    totals: { demanda: number; horasMes: number; cac: number; custo: number; venda: number };
+    isComplex: boolean;
   };
+  hourRate?: number;
+  hourRateSell?: number;
 }) {
+  const isComplex = data.isComplex;
   return (
     <div className="rounded border bg-background p-2 space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <ListChecks className="h-3.5 w-3.5 text-violet-600" />
-        <p className="text-xs font-semibold">{titulo}</p>
+      <div className="flex items-center justify-between gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <ListChecks className="h-3.5 w-3.5 text-violet-600" />
+          <p className="text-xs font-semibold">{titulo}</p>
+        </div>
+        {isComplex && hourRateSell !== undefined && (
+          <span className="text-[10px] text-muted-foreground">
+            valor/hora N3: {formatBRL(hourRateSell)}
+          </span>
+        )}
       </div>
       {data.items.length === 0 ? (
         <p className="text-[11px] text-muted-foreground italic px-1 py-2">{vazio}</p>
@@ -559,7 +572,10 @@ function PerformanceBlock({
             <thead className="bg-muted sticky top-0">
               <tr>
                 <th className="text-left px-2 py-1 font-medium">Rotina</th>
-                <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+                <th className="text-right px-2 py-1 font-medium w-16">
+                  {isComplex ? "Exec/mês" : "Ch/mês"}
+                </th>
+                {isComplex && <th className="text-right px-2 py-1 font-medium w-16">Horas/mês</th>}
                 <th className="text-right px-2 py-1 font-medium w-14">CAC</th>
                 <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
                 <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
@@ -572,8 +588,14 @@ function PerformanceBlock({
                     <span className="text-muted-foreground">{i.grupo} · </span>
                     {i.rotina}
                     {i.automacao && <span className="ml-1 text-[9px] text-primary">[auto]</span>}
+                    {isComplex && (
+                      <span className="ml-1 text-[9px] text-muted-foreground">({i.horas}h/exec)</span>
+                    )}
                   </td>
                   <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
+                  {isComplex && (
+                    <td className="px-2 py-1 text-right tabular-nums">{i.horasMes.toFixed(1)}</td>
+                  )}
                   <td className="px-2 py-1 text-right tabular-nums">{i.cac.toFixed(2)}</td>
                   <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
                   <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
@@ -584,6 +606,9 @@ function PerformanceBlock({
               <tr>
                 <td className="px-2 py-1 font-semibold">Total</td>
                 <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.demanda.toFixed(1)}</td>
+                {isComplex && (
+                  <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.horasMes.toFixed(1)}</td>
+                )}
                 <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.cac.toFixed(2)}</td>
                 <td className="px-2 py-1 text-right font-semibold tabular-nums">{formatBRL(data.totals.custo)}</td>
                 <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(data.totals.venda)}</td>
