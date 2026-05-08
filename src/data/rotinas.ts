@@ -60,6 +60,49 @@ export interface InventarioCounts {
   qtdSistemas: number; // Firewall
 }
 
+export type ComplexFlagKey =
+  | "complexVirtualizacaoCluster"
+  | "complexBancoDadosHA"
+  | "complexFirewallHA"
+  | "complexMultiSites"
+  | "complexSiteBackup"
+  | "complexHibridoCloudOnPrem"
+  | "complexOperacao24x7"
+  | "complexErpMercado";
+
+export const COMPLEX_FLAG_LABELS: Record<ComplexFlagKey, string> = {
+  complexVirtualizacaoCluster: "Virtualização Clusterizada",
+  complexBancoDadosHA: "Banco de Dados em HA",
+  complexFirewallHA: "Firewall em HA ou WAF",
+  complexMultiSites: "Multi-sites",
+  complexSiteBackup: "Site Backup",
+  complexHibridoCloudOnPrem: "Ambiente Híbrido Cloud/On-Premises",
+  complexOperacao24x7: "Operação 24x7",
+  complexErpMercado: "ERP de Mercado",
+};
+
+export const COMPLEX_FLAG_KEYS = Object.keys(COMPLEX_FLAG_LABELS) as ComplexFlagKey[];
+
+export type ComplexFlags = Record<ComplexFlagKey, boolean>;
+
+/**
+ * Multiplicador da rotina considerando complexidade do ambiente.
+ * - Rotinas Performance "Complexo" com `complexFlag` definida: 1 quando a flag
+ *   está ativa no inventário de complexidade do cliente, 0 caso contrário.
+ *   A "execução de 1 vez" é representada por `chamadosMes * 1`.
+ * - Demais rotinas: multiplicador padrão do inventário (ativo vinculado).
+ */
+export function rotinaMultiplicador(
+  r: Rotina,
+  inv: InventarioCounts,
+  complex: ComplexFlags,
+): number {
+  if (r.oferta === "Performance" && r.complexidade === "Complexo" && r.complexFlag) {
+    return complex[r.complexFlag] ? 1 : 0;
+  }
+  return inventarioMultiplicador(r.ativo, inv);
+}
+
 export function inventarioMultiplicador(
   ativo: AtivoTipo | undefined,
   inv: InventarioCounts,
@@ -108,6 +151,9 @@ export interface Rotina {
   cac: number;
   /** Apenas relevante para oferta Performance. Default "Padrão". */
   complexidade?: Complexidade;
+  /** Apenas relevante para Performance + Complexo: vincula a rotina a uma
+   *  flag de complexidade do inventário do cliente (1 execução quando ativa). */
+  complexFlag?: ComplexFlagKey;
 }
 
 const r = (
