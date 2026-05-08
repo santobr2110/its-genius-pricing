@@ -109,6 +109,11 @@ export default function SmartTiersPanel() {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
       .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
+      .filter((r) => {
+        const isMicro = r.grupo.toLowerCase().includes("microinform");
+        if (isMicro) return state.tierFieldOperation;
+        return true;
+      })
       .map((r) => {
         const mult = rotinaMultiplicador(r, inv, complexFlags);
         const demanda = r.chamadosMes * mult;
