@@ -17,6 +17,16 @@ import {
 } from "@/data/rotinas";
 import { useMemo } from "react";
 
+// Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
+// unitárias por ambiente, independente da oferta (Operation/Performance) ou
+// complexidade (Padrão/Complexo). Gateia pelo inventário de Servidores.
+function normalizeOsRotina(r: Rotina): Rotina {
+  const grupo = r.grupo.toLowerCase();
+  const isOs = grupo.includes("sistema operacional");
+  if (!isOs) return r;
+  return { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
+}
+
 const TIERS: {
   id: keyof ITSMState;
   label: string;
@@ -83,10 +93,7 @@ export default function SmartTiersPanel() {
         return true;
       })
       .map((r) => {
-        const rotina =
-          r.id === "lnx-1" || r.id === "win-1" || r.id === "win-2"
-            ? { ...r, ativo: "Servidor" as const, unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" as const }
-            : r;
+        const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
         const demanda = r.chamadosMes * mult;
         const cac = r.cac * mult;
@@ -123,7 +130,8 @@ export default function SmartTiersPanel() {
         return true;
       })
       .map((r) => {
-        const mult = rotinaMultiplicador(r, inv, complexFlags);
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
         const demanda = r.chamadosMes * mult;
         const cac = r.cac * mult;
         const fatorAuto = r.automacao
