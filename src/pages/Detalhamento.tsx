@@ -45,6 +45,12 @@ export default function Detalhamento() {
   const pctLivre = Math.max(0, 100 - corteOwner);
   const horasTotaisN3 = state.horasN3Mensais || 0;
 
+  // Fator de venda (markup divisor + impostos) — converte custo em preço de venda
+  const fatorMargem = (100 - state.margemLucro) / 100;
+  const fatorImposto = (100 - state.impostosTaxas) / 100;
+  const fatorVenda = (fatorMargem > 0 && fatorImposto > 0) ? 1 / (fatorMargem * fatorImposto) : 1;
+  const valorHoraN3Venda = state.valorHoraN3 * fatorVenda;
+
   const inv = {
     qtdUsuarios: state.qtdUsuarios, qtdEquipamentos: state.qtdEquipamentos,
     qtdServidores: state.qtdServidores, qtdAtivosRede: state.qtdAtivosRede,
@@ -173,7 +179,7 @@ export default function Detalhamento() {
               previstas={horasPrev}
               chamadosN3={results.volumeN3}
               tempoMedio={state.tempoMedioChamadoN3}
-              valorHora={state.valorHoraN3}
+              valorHora={valorHoraN3Venda}
               modo="operation"
             />
           )}
@@ -235,7 +241,7 @@ export default function Detalhamento() {
               previstas={horasPrev}
               chamadosN3={results.volumeN3}
               tempoMedio={state.tempoMedioChamadoN3}
-              valorHora={state.valorHoraN3}
+              valorHora={valorHoraN3Venda}
               modo="performance"
               distribuicao={{ tam: pctTam, owner: pctOwner, livre: pctLivre }}
             />
