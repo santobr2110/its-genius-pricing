@@ -10,7 +10,6 @@ import type { ITSMState } from "@/hooks/useITSMCalculator";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import {
   ROTINAS_DEFAULT,
-  inventarioMultiplicador,
   rotinaMultiplicador,
   COMPLEX_FLAG_KEYS,
   type ComplexFlags,
@@ -84,7 +83,11 @@ export default function SmartTiersPanel() {
         return true;
       })
       .map((r) => {
-        const mult = inventarioMultiplicador(r.ativo, inv);
+        const rotina =
+          r.id === "lnx-1" || r.id === "win-1" || r.id === "win-2"
+            ? { ...r, ativo: "Servidor" as const, unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" as const }
+            : r;
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
         const demanda = r.chamadosMes * mult;
         const cac = r.cac * mult;
         const fatorAuto = r.automacao
