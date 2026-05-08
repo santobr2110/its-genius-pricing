@@ -63,7 +63,7 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
 }
 
 export default function GestaoTI() {
-  const { state: itsm } = useITSMContext();
+  const { state: itsm, update: updateItsm } = useITSMContext();
   const inventario: InventarioCounts = {
     qtdUsuarios: itsm.qtdUsuarios,
     qtdEquipamentos: itsm.qtdEquipamentos,
@@ -237,6 +237,36 @@ export default function GestaoTI() {
           </TabsList>
 
           <TabsContent value="rotinas" className="space-y-6 mt-0">
+        <Card>
+          <CardContent className="py-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex-1 min-w-[260px]">
+                <p className="text-sm font-semibold">% do custo aplicado em rotinas automatizadas</p>
+                <p className="text-xs text-muted-foreground">
+                  Rotinas com automação ligada pagam apenas esta fração do custo médio por chamado.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={itsm.percCustoRotinaAutomatizada}
+                  onChange={(e) =>
+                    updateItsm(
+                      "percCustoRotinaAutomatizada",
+                      Math.max(0, Math.min(100, parseInt(e.target.value) || 0)),
+                    )
+                  }
+                  className="h-9 w-24 text-right"
+                />
+                <span className="text-sm font-semibold">%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Quadro 1: Rotinas (catálogo) */}
           <Card>
