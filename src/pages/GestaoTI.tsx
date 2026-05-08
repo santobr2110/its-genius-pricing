@@ -4,8 +4,7 @@ import { ServerCog, RotateCcw, Sparkles } from "lucide-react";
 import BackHomeButton from "@/components/BackHomeButton";
 import SortableNav from "@/components/SortableNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info, ListChecks, PhoneCall } from "lucide-react";
+import { ListChecks, PhoneCall } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -126,19 +125,6 @@ export default function GestaoTI() {
       </header>
 
       <main className="mx-auto max-w-[1400px] p-6 space-y-6">
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle className="text-sm">Rotinas × Chamados de rotina</AlertTitle>
-          <AlertDescription className="text-xs leading-relaxed">
-            <span className="font-semibold text-foreground">Rotina</span> é uma atividade recorrente do
-            catálogo (ex.: <em>Health Check de Backup</em>) — cada item da tabela abaixo é uma rotina.
-            <br />
-            <span className="font-semibold text-foreground">Chamado de rotina/mês</span> é a quantidade de
-            execuções (tickets) que essa rotina gera por mês, derivada da frequência (Semanal = 4, Quinzenal
-            = 2, Mensal = 1, Bimestral = 0,5, Trimestral = 0,3, Semestral = 0,2, Anual = 0,1).
-          </AlertDescription>
-        </Alert>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Quadro 1: Rotinas (catálogo) */}
           <Card>
