@@ -381,8 +381,8 @@ export default function SmartTiersPanel() {
                   </table>
                 </div>
                 <p className="text-[10px] text-muted-foreground">
-                  Venda calculada com custo médio por chamado ponderado pelo funil
-                  (N1 {state.percN1}% · N2 {state.percN2}% · N3 {state.percN3}%) e divisor de markup/impostos.
+                  Venda calculada com custo médio por chamado ponderado pela escala de rotinas
+                  (N1 {state.percRotinaN1}% · N2 {state.percRotinaN2}% · N3 {state.percRotinaN3}%) e divisor de markup/impostos.
                 </p>
               </div>
             )}
