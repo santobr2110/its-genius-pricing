@@ -1173,6 +1173,19 @@ function NovaRotinaDialog({
           </div>
 
           <div className="space-y-1">
+            <Label className="text-xs">Abrangência</Label>
+            <Input
+              value={abrangencia}
+              onChange={(e) => setAbrangencia(e.target.value)}
+              placeholder="Escopo da rotina (ex: Por servidor, Ambiente inteiro)"
+              className="h-9 text-sm"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Texto livre — descreve o escopo. Independente do vínculo de inventário.
+            </p>
+          </div>
+
+          <div className="space-y-1">
             <Label className="text-xs">{isComplexo ? "Item de complexidade vinculado" : "Ativo vinculado"}</Label>
             {isComplexo ? (
               <Select value={complexFlag} onValueChange={(v: ComplexFlagKey) => setComplexFlag(v)}>
