@@ -114,12 +114,8 @@ export default function SmartTiersPanel() {
   const rotinasOperation = useMemo(() => {
     const items = rotinas
       .filter((r) => r.oferta === "Operation")
-      .filter((r) => {
-        // Rotinas de Microinformática só entram quando Field Service está ativo
-        const isMicro = r.grupo.toLowerCase().includes("microinform");
-        if (isMicro) return state.tierFieldOperation;
-        return true;
-      })
+      // Rotinas de Microinformática são exibidas dentro do bloco Field Service
+      .filter((r) => !r.grupo.toLowerCase().includes("microinform"))
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -130,8 +126,7 @@ export default function SmartTiersPanel() {
           : 1;
         const custo = demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        const isField = r.grupo.toLowerCase().includes("microinform");
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, isField, demanda, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -153,11 +148,7 @@ export default function SmartTiersPanel() {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
       .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
-      .filter((r) => {
-        const isMicro = r.grupo.toLowerCase().includes("microinform");
-        if (isMicro) return state.tierFieldOperation;
-        return true;
-      })
+      .filter((r) => !r.grupo.toLowerCase().includes("microinform"))
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -172,8 +163,7 @@ export default function SmartTiersPanel() {
           ? horasMes * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        const isField = r.grupo.toLowerCase().includes("microinform");
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, isField, demanda, horas, horasMes, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horas, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -202,13 +192,59 @@ export default function SmartTiersPanel() {
     [rotinas, state, results, fatorVenda],
   );
 
+  // Rotinas de Field Service (Microinformática) — agregam Operation + Performance
+  // num único bloco exibido dentro da composição de Field Service.
+  const rotinasField = useMemo(() => {
+    if (!state.tierFieldOperation) {
+      return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
+    }
+    const items = rotinas
+      .filter((r) => r.grupo.toLowerCase().includes("microinform"))
+      .map((r) => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const cac = r.cac * mult;
+        const fatorAuto = r.automacao
+          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
+          : 1;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const venda = toSell(custo);
+        return {
+          id: r.id,
+          grupo: r.grupo,
+          rotina: r.rotina,
+          oferta: r.oferta,
+          automacao: r.automacao,
+          demanda,
+          cac,
+          custo,
+          venda,
+        };
+      })
+      .filter((i) => i.demanda > 0)
+      .sort((a, b) => b.venda - a.venda);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.cac += i.cac;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, cac: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotinas, state, results, fatorVenda]);
+
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
   const smN3Venda = toSell(sm.custoN3);
   const smTotalVenda = toSell(sm.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
-  const fsVenda = fs.active ? toSell(fs.total) : 0;
+  const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
   const smOperationVenda = state.tierOperation
     ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + rotinasOperation.totals.venda + fsVenda
     : 0;
@@ -390,9 +426,6 @@ export default function SmartTiersPanel() {
                             {i.automacao && (
                               <span className="ml-1 text-[9px] text-primary">[auto]</span>
                             )}
-                            {i.isField && (
-                              <span className="ml-1 inline-flex items-center rounded bg-orange-500/15 px-1 text-[9px] font-semibold text-orange-700 dark:text-orange-300">Field</span>
-                            )}
                           </td>
                           <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
                           <td className="px-2 py-1 text-right tabular-nums">{i.cac.toFixed(2)}</td>
@@ -539,6 +572,62 @@ export default function SmartTiersPanel() {
                           </span>
                           <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN2F))}</span>
                         </div>
+                      </div>
+                    </div>
+                  )}
+                  {rotinasField.items.length > 0 && (
+                    <div className="rounded border bg-background p-2 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <ListChecks className="h-3.5 w-3.5 text-orange-600" />
+                          <p className="text-xs font-semibold">Rotinas Field (Microinformática)</p>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">
+                          custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
+                        </span>
+                      </div>
+                      <div className="max-h-56 overflow-auto rounded border">
+                        <table className="w-full text-[11px]">
+                          <thead className="bg-muted sticky top-0">
+                            <tr>
+                              <th className="text-left px-2 py-1 font-medium">Rotina</th>
+                              <th className="text-left px-2 py-1 font-medium w-20">Oferta</th>
+                              <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+                              <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
+                              <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rotinasField.items.map((i) => (
+                              <tr key={i.id} className="border-t">
+                                <td className="px-2 py-1">
+                                  {i.rotina}
+                                  {i.automacao && (
+                                    <span className="ml-1 text-[9px] text-primary">[auto]</span>
+                                  )}
+                                </td>
+                                <td className="px-2 py-1 text-[10px] text-muted-foreground">{i.oferta}</td>
+                                <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
+                                <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
+                                <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot className="bg-muted sticky bottom-0">
+                            <tr>
+                              <td className="px-2 py-1 font-semibold" colSpan={2}>Total</td>
+                              <td className="px-2 py-1 text-right font-semibold tabular-nums">
+                                {rotinasField.totals.demanda.toFixed(1)}
+                              </td>
+                              <td className="px-2 py-1 text-right font-semibold tabular-nums">
+                                {formatBRL(rotinasField.totals.custo)}
+                              </td>
+                              <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">
+                                {formatBRL(rotinasField.totals.venda)}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
                       </div>
                     </div>
                   )}
@@ -696,7 +785,7 @@ function PerformanceBlock({
   titulo: string;
   vazio: string;
   data: {
-    items: { id: string; grupo: string; rotina: string; automacao: boolean; isField?: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
+    items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
     totals: { demanda: number; horasMes: number; cac: number; custo: number; venda: number };
     isComplex: boolean;
   };
@@ -741,9 +830,6 @@ function PerformanceBlock({
                     <span className="text-muted-foreground">{i.grupo} · </span>
                     {i.rotina}
                     {i.automacao && <span className="ml-1 text-[9px] text-primary">[auto]</span>}
-                    {i.isField && (
-                      <span className="ml-1 inline-flex items-center rounded bg-orange-500/15 px-1 text-[9px] font-semibold text-orange-700 dark:text-orange-300">Field</span>
-                    )}
                     {isComplex && (
                       <span className="ml-1 text-[9px] text-muted-foreground">({i.horas}h/exec)</span>
                     )}
