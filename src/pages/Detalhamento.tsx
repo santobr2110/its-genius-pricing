@@ -88,11 +88,8 @@ export default function Detalhamento() {
     rotinas
       .filter(r => r.oferta === oferta)
       .filter(r => oferta === "Performance" ? (r.complexidade ?? "Padrão") === complexidade : true)
-      .filter(r => {
-        const isMicro = r.grupo.toLowerCase().includes("microinform");
-        if (isMicro) return state.tierFieldOperation;
-        return true;
-      })
+      // Microinformática é exibida no bloco Field Service
+      .filter(r => !r.grupo.toLowerCase().includes("microinform"))
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -103,6 +100,20 @@ export default function Detalhamento() {
   const rotinasOp = useMemo(() => filterRoutines("Operation"), [rotinas, state]);
   const rotinasPerfPadrao = useMemo(() => filterRoutines("Performance", "Padrão"), [rotinas, state]);
   const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [rotinas, state]);
+
+  const rotinasField = useMemo(() => {
+    if (!state.tierFieldOperation) return [];
+    return rotinas
+      .filter(r => r.grupo.toLowerCase().includes("microinform"))
+      .filter(r => (r.oferta === "Performance" ? state.tierPerformance : true))
+      .map(r => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, oferta: r.oferta, demanda: r.chamadosMes * mult, mult };
+      })
+      .filter(i => i.demanda > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotinas, state]);
 
   const horasAtendN3 = results.horasAtendimentoN3;
   const horasPrev = Math.max(0, horasTotaisN3 - horasAtendN3);
@@ -224,6 +235,12 @@ export default function Detalhamento() {
               <div className="mt-3 rounded-lg border border-amber-300 bg-amber-100/40 dark:bg-amber-900/20 p-3 text-xs">
                 <strong>Transbordo ativo:</strong> {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial e são tratados via N1 remoto + N2F.
               </div>
+            )}
+            {rotinasField.length > 0 && (
+              <>
+                <SubTitle className="mt-4">Rotinas Field — Microinformática ({rotinasField.length})</SubTitle>
+                <RoutineList items={rotinasField} accent="amber" />
+              </>
             )}
           </TierBlock>
         )}
