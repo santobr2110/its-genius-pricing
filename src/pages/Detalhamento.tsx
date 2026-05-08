@@ -203,9 +203,9 @@ export default function Detalhamento() {
             <h1 className="text-sm font-bold text-foreground truncate">Proposição</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={handleExportImage} className="gap-1.5">
+            <Button size="sm" variant="outline" onClick={handleExportPDF} className="gap-1.5">
               <FileDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Exportar Imagem</span>
+              <span className="hidden sm:inline">Exportar PDF</span>
             </Button>
             <SaveDefaultsButton />
             <SortableNav current="detalhamento" />
