@@ -30,6 +30,7 @@ const Index = () => {
         <ResizablePanelGroup
           direction="horizontal"
           className="items-start gap-0 min-h-[600px]"
+          style={{ height: "auto", overflow: "visible" }}
         >
           <ResizablePanel
             defaultSize={32}
