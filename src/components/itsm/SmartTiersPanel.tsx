@@ -591,37 +591,51 @@ export default function SmartTiersPanel() {
               />
 
               {/* Distribuição das horas N3 entre TAM / Owner / Livre */}
-              <div className="pt-1 space-y-1">
+              <div className="pt-2 space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-[11px] text-muted-foreground">
+                  <Label className="text-[11px] text-muted-foreground font-semibold">
                     Distribuição das horas N3
                   </Label>
-                  <span className="text-[10px] text-muted-foreground">
-                    arraste os marcadores
+                  <span className="text-[10px] text-muted-foreground italic">
+                    arraste os marcadores 🟢 TAM · 🔵 Owner
                   </span>
                 </div>
-                <SliderPrimitive.Root
-                  value={[corteTam, corteOwner]}
-                  onValueChange={(vs) => {
-                    if (vs.length < 2) return;
-                    setN3Cortes([vs[0], vs[1]]);
-                  }}
-                  min={0}
-                  max={100}
-                  step={1}
-                  minStepsBetweenThumbs={1}
-                  className="relative flex w-full touch-none select-none items-center"
-                >
-                  <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
-                    <SliderPrimitive.Range className="absolute h-full bg-primary" />
-                  </SliderPrimitive.Track>
-                  <SliderPrimitive.Thumb
-                    className="block h-5 w-5 rounded-full border-2 border-emerald-500 bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-                  />
-                  <SliderPrimitive.Thumb
-                    className="block h-5 w-5 rounded-full border-2 border-sky-500 bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-                  />
-                </SliderPrimitive.Root>
+                <div className="relative pt-3 pb-1">
+                  {/* Track segmentado colorido (atrás do slider) */}
+                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex h-3 rounded-full overflow-hidden border bg-muted pointer-events-none">
+                    <div className="bg-gradient-to-r from-emerald-400 to-emerald-500" style={{ width: `${pctTam}%` }} />
+                    <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctOwner}%` }} />
+                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${pctLivre}%` }} />
+                  </div>
+                  <SliderPrimitive.Root
+                    value={[corteTam, corteOwner]}
+                    onValueChange={(vs) => {
+                      if (vs.length < 2) return;
+                      const a = Math.max(0, Math.min(100, vs[0]));
+                      const b = Math.max(0, Math.min(100, vs[1]));
+                      const lo = Math.min(a, b);
+                      const hi = Math.max(a, b);
+                      setN3Cortes([lo, hi]);
+                    }}
+                    min={0}
+                    max={100}
+                    step={1}
+                    minStepsBetweenThumbs={5}
+                    className="relative flex w-full touch-none select-none items-center h-6"
+                  >
+                    <SliderPrimitive.Track className="relative h-3 w-full grow overflow-hidden rounded-full bg-transparent">
+                      <SliderPrimitive.Range className="absolute h-full bg-transparent" />
+                    </SliderPrimitive.Track>
+                    <SliderPrimitive.Thumb
+                      aria-label="Limite TAM"
+                      className="block h-6 w-6 rounded-full border-[3px] border-emerald-600 bg-white shadow-lg ring-offset-background transition-transform hover:scale-110 active:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 cursor-grab active:cursor-grabbing"
+                    />
+                    <SliderPrimitive.Thumb
+                      aria-label="Limite Owner"
+                      className="block h-6 w-6 rounded-full border-[3px] border-sky-600 bg-white shadow-lg ring-offset-background transition-transform hover:scale-110 active:scale-125 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 cursor-grab active:cursor-grabbing"
+                    />
+                  </SliderPrimitive.Root>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 text-[11px]">
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">Chamados · {pctChamadosN3.toFixed(0)}%</div>
