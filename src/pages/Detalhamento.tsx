@@ -5,9 +5,9 @@ import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  ClipboardList, Activity, Zap, Gauge, MapPin, Crown,
+  ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
-  Database, Shield,
+  Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -24,12 +24,12 @@ function normalizeOsRotina(r: Rotina): Rotina {
   return { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
 }
 
-const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon: string; bar: string; badge: string; check: string }> = {
-  sky:     { ring: "border-sky-300 dark:border-sky-700",      bg: "from-sky-50 via-card to-sky-50/40 dark:from-sky-950/40 dark:via-card dark:to-sky-950/20",          chip: "bg-sky-500/15 text-sky-700 dark:text-sky-300",         icon: "bg-gradient-to-br from-sky-400 to-sky-600 text-white",        bar: "from-sky-400 to-sky-600",        badge: "bg-sky-500",     check: "text-sky-600" },
-  emerald: { ring: "border-emerald-300 dark:border-emerald-700", bg: "from-emerald-50 via-card to-emerald-50/40 dark:from-emerald-950/40 dark:via-card dark:to-emerald-950/20", chip: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300", icon: "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white", bar: "from-emerald-400 to-emerald-600", badge: "bg-emerald-500", check: "text-emerald-600" },
-  amber:   { ring: "border-amber-300 dark:border-amber-700",  bg: "from-amber-50 via-card to-amber-50/40 dark:from-amber-950/40 dark:via-card dark:to-amber-950/20",  chip: "bg-amber-500/15 text-amber-700 dark:text-amber-300",   icon: "bg-gradient-to-br from-amber-400 to-orange-500 text-white",  bar: "from-amber-400 to-orange-500",   badge: "bg-amber-500",   check: "text-amber-600" },
-  violet:  { ring: "border-violet-300 dark:border-violet-700", bg: "from-violet-50 via-card to-fuchsia-50/40 dark:from-violet-950/40 dark:via-card dark:to-fuchsia-950/20", chip: "bg-violet-500/15 text-violet-700 dark:text-violet-300", icon: "bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white", bar: "from-violet-500 to-fuchsia-600", badge: "bg-violet-500",  check: "text-violet-600" },
-  rose:    { ring: "border-rose-300 dark:border-rose-700",    bg: "from-rose-50 via-card to-rose-50/40 dark:from-rose-950/40 dark:via-card dark:to-rose-950/20",    chip: "bg-rose-500/15 text-rose-700 dark:text-rose-300",      icon: "bg-gradient-to-br from-rose-400 to-pink-600 text-white",     bar: "from-rose-400 to-pink-600",      badge: "bg-rose-500",    check: "text-rose-600" },
+const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon: string; bar: string; badge: string; check: string; glow: string; valueGrad: string; blob1: string; blob2: string }> = {
+  sky:     { ring: "border-sky-300/70 dark:border-sky-600/60",      bg: "from-sky-100/80 via-card to-cyan-50/40 dark:from-sky-950/50 dark:via-card dark:to-cyan-950/20",          chip: "bg-gradient-to-r from-sky-500/20 to-cyan-500/20 text-sky-700 dark:text-sky-300",         icon: "bg-gradient-to-br from-sky-400 via-sky-500 to-cyan-600 text-white",        bar: "from-sky-400 via-cyan-400 to-sky-600",        badge: "bg-gradient-to-r from-sky-500 to-cyan-500",     check: "text-sky-600 dark:text-sky-400", glow: "shadow-sky-500/30", valueGrad: "from-sky-600 to-cyan-600 dark:from-sky-300 dark:to-cyan-300", blob1: "bg-sky-400/30", blob2: "bg-cyan-400/20" },
+  emerald: { ring: "border-emerald-300/70 dark:border-emerald-600/60", bg: "from-emerald-100/80 via-card to-teal-50/40 dark:from-emerald-950/50 dark:via-card dark:to-teal-950/20", chip: "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-700 dark:text-emerald-300", icon: "bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 text-white", bar: "from-emerald-400 via-teal-400 to-emerald-600", badge: "bg-gradient-to-r from-emerald-500 to-teal-500", check: "text-emerald-600 dark:text-emerald-400", glow: "shadow-emerald-500/30", valueGrad: "from-emerald-600 to-teal-600 dark:from-emerald-300 dark:to-teal-300", blob1: "bg-emerald-400/30", blob2: "bg-teal-400/20" },
+  amber:   { ring: "border-amber-300/70 dark:border-amber-600/60",  bg: "from-amber-100/80 via-card to-orange-50/40 dark:from-amber-950/50 dark:via-card dark:to-orange-950/20",  chip: "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-300",   icon: "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white",  bar: "from-amber-400 via-orange-400 to-rose-500",   badge: "bg-gradient-to-r from-amber-500 to-orange-500",   check: "text-amber-600 dark:text-amber-400", glow: "shadow-amber-500/30", valueGrad: "from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300", blob1: "bg-amber-400/30", blob2: "bg-orange-400/20" },
+  violet:  { ring: "border-violet-300/70 dark:border-violet-600/60", bg: "from-violet-100/80 via-card to-fuchsia-50/40 dark:from-violet-950/50 dark:via-card dark:to-fuchsia-950/20", chip: "bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-violet-700 dark:text-violet-300", icon: "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white", bar: "from-violet-500 via-purple-500 to-fuchsia-600", badge: "bg-gradient-to-r from-violet-500 to-fuchsia-500",  check: "text-violet-600 dark:text-violet-400", glow: "shadow-violet-500/30", valueGrad: "from-violet-600 to-fuchsia-600 dark:from-violet-300 dark:to-fuchsia-300", blob1: "bg-violet-400/30", blob2: "bg-fuchsia-400/20" },
+  rose:    { ring: "border-rose-300/70 dark:border-rose-600/60",    bg: "from-rose-100/80 via-card to-pink-50/40 dark:from-rose-950/50 dark:via-card dark:to-pink-950/20",    chip: "bg-gradient-to-r from-rose-500/20 to-pink-500/20 text-rose-700 dark:text-rose-300",      icon: "bg-gradient-to-br from-rose-400 via-pink-500 to-fuchsia-600 text-white",     bar: "from-rose-400 via-pink-500 to-fuchsia-500",      badge: "bg-gradient-to-r from-rose-500 to-pink-500",    check: "text-rose-600 dark:text-rose-400", glow: "shadow-rose-500/30", valueGrad: "from-rose-600 to-pink-600 dark:from-rose-300 dark:to-pink-300", blob1: "bg-rose-400/30", blob2: "bg-pink-400/20" },
 };
 
 export default function Detalhamento() {
@@ -115,7 +115,7 @@ export default function Detalhamento() {
         </section>
 
         {/* SMART MONITOR */}
-        <TierBlock active={state.tierMonitor} color="sky" icon={Activity}
+        <TierBlock active={state.tierMonitor} color="sky" icon={Activity} tierIndex={1}
           title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
           valor={state.tierMonitor ? sm.total : 0}>
           <SubTitle>Componentes monitorados</SubTitle>
@@ -139,7 +139,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART OPERATION */}
-        <TierBlock active={state.tierOperation} color="emerald" icon={Zap}
+        <TierBlock active={state.tierOperation} color="emerald" icon={Rocket} tierIndex={2}
           title="Smart Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
           valor={state.tierOperation ? results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3) : 0}>
           <SubTitle>O que está incluído</SubTitle>
@@ -181,7 +181,7 @@ export default function Detalhamento() {
 
         {/* FIELD SERVICE */}
         {state.tierFieldOperation && (
-          <TierBlock active={true} color="amber" icon={MapPin}
+          <TierBlock active={true} color="amber" icon={Wrench} tierIndex={3}
             title="Field Service" tagline="Suporte presencial onde o usuário precisa"
             valor={fs.total}>
             <SubTitle>Equipe presencial alocada</SubTitle>
@@ -203,7 +203,7 @@ export default function Detalhamento() {
         )}
 
         {/* SMART PERFORMANCE */}
-        <TierBlock active={state.tierPerformance} color="violet" icon={Gauge}
+        <TierBlock active={state.tierPerformance} color="violet" icon={TrendingUp} tierIndex={4}
           title="Smart Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
           valor={state.tierPerformance ? results.custoN3 : 0}>
           <SubTitle>O que está incluído</SubTitle>
@@ -243,7 +243,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART ENTERPRISE */}
-        <TierBlock active={state.tierEnterprise} color="rose" icon={Crown}
+        <TierBlock active={state.tierEnterprise} color="rose" icon={Crown} tierIndex={5}
           title="Smart Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
@@ -279,19 +279,20 @@ export default function Detalhamento() {
 /* ===== Subcomponents ===== */
 
 function TierBlock({
-  active, color, icon: Icon, title, tagline, valor, children,
+  active, color, icon: Icon, title, tagline, valor, children, tierIndex,
 }: {
   active: boolean; color: string; icon: React.ElementType;
-  title: string; tagline: string; valor: number; children?: React.ReactNode;
+  title: string; tagline: string; valor: number;
+  tierIndex?: number; children?: React.ReactNode;
 }) {
   const theme = TIER_THEMES[color] ?? TIER_THEMES.emerald;
   if (!active) {
     return (
-      <div className="relative rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/10 p-5 opacity-60">
-        <div className="flex items-start gap-3">
-          <div className="rounded-xl p-3 bg-muted text-muted-foreground"><Icon className="h-5 w-5" /></div>
+      <div className="relative rounded-3xl border-2 border-dashed border-muted-foreground/25 bg-muted/10 p-5 opacity-60">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl p-3 bg-muted text-muted-foreground"><Icon className="h-5 w-5" /></div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-bold text-muted-foreground">{title}</p>
               <Badge variant="secondary" className="text-[9px]"><Circle className="h-2.5 w-2.5 mr-1" />Não incluso</Badge>
             </div>
@@ -302,24 +303,36 @@ function TierBlock({
     );
   }
   return (
-    <div className={`relative overflow-hidden rounded-2xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-md`}>
-      <div className={`h-1.5 w-full bg-gradient-to-r ${theme.bar}`} />
-      <span className={`absolute top-1.5 right-0 ${theme.badge} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-3 py-1 rounded-bl-xl`}>
-        Incluído
-      </span>
-      <div className="p-5 space-y-3">
-        <div className="flex items-start gap-3">
-          <div className={`rounded-xl p-3 shadow-lg ${theme.icon}`}>
-            <Icon className="h-5 w-5" />
+    <div className={`group relative overflow-hidden rounded-3xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-xl ${theme.glow} transition-all hover:shadow-2xl`}>
+      {/* Decorative blobs */}
+      <div className={`pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full blur-3xl ${theme.blob1}`} />
+      <div className={`pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full blur-3xl ${theme.blob2}`} />
+      <div className={`h-2 w-full bg-gradient-to-r ${theme.bar}`} />
+
+      <div className="relative p-6 space-y-4">
+        {/* Header row: icon + title + badge + value, all in one flex line — no absolute overlap */}
+        <div className="flex items-start gap-4 flex-wrap">
+          <div className={`relative rounded-2xl p-3.5 shadow-lg ${theme.icon} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+            <Icon className="h-6 w-6" strokeWidth={2.25} />
+            {tierIndex && (
+              <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-background border-2 border-current text-[10px] font-extrabold flex items-center justify-center text-foreground">
+                {tierIndex}
+              </span>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-lg font-extrabold tracking-tight">{title}</p>
-            <p className={`text-[11px] font-medium italic inline-block px-2 py-0.5 rounded-full ${theme.chip}`}>{tagline}</p>
+          <div className="flex-1 min-w-[180px]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-xl font-extrabold tracking-tight">{title}</h3>
+              <span className={`inline-flex items-center gap-1 ${theme.badge} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full shadow-md`}>
+                <Sparkles className="h-3 w-3" /> Incluído
+              </span>
+            </div>
+            <p className={`text-[11px] font-semibold mt-1.5 inline-block px-2.5 py-1 rounded-full ${theme.chip}`}>{tagline}</p>
           </div>
           {valor > 0 && (
-            <div className="text-right">
-              <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Custo mensal</p>
-              <p className="text-base font-bold">{formatBRL(valor)}</p>
+            <div className="text-right shrink-0">
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Custo mensal</p>
+              <p className={`text-xl font-extrabold bg-gradient-to-r ${theme.valueGrad} bg-clip-text text-transparent tabular-nums`}>{formatBRL(valor)}</p>
             </div>
           )}
         </div>
@@ -330,14 +343,22 @@ function TierBlock({
 }
 
 function SubTitle({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <p className={`text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground ${className}`}>{children}</p>;
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <Star className="h-3 w-3 text-primary fill-primary/30" />
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/70">{children}</p>
+      <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+    </div>
+  );
 }
 
 function Bullet({ children, color }: { children: React.ReactNode; color: string }) {
   const theme = TIER_THEMES[color];
   return (
-    <li className="flex items-start gap-2 text-[12.5px] leading-snug">
-      <CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${theme?.check ?? "text-primary"}`} />
+    <li className="flex items-start gap-2.5 text-[13px] leading-relaxed group/b">
+      <div className={`mt-0.5 shrink-0 rounded-full p-0.5 bg-background/80 shadow-sm transition-transform group-hover/b:scale-110`}>
+        <CheckCircle2 className={`h-4 w-4 ${theme?.check ?? "text-primary"}`} strokeWidth={2.5} />
+      </div>
       <span className="text-foreground/90">{children}</span>
     </li>
   );
@@ -345,10 +366,10 @@ function Bullet({ children, color }: { children: React.ReactNode; color: string 
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-lg border bg-background/70 px-3 py-2">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="text-sm font-bold mt-0.5">{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
+    <div className="rounded-xl border bg-background/80 backdrop-blur-sm px-3 py-2.5 transition-all hover:shadow-md hover:-translate-y-0.5">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
+      <p className="text-sm font-extrabold mt-0.5 tabular-nums">{value}</p>
+      {sub && <p className="text-[10px] text-muted-foreground tabular-nums">{sub}</p>}
     </div>
   );
 }
@@ -356,12 +377,14 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 function Comp({ icon: Icon, label, qtd, ativo }: { icon: React.ElementType; label: string; qtd: number; ativo: boolean }) {
   const enabled = qtd > 0 && ativo;
   return (
-    <li className={`flex items-center justify-between rounded-lg border bg-background/70 px-3 py-2 ${!enabled ? "opacity-50" : ""}`}>
-      <span className="flex items-center gap-2 text-[12px]">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+    <li className={`flex items-center justify-between rounded-xl border bg-background/80 backdrop-blur-sm px-3 py-2.5 transition-all hover:shadow-md hover:-translate-y-0.5 ${!enabled ? "opacity-50" : ""}`}>
+      <span className="flex items-center gap-2.5 text-[12.5px] font-medium">
+        <span className="rounded-lg p-1.5 bg-gradient-to-br from-sky-500/15 to-cyan-500/15 text-sky-600 dark:text-sky-300">
+          <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+        </span>
         {label}
       </span>
-      <span className="text-sm font-bold tabular-nums">{formatNumber(qtd)}</span>
+      <span className="text-sm font-extrabold tabular-nums">{formatNumber(qtd)}</span>
     </li>
   );
 }
@@ -374,24 +397,24 @@ function RoutineList({
 }) {
   const theme = TIER_THEMES[accent];
   return (
-    <div className="rounded-lg border bg-background/70 overflow-hidden">
+    <div className="rounded-xl border bg-background/80 backdrop-blur-sm overflow-hidden shadow-sm">
       <table className="w-full text-[11.5px]">
-        <thead className="bg-muted/60">
+        <thead className={`bg-gradient-to-r ${theme?.bar ?? "from-primary to-primary"} text-white`}>
           <tr>
-            <th className="text-left px-3 py-1.5 font-semibold">Rotina</th>
-            <th className="text-left px-3 py-1.5 font-semibold w-28">Frequência</th>
-            <th className="text-right px-3 py-1.5 font-semibold w-24">{complexo ? "Exec/mês" : "Ch/mês"}</th>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px]">Rotina</th>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-28">Frequência</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">{complexo ? "Exec/mês" : "Ch/mês"}</th>
           </tr>
         </thead>
         <tbody>
-          {items.map((i) => (
-            <tr key={i.id} className="border-t">
-              <td className="px-3 py-1.5">
-                <ListChecks className={`inline h-3 w-3 mr-1 ${theme?.check ?? "text-primary"}`} />
-                <span className="text-muted-foreground">{i.grupo} · </span>{i.rotina}
+          {items.map((i, idx) => (
+            <tr key={i.id} className={`border-t ${idx % 2 ? "bg-muted/30" : ""} hover:bg-muted/50 transition-colors`}>
+              <td className="px-3 py-2">
+                <ListChecks className={`inline h-3.5 w-3.5 mr-1.5 ${theme?.check ?? "text-primary"}`} strokeWidth={2.5} />
+                <span className="text-muted-foreground">{i.grupo} · </span><span className="font-medium">{i.rotina}</span>
               </td>
-              <td className="px-3 py-1.5 text-muted-foreground">{i.freq}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums font-semibold">{i.demanda.toFixed(1)}</td>
+              <td className="px-3 py-2 text-muted-foreground">{i.freq}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-extrabold">{i.demanda.toFixed(1)}</td>
             </tr>
           ))}
         </tbody>
