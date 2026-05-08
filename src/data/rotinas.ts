@@ -59,7 +59,7 @@ export interface InventarioCounts {
 }
 
 export function inventarioMultiplicador(
-  ativo: AtivoTipo,
+  ativo: AtivoTipo | undefined,
   inv: InventarioCounts,
 ): number {
   switch (ativo) {
@@ -77,6 +77,8 @@ export function inventarioMultiplicador(
       return inv.qtdEquipamentos;
     case "Usuário":
       return inv.qtdUsuarios;
+    default:
+      return 1;
   }
 }
 
