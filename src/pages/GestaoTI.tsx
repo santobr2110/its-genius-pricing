@@ -711,6 +711,7 @@ function RotinaGroupTable({
   grupo,
   rotinas,
   onUpdate,
+  onRemove,
   inventario,
   complexFlags,
   showComplexidadeMove = false,
@@ -718,6 +719,7 @@ function RotinaGroupTable({
   grupo: string;
   rotinas: Rotina[];
   onUpdate: (id: string, patch: Partial<Rotina>) => void;
+  onRemove?: (id: string) => void;
   inventario: InventarioCounts;
   complexFlags: ComplexFlags;
   showComplexidadeMove?: boolean;
@@ -752,6 +754,7 @@ function RotinaGroupTable({
             <TableHead className="w-[130px]">Demanda/mês</TableHead>
             <TableHead className="w-[100px]">CAC</TableHead>
             {showComplexidadeMove && <TableHead className="w-[60px] text-center">Mover</TableHead>}
+            {onRemove && <TableHead className="w-[50px] text-center"></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -882,6 +885,19 @@ function RotinaGroupTable({
                     }
                   >
                     <ArrowLeftRight className="h-3.5 w-3.5" />
+                  </Button>
+                </TableCell>
+              )}
+              {onRemove && (
+                <TableCell className="text-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    title="Excluir rotina"
+                    onClick={() => onRemove(r.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </TableCell>
               )}
