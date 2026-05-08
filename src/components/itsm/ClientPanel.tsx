@@ -93,7 +93,7 @@ export default function ClientPanel({ state, update }: Props) {
           </section>
 
           <section className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Criticidade</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Risco</p>
             <div className="rounded-lg border p-3 space-y-3">
               <div className="flex items-center gap-2">
                 <Gauge className="h-5 w-5 shrink-0 text-rose-500" />
