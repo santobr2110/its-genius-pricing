@@ -575,6 +575,7 @@ function RotinaGroupTable({
         <TableHeader>
           <TableRow>
             <TableHead className="min-w-[260px]">Rotina</TableHead>
+            <TableHead className="w-[130px]">Oferta</TableHead>
             <TableHead className="w-[150px]">Ativo vinculado</TableHead>
             <TableHead className="w-[100px]">Automação</TableHead>
             <TableHead className="w-[150px]">Frequência</TableHead>
@@ -595,6 +596,20 @@ function RotinaGroupTable({
                   onChange={(e) => onUpdate(r.id, { rotina: e.target.value })}
                   className="h-8 text-sm"
                 />
+              </TableCell>
+              <TableCell>
+                <Select
+                  value={r.oferta}
+                  onValueChange={(v: Oferta) => onUpdate(r.id, { oferta: v })}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Operation">Operation</SelectItem>
+                    <SelectItem value="Performance">Performance</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell>
                 <Select
