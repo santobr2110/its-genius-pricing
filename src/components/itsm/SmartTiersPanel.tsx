@@ -577,14 +577,12 @@ export default function SmartTiersPanel() {
                   value={[corteTam, corteOwner]}
                   onValueChange={(vs) => {
                     if (vs.length < 2) return;
-                    const a = Math.min(vs[0], vs[1]);
-                    const b = Math.max(vs[0], vs[1]);
-                    setN3Cortes([a, b]);
+                    setN3Cortes([vs[0], vs[1]]);
                   }}
                   min={0}
                   max={100}
                   step={1}
-                  minStepsBetweenThumbs={0}
+                  minStepsBetweenThumbs={1}
                   className="relative flex w-full touch-none select-none items-center"
                 >
                   <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-secondary">
