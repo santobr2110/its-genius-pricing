@@ -547,6 +547,26 @@ export default function SmartTiersPanel() {
               </span>
             </div>
 
+            <PerformanceBlock
+              titulo="Rotinas Performance · Ambiente Padrão"
+              vazio="Nenhuma rotina padrão com demanda ativa no inventário."
+              data={rotinasPerfPadrao}
+            />
+
+            {algumComplexAtivo ? (
+              <PerformanceBlock
+                titulo="Rotinas Performance · Ambiente Complexo"
+                vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
+                data={rotinasPerfComplexo}
+                hourRate={state.valorHoraN3}
+                hourRateSell={toSell(state.valorHoraN3)}
+              />
+            ) : (
+              <p className="text-[11px] text-muted-foreground italic">
+                Ative itens no painel de Complexidade para incluir rotinas de Ambiente Complexo.
+              </p>
+            )}
+
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
@@ -612,26 +632,6 @@ export default function SmartTiersPanel() {
                 </div>
               </div>
             </div>
-
-            <PerformanceBlock
-              titulo="Rotinas Performance · Ambiente Padrão"
-              vazio="Nenhuma rotina padrão com demanda ativa no inventário."
-              data={rotinasPerfPadrao}
-            />
-
-            {algumComplexAtivo ? (
-              <PerformanceBlock
-                titulo="Rotinas Performance · Ambiente Complexo"
-                vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
-                data={rotinasPerfComplexo}
-                hourRate={state.valorHoraN3}
-                hourRateSell={toSell(state.valorHoraN3)}
-              />
-            ) : (
-              <p className="text-[11px] text-muted-foreground italic">
-                Ative itens no painel de Complexidade para incluir rotinas de Ambiente Complexo.
-              </p>
-            )}
 
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Performance (venda)</span>
