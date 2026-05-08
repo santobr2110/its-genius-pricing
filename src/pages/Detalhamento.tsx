@@ -5,9 +5,9 @@ import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  ClipboardList, Activity, Zap, Gauge, Building2, MapPin, Crown,
+  ClipboardList, Activity, Zap, Gauge, MapPin, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
-  Database, Shield, Users, Laptop,
+  Database, Shield,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
