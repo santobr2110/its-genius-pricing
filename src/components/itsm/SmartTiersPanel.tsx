@@ -344,23 +344,6 @@ export default function SmartTiersPanel() {
                 </span>
               </div>
             </div>
-            {!state.tierPerformance && (
-            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label className="text-[11px] text-muted-foreground">
-                  Atendimento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
-                </Label>
-                <span className="text-xs font-semibold">{formatNumber(state.horasN3Mensais)}h/mês</span>
-              </div>
-              <Slider
-                value={[Math.min(30, Math.max(10, state.horasN3Mensais || 10))]}
-                onValueChange={([v]) => update("horasN3Mensais", v)}
-                min={10}
-                max={30}
-                step={1}
-              />
-            </div>
-            )}
             {rotinasOperation.items.length > 0 && (
               <div className="rounded border bg-background p-2 space-y-1.5">
                 <div className="flex items-center justify-between">
@@ -424,6 +407,24 @@ export default function SmartTiersPanel() {
                   (N1 {state.percRotinaN1}% · N2 {state.percRotinaN2}% · N3 {state.percRotinaN3}%) e divisor de markup/impostos.
                 </p>
               </div>
+            )}
+
+            {!state.tierPerformance && (
+            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-muted-foreground">
+                  Atendimento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
+                </Label>
+                <span className="text-xs font-semibold">{formatNumber(state.horasN3Mensais)}h/mês</span>
+              </div>
+              <Slider
+                value={[Math.min(30, Math.max(10, state.horasN3Mensais || 10))]}
+                onValueChange={([v]) => update("horasN3Mensais", v)}
+                min={10}
+                max={30}
+                step={1}
+              />
+            </div>
             )}
 
             <div className="border-t pt-2 space-y-2">
@@ -546,6 +547,26 @@ export default function SmartTiersPanel() {
               </span>
             </div>
 
+            <PerformanceBlock
+              titulo="Rotinas Performance · Ambiente Padrão"
+              vazio="Nenhuma rotina padrão com demanda ativa no inventário."
+              data={rotinasPerfPadrao}
+            />
+
+            {algumComplexAtivo ? (
+              <PerformanceBlock
+                titulo="Rotinas Performance · Ambiente Complexo"
+                vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
+                data={rotinasPerfComplexo}
+                hourRate={state.valorHoraN3}
+                hourRateSell={toSell(state.valorHoraN3)}
+              />
+            ) : (
+              <p className="text-[11px] text-muted-foreground italic">
+                Ative itens no painel de Complexidade para incluir rotinas de Ambiente Complexo.
+              </p>
+            )}
+
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
@@ -611,26 +632,6 @@ export default function SmartTiersPanel() {
                 </div>
               </div>
             </div>
-
-            <PerformanceBlock
-              titulo="Rotinas Performance · Ambiente Padrão"
-              vazio="Nenhuma rotina padrão com demanda ativa no inventário."
-              data={rotinasPerfPadrao}
-            />
-
-            {algumComplexAtivo ? (
-              <PerformanceBlock
-                titulo="Rotinas Performance · Ambiente Complexo"
-                vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
-                data={rotinasPerfComplexo}
-                hourRate={state.valorHoraN3}
-                hourRateSell={toSell(state.valorHoraN3)}
-              />
-            ) : (
-              <p className="text-[11px] text-muted-foreground italic">
-                Ative itens no painel de Complexidade para incluir rotinas de Ambiente Complexo.
-              </p>
-            )}
 
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Performance (venda)</span>
