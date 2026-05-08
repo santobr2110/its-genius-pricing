@@ -516,6 +516,22 @@ export default function SmartTiersPanel() {
               </span>
             </div>
 
+            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-muted-foreground">
+                  Atendimento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
+                </Label>
+                <span className="text-xs font-semibold">{formatNumber(state.horasN3Mensais)}h/mês</span>
+              </div>
+              <Slider
+                value={[Math.min(40, Math.max(20, state.horasN3Mensais || 20))]}
+                onValueChange={([v]) => update("horasN3Mensais", v)}
+                min={20}
+                max={40}
+                step={1}
+              />
+            </div>
+
             <PerformanceBlock
               titulo="Rotinas Performance · Ambiente Padrão"
               vazio="Nenhuma rotina padrão com demanda ativa no inventário."
