@@ -192,6 +192,7 @@ const r = (
     oferta,
     unidade,
     ativo: ativoFromUnidade(unidade),
+    abrangencia: unidade,
     automacao,
     frequencia,
     chamadosMes,
