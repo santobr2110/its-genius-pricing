@@ -68,9 +68,20 @@ export default function GestaoTI() {
   const resetAll = () => setRotinas(ROTINAS_DEFAULT);
 
   const totals = useMemo(() => {
-    const byOferta: Record<Oferta, { count: number; chamados: number; cac: number }> = {
-      Operation: { count: 0, chamados: 0, cac: 0 },
-      Performance: { count: 0, chamados: 0, cac: 0 },
+    const byOferta: Record<
+      Oferta,
+      {
+        count: number;
+        chamados: number;
+        cac: number;
+        chamadosAuto: number;
+        chamadosManual: number;
+        countAuto: number;
+        countManual: number;
+      }
+    > = {
+      Operation: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0 },
+      Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0 },
     };
     let automatizadosCount = 0;
     let automatizadosChamados = 0;
@@ -80,8 +91,13 @@ export default function GestaoTI() {
       t.chamados += r.chamadosMes;
       t.cac += r.cac;
       if (r.automacao) {
+        t.chamadosAuto += r.chamadosMes;
+        t.countAuto += 1;
         automatizadosCount += 1;
         automatizadosChamados += r.chamadosMes;
+      } else {
+        t.chamadosManual += r.chamadosMes;
+        t.countManual += 1;
       }
     });
     const totalChamados = byOferta.Operation.chamados + byOferta.Performance.chamados;
