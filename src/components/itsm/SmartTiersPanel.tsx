@@ -3,10 +3,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Activity, Zap, Gauge, Building2, MapPin } from "lucide-react";
+import { Activity, Zap, Gauge, Building2, MapPin, ListChecks } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
+import { usePersistentState } from "@/hooks/usePersistentState";
+import {
+  ROTINAS_DEFAULT,
+  inventarioMultiplicador,
+  type Rotina,
+} from "@/data/rotinas";
+import { useMemo } from "react";
 
 const TIERS: {
   id: keyof ITSMState;
@@ -29,6 +36,50 @@ export default function SmartTiersPanel() {
   const fatorImposto = (100 - state.impostosTaxas) / 100;
   const fatorVenda = fatorMargem > 0 && fatorImposto > 0 ? fatorMargem * fatorImposto : 0;
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
+
+  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+
+  const rotinasOperation = useMemo(() => {
+    const inv = {
+      qtdUsuarios: state.qtdUsuarios,
+      qtdEquipamentos: state.qtdEquipamentos,
+      qtdServidores: state.qtdServidores,
+      qtdAtivosRede: state.qtdAtivosRede,
+      qtdBancosDados: state.qtdBancosDados,
+      qtdSistemas: state.qtdSistemas,
+    };
+    // Custo médio por chamado ponderado pela proporção do funil N1/N2/N3
+    const custoChN3 = state.tempoMedioChamadoN3 * state.valorHoraN3;
+    const custoPorChamadoMix =
+      (state.percN1 / 100) * results.custoPorChamadoN1 +
+      (state.percN2 / 100) * results.custoPorChamadoN2 +
+      (state.percN3 / 100) * custoChN3;
+
+    const items = rotinas
+      .filter((r) => r.oferta === "Operation")
+      .map((r) => {
+        const mult = inventarioMultiplicador(r.ativo, inv);
+        const demanda = r.chamadosMes * mult;
+        const cac = r.cac * mult;
+        const custo = demanda * custoPorChamadoMix;
+        const venda = toSell(custo);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
+      })
+      .filter((i) => i.demanda > 0)
+      .sort((a, b) => b.venda - a.venda);
+
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.cac += i.cac;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, cac: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals, custoPorChamadoMix };
+  }, [rotinas, state, results, fatorVenda]);
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
