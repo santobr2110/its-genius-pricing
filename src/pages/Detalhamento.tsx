@@ -421,7 +421,7 @@ function TierBlock({
           </div>
           {valor > 0 && (
             <div className="text-right shrink-0">
-              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Custo mensal</p>
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
               <p className={`text-xl font-extrabold bg-gradient-to-r ${theme.valueGrad} bg-clip-text text-transparent tabular-nums`}>{formatBRL(valor)}</p>
             </div>
           )}
