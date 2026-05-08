@@ -311,7 +311,11 @@ export default function SmartTiersPanel() {
                 <span className="text-muted-foreground">
                   N3 ({formatNumber(state.horasN3Mensais)}h)
                 </span>
-                <span className="font-semibold">{formatBRL(toSell(results.custoN3))}</span>
+                <span className="font-semibold">
+                  {state.tierPerformance
+                    ? <span className="text-[10px] text-muted-foreground">→ Performance</span>
+                    : formatBRL(toSell(results.custoN3))}
+                </span>
               </div>
             </div>
             {!state.tierPerformance && (
