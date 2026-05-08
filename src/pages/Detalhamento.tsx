@@ -128,51 +128,6 @@ export default function Detalhamento() {
 
       <main className="mx-auto max-w-6xl p-6 space-y-8">
 
-        {/* CAPA COMERCIAL */}
-        <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-primary/15 via-background to-accent/10 p-8 md:p-12">
-          <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-primary/15 blur-3xl" />
-          <div className="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
-          <div className="relative grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
-            <div className="lg:col-span-3 space-y-5">
-              <div className="inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Proposta Comercial</span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
-                Operação de TI sob medida para um ambiente de <span className="text-primary">{formatNumber(state.qtdUsuarios)} usuários</span> e <span className="text-primary">{formatNumber(totalAtivos)} ativos</span>.
-              </h1>
-              <p className="text-base text-muted-foreground leading-relaxed max-w-2xl">
-                Um modelo de serviço completo, dimensionado para absorver {formatNumber(results.volumeTotalBruto)} chamados/mês, evitar {state.reducaoN0}% deles automaticamente e entregar previsibilidade de custo, qualidade e governança.
-              </p>
-              <div className="flex flex-wrap gap-2 pt-1">
-                {tiersAtivos.map(t => (
-                  <span key={t.key} className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                    <t.icon className="h-3 w-3" />
-                    {t.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="lg:col-span-2">
-              <div className="rounded-2xl border-2 border-primary/40 bg-card/80 backdrop-blur p-6 shadow-xl">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Investimento Mensal</p>
-                <p className="mt-2 text-4xl md:text-5xl font-bold text-primary tracking-tight">{formatBRL(results.precoVendaMensal)}</p>
-                <p className="text-xs text-muted-foreground mt-1">Tudo incluso · sem custos surpresa</p>
-                <div className="mt-5 grid grid-cols-2 gap-3 text-center border-t pt-4">
-                  <div>
-                    <p className="text-lg font-bold">{custoPorChamadoMedio > 0 ? formatBRL(custoPorChamadoMedio) : "—"}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">por chamado atendido</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold">{tiersAtivos.length}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">camadas ativas</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* PILARES DE VALOR */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <ValuePillar icon={ShieldCheck} title="Previsibilidade" desc="Custo fixo mensal com escopo claro do que está incluído." />
