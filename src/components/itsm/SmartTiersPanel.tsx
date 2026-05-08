@@ -11,6 +11,9 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import {
   ROTINAS_DEFAULT,
   inventarioMultiplicador,
+  rotinaMultiplicador,
+  COMPLEX_FLAG_KEYS,
+  type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
 import { useMemo } from "react";
@@ -25,7 +28,7 @@ const TIERS: {
 }[] = [
   { id: "tierMonitor", label: "Smart Monitor", icon: Activity, desc: "Monitoramento de ativos (Servidores, Rede, Firewall)", available: true, selectedClass: "border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900" },
   { id: "tierOperation", label: "Smart Operation", icon: Zap, desc: "Atendimento humano N1/N2 reativo com N3 opcional em horas", available: true, selectedClass: "border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900" },
-  { id: "tierPerformance", label: "Smart Performance", icon: Gauge, desc: "Em breve", available: false },
+  { id: "tierPerformance", label: "Smart Performance", icon: Gauge, desc: "Rotinas preventivas e de complexidade · exige Smart Monitor + Operation", available: true, selectedClass: "border-violet-200 bg-violet-50/60 dark:bg-violet-950/20 dark:border-violet-900" },
   { id: "tierEnterprise", label: "Smart Enterprise", icon: Building2, desc: "Em breve", available: false },
 ];
 
