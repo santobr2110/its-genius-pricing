@@ -140,6 +140,7 @@ export default function GestaoTI() {
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
+    horasExecucao?: number;
   }) => {
     const chamadosMes = FREQ_TO_CHAMADOS[data.frequencia];
     const nova: Rotina = {
@@ -157,6 +158,10 @@ export default function GestaoTI() {
       complexFlag:
         data.oferta === "Performance" && data.complexidade === "Complexo"
           ? data.complexFlag
+          : undefined,
+      horasExecucao:
+        data.oferta === "Performance" && data.complexidade === "Complexo"
+          ? data.horasExecucao ?? 4
           : undefined,
     };
     setRotinas((prev) => [...prev, nova]);
@@ -748,6 +753,7 @@ function RotinaGroupTable({
             <TableHead className="w-[150px]">Frequência</TableHead>
             <TableHead className="w-[110px]">Freq/mês</TableHead>
             <TableHead className="w-[130px]">Demanda/mês</TableHead>
+            {showComplexidadeMove && <TableHead className="w-[90px]">Horas exec</TableHead>}
             <TableHead className="w-[100px]">CAC</TableHead>
             {showComplexidadeMove && <TableHead className="w-[60px] text-center">Mover</TableHead>}
             {onRemove && <TableHead className="w-[50px] text-center"></TableHead>}
@@ -859,6 +865,24 @@ function RotinaGroupTable({
                   ({r.chamadosMes.toFixed(1)}×{mult})
                 </span>
               </TableCell>
+              {showComplexidadeMove && (
+                <TableCell>
+                  {isComplexPerf ? (
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.5}
+                      value={r.horasExecucao ?? 4}
+                      onChange={(e) =>
+                        onUpdate(r.id, { horasExecucao: parseFloat(e.target.value) || 0 })
+                      }
+                      className="h-8 text-sm"
+                    />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+              )}
               <TableCell className="text-sm font-medium tabular-nums">
                 {r.cac.toFixed(2)}
               </TableCell>
@@ -920,6 +944,7 @@ function NovaRotinaDialog({
     complexFlag?: ComplexFlagKey;
     automacao: boolean;
     frequencia: Frequencia;
+    horasExecucao?: number;
   }) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -933,6 +958,7 @@ function NovaRotinaDialog({
   const [complexFlag, setComplexFlag] = useState<ComplexFlagKey>("complexVirtualizacaoCluster");
   const [automacao, setAutomacao] = useState(false);
   const [frequencia, setFrequencia] = useState<Frequencia>("Mensal");
+  const [horasExecucao, setHorasExecucao] = useState<number>(4);
 
   const isPerf = oferta === "Performance";
   const isComplexo = isPerf && complexidade === "Complexo";
@@ -950,6 +976,7 @@ function NovaRotinaDialog({
     setComplexFlag("complexVirtualizacaoCluster");
     setAutomacao(false);
     setFrequencia("Mensal");
+    setHorasExecucao(4);
   };
 
   const salvar = () => {
@@ -963,6 +990,7 @@ function NovaRotinaDialog({
       complexFlag: isComplexo ? complexFlag : undefined,
       automacao,
       frequencia,
+      horasExecucao: isComplexo ? horasExecucao : undefined,
     });
     reset();
     setOpen(false);
@@ -1106,6 +1134,20 @@ function NovaRotinaDialog({
               </div>
             </div>
           </div>
+
+          {isComplexo && (
+            <div className="space-y-1">
+              <Label className="text-xs">Horas por execução (custo via valor/hora N3)</Label>
+              <Input
+                type="number"
+                min={0}
+                step={0.5}
+                value={horasExecucao}
+                onChange={(e) => setHorasExecucao(parseFloat(e.target.value) || 0)}
+                className="h-9 text-sm"
+              />
+            </div>
+          )}
 
           <p className="text-[11px] text-muted-foreground">
             Freq/mês: {FREQ_TO_CHAMADOS[frequencia]} • CAC: {(FREQ_TO_CHAMADOS[frequencia] * CAC_FACTOR).toFixed(2)}
