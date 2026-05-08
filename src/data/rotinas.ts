@@ -90,12 +90,11 @@ export const COMPLEX_FLAG_KEYS = Object.keys(COMPLEX_FLAG_LABELS) as ComplexFlag
 export type ComplexFlags = Record<ComplexFlagKey, boolean>;
 
 /**
- * Multiplicador da rotina considerando complexidade do ambiente.
- * - Rotinas Performance "Complexo" com `complexFlag` definida: 1 quando a flag
- *   está ativa no inventário de complexidade do cliente, 0 caso contrário.
- *   A "execução de 1 vez" é representada por `chamadosMes * 1`.
- * - Demais rotinas: multiplicador padrão do inventário (ativo vinculado),
- *   exceto quando abrangencia é "Ambiente" (escopo geral do ambiente).
+ * Multiplicador da rotina:
+ * - Performance "Complexo" com `complexFlag`: 1 se a flag estiver ativa, 0 caso contrário.
+ * - Se o ativo vinculado tem contagem 0 no inventário, a rotina sai da oferta (0).
+ * - Abrangência "Ambiente": 1 execução (unitária).
+ * - Abrangência "Individual": multiplicador = quantidade do ativo vinculado.
  */
 export function rotinaMultiplicador(
   r: Rotina,
@@ -105,9 +104,8 @@ export function rotinaMultiplicador(
   if (r.oferta === "Performance" && r.complexidade === "Complexo" && r.complexFlag) {
     return complex[r.complexFlag] ? 1 : 0;
   }
-  // Rotinas de abrangência "Ambiente" só fazem sentido se houver qualquer
-  // item de inventário > 0. Caso contrário, somem da oferta.
-  if (r.abrangencia === "Ambiente") {
+  if (r.ativo === "Ambiente") {
+    // Sem ativo específico: considera o inventário total como gating.
     const total =
       inv.qtdUsuarios +
       inv.qtdEquipamentos +
@@ -117,7 +115,9 @@ export function rotinaMultiplicador(
       inv.qtdSistemas;
     return total > 0 ? 1 : 0;
   }
-  return inventarioMultiplicador(r.ativo, inv);
+  const qtdAtivo = inventarioMultiplicador(r.ativo, inv);
+  if (qtdAtivo === 0) return 0;
+  return r.abrangencia === "Ambiente" ? 1 : qtdAtivo;
 }
 
 export function inventarioMultiplicador(
