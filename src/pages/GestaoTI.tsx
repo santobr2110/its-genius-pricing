@@ -285,15 +285,16 @@ export default function GestaoTI() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <PhoneCall className="h-4 w-4 text-primary" /> Chamados de rotina / mês
+                <PhoneCall className="h-4 w-4 text-primary" /> Demanda de chamados / mês
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Execuções mensais geradas pelas rotinas (derivadas da frequência).
+                Chamados gerados pelas rotinas considerando o inventário do cliente
+                (frequência × quantidade do ativo vinculado).
               </p>
             </CardHeader>
             <CardContent>
               <div className="flex items-baseline gap-2 mb-3">
-                <p className="text-3xl font-bold">{totals.totalChamados.toFixed(1)}</p>
+                <p className="text-3xl font-bold">{totals.totalDemanda.toFixed(1)}</p>
                 <span className="text-xs text-muted-foreground">chamados/mês</span>
               </div>
               <Table>
@@ -312,13 +313,13 @@ export default function GestaoTI() {
                       <TableRow key={o}>
                         <TableCell className="font-medium">{o}</TableCell>
                         <TableCell className="text-right tabular-nums text-primary font-semibold">
-                          {t.chamadosAuto.toFixed(1)}
+                          {t.demandaAuto.toFixed(1)}
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
-                          {t.chamadosManual.toFixed(1)}
+                          {t.demandaManual.toFixed(1)}
                         </TableCell>
                         <TableCell className="text-right tabular-nums font-semibold">
-                          {t.chamados.toFixed(1)}
+                          {t.demanda.toFixed(1)}
                         </TableCell>
                       </TableRow>
                     );
@@ -326,18 +327,20 @@ export default function GestaoTI() {
                   <TableRow className="bg-muted/40">
                     <TableCell className="font-semibold">Total</TableCell>
                     <TableCell className="text-right tabular-nums font-semibold text-primary">
-                      {totals.automatizadosChamados.toFixed(1)}
+                      {totals.automatizadosDemanda.toFixed(1)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums font-semibold">
-                      {(totals.totalChamados - totals.automatizadosChamados).toFixed(1)}
+                      {(totals.totalDemanda - totals.automatizadosDemanda).toFixed(1)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums font-bold">
-                      {totals.totalChamados.toFixed(1)}
+                      {totals.totalDemanda.toFixed(1)}
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
-              <p className="text-xs text-muted-foreground mt-2">Valores em chamados por mês.</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Valores em chamados por mês, ajustados pelo inventário cadastrado.
+              </p>
             </CardContent>
           </Card>
         </div>
