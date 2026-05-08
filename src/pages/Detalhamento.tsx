@@ -44,7 +44,7 @@ export default function Detalhamento() {
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
     const canvas = await html2canvas(el, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       backgroundColor: "#0e1b14",
       windowWidth: el.scrollWidth,
@@ -62,20 +62,20 @@ export default function Detalhamento() {
         });
       },
     });
-    const imgData = canvas.toDataURL("image/png");
+    const imgData = canvas.toDataURL("image/jpeg", 0.85);
     const pdfWidth = 210; // A4 mm
     const pdfHeight = 297;
     const imgWidth = pdfWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const pdf = new jsPDF("p", "mm", "a4");
+    const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
     let heightLeft = imgHeight;
     let position = 0;
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
     heightLeft -= pdfHeight;
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
       heightLeft -= pdfHeight;
     }
     pdf.save(`proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`);
