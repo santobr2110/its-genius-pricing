@@ -343,14 +343,22 @@ function TierBlock({
 }
 
 function SubTitle({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <p className={`text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground ${className}`}>{children}</p>;
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <Star className="h-3 w-3 text-primary fill-primary/30" />
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/70">{children}</p>
+      <div className="flex-1 h-px bg-gradient-to-r from-border to-transparent" />
+    </div>
+  );
 }
 
 function Bullet({ children, color }: { children: React.ReactNode; color: string }) {
   const theme = TIER_THEMES[color];
   return (
-    <li className="flex items-start gap-2 text-[12.5px] leading-snug">
-      <CheckCircle2 className={`h-4 w-4 mt-0.5 shrink-0 ${theme?.check ?? "text-primary"}`} />
+    <li className="flex items-start gap-2.5 text-[13px] leading-relaxed group/b">
+      <div className={`mt-0.5 shrink-0 rounded-full p-0.5 bg-background/80 shadow-sm transition-transform group-hover/b:scale-110`}>
+        <CheckCircle2 className={`h-4 w-4 ${theme?.check ?? "text-primary"}`} strokeWidth={2.5} />
+      </div>
       <span className="text-foreground/90">{children}</span>
     </li>
   );
@@ -358,10 +366,10 @@ function Bullet({ children, color }: { children: React.ReactNode; color: string 
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-lg border bg-background/70 px-3 py-2">
-      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="text-sm font-bold mt-0.5">{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground">{sub}</p>}
+    <div className="rounded-xl border bg-background/80 backdrop-blur-sm px-3 py-2.5 transition-all hover:shadow-md hover:-translate-y-0.5">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
+      <p className="text-sm font-extrabold mt-0.5 tabular-nums">{value}</p>
+      {sub && <p className="text-[10px] text-muted-foreground tabular-nums">{sub}</p>}
     </div>
   );
 }
@@ -369,12 +377,14 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 function Comp({ icon: Icon, label, qtd, ativo }: { icon: React.ElementType; label: string; qtd: number; ativo: boolean }) {
   const enabled = qtd > 0 && ativo;
   return (
-    <li className={`flex items-center justify-between rounded-lg border bg-background/70 px-3 py-2 ${!enabled ? "opacity-50" : ""}`}>
-      <span className="flex items-center gap-2 text-[12px]">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+    <li className={`flex items-center justify-between rounded-xl border bg-background/80 backdrop-blur-sm px-3 py-2.5 transition-all hover:shadow-md hover:-translate-y-0.5 ${!enabled ? "opacity-50" : ""}`}>
+      <span className="flex items-center gap-2.5 text-[12.5px] font-medium">
+        <span className="rounded-lg p-1.5 bg-gradient-to-br from-sky-500/15 to-cyan-500/15 text-sky-600 dark:text-sky-300">
+          <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
+        </span>
         {label}
       </span>
-      <span className="text-sm font-bold tabular-nums">{formatNumber(qtd)}</span>
+      <span className="text-sm font-extrabold tabular-nums">{formatNumber(qtd)}</span>
     </li>
   );
 }
@@ -387,24 +397,24 @@ function RoutineList({
 }) {
   const theme = TIER_THEMES[accent];
   return (
-    <div className="rounded-lg border bg-background/70 overflow-hidden">
+    <div className="rounded-xl border bg-background/80 backdrop-blur-sm overflow-hidden shadow-sm">
       <table className="w-full text-[11.5px]">
-        <thead className="bg-muted/60">
+        <thead className={`bg-gradient-to-r ${theme?.bar ?? "from-primary to-primary"} text-white`}>
           <tr>
-            <th className="text-left px-3 py-1.5 font-semibold">Rotina</th>
-            <th className="text-left px-3 py-1.5 font-semibold w-28">Frequência</th>
-            <th className="text-right px-3 py-1.5 font-semibold w-24">{complexo ? "Exec/mês" : "Ch/mês"}</th>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px]">Rotina</th>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-28">Frequência</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">{complexo ? "Exec/mês" : "Ch/mês"}</th>
           </tr>
         </thead>
         <tbody>
-          {items.map((i) => (
-            <tr key={i.id} className="border-t">
-              <td className="px-3 py-1.5">
-                <ListChecks className={`inline h-3 w-3 mr-1 ${theme?.check ?? "text-primary"}`} />
-                <span className="text-muted-foreground">{i.grupo} · </span>{i.rotina}
+          {items.map((i, idx) => (
+            <tr key={i.id} className={`border-t ${idx % 2 ? "bg-muted/30" : ""} hover:bg-muted/50 transition-colors`}>
+              <td className="px-3 py-2">
+                <ListChecks className={`inline h-3.5 w-3.5 mr-1.5 ${theme?.check ?? "text-primary"}`} strokeWidth={2.5} />
+                <span className="text-muted-foreground">{i.grupo} · </span><span className="font-medium">{i.rotina}</span>
               </td>
-              <td className="px-3 py-1.5 text-muted-foreground">{i.freq}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums font-semibold">{i.demanda.toFixed(1)}</td>
+              <td className="px-3 py-2 text-muted-foreground">{i.freq}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-extrabold">{i.demanda.toFixed(1)}</td>
             </tr>
           ))}
         </tbody>
