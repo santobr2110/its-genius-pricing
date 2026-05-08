@@ -279,19 +279,20 @@ export default function Detalhamento() {
 /* ===== Subcomponents ===== */
 
 function TierBlock({
-  active, color, icon: Icon, title, tagline, valor, children,
+  active, color, icon: Icon, title, tagline, valor, children, tierIndex,
 }: {
   active: boolean; color: string; icon: React.ElementType;
-  title: string; tagline: string; valor: number; children?: React.ReactNode;
+  title: string; tagline: string; valor: number;
+  tierIndex?: number; children?: React.ReactNode;
 }) {
   const theme = TIER_THEMES[color] ?? TIER_THEMES.emerald;
   if (!active) {
     return (
-      <div className="relative rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/10 p-5 opacity-60">
-        <div className="flex items-start gap-3">
-          <div className="rounded-xl p-3 bg-muted text-muted-foreground"><Icon className="h-5 w-5" /></div>
+      <div className="relative rounded-3xl border-2 border-dashed border-muted-foreground/25 bg-muted/10 p-5 opacity-60">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl p-3 bg-muted text-muted-foreground"><Icon className="h-5 w-5" /></div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-bold text-muted-foreground">{title}</p>
               <Badge variant="secondary" className="text-[9px]"><Circle className="h-2.5 w-2.5 mr-1" />Não incluso</Badge>
             </div>
@@ -302,24 +303,36 @@ function TierBlock({
     );
   }
   return (
-    <div className={`relative overflow-hidden rounded-2xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-md`}>
-      <div className={`h-1.5 w-full bg-gradient-to-r ${theme.bar}`} />
-      <span className={`absolute top-1.5 right-0 ${theme.badge} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-3 py-1 rounded-bl-xl`}>
-        Incluído
-      </span>
-      <div className="p-5 space-y-3">
-        <div className="flex items-start gap-3">
-          <div className={`rounded-xl p-3 shadow-lg ${theme.icon}`}>
-            <Icon className="h-5 w-5" />
+    <div className={`group relative overflow-hidden rounded-3xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-xl ${theme.glow} transition-all hover:shadow-2xl`}>
+      {/* Decorative blobs */}
+      <div className={`pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full blur-3xl ${theme.blob1}`} />
+      <div className={`pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full blur-3xl ${theme.blob2}`} />
+      <div className={`h-2 w-full bg-gradient-to-r ${theme.bar}`} />
+
+      <div className="relative p-6 space-y-4">
+        {/* Header row: icon + title + badge + value, all in one flex line — no absolute overlap */}
+        <div className="flex items-start gap-4 flex-wrap">
+          <div className={`relative rounded-2xl p-3.5 shadow-lg ${theme.icon} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+            <Icon className="h-6 w-6" strokeWidth={2.25} />
+            {tierIndex && (
+              <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-background border-2 border-current text-[10px] font-extrabold flex items-center justify-center text-foreground">
+                {tierIndex}
+              </span>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-lg font-extrabold tracking-tight">{title}</p>
-            <p className={`text-[11px] font-medium italic inline-block px-2 py-0.5 rounded-full ${theme.chip}`}>{tagline}</p>
+          <div className="flex-1 min-w-[180px]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-xl font-extrabold tracking-tight">{title}</h3>
+              <span className={`inline-flex items-center gap-1 ${theme.badge} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full shadow-md`}>
+                <Sparkles className="h-3 w-3" /> Incluído
+              </span>
+            </div>
+            <p className={`text-[11px] font-semibold mt-1.5 inline-block px-2.5 py-1 rounded-full ${theme.chip}`}>{tagline}</p>
           </div>
           {valor > 0 && (
-            <div className="text-right">
-              <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Custo mensal</p>
-              <p className="text-base font-bold">{formatBRL(valor)}</p>
+            <div className="text-right shrink-0">
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Custo mensal</p>
+              <p className={`text-xl font-extrabold bg-gradient-to-r ${theme.valueGrad} bg-clip-text text-transparent tabular-nums`}>{formatBRL(valor)}</p>
             </div>
           )}
         </div>
