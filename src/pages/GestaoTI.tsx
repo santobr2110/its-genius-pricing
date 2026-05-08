@@ -1048,7 +1048,7 @@ function NovaRotinaDialog({
   const [oferta, setOferta] = useState<Oferta>("Operation");
   const [complexidade, setComplexidade] = useState<Complexidade>("Padrão");
   const [ativo, setAtivo] = useState<AtivoTipo>("Ambiente");
-  const [abrangencia, setAbrangencia] = useState("");
+  const [abrangencia, setAbrangencia] = useState<Abrangencia>("Ambiente");
   const [complexFlag, setComplexFlag] = useState<ComplexFlagKey>("complexVirtualizacaoCluster");
   const [automacao, setAutomacao] = useState(false);
   const [frequencia, setFrequencia] = useState<Frequencia>("Mensal");
