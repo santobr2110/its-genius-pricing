@@ -181,11 +181,11 @@ export default function GestaoTI() {
       // Migração: rotinas de Sistema Operacional passam a ser por Servidor (Individual)
       if (
         (r.id === "lnx-1" || r.id === "win-1" || r.id === "win-2") &&
-        r.ativo !== "Servidor"
+        (r.ativo !== "Servidor" || r.abrangencia !== "Ambiente")
       ) {
         patch.ativo = "Servidor";
-        patch.unidade = "Por Servidor";
-        patch.abrangencia = "Individual";
+        patch.unidade = "Servidor (Ambiente)";
+        patch.abrangencia = "Ambiente";
         changed = true;
       }
       return Object.keys(patch).length ? { ...r, ...patch } : r;
