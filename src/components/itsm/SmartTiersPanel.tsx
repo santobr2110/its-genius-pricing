@@ -11,6 +11,9 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import {
   ROTINAS_DEFAULT,
   inventarioMultiplicador,
+  rotinaMultiplicador,
+  COMPLEX_FLAG_KEYS,
+  type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
 import { useMemo } from "react";
@@ -25,7 +28,7 @@ const TIERS: {
 }[] = [
   { id: "tierMonitor", label: "Smart Monitor", icon: Activity, desc: "Monitoramento de ativos (Servidores, Rede, Firewall)", available: true, selectedClass: "border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900" },
   { id: "tierOperation", label: "Smart Operation", icon: Zap, desc: "Atendimento humano N1/N2 reativo com N3 opcional em horas", available: true, selectedClass: "border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900" },
-  { id: "tierPerformance", label: "Smart Performance", icon: Gauge, desc: "Em breve", available: false },
+  { id: "tierPerformance", label: "Smart Performance", icon: Gauge, desc: "Rotinas preventivas e de complexidade · exige Smart Monitor + Operation", available: true, selectedClass: "border-violet-200 bg-violet-50/60 dark:bg-violet-950/20 dark:border-violet-900" },
   { id: "tierEnterprise", label: "Smart Enterprise", icon: Building2, desc: "Em breve", available: false },
 ];
 
@@ -39,22 +42,34 @@ export default function SmartTiersPanel() {
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
 
-  const rotinasOperation = useMemo(() => {
-    const inv = {
-      qtdUsuarios: state.qtdUsuarios,
-      qtdEquipamentos: state.qtdEquipamentos,
-      qtdServidores: state.qtdServidores,
-      qtdAtivosRede: state.qtdAtivosRede,
-      qtdBancosDados: state.qtdBancosDados,
-      qtdSistemas: state.qtdSistemas,
-    };
-    // Custo médio por chamado ponderado pela proporção do funil N1/N2/N3
-    const custoChN3 = state.tempoMedioChamadoN3 * state.valorHoraN3;
-    const custoPorChamadoMix =
-      (state.percN1 / 100) * results.custoPorChamadoN1 +
-      (state.percN2 / 100) * results.custoPorChamadoN2 +
-      (state.percN3 / 100) * custoChN3;
+  const inv = {
+    qtdUsuarios: state.qtdUsuarios,
+    qtdEquipamentos: state.qtdEquipamentos,
+    qtdServidores: state.qtdServidores,
+    qtdAtivosRede: state.qtdAtivosRede,
+    qtdBancosDados: state.qtdBancosDados,
+    qtdSistemas: state.qtdSistemas,
+  };
+  const complexFlags: ComplexFlags = {
+    complexVirtualizacaoCluster: state.complexVirtualizacaoCluster,
+    complexBancoDadosHA: state.complexBancoDadosHA,
+    complexFirewallHA: state.complexFirewallHA,
+    complexMultiSites: state.complexMultiSites,
+    complexSiteBackup: state.complexSiteBackup,
+    complexHibridoCloudOnPrem: state.complexHibridoCloudOnPrem,
+    complexOperacao24x7: state.complexOperacao24x7,
+    complexErpMercado: state.complexErpMercado,
+  };
+  const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
+  // Custo médio por chamado ponderado (compartilhado entre Operation e Performance)
+  const custoChN3Mix = state.tempoMedioChamadoN3 * state.valorHoraN3;
+  const custoPorChamadoMix =
+    (state.percN1 / 100) * results.custoPorChamadoN1 +
+    (state.percN2 / 100) * results.custoPorChamadoN2 +
+    (state.percN3 / 100) * custoChN3Mix;
+
+  const rotinasOperation = useMemo(() => {
     const items = rotinas
       .filter((r) => r.oferta === "Operation")
       .filter((r) => {
@@ -87,8 +102,48 @@ export default function SmartTiersPanel() {
       },
       { demanda: 0, cac: 0, custo: 0, venda: 0 },
     );
-    return { items, totals, custoPorChamadoMix };
+    return { items, totals };
   }, [rotinas, state, results, fatorVenda]);
+
+  const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
+    const items = rotinas
+      .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
+      .map((r) => {
+        const mult = rotinaMultiplicador(r, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const cac = r.cac * mult;
+        const fatorAuto = r.automacao
+          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
+          : 1;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const venda = toSell(custo);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
+      })
+      .filter((i) => i.demanda > 0)
+      .sort((a, b) => b.venda - a.venda);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.cac += i.cac;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, cac: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+  };
+
+  const rotinasPerfPadrao = useMemo(
+    () => buildPerformance("Padrão"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state, results, fatorVenda],
+  );
+  const rotinasPerfComplexo = useMemo(
+    () => buildPerformance("Complexo"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state, results, fatorVenda],
+  );
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
@@ -100,8 +155,11 @@ export default function SmartTiersPanel() {
   const smOperationVenda = state.tierOperation
     ? toSell(operacaoCustoTotal) + rotinasOperation.totals.venda
     : 0;
+  const smPerformanceVenda = state.tierPerformance
+    ? rotinasPerfPadrao.totals.venda + rotinasPerfComplexo.totals.venda
+    : 0;
   const totalSelecionado =
-    (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + fsVenda;
+    (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + fsVenda + smPerformanceVenda;
 
   return (
     <Card>
@@ -114,8 +172,12 @@ export default function SmartTiersPanel() {
           {TIERS.map((t) => {
             const Icon = t.icon;
             const isSel = !!state[t.id];
-            // Smart Monitor não pode ser removido quando Smart Operation estiver ativo
-            const locked = t.id === "tierMonitor" && state.tierOperation;
+            // Bloqueios de dependência:
+            // - Smart Monitor é obrigatório quando Operation OU Performance estiver ativo
+            // - Smart Operation é obrigatório quando Performance estiver ativo
+            const locked =
+              (t.id === "tierMonitor" && (state.tierOperation || state.tierPerformance)) ||
+              (t.id === "tierOperation" && state.tierPerformance);
             return (
               <label
                 key={t.id}
@@ -134,6 +196,11 @@ export default function SmartTiersPanel() {
                     if (t.id === "tierOperation" && next && !state.tierMonitor) {
                       update("tierMonitor", true as any);
                     }
+                    // Smart Performance exige Smart Monitor + Operation ativos
+                    if (t.id === "tierPerformance" && next) {
+                      if (!state.tierMonitor) update("tierMonitor", true as any);
+                      if (!state.tierOperation) update("tierOperation", true as any);
+                    }
                   }}
                   className="mt-0.5"
                 />
@@ -142,7 +209,8 @@ export default function SmartTiersPanel() {
                   <p className="text-sm font-semibold">{t.label}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {t.desc}
-                    {locked && " · obrigatório com Smart Operation"}
+                    {locked && t.id === "tierMonitor" && (state.tierPerformance ? " · obrigatório com Smart Performance" : " · obrigatório com Smart Operation")}
+                    {locked && t.id === "tierOperation" && " · obrigatório com Smart Performance"}
                   </p>
                 </div>
               </label>
@@ -246,7 +314,7 @@ export default function SmartTiersPanel() {
                     <p className="text-xs font-semibold">Rotinas vinculadas (Operation)</p>
                   </div>
                   <span className="text-[10px] text-muted-foreground">
-                    custo/ch ponderado: {formatBRL(rotinasOperation.custoPorChamadoMix)}
+                    custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
                   </span>
                 </div>
                 <div className="max-h-56 overflow-auto rounded border">
@@ -414,11 +482,108 @@ export default function SmartTiersPanel() {
           </div>
         )}
 
+        {state.tierPerformance && (
+          <div className="rounded-lg border border-violet-200 bg-violet-50/60 dark:bg-violet-950/20 dark:border-violet-900 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-foreground">Composição — Smart Performance</p>
+              <span className="text-[11px] text-muted-foreground">
+                custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
+              </span>
+            </div>
+
+            <PerformanceBlock
+              titulo="Rotinas Performance · Ambiente Padrão"
+              vazio="Nenhuma rotina padrão com demanda ativa no inventário."
+              data={rotinasPerfPadrao}
+            />
+
+            {algumComplexAtivo ? (
+              <PerformanceBlock
+                titulo="Rotinas Performance · Ambiente Complexo"
+                vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
+                data={rotinasPerfComplexo}
+              />
+            ) : (
+              <p className="text-[11px] text-muted-foreground italic">
+                Ative itens no painel de Complexidade para incluir rotinas de Ambiente Complexo.
+              </p>
+            )}
+
+            <div className="flex justify-between border-t pt-2">
+              <span className="text-xs font-semibold">Total Smart Performance (venda)</span>
+              <span className="text-sm font-bold text-primary">{formatBRL(smPerformanceVenda)}</span>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between border-t pt-3">
           <span className="text-sm font-semibold">Valor Total de Venda</span>
           <span className="text-base font-bold text-primary">{formatBRL(totalSelecionado)}</span>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function PerformanceBlock({
+  titulo,
+  vazio,
+  data,
+}: {
+  titulo: string;
+  vazio: string;
+  data: {
+    items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; cac: number; custo: number; venda: number }[];
+    totals: { demanda: number; cac: number; custo: number; venda: number };
+  };
+}) {
+  return (
+    <div className="rounded border bg-background p-2 space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <ListChecks className="h-3.5 w-3.5 text-violet-600" />
+        <p className="text-xs font-semibold">{titulo}</p>
+      </div>
+      {data.items.length === 0 ? (
+        <p className="text-[11px] text-muted-foreground italic px-1 py-2">{vazio}</p>
+      ) : (
+        <div className="max-h-56 overflow-auto rounded border">
+          <table className="w-full text-[11px]">
+            <thead className="bg-muted/50 sticky top-0">
+              <tr>
+                <th className="text-left px-2 py-1 font-medium">Rotina</th>
+                <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+                <th className="text-right px-2 py-1 font-medium w-14">CAC</th>
+                <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
+                <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.items.map((i) => (
+                <tr key={i.id} className="border-t">
+                  <td className="px-2 py-1">
+                    <span className="text-muted-foreground">{i.grupo} · </span>
+                    {i.rotina}
+                    {i.automacao && <span className="ml-1 text-[9px] text-primary">[auto]</span>}
+                  </td>
+                  <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
+                  <td className="px-2 py-1 text-right tabular-nums">{i.cac.toFixed(2)}</td>
+                  <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
+                  <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot className="bg-muted/40 sticky bottom-0">
+              <tr>
+                <td className="px-2 py-1 font-semibold">Total</td>
+                <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.demanda.toFixed(1)}</td>
+                <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.cac.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right font-semibold tabular-nums">{formatBRL(data.totals.custo)}</td>
+                <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(data.totals.venda)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
