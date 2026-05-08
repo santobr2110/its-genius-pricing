@@ -546,12 +546,18 @@ function RotinaGroupTable({
   grupo,
   rotinas,
   onUpdate,
+  inventario,
 }: {
   grupo: string;
   rotinas: Rotina[];
   onUpdate: (id: string, patch: Partial<Rotina>) => void;
+  inventario: InventarioCounts;
 }) {
   const totalChamados = rotinas.reduce((s, r) => s + r.chamadosMes, 0);
+  const totalDemanda = rotinas.reduce(
+    (s, r) => s + r.chamadosMes * inventarioMultiplicador(r.ativo, inventario),
+    0,
+  );
   const totalCac = rotinas.reduce((s, r) => s + r.cac, 0);
 
   return (
@@ -562,22 +568,26 @@ function RotinaGroupTable({
           <Badge variant="outline">{rotinas.length}</Badge>
         </div>
         <div className="text-xs text-muted-foreground">
-          {totalChamados.toFixed(1)} chamados/mês • CAC {totalCac.toFixed(2)}
+          {totalChamados.toFixed(1)} freq/mês • {totalDemanda.toFixed(1)} chamados/mês • CAC {totalCac.toFixed(2)}
         </div>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="min-w-[260px]">Rotina</TableHead>
-            <TableHead className="w-[140px]">Unidade</TableHead>
+            <TableHead className="w-[150px]">Ativo vinculado</TableHead>
             <TableHead className="w-[100px]">Automação</TableHead>
             <TableHead className="w-[150px]">Frequência</TableHead>
-            <TableHead className="w-[130px]">Chamados/mês</TableHead>
+            <TableHead className="w-[110px]">Freq/mês</TableHead>
+            <TableHead className="w-[130px]">Demanda/mês</TableHead>
             <TableHead className="w-[100px]">CAC</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rotinas.map((r) => (
+          {rotinas.map((r) => {
+            const mult = inventarioMultiplicador(r.ativo, inventario);
+            const demanda = r.chamadosMes * mult;
+            return (
             <TableRow key={r.id}>
               <TableCell>
                 <Input
@@ -587,11 +597,21 @@ function RotinaGroupTable({
                 />
               </TableCell>
               <TableCell>
-                <Input
-                  value={r.unidade}
-                  onChange={(e) => onUpdate(r.id, { unidade: e.target.value })}
-                  className="h-8 text-sm"
-                />
+                <Select
+                  value={r.ativo}
+                  onValueChange={(v: AtivoTipo) => onUpdate(r.id, { ativo: v })}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ATIVO_TIPOS.map((a) => (
+                      <SelectItem key={a} value={a}>
+                        {a} {a !== "Ambiente" && `(${inventarioMultiplicador(a, inventario)})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
@@ -630,11 +650,18 @@ function RotinaGroupTable({
                   className="h-8 text-sm"
                 />
               </TableCell>
+              <TableCell className="text-sm font-semibold tabular-nums text-primary">
+                {demanda.toFixed(1)}
+                <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                  ({r.chamadosMes.toFixed(1)}×{mult})
+                </span>
+              </TableCell>
               <TableCell className="text-sm font-medium tabular-nums">
                 {r.cac.toFixed(2)}
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     </div>
