@@ -591,11 +591,10 @@ export default function SmartTiersPanel() {
                     <SliderPrimitive.Range className="absolute h-full bg-primary" />
                   </SliderPrimitive.Track>
                   <SliderPrimitive.Thumb
-                    className="block h-5 w-5 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                    className="block h-5 w-5 rounded-full border-2 border-emerald-500 bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
                   />
                   <SliderPrimitive.Thumb
-                    className="block h-5 w-5 border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-                    style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)', borderRadius: 0 }}
+                    className="block h-5 w-5 rounded-full border-2 border-sky-500 bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
                   />
                 </SliderPrimitive.Root>
                 <div className="grid grid-cols-3 gap-1 text-[11px]">
