@@ -602,7 +602,6 @@ export default function GestaoTI() {
                       <TableHead className="w-[130px]">Complexidade</TableHead>
                       <TableHead className="w-[140px]">Oferta</TableHead>
                       <TableHead className="w-[130px]">Chamados/mês</TableHead>
-                      <TableHead className="w-[90px]">CAC</TableHead>
                       <TableHead className="w-[60px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -669,9 +668,6 @@ export default function GestaoTI() {
                             onChange={(e) => updateGmud(g.id, { chamadosMes: parseFloat(e.target.value) || 0 })}
                             className="h-8 text-sm"
                           />
-                        </TableCell>
-                        <TableCell className="text-sm font-medium tabular-nums">
-                          {g.cac.toFixed(2)}
                         </TableCell>
                         <TableCell>
                           <Button
