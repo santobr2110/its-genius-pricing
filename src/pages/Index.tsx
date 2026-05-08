@@ -33,12 +33,13 @@ const Index = () => {
           style={{ height: "auto", overflow: "visible" }}
         >
           <ResizablePanel
+            className="sticky top-14 self-start"
             defaultSize={32}
             minSize={22}
             maxSize={50}
             style={{ overflow: "visible" }}
           >
-            <div className="pr-2 sticky top-14 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <div className="pr-2 max-h-[calc(100vh-4rem)] overflow-y-auto">
               <ClientPanel state={state} update={update} updateFunnel={updateFunnel} results={results} />
             </div>
           </ResizablePanel>
