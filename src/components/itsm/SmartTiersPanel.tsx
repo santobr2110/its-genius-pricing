@@ -50,6 +50,11 @@ export default function SmartTiersPanel() {
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [n3Modo, setN3Modo] = usePersistentState<"TAM" | "Owner" | "Livre">(
+    "gestao-ti:smartPerf:n3Modo",
+    "Livre",
+  );
+  const N3_MODO_HORAS: Record<"TAM" | "Owner", number> = { TAM: 20, Owner: 40 };
 
   const inv = {
     qtdUsuarios: state.qtdUsuarios,
@@ -540,12 +545,36 @@ export default function SmartTiersPanel() {
                   {formatNumber(state.horasN3Mensais)}h/mês · {formatBRL(toSell(results.custoN3))}
                 </span>
               </div>
+              <div className="grid grid-cols-3 gap-1 rounded-md border bg-muted/40 p-0.5">
+                {(["TAM", "Owner", "Livre"] as const).map((m) => {
+                  const active = n3Modo === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => {
+                        setN3Modo(m);
+                        if (m !== "Livre") update("horasN3Mensais", N3_MODO_HORAS[m] as any);
+                      }}
+                      className={`text-[11px] font-medium rounded px-2 py-1 transition-colors ${
+                        active
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
               <Slider
                 value={[Math.min(40, Math.max(20, state.horasN3Mensais || 20))]}
                 onValueChange={([v]) => update("horasN3Mensais", v)}
                 min={20}
                 max={40}
                 step={1}
+                disabled={n3Modo !== "Livre"}
+                className={n3Modo !== "Livre" ? "opacity-50" : ""}
               />
             </div>
 
