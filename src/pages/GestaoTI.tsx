@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ServerCog, RotateCcw, Sparkles, GitBranch, Plus, Trash2 } from "lucide-react";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -77,6 +77,15 @@ export default function GestaoTI() {
     "gestao-ti:rotinas",
     ROTINAS_DEFAULT,
   );
+
+  // Migração: normaliza grupo "BACKUP" → "Backup" em dados persistidos antigos
+  useEffect(() => {
+    if (rotinas.some((r) => r.grupo === "BACKUP")) {
+      setRotinas((prev) =>
+        prev.map((r) => (r.grupo === "BACKUP" ? { ...r, grupo: "Backup" } : r)),
+      );
+    }
+  }, []);
   const [gmuds, setGmuds] = usePersistentState<Gmud[]>(
     "gestao-ti:gmuds",
     GMUDS_DEFAULT,
