@@ -17,6 +17,16 @@ import {
 } from "@/data/rotinas";
 import { useMemo } from "react";
 
+// Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
+// unitárias por ambiente, independente da oferta (Operation/Performance) ou
+// complexidade (Padrão/Complexo). Gateia pelo inventário de Servidores.
+function normalizeOsRotina(r: Rotina): Rotina {
+  const grupo = r.grupo.toLowerCase();
+  const isOs = grupo.includes("sistema operacional");
+  if (!isOs) return r;
+  return { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
+}
+
 const TIERS: {
   id: keyof ITSMState;
   label: string;
