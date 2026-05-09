@@ -129,3 +129,13 @@ All colors MUST be HSL.
       linear-gradient(180deg, hsl(150 30% 8%) 0%, hsl(152 32% 11%) 100%);
   }
 }
+
+/* Tinge as setinhas dos inputs numéricos com a cor primária (verde) */
+input[type="number"] {
+  accent-color: hsl(var(--primary));
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  filter: hue-rotate(90deg) saturate(2);
+  opacity: 1;
+}
