@@ -427,7 +427,7 @@ function TierBlock({
   title: string; tagline: string; valor: number;
   tierIndex?: number; children?: React.ReactNode; dominant?: boolean;
 }) {
-  const theme = TIER_THEMES[color] ?? TIER_THEMES.emerald;
+  const theme = TIER_THEMES[color] ?? TIER_THEMES.silver;
   const alias = TIER_ALIAS[color];
   const AliasIcon = alias?.icon;
   if (!active) {
