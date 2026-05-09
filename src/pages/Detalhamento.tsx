@@ -204,7 +204,7 @@ export default function Detalhamento() {
 
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
-  const valorMonitor = state.tierMonitor ? toSell(sm.total) : 0;
+  const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
   const custoOperacaoBase =
     results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
   const valorFieldService = state.tierFieldOperation
@@ -255,7 +255,8 @@ export default function Detalhamento() {
         </section>
 
         {/* SMART MONITOR */}
-        <TierBlock active={state.tierMonitor} color="bronze" icon={Activity} tierIndex={1}
+        {monitorVisible && (
+        <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
           title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
           valor={valorMonitor}>
@@ -278,6 +279,7 @@ export default function Detalhamento() {
             </div>
           )}
         </TierBlock>
+        )}
 
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
