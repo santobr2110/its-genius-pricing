@@ -136,6 +136,7 @@ input[type="number"] {
 }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-  filter: hue-rotate(90deg) saturate(2);
+  -webkit-appearance: inner-spin-button;
+  filter: sepia(1) saturate(8) hue-rotate(70deg) brightness(0.9);
   opacity: 1;
 }
