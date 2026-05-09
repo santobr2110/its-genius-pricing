@@ -214,7 +214,8 @@ export default function SmartTiersPanel() {
   // Rotinas de Field Service (Microinformática) — agregam Operation + Performance
   // num único bloco exibido dentro da composição de Field Service.
   const rotinasField = useMemo(() => {
-    if (!state.tierFieldOperation) {
+    // No cenário sem infra, microinformática já é listada como rotina de Operation/Performance.
+    if (!state.tierFieldOperation || n3OptionalScenario) {
       return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
     }
     const items = rotinas

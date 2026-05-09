@@ -190,7 +190,7 @@ export default function Detalhamento() {
   const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [rotinas, state]);
 
   const rotinasField = useMemo(() => {
-    if (!state.tierFieldOperation) return [];
+    if (!state.tierFieldOperation || n3OptionalScenario) return [];
     return rotinas
       .filter(r => r.grupo.toLowerCase().includes("microinform"))
       .filter(r => (r.oferta === "Performance" ? state.tierPerformance : true))
