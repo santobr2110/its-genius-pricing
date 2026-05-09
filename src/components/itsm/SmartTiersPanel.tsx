@@ -599,8 +599,12 @@ export default function SmartTiersPanel() {
                             <Input
                               type="number"
                               min={0}
+                              step={0.1}
                               value={state[key] === 0 ? "" : (state[key] as number)}
-                              onChange={(e) => update(key, parseInt(e.target.value) || 0)}
+                              onChange={(e) => {
+                                const v = parseFloat(e.target.value.replace(",", "."));
+                                update(key, Number.isFinite(v) ? v : 0);
+                              }}
                               className="h-7 text-sm ml-auto"
                             />
                           </div>
