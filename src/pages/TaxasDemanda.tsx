@@ -159,7 +159,7 @@ export default function TaxasDemanda() {
                     <Input
                       type="number"
                       step={1}
-                      value={(() => { const v = Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100; return v === 0 ? "" : v; })()}
+                      value={Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100}
                       onChange={(e) => {
                         const next = [...criticidadeEscala];
                         next[idx] = (parseFloat(e.target.value) || 0) / 100;
