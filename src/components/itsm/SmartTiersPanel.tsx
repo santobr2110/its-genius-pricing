@@ -303,6 +303,10 @@ export default function SmartTiersPanel() {
                     if (t.id === "tierOperation" && next && !state.tierMonitor) {
                       update("tierMonitor", true as any);
                     }
+                    // Ao desativar Smart Operation, desativa Field Service automaticamente
+                    if (t.id === "tierOperation" && !next && state.tierFieldOperation) {
+                      update("tierFieldOperation", false as any);
+                    }
                     // Smart Performance exige Smart Monitor + Operation ativos
                     if (t.id === "tierPerformance" && next) {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
