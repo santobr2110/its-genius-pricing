@@ -312,36 +312,49 @@ export default function Detalhamento() {
               modo="operation"
             />
           )}
-        </TierBlock>
 
-        {/* FIELD SERVICE */}
-        {state.tierFieldOperation && (
-          <TierBlock active={true} color="amber" icon={Wrench} tierIndex={3}
-            title="Field Service" tagline="Suporte presencial onde o usuário precisa"
-            valor={valorFieldService}>
-            <SubTitle>Equipe presencial alocada</SubTitle>
-            <div className="grid grid-cols-3 gap-2">
-              <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} sub={formatBRL(fs.custoN1F)} />
-              <Stat label="N2F" value={`${state.fieldDirectQtdN2} prof.`} sub={formatBRL(fs.custoN2F)} />
-              <Stat label="N3F" value={`${state.fieldDirectQtdN3} prof.`} sub={formatBRL(fs.custoN3F)} />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-              <Stat label="Equipamentos cobertos" value={formatNumber(state.qtdEquipamentos)} />
-              <Stat label="Chamados escalados ao Field" value={`${formatNumber(fs.volumeUsuariosEscalado, 1)}/mês`} />
-            </div>
-            {fs.overflowAtivo && (
-              <div className="mt-3 rounded-lg border border-amber-300 bg-amber-100/40 dark:bg-amber-900/20 p-3 text-xs">
-                <strong>Transbordo ativo:</strong> {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial e são tratados via N1 remoto + N2F.
+          {/* FIELD SERVICE — sub-oferta dentro do Smart Operation */}
+          {state.tierFieldOperation && (
+            <div className="mt-5 rounded-2xl border-2 border-amber-300/70 dark:border-amber-700/60 bg-gradient-to-br from-amber-50/60 via-background/40 to-orange-50/40 dark:from-amber-950/30 dark:to-orange-950/20 p-4 space-y-3 shadow-inner">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="rounded-xl p-2 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white shadow-md">
+                  <Wrench className="h-4 w-4" strokeWidth={2.5} />
+                </div>
+                <div className="flex-1 min-w-[160px]">
+                  <p className="text-sm font-extrabold tracking-tight">Field Service</p>
+                  <p className="text-[11px] text-muted-foreground italic">Suporte presencial — incluso no Smart Operation</p>
+                </div>
+                {valorFieldService > 0 && (
+                  <div className="text-right shrink-0">
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
+                    <p className="text-base font-extrabold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300 bg-clip-text text-transparent tabular-nums">{formatBRL(valorFieldService)}</p>
+                  </div>
+                )}
               </div>
-            )}
-            {rotinasField.length > 0 && (
-              <>
-                <SubTitle className="mt-4">Rotinas Field — Microinformática ({rotinasField.length})</SubTitle>
-                <RoutineList items={rotinasField} accent="amber" />
-              </>
-            )}
-          </TierBlock>
-        )}
+              <SubTitle>Equipe presencial alocada</SubTitle>
+              <div className="grid grid-cols-3 gap-2">
+                <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} sub={formatBRL(fs.custoN1F)} />
+                <Stat label="N2F" value={`${state.fieldDirectQtdN2} prof.`} sub={formatBRL(fs.custoN2F)} />
+                <Stat label="N3F" value={`${state.fieldDirectQtdN3} prof.`} sub={formatBRL(fs.custoN3F)} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Stat label="Equipamentos cobertos" value={formatNumber(state.qtdEquipamentos)} />
+                <Stat label="Chamados escalados ao Field" value={`${formatNumber(fs.volumeUsuariosEscalado, 1)}/mês`} />
+              </div>
+              {fs.overflowAtivo && (
+                <div className="rounded-lg border border-amber-300 bg-amber-100/40 dark:bg-amber-900/20 p-3 text-xs">
+                  <strong>Transbordo ativo:</strong> {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial e são tratados via N1 remoto + N2F.
+                </div>
+              )}
+              {rotinasField.length > 0 && (
+                <>
+                  <SubTitle>Rotinas Field — Microinformática ({rotinasField.length})</SubTitle>
+                  <RoutineList items={rotinasField} accent="amber" />
+                </>
+              )}
+            </div>
+          )}
+        </TierBlock>
 
         {/* SMART PERFORMANCE */}
         <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
