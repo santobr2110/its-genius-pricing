@@ -51,12 +51,19 @@ export default function Detalhamento() {
   const sm = results.smartMonitor;
   const fs = results.fieldService;
 
+  // Quando não há ativos de Cloud/Datacenter no inventário, o Smart Monitor
+  // não faz parte da proposta (ainda que esteja marcado nas configurações).
+  const hasInfraInventory =
+    (state.qtdServidores || 0) + (state.qtdAtivosRede || 0) +
+    (state.qtdBancosDados || 0) + (state.qtdSistemas || 0) > 0;
+  const monitorVisible = state.tierMonitor && hasInfraInventory;
+
   // Camada mais alta ativa = dominante visual
   const dominantColor =
     state.tierEnterprise ? "diamond"
     : state.tierPerformance ? "gold"
     : state.tierOperation ? "silver"
-    : state.tierMonitor ? "bronze"
+    : monitorVisible ? "bronze"
     : null;
 
   const handleExportPDF = async () => {
@@ -197,7 +204,7 @@ export default function Detalhamento() {
 
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
-  const valorMonitor = state.tierMonitor ? toSell(sm.total) : 0;
+  const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
   const custoOperacaoBase =
     results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
   const valorFieldService = state.tierFieldOperation
@@ -248,7 +255,8 @@ export default function Detalhamento() {
         </section>
 
         {/* SMART MONITOR */}
-        <TierBlock active={state.tierMonitor} color="bronze" icon={Activity} tierIndex={1}
+        {monitorVisible && (
+        <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
           title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
           valor={valorMonitor}>
@@ -271,6 +279,7 @@ export default function Detalhamento() {
             </div>
           )}
         </TierBlock>
+        )}
 
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
