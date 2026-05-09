@@ -27,6 +27,40 @@ function normalizeOsRotina(r: Rotina): Rotina {
   return { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
 }
 
+// Input numérico que aceita frações (ex.: 0,8 / 0.5) preservando o que o
+// usuário digita até que o valor seja válido.
+function FractionInput({
+  value,
+  onChange,
+  className,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  className?: string;
+}) {
+  const [raw, setRaw] = useState<string>(value === 0 ? "" : String(value).replace(".", ","));
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={raw}
+      onChange={(e) => {
+        const s = e.target.value;
+        // Permite vazio, dígitos e vírgula/ponto durante digitação
+        if (!/^[0-9]*[.,]?[0-9]*$/.test(s)) return;
+        setRaw(s);
+        const parsed = parseFloat(s.replace(",", "."));
+        onChange(Number.isFinite(parsed) ? parsed : 0);
+      }}
+      onBlur={() => {
+        if (raw === "" || raw === "," || raw === ".") setRaw("");
+        else setRaw(String(parseFloat(raw.replace(",", "."))).replace(".", ","));
+      }}
+      className={className}
+    />
+  );
+}
+
 const TIERS: {
   id: keyof ITSMState;
   label: string;
