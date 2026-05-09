@@ -15,7 +15,7 @@ import {
   type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 // Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
 // unitárias por ambiente, independente da oferta (Operation/Performance) ou
@@ -25,6 +25,40 @@ function normalizeOsRotina(r: Rotina): Rotina {
   const isOs = grupo.includes("sistema operacional");
   if (!isOs) return r;
   return { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
+}
+
+// Input numérico que aceita frações (ex.: 0,8 / 0.5) preservando o que o
+// usuário digita até que o valor seja válido.
+function FractionInput({
+  value,
+  onChange,
+  className,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  className?: string;
+}) {
+  const [raw, setRaw] = useState<string>(value === 0 ? "" : String(value).replace(".", ","));
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={raw}
+      onChange={(e) => {
+        const s = e.target.value;
+        // Permite vazio, dígitos e vírgula/ponto durante digitação
+        if (!/^[0-9]*[.,]?[0-9]*$/.test(s)) return;
+        setRaw(s);
+        const parsed = parseFloat(s.replace(",", "."));
+        onChange(Number.isFinite(parsed) ? parsed : 0);
+      }}
+      onBlur={() => {
+        if (raw === "" || raw === "," || raw === ".") setRaw("");
+        else setRaw(String(parseFloat(raw.replace(",", "."))).replace(".", ","));
+      }}
+      className={className}
+    />
+  );
 }
 
 const TIERS: {
@@ -596,15 +630,9 @@ export default function SmartTiersPanel() {
                         ] as const).map(([key, label]) => (
                           <div key={key} className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
                             <Label className="text-[11px] text-muted-foreground">{label}</Label>
-                            <Input
-                              type="number"
-                              min={0}
-                              step={0.1}
-                              value={state[key] === 0 ? "" : (state[key] as number)}
-                              onChange={(e) => {
-                                const v = parseFloat(e.target.value.replace(",", "."));
-                                update(key, Number.isFinite(v) ? v : 0);
-                              }}
+                            <FractionInput
+                              value={state[key] as number}
+                              onChange={(v) => update(key, v)}
                               className="h-7 text-sm ml-auto"
                             />
                           </div>
