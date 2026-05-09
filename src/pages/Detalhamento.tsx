@@ -565,6 +565,7 @@ function RoutineList({
   accent: string; complexo?: boolean;
 }) {
   const theme = TIER_THEMES[accent];
+  const totalDemanda = items.reduce((a, b) => a + b.demanda, 0);
   return (
     <div className="rounded-xl border bg-background/80 backdrop-blur-sm overflow-hidden shadow-sm">
       <table className="w-full text-[11.5px]">
@@ -572,7 +573,6 @@ function RoutineList({
           <tr>
             <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px]">Rotina</th>
             <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-28">Frequência</th>
-            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">{complexo ? "Exec/mês" : "Ch/mês"}</th>
           </tr>
         </thead>
         <tbody>
@@ -583,10 +583,17 @@ function RoutineList({
                 <span className="text-muted-foreground">{i.grupo} · </span><span className="font-medium">{i.rotina}</span>
               </td>
               <td className="px-3 py-2 text-muted-foreground">{i.freq}</td>
-              <td className="px-3 py-2 text-right tabular-nums font-extrabold">{i.demanda.toFixed(1)}</td>
             </tr>
           ))}
         </tbody>
+        <tfoot>
+          <tr className="border-t bg-muted/40">
+            <td className="px-3 py-2 font-bold uppercase tracking-wider text-[10px]" colSpan={1}>
+              Total previsto {complexo ? "(execuções/mês)" : "(chamados/mês)"}
+            </td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totalDemanda.toFixed(1)}</td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   );
