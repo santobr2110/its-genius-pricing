@@ -130,14 +130,13 @@ All colors MUST be HSL.
   }
 }
 
-/* Setinhas dos inputs numéricos em verde (cor primária do tema).
-   Força a coloração via filter (Chrome/Edge não suportam accent-color
-   nas spin buttons). */
+/* Remove as setas de incremento/decremento dos inputs numéricos */
 input[type="number"] {
-  accent-color: hsl(var(--primary));
+  -moz-appearance: textfield;
 }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-  opacity: 1;
-  filter: brightness(0) saturate(100%) invert(56%) sepia(85%) saturate(450%) hue-rotate(85deg) brightness(95%) contrast(85%);
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
 }
