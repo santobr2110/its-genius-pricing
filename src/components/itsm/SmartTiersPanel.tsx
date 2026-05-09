@@ -630,15 +630,9 @@ export default function SmartTiersPanel() {
                         ] as const).map(([key, label]) => (
                           <div key={key} className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
                             <Label className="text-[11px] text-muted-foreground">{label}</Label>
-                            <Input
-                              type="number"
-                              min={0}
-                              step={0.1}
-                              value={state[key] === 0 ? "" : (state[key] as number)}
-                              onChange={(e) => {
-                                const v = parseFloat(e.target.value.replace(",", "."));
-                                update(key, Number.isFinite(v) ? v : 0);
-                              }}
+                            <FractionInput
+                              value={state[key] as number}
+                              onChange={(v) => update(key, v)}
                               className="h-7 text-sm ml-auto"
                             />
                           </div>
