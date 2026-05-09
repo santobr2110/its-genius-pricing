@@ -166,11 +166,16 @@ export default function Detalhamento() {
   };
 
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
-    (n3OptionalScenario ? [] : rotinas)
+    rotinas
       .filter(r => r.oferta === oferta)
       .filter(r => oferta === "Performance" ? (r.complexidade ?? "Padrão") === complexidade : true)
-      // Microinformática é exibida no bloco Field Service
-      .filter(r => !r.grupo.toLowerCase().includes("microinform"))
+      // Quando há infra, microinformática vai para o bloco Field Service.
+      // Sem infra (apenas service desk), apenas microinformática é considerada aqui.
+      .filter(r =>
+        n3OptionalScenario
+          ? r.grupo.toLowerCase().includes("microinform")
+          : !r.grupo.toLowerCase().includes("microinform"),
+      )
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -185,7 +190,7 @@ export default function Detalhamento() {
   const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [rotinas, state]);
 
   const rotinasField = useMemo(() => {
-    if (!state.tierFieldOperation) return [];
+    if (!state.tierFieldOperation || n3OptionalScenario) return [];
     return rotinas
       .filter(r => r.grupo.toLowerCase().includes("microinform"))
       .filter(r => (r.oferta === "Performance" ? state.tierPerformance : true))

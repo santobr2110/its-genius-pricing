@@ -122,13 +122,15 @@ export default function SmartTiersPanel() {
     wRotN3 * custoChN3Mix;
 
   const rotinasOperation = useMemo(() => {
-    if (n3OptionalScenario) {
-      return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
-    }
     const items = rotinas
       .filter((r) => r.oferta === "Operation")
-      // Rotinas de Microinformática são exibidas dentro do bloco Field Service
-      .filter((r) => !r.grupo.toLowerCase().includes("microinform"))
+      // Quando há infra, rotinas de Microinformática vão para o bloco Field Service.
+      // Sem infra (apenas service desk), apenas microinformática é considerada aqui.
+      .filter((r) =>
+        n3OptionalScenario
+          ? r.grupo.toLowerCase().includes("microinform")
+          : !r.grupo.toLowerCase().includes("microinform"),
+      )
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -159,16 +161,13 @@ export default function SmartTiersPanel() {
 
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
-    if (n3OptionalScenario) {
-      return {
-        items: [] as any[],
-        totals: { demanda: 0, horasMes: 0, cac: 0, custo: 0, venda: 0 },
-        isComplex,
-      };
-    }
     const items = rotinas
       .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
-      .filter((r) => !r.grupo.toLowerCase().includes("microinform"))
+      .filter((r) =>
+        n3OptionalScenario
+          ? r.grupo.toLowerCase().includes("microinform")
+          : !r.grupo.toLowerCase().includes("microinform"),
+      )
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -215,7 +214,8 @@ export default function SmartTiersPanel() {
   // Rotinas de Field Service (Microinformática) — agregam Operation + Performance
   // num único bloco exibido dentro da composição de Field Service.
   const rotinasField = useMemo(() => {
-    if (!state.tierFieldOperation) {
+    // No cenário sem infra, microinformática já é listada como rotina de Operation/Performance.
+    if (!state.tierFieldOperation || n3OptionalScenario) {
       return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
     }
     const items = rotinas
