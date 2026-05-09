@@ -166,7 +166,7 @@ export default function Detalhamento() {
   };
 
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
-    rotinas
+    (n3OptionalScenario ? [] : rotinas)
       .filter(r => r.oferta === oferta)
       .filter(r => oferta === "Performance" ? (r.complexidade ?? "Padrão") === complexidade : true)
       // Microinformática é exibida no bloco Field Service
