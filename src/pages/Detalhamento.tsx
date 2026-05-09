@@ -140,9 +140,6 @@ export default function Detalhamento() {
   };
   const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
-  const hasInfraInventory =
-    (state.qtdServidores || 0) + (state.qtdAtivosRede || 0) +
-    (state.qtdBancosDados || 0) + (state.qtdSistemas || 0) > 0;
   const hasServiceDesk =
     (state.qtdUsuarios || 0) + (state.qtdEquipamentos || 0) > 0;
   const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
