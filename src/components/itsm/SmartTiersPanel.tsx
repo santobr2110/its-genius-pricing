@@ -130,7 +130,7 @@ export default function SmartTiersPanel() {
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
-          : hasServiceDesk
+          : hasServiceDesk && !state.tierFieldOperation
             ? true
             : !r.grupo.toLowerCase().includes("microinform"),
       )
@@ -169,7 +169,7 @@ export default function SmartTiersPanel() {
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
-          : hasServiceDesk
+          : hasServiceDesk && !state.tierFieldOperation
             ? true
             : !r.grupo.toLowerCase().includes("microinform"),
       )
