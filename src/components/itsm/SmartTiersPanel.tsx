@@ -350,9 +350,6 @@ export default function SmartTiersPanel() {
                   <Medal className="h-3 w-3" strokeWidth={2.5} />
                   <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Bronze</span>
                 </span>
-                {dominantTier === "tierMonitor" && (
-                  <span className="rounded-full bg-foreground text-background text-[9px] font-extrabold uppercase tracking-[0.18em] px-1.5 py-0.5">Dominante</span>
-                )}
               </p>
               <span className="text-[11px] text-muted-foreground">
                 {formatNumber(sm.ativos)} ativos · {formatNumber(sm.chamadosAtivos, 1)} ch/mês
@@ -407,9 +404,6 @@ export default function SmartTiersPanel() {
                   <Award className="h-3 w-3" strokeWidth={2.5} />
                   <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Silver</span>
                 </span>
-                {dominantTier === "tierOperation" && (
-                  <span className="rounded-full bg-foreground text-background text-[9px] font-extrabold uppercase tracking-[0.18em] px-1.5 py-0.5">Dominante</span>
-                )}
               </p>
               <span className="text-[11px] text-muted-foreground">
                 Distribuição N1 {state.percN1}% · N2 {state.percN2}%
@@ -695,9 +689,6 @@ export default function SmartTiersPanel() {
                   <Trophy className="h-3 w-3" strokeWidth={2.5} />
                   <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Gold</span>
                 </span>
-                {dominantTier === "tierPerformance" && (
-                  <span className="rounded-full bg-foreground text-background text-[9px] font-extrabold uppercase tracking-[0.18em] px-1.5 py-0.5">Dominante</span>
-                )}
               </p>
               <span className="text-[11px] text-muted-foreground">
                 custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
