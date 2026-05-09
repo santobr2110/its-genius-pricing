@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Activity, Zap, Gauge, Building2, MapPin, ListChecks } from "lucide-react";
+import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trophy, Gem } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
@@ -33,12 +33,15 @@ const TIERS: {
   icon: any;
   desc: string;
   available: boolean;
+  alias: string;
+  aliasIcon: any;
+  aliasClass: string;
   selectedClass?: string;
 }[] = [
-  { id: "tierMonitor", label: "Smart Monitor", icon: Activity, desc: "Monitoramento de ativos (Servidores, Rede, Firewall)", available: true, selectedClass: "border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900" },
-  { id: "tierOperation", label: "Smart Operation", icon: Zap, desc: "Atendimento humano N1/N2 reativo com N3 opcional em horas", available: true, selectedClass: "border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900" },
-  { id: "tierPerformance", label: "Smart Performance", icon: Gauge, desc: "Rotinas preventivas e de complexidade · exige Smart Monitor + Operation", available: true, selectedClass: "border-violet-200 bg-violet-50/60 dark:bg-violet-950/20 dark:border-violet-900" },
-  { id: "tierEnterprise", label: "Smart Enterprise", icon: Building2, desc: "Em breve", available: false },
+  { id: "tierMonitor",     label: "Smart Monitor",     icon: Activity,   desc: "Monitoramento de ativos (Servidores, Rede, Firewall)",                  available: true,  alias: "Bronze",  aliasIcon: Medal,  aliasClass: "bg-gradient-to-r from-amber-600 to-orange-700 text-white",  selectedClass: "border-amber-400 bg-amber-50/70 dark:bg-amber-950/30 dark:border-amber-800" },
+  { id: "tierOperation",   label: "Smart Operation",   icon: Zap,        desc: "Atendimento humano N1/N2 reativo com N3 opcional em horas",             available: true,  alias: "Silver",  aliasIcon: Award,  aliasClass: "bg-gradient-to-r from-slate-400 to-zinc-500 text-white",     selectedClass: "border-slate-400 bg-slate-100/80 dark:bg-slate-800/40 dark:border-slate-600" },
+  { id: "tierPerformance", label: "Smart Performance", icon: Gauge,      desc: "Rotinas preventivas e de complexidade · exige Smart Monitor + Operation", available: true, alias: "Gold",    aliasIcon: Trophy, aliasClass: "bg-gradient-to-r from-yellow-500 to-amber-600 text-yellow-950",  selectedClass: "border-yellow-400 bg-yellow-50/70 dark:bg-yellow-950/30 dark:border-yellow-800" },
+  { id: "tierEnterprise",  label: "Smart Enterprise",  icon: Building2,  desc: "Em breve",                                                                available: false, alias: "Diamond", aliasIcon: Gem,    aliasClass: "bg-gradient-to-r from-cyan-400 to-sky-600 text-white" },
 ];
 
 export default function SmartTiersPanel() {
@@ -255,6 +258,16 @@ export default function SmartTiersPanel() {
   const totalSelecionado =
     (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
 
+  // Camada mais alta ativa = dominante visual nos quadros de composição
+  const dominantTier =
+    state.tierEnterprise ? "tierEnterprise"
+    : state.tierPerformance ? "tierPerformance"
+    : state.tierOperation ? "tierOperation"
+    : state.tierMonitor ? "tierMonitor"
+    : null;
+  const dominantRing = (id: string) =>
+    dominantTier === id ? "ring-2 ring-offset-2 ring-offset-background ring-current/40 shadow-lg" : "";
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -314,15 +327,33 @@ export default function SmartTiersPanel() {
                     {locked && t.id === "tierOperation" && " · obrigatório com Smart Performance"}
                   </p>
                 </div>
+                {t.alias && (() => {
+                  const AliasIcon = t.aliasIcon;
+                  return (
+                    <div className={`ml-auto shrink-0 self-start inline-flex items-center gap-1 rounded-full px-2 py-0.5 shadow-sm ${isSel ? t.aliasClass : "bg-muted text-muted-foreground"}`}>
+                      <AliasIcon className="h-3 w-3" strokeWidth={2.5} />
+                      <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">{t.alias}</span>
+                    </div>
+                  );
+                })()}
               </label>
             );
           })}
         </div>
 
         {state.tierMonitor && (
-          <div className="rounded-lg border border-sky-200 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-900 p-4 space-y-3">
+          <div className={`rounded-lg border border-amber-300 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-800 p-4 space-y-3 ${dominantRing("tierMonitor")}`}>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-foreground">Composição — Smart Monitor</p>
+              <p className="text-xs font-semibold text-foreground inline-flex items-center gap-2">
+                Composição — Smart Monitor
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-600 to-orange-700 text-white px-2 py-0.5 shadow-sm">
+                  <Medal className="h-3 w-3" strokeWidth={2.5} />
+                  <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Bronze</span>
+                </span>
+                {dominantTier === "tierMonitor" && (
+                  <span className="rounded-full bg-foreground text-background text-[9px] font-extrabold uppercase tracking-[0.18em] px-1.5 py-0.5">Dominante</span>
+                )}
+              </p>
               <span className="text-[11px] text-muted-foreground">
                 {formatNumber(sm.ativos)} ativos · {formatNumber(sm.chamadosAtivos, 1)} ch/mês
               </span>
@@ -368,9 +399,18 @@ export default function SmartTiersPanel() {
         )}
 
         {state.tierOperation && (
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 dark:bg-emerald-950/20 dark:border-emerald-900 p-4 space-y-3">
+          <div className={`rounded-lg border border-slate-400 bg-slate-100/70 dark:bg-slate-800/40 dark:border-slate-600 p-4 space-y-3 ${dominantRing("tierOperation")}`}>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-foreground">Composição — Smart Operation</p>
+              <p className="text-xs font-semibold text-foreground inline-flex items-center gap-2">
+                Composição — Smart Operation
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-slate-400 to-zinc-500 text-white px-2 py-0.5 shadow-sm">
+                  <Award className="h-3 w-3" strokeWidth={2.5} />
+                  <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Silver</span>
+                </span>
+                {dominantTier === "tierOperation" && (
+                  <span className="rounded-full bg-foreground text-background text-[9px] font-extrabold uppercase tracking-[0.18em] px-1.5 py-0.5">Dominante</span>
+                )}
+              </p>
               <span className="text-[11px] text-muted-foreground">
                 Distribuição N1 {state.percN1}% · N2 {state.percN2}%
                 {` · N3 ${state.percN3}%`}
@@ -647,9 +687,18 @@ export default function SmartTiersPanel() {
         )}
 
         {state.tierPerformance && (
-          <div className="rounded-lg border border-violet-200 bg-violet-50/60 dark:bg-violet-950/20 dark:border-violet-900 p-4 space-y-3">
+          <div className={`rounded-lg border border-yellow-400 bg-yellow-50/70 dark:bg-yellow-950/30 dark:border-yellow-800 p-4 space-y-3 ${dominantRing("tierPerformance")}`}>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-foreground">Composição — Smart Performance</p>
+              <p className="text-xs font-semibold text-foreground inline-flex items-center gap-2">
+                Composição — Smart Performance
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-yellow-500 to-amber-600 text-yellow-950 px-2 py-0.5 shadow-sm">
+                  <Trophy className="h-3 w-3" strokeWidth={2.5} />
+                  <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Gold</span>
+                </span>
+                {dominantTier === "tierPerformance" && (
+                  <span className="rounded-full bg-foreground text-background text-[9px] font-extrabold uppercase tracking-[0.18em] px-1.5 py-0.5">Dominante</span>
+                )}
+              </p>
               <span className="text-[11px] text-muted-foreground">
                 custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
               </span>

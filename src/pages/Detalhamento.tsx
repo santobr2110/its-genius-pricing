@@ -9,6 +9,7 @@ import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
+  Medal, Award, Trophy, Gem,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -26,17 +27,37 @@ function normalizeOsRotina(r: Rotina): Rotina {
 }
 
 const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon: string; bar: string; badge: string; check: string; glow: string; valueGrad: string; blob1: string; blob2: string }> = {
-  sky:     { ring: "border-sky-300/70 dark:border-sky-600/60",      bg: "from-sky-100/80 via-card to-cyan-50/40 dark:from-sky-950/50 dark:via-card dark:to-cyan-950/20",          chip: "bg-gradient-to-r from-sky-500/20 to-cyan-500/20 text-sky-700 dark:text-sky-300",         icon: "bg-gradient-to-br from-sky-400 via-sky-500 to-cyan-600 text-white",        bar: "from-sky-400 via-cyan-400 to-sky-600",        badge: "bg-gradient-to-r from-sky-500 to-cyan-500",     check: "text-sky-600 dark:text-sky-400", glow: "shadow-sky-500/30", valueGrad: "from-sky-600 to-cyan-600 dark:from-sky-300 dark:to-cyan-300", blob1: "bg-sky-400/30", blob2: "bg-cyan-400/20" },
-  emerald: { ring: "border-emerald-300/70 dark:border-emerald-600/60", bg: "from-emerald-100/80 via-card to-teal-50/40 dark:from-emerald-950/50 dark:via-card dark:to-teal-950/20", chip: "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-700 dark:text-emerald-300", icon: "bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 text-white", bar: "from-emerald-400 via-teal-400 to-emerald-600", badge: "bg-gradient-to-r from-emerald-500 to-teal-500", check: "text-emerald-600 dark:text-emerald-400", glow: "shadow-emerald-500/30", valueGrad: "from-emerald-600 to-teal-600 dark:from-emerald-300 dark:to-teal-300", blob1: "bg-emerald-400/30", blob2: "bg-teal-400/20" },
+  // Bronze — Smart Monitor
+  bronze:  { ring: "border-amber-500/70 dark:border-amber-700/70",   bg: "from-amber-100/80 via-card to-orange-100/40 dark:from-amber-950/60 dark:via-card dark:to-orange-950/30", chip: "bg-gradient-to-r from-amber-600/25 to-orange-700/25 text-amber-800 dark:text-amber-200",  icon: "bg-gradient-to-br from-amber-500 via-orange-600 to-amber-800 text-white",   bar: "from-amber-400 via-orange-500 to-amber-700",  badge: "bg-gradient-to-r from-amber-600 to-orange-700",  check: "text-amber-700 dark:text-amber-300", glow: "shadow-amber-700/30", valueGrad: "from-amber-700 to-orange-700 dark:from-amber-300 dark:to-orange-300", blob1: "bg-amber-500/30", blob2: "bg-orange-600/20" },
+  // Silver — Smart Operation
+  silver:  { ring: "border-slate-400/70 dark:border-slate-500/70",   bg: "from-slate-100/90 via-card to-zinc-100/50 dark:from-slate-800/60 dark:via-card dark:to-zinc-900/40",     chip: "bg-gradient-to-r from-slate-400/25 to-zinc-500/25 text-slate-700 dark:text-slate-200",    icon: "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-600 text-slate-900",  bar: "from-slate-300 via-zinc-300 to-slate-500",   badge: "bg-gradient-to-r from-slate-500 to-zinc-600",     check: "text-slate-600 dark:text-slate-300", glow: "shadow-slate-500/30", valueGrad: "from-slate-600 to-zinc-700 dark:from-slate-200 dark:to-zinc-200",     blob1: "bg-slate-400/30", blob2: "bg-zinc-400/20" },
+  // Gold — Smart Performance
+  gold:    { ring: "border-yellow-500/80 dark:border-yellow-500/70", bg: "from-yellow-100/80 via-card to-amber-100/50 dark:from-yellow-950/60 dark:via-card dark:to-amber-950/40", chip: "bg-gradient-to-r from-yellow-500/25 to-amber-500/25 text-yellow-800 dark:text-yellow-200", icon: "bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600 text-yellow-950", bar: "from-yellow-300 via-amber-400 to-yellow-600", badge: "bg-gradient-to-r from-yellow-500 to-amber-600",   check: "text-yellow-700 dark:text-yellow-300", glow: "shadow-yellow-500/40", valueGrad: "from-yellow-600 to-amber-700 dark:from-yellow-300 dark:to-amber-300", blob1: "bg-yellow-400/35", blob2: "bg-amber-500/25" },
+  // Diamond — Smart Enterprise
+  diamond: { ring: "border-cyan-400/80 dark:border-cyan-400/70",    bg: "from-cyan-100/80 via-card to-sky-100/40 dark:from-cyan-950/60 dark:via-card dark:to-sky-950/30",          chip: "bg-gradient-to-r from-cyan-400/25 to-sky-500/25 text-cyan-800 dark:text-cyan-200",         icon: "bg-gradient-to-br from-cyan-200 via-sky-300 to-blue-500 text-cyan-950",   bar: "from-cyan-300 via-sky-400 to-blue-500",   badge: "bg-gradient-to-r from-cyan-500 to-sky-600",       check: "text-cyan-700 dark:text-cyan-300", glow: "shadow-cyan-500/40", valueGrad: "from-cyan-600 to-blue-600 dark:from-cyan-300 dark:to-sky-300",       blob1: "bg-cyan-400/35", blob2: "bg-sky-400/25" },
+  // Field Service — sub-oferta (mantém âmbar/laranja distinto)
   amber:   { ring: "border-amber-300/70 dark:border-amber-600/60",  bg: "from-amber-100/80 via-card to-orange-50/40 dark:from-amber-950/50 dark:via-card dark:to-orange-950/20",  chip: "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-300",   icon: "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white",  bar: "from-amber-400 via-orange-400 to-rose-500",   badge: "bg-gradient-to-r from-amber-500 to-orange-500",   check: "text-amber-600 dark:text-amber-400", glow: "shadow-amber-500/30", valueGrad: "from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300", blob1: "bg-amber-400/30", blob2: "bg-orange-400/20" },
-  violet:  { ring: "border-violet-300/70 dark:border-violet-600/60", bg: "from-violet-100/80 via-card to-fuchsia-50/40 dark:from-violet-950/50 dark:via-card dark:to-fuchsia-950/20", chip: "bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-violet-700 dark:text-violet-300", icon: "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white", bar: "from-violet-500 via-purple-500 to-fuchsia-600", badge: "bg-gradient-to-r from-violet-500 to-fuchsia-500",  check: "text-violet-600 dark:text-violet-400", glow: "shadow-violet-500/30", valueGrad: "from-violet-600 to-fuchsia-600 dark:from-violet-300 dark:to-fuchsia-300", blob1: "bg-violet-400/30", blob2: "bg-fuchsia-400/20" },
-  rose:    { ring: "border-rose-300/70 dark:border-rose-600/60",    bg: "from-rose-100/80 via-card to-pink-50/40 dark:from-rose-950/50 dark:via-card dark:to-pink-950/20",    chip: "bg-gradient-to-r from-rose-500/20 to-pink-500/20 text-rose-700 dark:text-rose-300",      icon: "bg-gradient-to-br from-rose-400 via-pink-500 to-fuchsia-600 text-white",     bar: "from-rose-400 via-pink-500 to-fuchsia-500",      badge: "bg-gradient-to-r from-rose-500 to-pink-500",    check: "text-rose-600 dark:text-rose-400", glow: "shadow-rose-500/30", valueGrad: "from-rose-600 to-pink-600 dark:from-rose-300 dark:to-pink-300", blob1: "bg-rose-400/30", blob2: "bg-pink-400/20" },
+};
+
+const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
+  bronze:  { name: "Bronze",  icon: Medal  },
+  silver:  { name: "Silver",  icon: Award  },
+  gold:    { name: "Gold",    icon: Trophy },
+  diamond: { name: "Diamond", icon: Gem    },
 };
 
 export default function Detalhamento() {
   const { state, results } = useITSMContext();
   const sm = results.smartMonitor;
   const fs = results.fieldService;
+
+  // Camada mais alta ativa = dominante visual
+  const dominantColor =
+    state.tierEnterprise ? "diamond"
+    : state.tierPerformance ? "gold"
+    : state.tierOperation ? "silver"
+    : state.tierMonitor ? "bronze"
+    : null;
 
   const handleExportPDF = async () => {
     const el = document.getElementById("proposicao-printable");
@@ -227,7 +248,8 @@ export default function Detalhamento() {
         </section>
 
         {/* SMART MONITOR */}
-        <TierBlock active={state.tierMonitor} color="sky" icon={Activity} tierIndex={1}
+        <TierBlock active={state.tierMonitor} color="bronze" icon={Activity} tierIndex={1}
+          dominant={dominantColor === "bronze"}
           title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
           valor={valorMonitor}>
           <SubTitle>Componentes monitorados</SubTitle>
@@ -251,17 +273,18 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART OPERATION */}
-        <TierBlock active={state.tierOperation} color="emerald" icon={Rocket} tierIndex={2}
+        <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
+          dominant={dominantColor === "silver"}
           title="Smart Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
           valor={valorOperation}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="emerald">Funil N1 ({state.percN1}%) e N2 ({state.percN2}%) reativo com SLA controlado</Bullet>
-            <Bullet color="emerald">Triagem técnica e roteamento dos chamados</Bullet>
-            <Bullet color="emerald">Rotinas preventivas básicas (Operation)</Bullet>
-            <Bullet color="emerald">Indicadores e relatórios mensais</Bullet>
+            <Bullet color="silver">Funil N1 ({state.percN1}%) e N2 ({state.percN2}%) reativo com SLA controlado</Bullet>
+            <Bullet color="silver">Triagem técnica e roteamento dos chamados</Bullet>
+            <Bullet color="silver">Rotinas preventivas básicas (Operation)</Bullet>
+            <Bullet color="silver">Indicadores e relatórios mensais</Bullet>
             {!state.tierPerformance && (
-              <Bullet color="emerald">Atendimento N3 contratado em horas ({formatNumber(state.horasN3Mensais)}h/mês)</Bullet>
+              <Bullet color="silver">Atendimento N3 contratado em horas ({formatNumber(state.horasN3Mensais)}h/mês)</Bullet>
             )}
           </ul>
 
@@ -274,7 +297,7 @@ export default function Detalhamento() {
           {rotinasOp.length > 0 && (
             <>
               <SubTitle className="mt-4">Rotinas preventivas básicas ({rotinasOp.length})</SubTitle>
-              <RoutineList items={rotinasOp} accent="emerald" />
+              <RoutineList items={rotinasOp} accent="silver" />
             </>
           )}
 
@@ -321,28 +344,29 @@ export default function Detalhamento() {
         )}
 
         {/* SMART PERFORMANCE */}
-        <TierBlock active={state.tierPerformance} color="violet" icon={TrendingUp} tierIndex={4}
+        <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
+          dominant={dominantColor === "gold"}
           title="Smart Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
           valor={valorPerformance}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="violet">Rotinas preventivas avançadas executadas pelo N3</Bullet>
-            <Bullet color="violet">Cobertura de ambientes complexos (HA, multi-site, 24x7, ERP)</Bullet>
-            <Bullet color="violet">Otimização contínua de performance e capacidade</Bullet>
-            <Bullet color="violet">Horas técnicas N3 dedicadas ao cliente</Bullet>
+            <Bullet color="gold">Rotinas preventivas avançadas executadas pelo N3</Bullet>
+            <Bullet color="gold">Cobertura de ambientes complexos (HA, multi-site, 24x7, ERP)</Bullet>
+            <Bullet color="gold">Otimização contínua de performance e capacidade</Bullet>
+            <Bullet color="gold">Horas técnicas N3 dedicadas ao cliente</Bullet>
           </ul>
 
           {rotinasPerfPadrao.length > 0 && (
             <>
               <SubTitle className="mt-4">Rotinas Performance — Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
-              <RoutineList items={rotinasPerfPadrao} accent="violet" />
+              <RoutineList items={rotinasPerfPadrao} accent="gold" />
             </>
           )}
 
           {algumComplexAtivo && rotinasPerfComplexo.length > 0 && (
             <>
               <SubTitle className="mt-4">Rotinas Performance — Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
-              <RoutineList items={rotinasPerfComplexo} accent="violet" complexo />
+              <RoutineList items={rotinasPerfComplexo} accent="gold" complexo />
             </>
           )}
 
@@ -361,13 +385,14 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART ENTERPRISE */}
-        <TierBlock active={state.tierEnterprise} color="rose" icon={Crown} tierIndex={5}
+        <TierBlock active={state.tierEnterprise} color="diamond" icon={Crown} tierIndex={5}
+          dominant={dominantColor === "diamond"}
           title="Smart Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="rose">Gestão estratégica e roadmap tecnológico</Bullet>
-            <Bullet color="rose">Comitê executivo e governança de mudanças (GMUDs)</Bullet>
-            <Bullet color="rose">Alinhamento contínuo entre TI e negócio</Bullet>
+            <Bullet color="diamond">Gestão estratégica e roadmap tecnológico</Bullet>
+            <Bullet color="diamond">Comitê executivo e governança de mudanças (GMUDs)</Bullet>
+            <Bullet color="diamond">Alinhamento contínuo entre TI e negócio</Bullet>
           </ul>
         </TierBlock>
 
@@ -396,13 +421,15 @@ export default function Detalhamento() {
 /* ===== Subcomponents ===== */
 
 function TierBlock({
-  active, color, icon: Icon, title, tagline, valor, children, tierIndex,
+  active, color, icon: Icon, title, tagline, valor, children, tierIndex, dominant,
 }: {
   active: boolean; color: string; icon: React.ElementType;
   title: string; tagline: string; valor: number;
-  tierIndex?: number; children?: React.ReactNode;
+  tierIndex?: number; children?: React.ReactNode; dominant?: boolean;
 }) {
-  const theme = TIER_THEMES[color] ?? TIER_THEMES.emerald;
+  const theme = TIER_THEMES[color] ?? TIER_THEMES.silver;
+  const alias = TIER_ALIAS[color];
+  const AliasIcon = alias?.icon;
   if (!active) {
     return (
       <div className="relative rounded-3xl border-2 border-dashed border-muted-foreground/25 bg-muted/10 p-5 opacity-60">
@@ -415,12 +442,18 @@ function TierBlock({
             </div>
             <p className="text-[11px] text-muted-foreground italic mt-0.5">{tagline}</p>
           </div>
+          {alias && AliasIcon && (
+            <div className="ml-auto flex items-center gap-1.5 rounded-full border border-dashed px-2.5 py-1 text-muted-foreground">
+              <AliasIcon className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em]">{alias.name}</span>
+            </div>
+          )}
         </div>
       </div>
     );
   }
   return (
-    <div className={`group relative overflow-hidden rounded-3xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-xl ${theme.glow} transition-all hover:shadow-2xl`}>
+    <div className={`group relative overflow-hidden rounded-3xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-xl ${theme.glow} transition-all hover:shadow-2xl ${dominant ? "ring-4 ring-offset-2 ring-offset-background ring-current/30 scale-[1.005]" : ""}`}>
       {/* Decorative blobs */}
       <div className={`pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full blur-3xl ${theme.blob1}`} />
       <div className={`pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full blur-3xl ${theme.blob2}`} />
@@ -443,9 +476,20 @@ function TierBlock({
               <span className={`inline-flex items-center gap-1 ${theme.badge} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full shadow-md`}>
                 <Sparkles className="h-3 w-3" /> Incluído
               </span>
+              {dominant && (
+                <span className="inline-flex items-center gap-1 bg-foreground text-background text-[9px] font-extrabold uppercase tracking-[0.15em] px-2 py-0.5 rounded-full">
+                  Dominante
+                </span>
+              )}
             </div>
             <p className={`text-[11px] font-semibold mt-1.5 inline-block px-2.5 py-1 rounded-full ${theme.chip}`}>{tagline}</p>
           </div>
+          {alias && AliasIcon && (
+            <div className={`shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 shadow-md ${theme.badge} text-white`}>
+              <AliasIcon className="h-4 w-4" strokeWidth={2.5} />
+              <span className="text-[11px] font-extrabold uppercase tracking-[0.2em]">{alias.name}</span>
+            </div>
+          )}
           {valor > 0 && (
             <div className="text-right shrink-0">
               <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
