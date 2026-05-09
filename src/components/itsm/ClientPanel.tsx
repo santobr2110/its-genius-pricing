@@ -80,7 +80,7 @@ export default function ClientPanel({ state, update }: Props) {
                       <Label className="text-[10px] text-muted-foreground leading-none truncate block">{label}</Label>
                       <Input
                         type="number"
-                        value={state[key] === 0 ? "" : (state[key] as number)}
+                        value={state[key] as number}
                         onChange={(e) => update(key, parseInt(e.target.value) || 0)}
                         className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
                       />

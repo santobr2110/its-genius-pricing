@@ -47,7 +47,7 @@ export default function EquipeN3() {
                   <Input
                     type="number"
                     step={5}
-                    value={state.valorHoraN3 === 0 ? "" : state.valorHoraN3}
+                    value={state.valorHoraN3}
                     onChange={(e) => update("valorHoraN3", parseFloat(e.target.value) || 0)}
                     className="pl-10"
                   />
@@ -58,7 +58,7 @@ export default function EquipeN3() {
                 <Input
                   type="number"
                   step={0.5}
-                  value={state.tempoMedioChamadoN3 === 0 ? "" : state.tempoMedioChamadoN3}
+                  value={state.tempoMedioChamadoN3}
                   onChange={(e) => update("tempoMedioChamadoN3", parseFloat(e.target.value) || 0)}
                 />
               </div>
