@@ -130,13 +130,28 @@ All colors MUST be HSL.
   }
 }
 
-/* Tinge as setinhas dos inputs numéricos com a cor primária (verde) */
+/* Setinhas dos inputs numéricos em verde (cor primária do tema) */
 input[type="number"] {
   accent-color: hsl(var(--primary));
+  -moz-appearance: textfield;
 }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: inner-spin-button;
-  filter: sepia(1) saturate(8) hue-rotate(70deg) brightness(0.9);
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 100%;
+  margin-left: 4px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 12'><path d='M5 1 L9 5 L1 5 Z' fill='%2322c55e'/><path d='M5 11 L9 7 L1 7 Z' fill='%2322c55e'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 10px 12px;
   opacity: 1;
+  cursor: pointer;
+}
+input[type="number"]::-webkit-inner-spin-button:hover,
+input[type="number"]::-webkit-outer-spin-button:hover {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 12'><path d='M5 1 L9 5 L1 5 Z' fill='%2316a34a'/><path d='M5 11 L9 7 L1 7 Z' fill='%2316a34a'/></svg>");
 }
