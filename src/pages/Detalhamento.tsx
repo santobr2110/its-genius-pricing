@@ -51,12 +51,19 @@ export default function Detalhamento() {
   const sm = results.smartMonitor;
   const fs = results.fieldService;
 
+  // Quando não há ativos de Cloud/Datacenter no inventário, o Smart Monitor
+  // não faz parte da proposta (ainda que esteja marcado nas configurações).
+  const hasInfraInventory =
+    (state.qtdServidores || 0) + (state.qtdAtivosRede || 0) +
+    (state.qtdBancosDados || 0) + (state.qtdSistemas || 0) > 0;
+  const monitorVisible = state.tierMonitor && hasInfraInventory;
+
   // Camada mais alta ativa = dominante visual
   const dominantColor =
     state.tierEnterprise ? "diamond"
     : state.tierPerformance ? "gold"
     : state.tierOperation ? "silver"
-    : state.tierMonitor ? "bronze"
+    : monitorVisible ? "bronze"
     : null;
 
   const handleExportPDF = async () => {
