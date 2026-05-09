@@ -15,7 +15,7 @@ import {
   type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 // Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
 // unitárias por ambiente, independente da oferta (Operation/Performance) ou
