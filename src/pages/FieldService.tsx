@@ -169,7 +169,7 @@ function LevelView({
                       <Input value={p.cargo} onChange={(e) => onUpdate(p.id, "cargo", e.target.value)} className="h-8 text-xs" />
                     </TableCell>
                     <TableCell className="p-1">
-                      <Input type="number" value={p.quantidade === 0 ? "" : p.quantidade} onChange={(e) => onUpdate(p.id, "quantidade", parseFloat(e.target.value.replace(",", ".")) || 0)} className="h-8 text-xs text-center" min={0} step={0.1} />
+                      <Input type="number" value={p.quantidade === 0 ? "" : p.quantidade} onChange={(e) => onUpdate(p.id, "quantidade", parseInt(e.target.value) || 0)} className="h-8 text-xs text-center" min={0} />
                     </TableCell>
                     <TableCell className="p-1">
                       <Input value={p.escala} onChange={(e) => onUpdate(p.id, "escala", e.target.value)} className="h-8 text-xs text-center" />
