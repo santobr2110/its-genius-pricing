@@ -20,7 +20,7 @@ function NumInput({ label, value, onChange, step = 0.1, prefix }: {
         <Input
           type="number"
           step={step}
-          value={value === 0 ? "" : value}
+          value={value}
           onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
           className={`h-8 text-sm ${prefix ? "pl-8" : ""}`}
         />

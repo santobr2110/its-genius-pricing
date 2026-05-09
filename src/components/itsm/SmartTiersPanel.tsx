@@ -617,7 +617,7 @@ export default function SmartTiersPanel() {
                         <Label className="text-[11px] text-muted-foreground">Limite de equipamentos (transbordo p/ remoto)</Label>
                         <Input
                           type="number"
-                          value={state.fieldDirectEquipLimit === 0 ? "" : state.fieldDirectEquipLimit}
+                          value={state.fieldDirectEquipLimit}
                           onChange={(e) => update("fieldDirectEquipLimit", parseInt(e.target.value) || 0)}
                           className="h-7 text-sm w-24 ml-auto"
                         />

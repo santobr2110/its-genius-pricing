@@ -91,22 +91,22 @@ export default function EquipeN1() {
                         <Input value={p.cargo} onChange={(e) => updateN1Professional(p.id, "cargo", e.target.value)} className="h-8 text-xs" />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input type="number" value={p.quantidade === 0 ? "" : p.quantidade} onChange={(e) => updateN1Professional(p.id, "quantidade", parseInt(e.target.value) || 0)} className="h-8 text-xs text-center" min={0} />
+                        <Input type="number" value={p.quantidade} onChange={(e) => updateN1Professional(p.id, "quantidade", parseInt(e.target.value) || 0)} className="h-8 text-xs text-center" min={0} />
                       </TableCell>
                       <TableCell className="p-1">
                         <Input value={p.escala} onChange={(e) => updateN1Professional(p.id, "escala", e.target.value)} className="h-8 text-xs text-center" />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input type="number" value={p.salarioBase === 0 ? "" : p.salarioBase} onChange={(e) => updateN1Professional(p.id, "salarioBase", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-right" step={100} />
+                        <Input type="number" value={p.salarioBase} onChange={(e) => updateN1Professional(p.id, "salarioBase", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-right" step={100} />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input type="number" value={p.encargosPerc === 0 ? "" : p.encargosPerc} onChange={(e) => updateN1Professional(p.id, "encargosPerc", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-center" step={1} />
+                        <Input type="number" value={p.encargosPerc} onChange={(e) => updateN1Professional(p.id, "encargosPerc", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-center" step={1} />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input type="number" value={p.beneficiosFixo === 0 ? "" : p.beneficiosFixo} onChange={(e) => updateN1Professional(p.id, "beneficiosFixo", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-right" step={50} />
+                        <Input type="number" value={p.beneficiosFixo} onChange={(e) => updateN1Professional(p.id, "beneficiosFixo", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-right" step={50} />
                       </TableCell>
                       <TableCell className="p-1">
-                        <Input type="number" value={p.custosIndiretosPerc === 0 ? "" : p.custosIndiretosPerc} onChange={(e) => updateN1Professional(p.id, "custosIndiretosPerc", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-center" step={1} />
+                        <Input type="number" value={p.custosIndiretosPerc} onChange={(e) => updateN1Professional(p.id, "custosIndiretosPerc", parseFloat(e.target.value) || 0)} className="h-8 text-xs text-center" step={1} />
                       </TableCell>
                       <TableCell className="p-1 text-right">
                         <span className="text-xs font-semibold">{formatBRL(profCost(p))}</span>
@@ -158,7 +158,7 @@ export default function EquipeN1() {
                 <Label className="text-xs text-muted-foreground">Capacidade Total do Time (chamados/mês)</Label>
                 <Input
                   type="number"
-                  value={n1Team.capacidadeTimeTotal === 0 ? "" : n1Team.capacidadeTimeTotal}
+                  value={n1Team.capacidadeTimeTotal}
                   onChange={(e) => updateN1Config("capacidadeTimeTotal", parseInt(e.target.value) || 0)}
                   className="h-8 text-sm"
                   step={50}

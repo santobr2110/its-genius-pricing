@@ -40,7 +40,7 @@ function RateRow({ icon: Icon, label, description, value, qty, qtyLabel, onChang
         <Input
           type="number"
           step={0.1}
-          value={value === 0 ? "" : value}
+          value={value}
           onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
           className="h-9"
         />
@@ -102,7 +102,7 @@ export default function TaxasDemanda() {
                   type="number"
                   step={1}
                   min={0}
-                  value={state.custoAtivoMonitorado === 0 ? "" : state.custoAtivoMonitorado}
+                  value={state.custoAtivoMonitorado}
                   onChange={(e) => update("custoAtivoMonitorado", parseFloat(e.target.value) || 0)}
                   className="h-9"
                 />
@@ -117,7 +117,7 @@ export default function TaxasDemanda() {
                   step={1}
                   min={0}
                   max={100}
-                  value={state.percAlocacaoN1Monitor === 0 ? "" : state.percAlocacaoN1Monitor}
+                  value={state.percAlocacaoN1Monitor}
                   onChange={(e) => update("percAlocacaoN1Monitor", parseFloat(e.target.value) || 0)}
                   className="h-9"
                 />
@@ -131,7 +131,7 @@ export default function TaxasDemanda() {
                   type="number"
                   step={1}
                   min={0}
-                  value={state.custoFerramentaEndpoint === 0 ? "" : state.custoFerramentaEndpoint}
+                  value={state.custoFerramentaEndpoint}
                   onChange={(e) => update("custoFerramentaEndpoint", parseFloat(e.target.value) || 0)}
                   className="h-9"
                 />
@@ -159,7 +159,7 @@ export default function TaxasDemanda() {
                     <Input
                       type="number"
                       step={1}
-                      value={(() => { const v = Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100; return v === 0 ? "" : v; })()}
+                      value={Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100}
                       onChange={(e) => {
                         const next = [...criticidadeEscala];
                         next[idx] = (parseFloat(e.target.value) || 0) / 100;
