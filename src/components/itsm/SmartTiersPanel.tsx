@@ -102,6 +102,13 @@ export default function SmartTiersPanel() {
   };
   const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
+  const hasInfraInventory =
+    (inv.qtdServidores || 0) + (inv.qtdAtivosRede || 0) +
+    (inv.qtdBancosDados || 0) + (inv.qtdSistemas || 0) > 0;
+  const hasServiceDesk =
+    (inv.qtdUsuarios || 0) + (inv.qtdEquipamentos || 0) > 0;
+  const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
+
   // Custo médio por chamado de rotina ponderado pela escala de rotinas
   // (independente do funil de chamados de usuários/infra).
   const custoChN3Mix = state.tempoMedioChamadoN3 * state.valorHoraN3;

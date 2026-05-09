@@ -304,11 +304,24 @@ export function useITSMCalculator() {
     // Atendimento humano só está ativo se alguma camada que envolve atendimento for selecionada
     const humanAttendanceActive =
       state.tierOperation || state.tierPerformance || state.tierEnterprise;
-    // N3 atendido nas camadas superiores OU como opcional dentro do Smart Operation.
+
+    // Cenário onde N3 se torna opcional: sem infra mas com service desk
+    const hasInfraInventory =
+      (state.qtdServidores || 0) +
+      (state.qtdAtivosRede || 0) +
+      (state.qtdBancosDados || 0) +
+      (state.qtdSistemas || 0) > 0;
+    const hasServiceDesk =
+      (state.qtdUsuarios || 0) +
+      (state.qtdEquipamentos || 0) > 0;
+    const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
+
+    // N3 atendido nas camadas superiores. Quando não há infra mas há service desk,
+    // o N3 torna-se opcional via tierOperationN3.
     const n3Active =
-      state.tierPerformance ||
       state.tierEnterprise ||
-      state.tierOperation;
+      ((state.tierPerformance || state.tierOperation) && !n3OptionalScenario) ||
+      (n3OptionalScenario && state.tierOperationN3);
 
     // === N1: Custo por Chamado ===
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
