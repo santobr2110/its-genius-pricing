@@ -124,12 +124,15 @@ export default function SmartTiersPanel() {
   const rotinasOperation = useMemo(() => {
     const items = rotinas
       .filter((r) => r.oferta === "Operation")
-      // Quando há infra, rotinas de Microinformática vão para o bloco Field Service.
-      // Sem infra (apenas service desk), apenas microinformática é considerada aqui.
+      // Sem infra (apenas service desk): apenas microinformática.
+      // Com infra + service desk: todas as rotinas (incluindo microinformática).
+      // Com infra sem service desk: exclui microinformática (vai para Field Service).
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
-          : !r.grupo.toLowerCase().includes("microinform"),
+          : hasServiceDesk
+            ? true
+            : !r.grupo.toLowerCase().includes("microinform"),
       )
       .map((r) => {
         const rotina = normalizeOsRotina(r);
@@ -166,7 +169,9 @@ export default function SmartTiersPanel() {
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
-          : !r.grupo.toLowerCase().includes("microinform"),
+          : hasServiceDesk
+            ? true
+            : !r.grupo.toLowerCase().includes("microinform"),
       )
       .map((r) => {
         const rotina = normalizeOsRotina(r);

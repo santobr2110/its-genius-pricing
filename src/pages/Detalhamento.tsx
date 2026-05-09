@@ -169,12 +169,15 @@ export default function Detalhamento() {
     rotinas
       .filter(r => r.oferta === oferta)
       .filter(r => oferta === "Performance" ? (r.complexidade ?? "Padrão") === complexidade : true)
-      // Quando há infra, microinformática vai para o bloco Field Service.
-      // Sem infra (apenas service desk), apenas microinformática é considerada aqui.
+      // Sem infra (apenas service desk): apenas microinformática.
+      // Com infra + service desk: todas as rotinas (incluindo microinformática).
+      // Com infra sem service desk: exclui microinformática (vai para Field Service).
       .filter(r =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
-          : !r.grupo.toLowerCase().includes("microinform"),
+          : hasServiceDesk
+            ? true
+            : !r.grupo.toLowerCase().includes("microinform"),
       )
       .map(r => {
         const rotina = normalizeOsRotina(r);
