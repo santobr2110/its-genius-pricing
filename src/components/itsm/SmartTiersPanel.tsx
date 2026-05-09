@@ -506,7 +506,23 @@ export default function SmartTiersPanel() {
               </div>
             )}
 
-            {!state.tierPerformance && (
+            {n3OptionalScenario && (
+              <label className="flex items-start gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
+                <Checkbox
+                  checked={state.tierOperationN3}
+                  onCheckedChange={() => update("tierOperationN3", !state.tierOperationN3 as any)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold">Incluir N3 (horas avulsas)</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Como não há infraestrutura no inventário, o N3 é opcional.
+                  </p>
+                </div>
+              </label>
+            )}
+
+            {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && (
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
@@ -726,6 +742,7 @@ export default function SmartTiersPanel() {
               </p>
             )}
 
+            {(!n3OptionalScenario || state.tierOperationN3) && (
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
@@ -810,6 +827,7 @@ export default function SmartTiersPanel() {
                 </div>
               </div>
             </div>
+            )}
 
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Performance (venda)</span>

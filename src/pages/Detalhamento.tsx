@@ -296,7 +296,7 @@ export default function Detalhamento() {
             <Bullet color="silver">Triagem técnica e roteamento dos chamados</Bullet>
             <Bullet color="silver">Rotinas preventivas básicas (Operation)</Bullet>
             <Bullet color="silver">Indicadores e relatórios mensais</Bullet>
-            {!state.tierPerformance && (
+            {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && (
               <Bullet color="silver">Atendimento N3 contratado em horas ({formatNumber(state.horasN3Mensais)}h/mês)</Bullet>
             )}
           </ul>
@@ -314,7 +314,7 @@ export default function Detalhamento() {
             </>
           )}
 
-          {!state.tierPerformance && state.horasN3Mensais > 0 && (
+          {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && state.horasN3Mensais > 0 && (
             <N3HoursBox
               total={state.horasN3Mensais}
               consumidas={horasAtendN3}
@@ -396,7 +396,7 @@ export default function Detalhamento() {
             </>
           )}
 
-          {state.tierPerformance && state.horasN3Mensais > 0 && (
+          {state.tierPerformance && (!n3OptionalScenario || state.tierOperationN3) && state.horasN3Mensais > 0 && (
             <N3HoursBox
               total={state.horasN3Mensais}
               consumidas={horasAtendN3}
