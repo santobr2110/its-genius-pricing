@@ -73,8 +73,8 @@ const TIERS: {
   selectedClass?: string;
 }[] = [
   { id: "tierMonitor",     label: "Smart Monitor",     icon: Activity,   desc: "Monitoramento de ativos (Servidores, Rede, Firewall)",                  available: true,  alias: "Bronze",  aliasIcon: Medal,  aliasClass: "bg-gradient-to-r from-amber-600 to-orange-700 text-white",  selectedClass: "border-amber-400 bg-amber-50/70 dark:bg-amber-950/30 dark:border-amber-800" },
-  { id: "tierOperation",   label: "Smart Operation",   icon: Zap,        desc: "Atendimento humano N1/N2 reativo com N3 opcional em horas",             available: true,  alias: "Silver",  aliasIcon: Award,  aliasClass: "bg-gradient-to-r from-slate-400 to-zinc-500 text-white",     selectedClass: "border-slate-400 bg-slate-100/80 dark:bg-slate-800/40 dark:border-slate-600" },
-  { id: "tierPerformance", label: "Smart Performance", icon: Gauge,      desc: "Rotinas preventivas e de complexidade · exige Smart Monitor + Operation", available: true, alias: "Gold",    aliasIcon: Trophy, aliasClass: "bg-gradient-to-r from-yellow-500 to-amber-600 text-yellow-950",  selectedClass: "border-yellow-400 bg-yellow-50/70 dark:bg-yellow-950/30 dark:border-yellow-800" },
+   { id: "tierOperation",   label: "Smart Operation",   icon: Zap,        desc: "Atendimento humano N1/N2 com N3 opcional em horas - rotinas preventivas básicas ",             available: true,  alias: "Silver",  aliasIcon: Award,  aliasClass: "bg-gradient-to-r from-slate-400 to-zinc-500 text-white",     selectedClass: "border-slate-400 bg-slate-100/80 dark:bg-slate-800/40 dark:border-slate-600" },
+   { id: "tierPerformance", label: "Smart Performance", icon: Gauge,      desc: "Rotinas preventivas e de complexidade · exige Smart Monitor + Operation", available: true, alias: "Gold",    aliasIcon: Trophy, aliasClass: "bg-gradient-to-r from-yellow-500 to-amber-600 text-yellow-950",  selectedClass: "border-yellow-400 bg-yellow-50/70 dark:bg-yellow-950/30 dark:border-yellow-800" },
   { id: "tierEnterprise",  label: "Smart Enterprise",  icon: Building2,  desc: "Em breve",                                                                available: false, alias: "Diamond", aliasIcon: Gem,    aliasClass: "bg-gradient-to-r from-cyan-400 to-sky-600 text-white" },
 ];
 
@@ -383,7 +383,7 @@ export default function SmartTiersPanel() {
                   <p className="text-sm font-semibold">{t.label}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {t.desc}
-                    {locked && t.id === "tierMonitor" && (state.tierPerformance ? " · obrigatório com Smart Performance" : " · obrigatório com Smart Operation")}
+                     {locked && t.id === "tierMonitor" && (state.tierPerformance ? "" : " · obrigatório com Smart Operation")}
                     {locked && t.id === "tierOperation" && " · obrigatório com Smart Performance"}
                   </p>
                 </div>
