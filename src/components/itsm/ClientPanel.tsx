@@ -38,19 +38,18 @@ export default function ClientPanel({ state, update, results }: Props) {
     (state.qtdAtivosRede || 0) +
     (state.qtdBancosDados || 0) +
     (state.qtdSistemas || 0);
-  const chamadosAtivosMes = results.totalChamadosInfra;
-  const chamadosUsuariosMes = results.totalChamadosUsuarios;
+  const semInfo = state.semVolumesAtuais;
+  const chamadosAtivosMes = semInfo
+    ? results.totalChamadosInfra
+    : state.volumeChamadosAtivosManual;
+  const chamadosUsuariosMes = semInfo
+    ? results.totalChamadosUsuarios
+    : state.volumeChamadosUsuariosManual;
   const chamadosPorAtivo = totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0;
   const chamadosPorUsuario =
     state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0;
   const fmt = (n: number) =>
     n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-  const volumeItems = [
-    { label: "Chamados de Ativos / mês", value: fmt(chamadosAtivosMes), icon: Server, color: "text-emerald-500" },
-    { label: "Chamados de Usuários / mês", value: fmt(chamadosUsuariosMes), icon: Users, color: "text-blue-500" },
-    { label: "Chamados por Ativo", value: fmt(chamadosPorAtivo), icon: Activity, color: "text-amber-500" },
-    { label: "Chamados por Usuário", value: fmt(chamadosPorUsuario), icon: Activity, color: "text-indigo-500" },
-  ];
   const niveis = ["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"];
   const descritivos = [
     "Ambiente Cloud Native, PaaS, sem equipamentos físicos. Alto Investimento.",
