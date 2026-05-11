@@ -16,13 +16,24 @@ import { usePricingPresets } from "@/hooks/usePricingPresets";
 import { toast } from "sonner";
 
 export default function SavePresetButton() {
-  const { state, n1Team, n2Team } = useITSMContext();
+  const { state, n1Team, n2Team, results } = useITSMContext();
   const { save } = usePricingPresets();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
   const handleSave = () => {
-    const preset = save(name, state, n1Team, n2Team);
+    const totalAtivos =
+      (state.qtdServidores || 0) +
+      (state.qtdAtivosRede || 0) +
+      (state.qtdBancosDados || 0) +
+      (state.qtdSistemas || 0);
+    const volumes = {
+      chamadosAtivosMes: results.totalChamadosInfra,
+      chamadosUsuariosMes: results.totalChamadosUsuarios,
+      chamadosPorAtivo: totalAtivos > 0 ? results.totalChamadosInfra / totalAtivos : 0,
+      chamadosPorUsuario: state.qtdUsuarios > 0 ? results.totalChamadosUsuarios / state.qtdUsuarios : 0,
+    };
+    const preset = save(name, state, n1Team, n2Team, volumes);
     toast.success(`Precificação "${preset.name}" salva.`);
     setName("");
     setOpen(false);

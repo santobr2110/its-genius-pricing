@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge } from "lucide-react";
+import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Activity } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface Props {
@@ -32,7 +32,25 @@ const groups = [
   },
 ] as const;
 
-export default function ClientPanel({ state, update }: Props) {
+export default function ClientPanel({ state, update, results }: Props) {
+  const totalAtivos =
+    (state.qtdServidores || 0) +
+    (state.qtdAtivosRede || 0) +
+    (state.qtdBancosDados || 0) +
+    (state.qtdSistemas || 0);
+  const chamadosAtivosMes = results.totalChamadosInfra;
+  const chamadosUsuariosMes = results.totalChamadosUsuarios;
+  const chamadosPorAtivo = totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0;
+  const chamadosPorUsuario =
+    state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0;
+  const fmt = (n: number) =>
+    n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+  const volumeItems = [
+    { label: "Chamados de Ativos / mês", value: fmt(chamadosAtivosMes), icon: Server, color: "text-emerald-500" },
+    { label: "Chamados de Usuários / mês", value: fmt(chamadosUsuariosMes), icon: Users, color: "text-blue-500" },
+    { label: "Chamados por Ativo", value: fmt(chamadosPorAtivo), icon: Activity, color: "text-amber-500" },
+    { label: "Chamados por Usuário", value: fmt(chamadosPorUsuario), icon: Activity, color: "text-indigo-500" },
+  ];
   const niveis = ["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"];
   const descritivos = [
     "Ambiente Cloud Native, PaaS, sem equipamentos físicos. Alto Investimento.",
@@ -90,6 +108,25 @@ export default function ClientPanel({ state, update }: Props) {
               </div>
             </div>
             ))}
+          </section>
+
+          <section className="space-y-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Volumes Atuais
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {volumeItems.map(({ label, value, icon: Icon, color }) => (
+                <div key={label} className="flex items-center gap-2 rounded-lg border p-2">
+                  <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-[10px] text-muted-foreground leading-none truncate block">
+                      {label}
+                    </Label>
+                    <p className="text-sm font-semibold leading-tight">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </section>
 
           <section className="space-y-2">

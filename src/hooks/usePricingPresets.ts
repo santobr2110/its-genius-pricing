@@ -3,6 +3,13 @@ import type { ITSMState } from "./useITSMCalculator";
 import type { N1TeamState } from "./useN1TeamState";
 import type { N2TeamState } from "./useN2TeamState";
 
+export interface PresetVolumes {
+  chamadosAtivosMes: number;
+  chamadosUsuariosMes: number;
+  chamadosPorAtivo: number;
+  chamadosPorUsuario: number;
+}
+
 export interface PricingPreset {
   id: string;
   name: string;
@@ -11,6 +18,7 @@ export interface PricingPreset {
   calculator: ITSMState;
   n1Team: N1TeamState;
   n2Team?: N2TeamState;
+  volumes?: PresetVolumes;
 }
 
 const KEY = "itsm:presets:v1";
@@ -42,7 +50,7 @@ export function usePricingPresets() {
     return () => window.removeEventListener("itsm:presets:changed", refresh);
   }, []);
 
-  const save = useCallback((name: string, calculator: ITSMState, n1Team: N1TeamState, n2Team?: N2TeamState) => {
+  const save = useCallback((name: string, calculator: ITSMState, n1Team: N1TeamState, n2Team?: N2TeamState, volumes?: PresetVolumes) => {
     const now = Date.now();
     const list = read();
     const preset: PricingPreset = {
@@ -53,14 +61,15 @@ export function usePricingPresets() {
       calculator,
       n1Team,
       n2Team,
+      volumes,
     };
     write([preset, ...list]);
     return preset;
   }, []);
 
-  const overwrite = useCallback((id: string, calculator: ITSMState, n1Team: N1TeamState, n2Team?: N2TeamState) => {
+  const overwrite = useCallback((id: string, calculator: ITSMState, n1Team: N1TeamState, n2Team?: N2TeamState, volumes?: PresetVolumes) => {
     const list = read().map((p) =>
-      p.id === id ? { ...p, calculator, n1Team, n2Team, updatedAt: Date.now() } : p
+      p.id === id ? { ...p, calculator, n1Team, n2Team, volumes, updatedAt: Date.now() } : p
     );
     write(list);
   }, []);
