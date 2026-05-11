@@ -24,26 +24,48 @@ export default function SaveDefaultsButton() {
       return;
     }
     try {
-      const rows: { key: string; value: unknown; updated_by: string }[] = [];
+      // Lê o estado autoritativo direto do banco (funciona em qualquer
+      // navegador/dispositivo, não depende do cache local).
+      const { data: cloudRows, error: readErr } = await supabase
+        .from("user_app_state")
+        .select("key, value")
+        .eq("user_id", user.id)
+        .in("key", KEYS);
+      if (readErr) throw readErr;
+
+      const byKey = new Map<string, unknown>();
+      (cloudRows ?? []).forEach((r) => byKey.set(r.key, r.value));
+
+      // Fallback: se uma chave ainda não foi sincronizada (ex.: edição
+      // muito recente, dentro da janela de debounce), usa o localStorage.
       for (const k of KEYS) {
+        if (byKey.has(k)) continue;
         const raw = localStorage.getItem(k);
         if (raw != null) {
           try {
-            rows.push({ key: k, value: JSON.parse(raw), updated_by: user.id });
+            byKey.set(k, JSON.parse(raw));
           } catch {
             /* skip */
           }
         }
       }
+
+      const rows = Array.from(byKey.entries()).map(([key, value]) => ({
+        key,
+        value: value as never,
+        updated_by: user.id,
+      }));
       if (rows.length === 0) {
         toast.error("Nada a salvar ainda — preencha alguns campos primeiro.");
         return;
       }
       const { error } = await supabase
         .from("app_defaults")
-        .upsert(rows as never, { onConflict: "key" });
+        .upsert(rows as never[], { onConflict: "key" });
       if (error) throw error;
-      toast.success("Parâmetros atuais salvos como padrão para todos os usuários.");
+      toast.success(
+        `Parâmetros (${rows.length}) salvos como padrão para todos os usuários.`,
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Não foi possível salvar os parâmetros.");
     }
