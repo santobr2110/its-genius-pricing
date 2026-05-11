@@ -55,10 +55,16 @@ Deno.serve(async (req) => {
         .select("user_id, role_id, roles ( id, name, slug )");
       const map = new Map<string, any>();
       (assignments ?? []).forEach((a: any) => map.set(a.user_id, a.roles));
+      const { data: profilesData } = await admin
+        .from("profiles")
+        .select("id, full_name");
+      const nameMap = new Map<string, string | null>();
+      (profilesData ?? []).forEach((p: any) => nameMap.set(p.id, p.full_name));
       const users = usersData.users.map((u) => ({
         id: u.id,
         email: u.email,
         created_at: u.created_at,
+        full_name: nameMap.get(u.id) ?? (u.user_metadata as any)?.full_name ?? null,
         role: map.get(u.id) ?? null,
       }));
       return json({ users });
@@ -105,6 +111,21 @@ Deno.serve(async (req) => {
         const { error } = await admin.from("user_roles").insert({ user_id, role_id });
         if (error) return json({ error: error.message }, 400);
       }
+      return json({ ok: true });
+    }
+
+    if (action === "update_profile") {
+      const { user_id, full_name } = body;
+      if (!user_id) return json({ error: "user_id obrigatório" }, 400);
+      const name = (full_name ?? "").toString().trim();
+      const { error: pErr } = await admin
+        .from("profiles")
+        .update({ full_name: name || null })
+        .eq("id", user_id);
+      if (pErr) return json({ error: pErr.message }, 400);
+      await admin.auth.admin.updateUserById(user_id, {
+        user_metadata: { full_name: name || null },
+      });
       return json({ ok: true });
     }
 

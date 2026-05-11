@@ -34,7 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
 import { toast } from "sonner";
-import { Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil } from "lucide-react";
 
 interface RoleRow {
   id: string;
@@ -47,6 +47,7 @@ interface UserRow {
   id: string;
   email: string;
   created_at: string;
+  full_name: string | null;
   role: { id: string; name: string; slug: string } | null;
 }
 
@@ -124,6 +125,7 @@ function UsersTab({
 }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState<UserRow | null>(null);
+  const [editOpen, setEditOpen] = useState<UserRow | null>(null);
 
   const handleAssign = async (userId: string, roleId: string) => {
     const { error } = await supabase.functions.invoke("admin-users", {
@@ -160,6 +162,7 @@ function UsersTab({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Nome</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Perfil</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -168,6 +171,7 @@ function UsersTab({
           <TableBody>
             {users.map((u) => (
               <TableRow key={u.id}>
+                <TableCell className="text-sm">{u.full_name || <span className="text-muted-foreground">—</span>}</TableCell>
                 <TableCell className="text-sm">
                   {u.email}
                   {u.id === currentUserId && <Badge variant="secondary" className="ml-2 text-[10px]">você</Badge>}
@@ -191,6 +195,9 @@ function UsersTab({
                   </Select>
                 </TableCell>
                 <TableCell className="text-right space-x-1">
+                  <Button variant="ghost" size="sm" onClick={() => setEditOpen(u)} className="gap-1 h-8">
+                    <Pencil className="h-3.5 w-3.5" /> Editar
+                  </Button>
                   <Button variant="ghost" size="sm" onClick={() => setPwOpen(u)} className="gap-1 h-8">
                     <KeyRound className="h-3.5 w-3.5" /> Senha
                   </Button>
@@ -212,7 +219,61 @@ function UsersTab({
 
       <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} roles={roles} reload={reload} />
       <PasswordDialog user={pwOpen} onClose={() => setPwOpen(null)} />
+      <EditProfileDialog user={editOpen} onClose={() => setEditOpen(null)} reload={reload} />
     </Card>
+  );
+}
+
+function EditProfileDialog({
+  user,
+  onClose,
+  reload,
+}: {
+  user: UserRow | null;
+  onClose: () => void;
+  reload: () => void;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setFullName(user?.full_name ?? "");
+  }, [user]);
+
+  const submit = async () => {
+    if (!user) return;
+    setBusy(true);
+    const { error } = await supabase.functions.invoke("admin-users", {
+      body: { action: "update_profile", user_id: user.id, full_name: fullName },
+    });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Perfil atualizado.");
+      onClose();
+      reload();
+    }
+  };
+
+  return (
+    <Dialog open={!!user} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar usuário</DialogTitle>
+          <DialogDescription>{user?.email}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-1.5">
+          <Label>Nome completo</Label>
+          <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Nome Sobrenome" />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={submit} disabled={busy}>
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />} Salvar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
