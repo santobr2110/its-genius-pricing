@@ -2,9 +2,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { ShieldAlert } from "lucide-react";
+import { Navigate } from "react-router-dom";
 
 export default function SemAcesso() {
-  const { signOut, role, user } = useAuth();
+  const { signOut, role, user, can } = useAuth();
+
+  if (role && can("page.home")) {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <div className="min-h-screen grid place-items-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
