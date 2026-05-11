@@ -1,4 +1,5 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { useState } from "react";
 import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,32 @@ import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import { ITSMState } from "@/hooks/useITSMCalculator";
 import { LucideIcon } from "lucide-react";
+
+function CriticidadeInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const display = Math.round(value * 100 * 100) / 100;
+  const [text, setText] = useState<string>(String(display));
+  const [focused, setFocused] = useState(false);
+  return (
+    <Input
+      type="text"
+      inputMode="numeric"
+      value={focused ? text : String(display)}
+      onFocus={() => {
+        setText(String(display));
+        setFocused(true);
+      }}
+      onBlur={() => setFocused(false)}
+      onChange={(e) => {
+        const v = e.target.value;
+        setText(v);
+        if (v === "" || v === "-") return;
+        const parsed = parseFloat(v);
+        if (!isNaN(parsed)) onChange(parsed / 100);
+      }}
+      className="h-9 pr-7"
+    />
+  );
+}
 
 interface RateRowProps {
   icon: LucideIcon;
@@ -156,18 +183,13 @@ export default function TaxasDemanda() {
                 <div key={nome} className="space-y-1">
                   <Label className="text-xs text-muted-foreground">{nome}</Label>
                   <div className="relative">
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      step={1}
-                      value={Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100}
-                      onChange={(e) => {
+                    <CriticidadeInput
+                      value={criticidadeEscala[idx] ?? 0}
+                      onChange={(v) => {
                         const next = [...criticidadeEscala];
-                        const parsed = parseFloat(e.target.value);
-                        next[idx] = (isNaN(parsed) ? 0 : parsed) / 100;
+                        next[idx] = v;
                         update("criticidadeEscala", next);
                       }}
-                      className="h-9 pr-7"
                     />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
                   </div>
