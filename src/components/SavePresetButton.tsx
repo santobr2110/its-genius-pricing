@@ -27,11 +27,17 @@ export default function SavePresetButton() {
       (state.qtdAtivosRede || 0) +
       (state.qtdBancosDados || 0) +
       (state.qtdSistemas || 0);
+    const chamadosAtivosMes = state.semVolumesAtuais
+      ? results.totalChamadosInfra
+      : state.volumeChamadosAtivosManual;
+    const chamadosUsuariosMes = state.semVolumesAtuais
+      ? results.totalChamadosUsuarios
+      : state.volumeChamadosUsuariosManual;
     const volumes = {
-      chamadosAtivosMes: results.totalChamadosInfra,
-      chamadosUsuariosMes: results.totalChamadosUsuarios,
-      chamadosPorAtivo: totalAtivos > 0 ? results.totalChamadosInfra / totalAtivos : 0,
-      chamadosPorUsuario: state.qtdUsuarios > 0 ? results.totalChamadosUsuarios / state.qtdUsuarios : 0,
+      chamadosAtivosMes,
+      chamadosUsuariosMes,
+      chamadosPorAtivo: totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0,
+      chamadosPorUsuario: state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0,
     };
     const preset = save(name, state, n1Team, n2Team, volumes);
     toast.success(`Precificação "${preset.name}" salva.`);
