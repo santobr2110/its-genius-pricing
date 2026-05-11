@@ -5,6 +5,8 @@ import SmartTiersPanel from "@/components/itsm/SmartTiersPanel";
 import { Calculator } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import SavePresetButton from "@/components/SavePresetButton";
+import UserMenu from "@/components/auth/UserMenu";
+import Can from "@/components/auth/Can";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const Index = () => {
@@ -19,9 +21,10 @@ const Index = () => {
             <h1 className="font-bold text-foreground truncate text-base">Smart ITO</h1>
           </div>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <SavePresetButton />
-            <SaveDefaultsButton />
+            <Can permission="pricing.save_preset"><SavePresetButton /></Can>
+            <Can permission="params.save_defaults"><SaveDefaultsButton /></Can>
             <SortableNav current="home" />
+            <UserMenu />
           </div>
         </div>
       </header>
