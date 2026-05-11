@@ -46,6 +46,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import type { PermissionKey } from "@/lib/permissions";
 
 export type NavItemId =
   | "home"
@@ -79,6 +81,20 @@ const PAGES: Record<NavItemId, PageDef> = {
   "field-service": { id: "field-service", to: "/field-service", label: "Field Service", icon: MapPin },
   detalhamento: { id: "detalhamento", to: "/detalhamento", label: "Proposição", icon: ClipboardList },
   precificacoes: { id: "precificacoes", to: "/precificacoes", label: "Precificações", icon: FolderOpen },
+};
+
+const PAGE_PERMISSION: Record<NavItemId, PermissionKey> = {
+  home: "page.home",
+  taxas: "page.taxas_demanda",
+  operacao: "page.operacao",
+  financeiro: "page.financeiro",
+  "gestao-ti": "page.gestao_ti",
+  "equipe-n1": "page.equipe_n1",
+  "equipe-n2": "page.equipe_n2",
+  "equipe-n3": "page.equipe_n3",
+  "field-service": "page.field_service",
+  detalhamento: "page.detalhamento",
+  precificacoes: "page.precificacoes",
 };
 
 type SlotId = "menu-equipes" | "menu-config" | "menu-relatorio" | "precificacoes";
@@ -262,6 +278,7 @@ interface Props {
 export default function SortableNav({ current }: Props) {
   const [order, setOrder] = useState<SlotId[]>(() => loadOrder());
   const navigate = useNavigate();
+  const { can } = useAuth();
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(order));
@@ -277,7 +294,17 @@ export default function SortableNav({ current }: Props) {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-  const slots = order.map((id) => SLOT_MAP.get(id)).filter((s): s is Slot => Boolean(s));
+  const allowedPage = (pid: NavItemId) => can(PAGE_PERMISSION[pid]);
+
+  const slots = order
+    .map((id) => SLOT_MAP.get(id))
+    .filter((s): s is Slot => Boolean(s))
+    .map((s): Slot | null => {
+      if (s.kind === "page") return allowedPage(s.page) ? s : null;
+      const items = s.items.filter(allowedPage);
+      return items.length ? { ...s, items } : null;
+    })
+    .filter((s): s is Slot => Boolean(s));
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
