@@ -1,128 +1,106 @@
-## Visão geral
+## Objetivo
 
-Vamos construir um sistema completo de autenticação e controle de acesso (RBAC) sobre Lovable Cloud. A ideia central: **permissões ficam no perfil**, e cada usuário recebe um perfil. Admin pode criar/editar perfis, criar/remover usuários, trocar senhas e atribuir perfis.
+Hoje todos os dados editáveis (inventário do cliente, métricas, equipes N1/N2/N3, Field, Rotinas, GMUDs, Smart Performance, presets de precificação) ficam no `localStorage` do navegador. Em outra janela/navegador a informação some. Vamos centralizar tudo no backend (Lovable Cloud), por usuário autenticado.
 
-Perfis iniciais: `admin` (acesso total e imutável), `arquiteto` (sem permissões iniciais), `gestor_operacao` (sem permissões iniciais). Admin poderá criar outros perfis depois.
+## Escopo das chaves a migrar
 
-O primeiro usuário cadastrado vira automaticamente Administrador.
+Chaves hoje em `localStorage` que viram dado de banco:
 
----
+- `itsm:calculator:v1` — estado principal (inventário, métricas, flags de complexidade, tiers, % N0/N1/N2/N3 etc.)
+- `itsm:n1team:v1` — equipe N1
+- `itsm:n2team:v1` — equipe N2
+- `itsm:fieldteams:v1` — Field Service
+- `gestao-ti:rotinas` — rotinas (Operation/Performance + Padrão/Complexo)
+- `gestao-ti:gmuds` — GMUDs
+- `gestao-ti:smartPerf:n3Cortes` — cortes de Smart Performance
+- `itsm:pricingPresets:v1` — precificações salvas
+- Snapshots de "Salvar Parâmetros" (atualmente `<key>:default` no localStorage)
 
-## Estrutura de dados (Lovable Cloud)
+Ficam locais (preferência de UI por dispositivo): tema (`ThemeToggle`) e ordem de navegação (`SortableNav`).
 
-**Enum `app_role`** — não usado para permissões diretas, apenas como rótulo de sistema (`admin`, `arquiteto`, `gestor_operacao`, `custom`).
+## Modelo de dados
 
-**Tabela `profiles`** — dados básicos do usuário (id = auth.users.id, nome, email, role_id, created_at).
-
-**Tabela `roles`** — perfis nomeados:
-- `id`, `name` (ex: "Administrador"), `slug` (`admin`), `is_system` (true para admin, bloqueia edição/exclusão), `description`.
-
-**Tabela `role_permissions`** — permissões por perfil (uma linha por par perfil + permissão):
-- `role_id`, `permission_key` (string), `allowed` (bool).
-
-**Tabela `user_roles`** — vínculo perfil↔usuário (1:1 inicialmente, mas modelado N:N para extensão futura):
-- `user_id`, `role_id`.
-
-**Função `has_permission(_user_id, _permission_key) returns boolean`** — SECURITY DEFINER que retorna true se o perfil do usuário tem a permissão liberada. Admin sempre retorna true.
-
-**Função `is_admin(_user_id) returns boolean`** — atalho para checagens RLS.
-
-**Trigger no signup**:
-- Cria linha em `profiles`.
-- Se não existir nenhum usuário ainda → cria perfil admin (se não existir) e atribui ao novo usuário. Caso contrário, fica sem perfil até admin atribuir.
-
-**RLS**:
-- `profiles`: cada usuário lê o próprio; admin lê/edita tudo.
-- `roles`, `role_permissions`, `user_roles`: leitura para autenticados; escrita só admin. Perfis `is_system=true` não podem ser deletados/renomeados.
-
----
-
-## Catálogo de permissões
-
-Definido em código (`src/lib/permissions.ts`) para que admin marque caixas no painel. Estrutura:
+Uma tabela genérica chave→JSON por usuário, e outra para defaults globais (admin define o "padrão" da empresa).
 
 ```text
-Páginas (acesso de visualização)
-  page.home, page.detalhamento, page.equipe_n1, page.equipe_n2,
-  page.equipe_n3, page.financeiro, page.taxas_demanda,
-  page.precificacoes, page.operacao, page.field_service, page.gestao_ti
+user_app_state
+  user_id  uuid   (auth.uid)
+  key      text   (ex.: 'itsm:calculator:v1')
+  value    jsonb
+  updated_at timestamptz
+  PK (user_id, key)
+  RLS: usuário só lê/escreve as próprias linhas
 
-Ações finas
-  pricing.edit              editar parâmetros de precificação
-  pricing.save_preset       salvar/atualizar precificações (presets)
-  pricing.delete_preset     remover precificações salvas
-  params.save_defaults      salvar parâmetros padrão (botão "Salvar Parâmetros")
-  pricing.export_pdf        exportar PDF / proposta
-  teams.edit                editar equipes N1/N2/N3
-  financeiro.edit           editar configurações financeiras
-  admin.users.manage        criar/editar/remover usuários e trocar senhas
-  admin.roles.manage        criar/editar perfis e permissões
+app_defaults
+  key      text PK
+  value    jsonb
+  updated_at timestamptz
+  updated_by uuid
+  RLS: leitura por authenticated; escrita só admin (has_permission 'params.save_defaults')
 ```
 
-Admin tem todas implícitas.
+Vantagem: nenhuma mudança de schema futura quando surgir uma nova chave de estado.
 
----
+## Hook `useCloudState`
 
-## Fluxo no frontend
+Substitui `usePersistentState` mantendo a mesma assinatura `(key, initial) → [state, setState]`:
 
-**Autenticação**
-- Rota pública `/auth` com tabs Login / Cadastro.
-- `useAuth` hook expõe `user`, `session`, `loading`, `signIn`, `signUp`, `signOut`. Usa `onAuthStateChange` antes de `getSession`.
-- Sem perfil atribuído → tela "Aguardando aprovação do administrador".
+1. Primeira renderização: retorna `initial`, marca `loading=true`.
+2. Em `useEffect`, busca `user_app_state` para a chave. Se não houver linha do usuário, busca `app_defaults`. Se nenhum dos dois, usa `initial`.
+3. Cada `setState` faz upsert debounced (~500 ms) em `user_app_state`.
+4. Cache local em `localStorage` apenas para acelerar a primeira pintura ("optimistic"), com revalidação contra a nuvem.
+5. Expor também `loading` para esconder telas inconsistentes onde necessário.
 
-**Contexto de permissões**
-- `AuthProvider` carrega perfil + permissões após login e disponibiliza `can(permissionKey)`.
-- Componente utilitário `<Can permission="...">children</Can>` e `<ProtectedRoute permission="...">`.
+Para `usePricingPresets` (lista) a API muda para CRUD direto na tabela (presets viram linhas próprias).
 
-**Rotas**
-- Cada rota em `App.tsx` é envolvida por `ProtectedRoute` com a permissão de página correspondente. Sem permissão → redireciona para a primeira rota permitida ou para `/sem-acesso`.
+## Refactor por arquivo
 
-**Navegação (`SortableNav`)**
-- Filtra itens pelo `can('page.*')`. Itens sem permissão ficam ocultos.
+- `src/hooks/usePersistentState.ts` → vira fino wrapper que delega para `useCloudState` quando há usuário autenticado, mantendo fallback offline.
+- `src/hooks/useITSMCalculator.ts`, `useN1TeamState.ts`, `useN2TeamState.ts`, `useFieldTeamsState.ts` — sem mudanças de API (continuam usando `usePersistentState`).
+- `src/pages/GestaoTI.tsx`, `Detalhamento.tsx`, `components/itsm/SmartTiersPanel.tsx` — idem.
+- `src/hooks/usePricingPresets.ts` — reescrever para usar tabela `pricing_presets` (linha por preset, RLS por user_id).
+- `src/components/SaveDefaultsButton.tsx` — em vez de gravar `<key>:default` no localStorage, faz upsert em `app_defaults` para todas as chaves relevantes (incluindo `gestao-ti:rotinas` e `gestao-ti:gmuds`, hoje fora da lista). Visível só para quem tem `params.save_defaults`.
+- `src/components/SavePresetButton.tsx` — insere/atualiza linha em `pricing_presets`.
 
-**Botões sensíveis**
-- `SaveDefaultsButton` → `can('params.save_defaults')` (desabilitado/ocultado).
-- `SavePresetButton` → `can('pricing.save_preset')`.
-- Botão de export PDF → `can('pricing.export_pdf')`.
-- Inputs de precificação → `disabled` quando `!can('pricing.edit')`.
+## Migração de dados existentes
 
-**Área de administração** (`/admin`, somente admin):
-1. **Usuários** — tabela com nome, email, perfil; ações: criar usuário (email + senha temporária), trocar senha, remover, atribuir/trocar perfil.
-2. **Perfis** — tabela de roles; criar, renomear, excluir (exceto `is_system`); editar permissões via lista de checkboxes agrupadas (Páginas, Ações).
+Na primeira vez que o usuário autenticado abrir o app após o deploy:
+- Se houver dados em `localStorage` e não houver linha equivalente em `user_app_state`, fazemos um seed automático (upsert) e marcamos `user_app_state:migrated=true` no localStorage para não repetir.
+- Isso preserva o trabalho que já existe no navegador atual de cada usuário.
 
-Operações sensíveis (criar usuário, trocar senha de outro, deletar usuário) precisam de **edge function** `admin-users` autenticada que valida `is_admin(auth.uid())` e usa o Service Role para chamar `supabase.auth.admin.*`.
+## Tabelas e RLS (resumo)
 
----
+```text
+user_app_state (user_id, key, value jsonb, updated_at)
+  - select/insert/update/delete: user_id = auth.uid()
 
-## Edge function `admin-users`
+app_defaults (key pk, value jsonb, updated_at, updated_by)
+  - select: authenticated
+  - insert/update/delete: has_permission(auth.uid(), 'params.save_defaults')
 
-`supabase/functions/admin-users/index.ts` com ações:
-- `create` → cria usuário com email/senha, opcionalmente atribui role.
-- `update_password` → reseta senha de qualquer usuário.
-- `delete` → remove usuário.
-- `assign_role` → upsert em `user_roles`.
+pricing_presets (id, user_id, name, payload jsonb, created_at, updated_at)
+  - select/insert/update/delete: user_id = auth.uid()
+  - opcional: flag `shared boolean` + policy que libera leitura quando shared=true
+```
 
-Valida JWT, confere `is_admin`, valida payload com Zod, retorna CORS.
+## Entregáveis
 
----
+1. Migração SQL criando as três tabelas + RLS.
+2. Hook `useCloudState` e adaptação de `usePersistentState`.
+3. Refactor de `usePricingPresets`, `SaveDefaultsButton`, `SavePresetButton`.
+4. Seed automático a partir do localStorage existente.
+5. Indicador de "Salvando…/Salvo" no header (opcional, mas recomendado para o usuário ter feedback).
 
-## Detalhes técnicos
+## Fora do escopo
 
-- **Migrations**: enum, tabelas, RLS, funções `has_permission`/`is_admin`, trigger `on_auth_user_created`, seed dos 3 perfis e das permissões do admin.
-- **Frontend**: novas páginas `Auth.tsx`, `SemAcesso.tsx`, `Admin.tsx` (com sub-tabs Usuários / Perfis). Header recebe avatar + menu (logout, admin).
-- **Estado**: `AuthProvider` global em `App.tsx`, acima do `ITSMProvider`.
-- **Tipos**: `Permission` union string para autocomplete.
-- **UX**: toasts de sucesso/erro, confirmação para exclusões, validação de senha mínima 8 caracteres com Zod.
+- Compartilhar precificações entre usuários (pode entrar numa fase 2 com `shared=true`).
+- Histórico/versão dos dados.
+- Tema e ordem da navegação continuam locais.
 
----
+## Passo a passo de execução
 
-## Entregáveis desta etapa
-
-1. Ativar Lovable Cloud.
-2. Criar migrations (schema + funções + trigger + seed).
-3. Criar edge function `admin-users`.
-4. Criar `AuthProvider`, `useAuth`, `usePermissions`, `<Can>`, `<ProtectedRoute>`.
-5. Páginas `Auth`, `SemAcesso`, `Admin` (Usuários + Perfis).
-6. Aplicar `ProtectedRoute` em todas as rotas e filtros em `SortableNav`, `SaveDefaultsButton`, `SavePresetButton` e inputs/áreas de precificação.
-
-Após sua aprovação, prossigo na ordem acima.
+1. Criar migração das tabelas (`user_app_state`, `app_defaults`, `pricing_presets`) com RLS.
+2. Criar `useCloudState` e plugar em `usePersistentState`.
+3. Refatorar presets e botões de salvar.
+4. Implementar seed do localStorage → nuvem.
+5. Testar em duas janelas/navegadores diferentes para confirmar sincronização.
