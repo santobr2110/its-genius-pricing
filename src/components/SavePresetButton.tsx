@@ -27,12 +27,8 @@ export default function SavePresetButton() {
       (state.qtdAtivosRede || 0) +
       (state.qtdBancosDados || 0) +
       (state.qtdSistemas || 0);
-    const chamadosAtivosMes = state.semVolumesAtuais
-      ? results.totalChamadosInfra
-      : state.volumeChamadosAtivosManual;
-    const chamadosUsuariosMes = state.semVolumesAtuais
-      ? results.totalChamadosUsuarios
-      : state.volumeChamadosUsuariosManual;
+    const chamadosAtivosMes = state.semVolumesAtuais ? 0 : state.volumeChamadosAtivosManual;
+    const chamadosUsuariosMes = state.semVolumesAtuais ? 0 : state.volumeChamadosUsuariosManual;
     const volumes = {
       chamadosAtivosMes,
       chamadosUsuariosMes,
