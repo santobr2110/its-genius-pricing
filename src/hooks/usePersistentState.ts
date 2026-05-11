@@ -109,7 +109,7 @@ export function usePersistentState<T>(
         // Seed: salva como estado próprio do usuário para futuras edições
         supabase
           .from("user_app_state")
-          .upsert({ user_id: uid, key, value: merged as unknown as object }, { onConflict: "user_id,key" })
+          .upsert({ user_id: uid, key, value: merged as unknown as never }, { onConflict: "user_id,key" })
           .then(() => undefined);
         return;
       }
@@ -120,7 +120,7 @@ export function usePersistentState<T>(
       if (local !== undefined) {
         supabase
           .from("user_app_state")
-          .upsert({ user_id: uid, key, value: local as unknown as object }, { onConflict: "user_id,key" })
+          .upsert({ user_id: uid, key, value: local as unknown as never }, { onConflict: "user_id,key" })
           .then(() => undefined);
       }
     };
@@ -160,7 +160,7 @@ export function usePersistentState<T>(
             supabase
               .from("user_app_state")
               .upsert(
-                { user_id: uid, key, value: merged as unknown as object },
+                { user_id: uid, key, value: merged as unknown as never },
                 { onConflict: "user_id,key" },
               )
               .then(() => undefined);
