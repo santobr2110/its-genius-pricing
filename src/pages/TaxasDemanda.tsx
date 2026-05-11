@@ -162,7 +162,8 @@ export default function TaxasDemanda() {
                       value={Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100}
                       onChange={(e) => {
                         const next = [...criticidadeEscala];
-                        next[idx] = (parseFloat(e.target.value) || 0) / 100;
+                        const parsed = parseFloat(e.target.value);
+                        next[idx] = (isNaN(parsed) ? 0 : parsed) / 100;
                         update("criticidadeEscala", next);
                       }}
                       className="h-9 pr-7"
