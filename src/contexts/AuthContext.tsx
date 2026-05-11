@@ -23,6 +23,7 @@ interface AuthContextValue {
   loading: boolean;
   role: RoleInfo | null;
   isAdmin: boolean;
+  fullName: string | null;
   permissions: Set<string>;
   can: (key: PermissionKey) => boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
@@ -39,8 +40,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<RoleInfo | null>(null);
   const [permissions, setPermissions] = useState<Set<string>>(new Set());
+  const [fullName, setFullName] = useState<string | null>(null);
 
   const loadAccess = useCallback(async (uid: string) => {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", uid)
+      .maybeSingle();
+    setFullName(prof?.full_name ?? null);
+
     const { data: ur } = await supabase
       .from("user_roles")
       .select("role_id, roles ( id, slug, name, is_system )")
@@ -128,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, role, isAdmin, permissions, can, signIn, signUp, signOut, refresh }}
+      value={{ user, session, loading, role, isAdmin, fullName, permissions, can, signIn, signUp, signOut, refresh }}
     >
       {children}
     </AuthContext.Provider>
