@@ -157,7 +157,8 @@ export default function TaxasDemanda() {
                   <Label className="text-xs text-muted-foreground">{nome}</Label>
                   <div className="relative">
                     <Input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
                       step={1}
                       value={Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100}
                       onChange={(e) => {
