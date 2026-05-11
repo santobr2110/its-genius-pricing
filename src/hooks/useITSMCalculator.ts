@@ -230,6 +230,9 @@ const DEFAULTS: ITSMState = {
   percRotinaN1: 30,
   percRotinaN2: 50,
   percRotinaN3: 20,
+  semVolumesAtuais: true,
+  volumeChamadosAtivosManual: 0,
+  volumeChamadosUsuariosManual: 0,
 };
 
 export function useITSMCalculator() {
