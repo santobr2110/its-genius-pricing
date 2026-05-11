@@ -21,7 +21,7 @@ export default function SavePresetButton() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const totalAtivos =
       (state.qtdServidores || 0) +
       (state.qtdAtivosRede || 0) +
@@ -35,10 +35,14 @@ export default function SavePresetButton() {
       chamadosPorAtivo: totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0,
       chamadosPorUsuario: state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0,
     };
-    const preset = save(name, state, n1Team, n2Team, volumes);
-    toast.success(`Precificação "${preset.name}" salva.`);
-    setName("");
-    setOpen(false);
+    try {
+      const preset = await save(name, state, n1Team, n2Team, volumes);
+      toast.success(`Precificação "${preset.name}" salva.`);
+      setName("");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao salvar.");
+    }
   };
 
   return (
