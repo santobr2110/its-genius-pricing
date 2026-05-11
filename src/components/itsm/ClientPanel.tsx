@@ -39,12 +39,8 @@ export default function ClientPanel({ state, update, results }: Props) {
     (state.qtdBancosDados || 0) +
     (state.qtdSistemas || 0);
   const semInfo = state.semVolumesAtuais;
-  const chamadosAtivosMes = semInfo
-    ? results.totalChamadosInfra
-    : state.volumeChamadosAtivosManual;
-  const chamadosUsuariosMes = semInfo
-    ? results.totalChamadosUsuarios
-    : state.volumeChamadosUsuariosManual;
+  const chamadosAtivosMes = semInfo ? 0 : state.volumeChamadosAtivosManual;
+  const chamadosUsuariosMes = semInfo ? 0 : state.volumeChamadosUsuariosManual;
   const chamadosPorAtivo = totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0;
   const chamadosPorUsuario =
     state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0;
@@ -133,7 +129,7 @@ export default function ClientPanel({ state, update, results }: Props) {
                   <Input
                     type="number"
                     disabled={semInfo}
-                    value={semInfo ? Math.round(chamadosAtivosMes) : state.volumeChamadosAtivosManual}
+                    value={semInfo ? 0 : state.volumeChamadosAtivosManual}
                     onChange={(e) => update("volumeChamadosAtivosManual", parseFloat(e.target.value) || 0)}
                     className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
                   />
@@ -148,7 +144,7 @@ export default function ClientPanel({ state, update, results }: Props) {
                   <Input
                     type="number"
                     disabled={semInfo}
-                    value={semInfo ? Math.round(chamadosUsuariosMes) : state.volumeChamadosUsuariosManual}
+                    value={semInfo ? 0 : state.volumeChamadosUsuariosManual}
                     onChange={(e) => update("volumeChamadosUsuariosManual", parseFloat(e.target.value) || 0)}
                     className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
                   />
