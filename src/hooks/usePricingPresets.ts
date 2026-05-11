@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { ITSMState } from "./useITSMCalculator";
 import type { N1TeamState } from "./useN1TeamState";
 import type { N2TeamState } from "./useN2TeamState";
@@ -21,66 +22,111 @@ export interface PricingPreset {
   volumes?: PresetVolumes;
 }
 
-const KEY = "itsm:presets:v1";
-
-function read(): PricingPreset[] {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as PricingPreset[];
-  } catch {
-    return [];
-  }
+interface DbRow {
+  id: string;
+  name: string;
+  payload: {
+    calculator: ITSMState;
+    n1Team: N1TeamState;
+    n2Team?: N2TeamState;
+    volumes?: PresetVolumes;
+  };
+  created_at: string;
+  updated_at: string;
 }
 
-function write(list: PricingPreset[]) {
-  localStorage.setItem(KEY, JSON.stringify(list));
-  window.dispatchEvent(new Event("itsm:presets:changed"));
+function fromRow(r: DbRow): PricingPreset {
+  return {
+    id: r.id,
+    name: r.name,
+    createdAt: new Date(r.created_at).getTime(),
+    updatedAt: new Date(r.updated_at).getTime(),
+    calculator: r.payload.calculator,
+    n1Team: r.payload.n1Team,
+    n2Team: r.payload.n2Team,
+    volumes: r.payload.volumes,
+  };
 }
 
 export function usePricingPresets() {
-  const [presets, setPresets] = useState<PricingPreset[]>(() => read());
+  const [presets, setPresets] = useState<PricingPreset[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("pricing_presets")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!error && data) {
+      setPresets((data as unknown as DbRow[]).map(fromRow));
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    const refresh = () => setPresets(read());
-    window.addEventListener("itsm:presets:changed", refresh);
-    window.addEventListener("storage", (e) => {
-      if (e.key === KEY) refresh();
-    });
-    return () => window.removeEventListener("itsm:presets:changed", refresh);
-  }, []);
+    refresh();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => refresh());
+    return () => sub.subscription.unsubscribe();
+  }, [refresh]);
 
-  const save = useCallback((name: string, calculator: ITSMState, n1Team: N1TeamState, n2Team?: N2TeamState, volumes?: PresetVolumes) => {
-    const now = Date.now();
-    const list = read();
-    const preset: PricingPreset = {
-      id: `preset-${now}-${Math.random().toString(36).slice(2, 7)}`,
-      name: name.trim() || `Precificação ${new Date(now).toLocaleString("pt-BR")}`,
-      createdAt: now,
-      updatedAt: now,
-      calculator,
-      n1Team,
-      n2Team,
-      volumes,
-    };
-    write([preset, ...list]);
-    return preset;
-  }, []);
+  const save = useCallback(
+    async (
+      name: string,
+      calculator: ITSMState,
+      n1Team: N1TeamState,
+      n2Team?: N2TeamState,
+      volumes?: PresetVolumes,
+    ): Promise<PricingPreset> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Faça login para salvar precificações.");
+      const finalName = name.trim() || `Precificação ${new Date().toLocaleString("pt-BR")}`;
+      const payload = { calculator, n1Team, n2Team, volumes };
+      const { data, error } = await supabase
+        .from("pricing_presets")
+        .insert({ user_id: user.id, name: finalName, payload: payload as unknown as never })
+        .select("*")
+        .single();
+      if (error || !data) throw new Error(error?.message ?? "Falha ao salvar.");
+      const preset = fromRow(data as unknown as DbRow);
+      setPresets((prev) => [preset, ...prev]);
+      return preset;
+    },
+    [],
+  );
 
-  const overwrite = useCallback((id: string, calculator: ITSMState, n1Team: N1TeamState, n2Team?: N2TeamState, volumes?: PresetVolumes) => {
-    const list = read().map((p) =>
-      p.id === id ? { ...p, calculator, n1Team, n2Team, volumes, updatedAt: Date.now() } : p
-    );
-    write(list);
-  }, []);
+  const overwrite = useCallback(
+    async (
+      id: string,
+      calculator: ITSMState,
+      n1Team: N1TeamState,
+      n2Team?: N2TeamState,
+      volumes?: PresetVolumes,
+    ) => {
+      const payload = { calculator, n1Team, n2Team, volumes };
+      const { error } = await supabase
+        .from("pricing_presets")
+        .update({ payload: payload as unknown as never })
+        .eq("id", id);
+      if (!error) refresh();
+    },
+    [refresh],
+  );
 
-  const rename = useCallback((id: string, name: string) => {
-    write(read().map((p) => (p.id === id ? { ...p, name } : p)));
-  }, []);
+  const rename = useCallback(
+    async (id: string, name: string) => {
+      const { error } = await supabase.from("pricing_presets").update({ name }).eq("id", id);
+      if (!error) refresh();
+    },
+    [refresh],
+  );
 
-  const remove = useCallback((id: string) => {
-    write(read().filter((p) => p.id !== id));
-  }, []);
+  const remove = useCallback(
+    async (id: string) => {
+      const { error } = await supabase.from("pricing_presets").delete().eq("id", id);
+      if (!error) refresh();
+    },
+    [refresh],
+  );
 
-  return { presets, save, overwrite, rename, remove };
+  return { presets, loading, save, overwrite, rename, remove, refresh };
 }
