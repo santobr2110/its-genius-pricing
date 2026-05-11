@@ -89,6 +89,10 @@ export interface ITSMState {
   percRotinaN1: number;
   percRotinaN2: number;
   percRotinaN3: number;
+  // Volumes atuais informados pelo cliente (não impactam precificação)
+  semVolumesAtuais: boolean;
+  volumeChamadosAtivosManual: number;
+  volumeChamadosUsuariosManual: number;
 }
 
 export interface ITSMResults {
@@ -226,6 +230,9 @@ const DEFAULTS: ITSMState = {
   percRotinaN1: 30,
   percRotinaN2: 50,
   percRotinaN3: 20,
+  semVolumesAtuais: true,
+  volumeChamadosAtivosManual: 0,
+  volumeChamadosUsuariosManual: 0,
 };
 
 export function useITSMCalculator() {
