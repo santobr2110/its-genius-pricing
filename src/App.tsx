@@ -15,7 +15,12 @@ import Operacao from "./pages/Operacao";
 import FieldService from "./pages/FieldService";
 import GestaoTI from "./pages/GestaoTI";
 import NotFound from "./pages/NotFound";
+import AuthPage from "./pages/Auth";
+import SemAcesso from "./pages/SemAcesso";
+import Admin from "./pages/Admin";
 import { ITSMProvider } from "./contexts/ITSMContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -24,25 +29,30 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <ITSMProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/detalhamento" element={<Detalhamento />} />
-            <Route path="/equipe-n1" element={<EquipeN1 />} />
-            <Route path="/equipe-n2" element={<EquipeN2 />} />
-            <Route path="/equipe-n3" element={<EquipeN3 />} />
-            <Route path="/financeiro" element={<ConfiguracoesFinanceiras />} />
-            <Route path="/taxas-demanda" element={<TaxasDemanda />} />
-            <Route path="/precificacoes" element={<Precificacoes />} />
-            <Route path="/operacao" element={<Operacao />} />
-            <Route path="/field-service" element={<FieldService />} />
-            <Route path="/gestao-ti" element={<GestaoTI />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </ITSMProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <ITSMProvider>
+            <Routes>
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/sem-acesso" element={<SemAcesso />} />
+              <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+              <Route path="/" element={<ProtectedRoute permission="page.home"><Index /></ProtectedRoute>} />
+              <Route path="/detalhamento" element={<ProtectedRoute permission="page.detalhamento"><Detalhamento /></ProtectedRoute>} />
+              <Route path="/equipe-n1" element={<ProtectedRoute permission="page.equipe_n1"><EquipeN1 /></ProtectedRoute>} />
+              <Route path="/equipe-n2" element={<ProtectedRoute permission="page.equipe_n2"><EquipeN2 /></ProtectedRoute>} />
+              <Route path="/equipe-n3" element={<ProtectedRoute permission="page.equipe_n3"><EquipeN3 /></ProtectedRoute>} />
+              <Route path="/financeiro" element={<ProtectedRoute permission="page.financeiro"><ConfiguracoesFinanceiras /></ProtectedRoute>} />
+              <Route path="/taxas-demanda" element={<ProtectedRoute permission="page.taxas_demanda"><TaxasDemanda /></ProtectedRoute>} />
+              <Route path="/precificacoes" element={<ProtectedRoute permission="page.precificacoes"><Precificacoes /></ProtectedRoute>} />
+              <Route path="/operacao" element={<ProtectedRoute permission="page.operacao"><Operacao /></ProtectedRoute>} />
+              <Route path="/field-service" element={<ProtectedRoute permission="page.field_service"><FieldService /></ProtectedRoute>} />
+              <Route path="/gestao-ti" element={<ProtectedRoute permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ITSMProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
