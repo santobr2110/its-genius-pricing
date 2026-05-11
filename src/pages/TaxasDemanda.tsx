@@ -183,18 +183,13 @@ export default function TaxasDemanda() {
                 <div key={nome} className="space-y-1">
                   <Label className="text-xs text-muted-foreground">{nome}</Label>
                   <div className="relative">
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      step={1}
-                      value={Math.round(((criticidadeEscala[idx] ?? 0) * 100) * 100) / 100}
-                      onChange={(e) => {
+                    <CriticidadeInput
+                      value={criticidadeEscala[idx] ?? 0}
+                      onChange={(v) => {
                         const next = [...criticidadeEscala];
-                        const parsed = parseFloat(e.target.value);
-                        next[idx] = (isNaN(parsed) ? 0 : parsed) / 100;
+                        next[idx] = v;
                         update("criticidadeEscala", next);
                       }}
-                      className="h-9 pr-7"
                     />
                     <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
                   </div>
