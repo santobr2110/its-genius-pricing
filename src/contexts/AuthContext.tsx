@@ -73,7 +73,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refresh = useCallback(async () => {
-    if (user) await loadAccess(user.id);
+    if (user) {
+      setLoading(true);
+      await loadAccess(user.id).finally(() => setLoading(false));
+    }
   }, [user, loadAccess]);
 
   useEffect(() => {
@@ -82,11 +85,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
+        setLoading(true);
+        setRole(null);
+        setPermissions(new Set());
+        setFullName(null);
         // Defer to avoid deadlocks
-        setTimeout(() => loadAccess(newSession.user.id), 0);
+        setTimeout(() => {
+          loadAccess(newSession.user.id).finally(() => setLoading(false));
+        }, 0);
       } else {
         setRole(null);
         setPermissions(new Set());
+        setFullName(null);
+        setLoading(false);
       }
     });
 
