@@ -89,6 +89,10 @@ export interface ITSMState {
   percRotinaN1: number;
   percRotinaN2: number;
   percRotinaN3: number;
+  // Volumes atuais informados pelo cliente (não impactam precificação)
+  semVolumesAtuais: boolean;
+  volumeChamadosAtivosManual: number;
+  volumeChamadosUsuariosManual: number;
 }
 
 export interface ITSMResults {
