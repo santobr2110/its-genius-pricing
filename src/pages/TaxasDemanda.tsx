@@ -116,7 +116,7 @@ export default function TaxasDemanda() {
       <main className="mx-auto max-w-5xl p-6 space-y-6">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Smart Monitor</CardTitle>
+            <CardTitle className="text-base">Monitoramento</CardTitle>
             <p className="text-xs text-muted-foreground">
               Parâmetros usados para compor o custo da camada Smart Monitor.
             </p>
@@ -152,6 +152,19 @@ export default function TaxasDemanda() {
                   % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Service Desk</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Parâmetros de ferramentas usadas pelo Service Desk.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Custo ferramenta end-point (R$/mês por equipamento)</Label>
                 <Input
