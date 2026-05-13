@@ -8,6 +8,10 @@ import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer, Customized } from "recharts";
+import { usePersistentState } from "@/hooks/usePersistentState";
+import { ROTINAS_DEFAULT, rotinaMultiplicador, type ComplexFlags, type Rotina } from "@/data/rotinas";
+import { useMemo } from "react";
+import { ListChecks } from "lucide-react";
 
 interface TeamRow {
   name: string;
@@ -28,6 +32,52 @@ export default function RelatorioDemanda() {
   const { state, results } = useITSMContext();
   const limitePerc = state.percLimiteExcedente ?? 0;
   const fatorLimite = 1 + limitePerc / 100;
+
+  // === Rotinas (CACs previstos por grupo) ===
+  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const rotinasGrupos = useMemo(() => {
+    const inv = {
+      qtdUsuarios: state.qtdUsuarios,
+      qtdEquipamentos: state.qtdEquipamentos,
+      qtdServidores: state.qtdServidores,
+      qtdAtivosRede: state.qtdAtivosRede,
+      qtdBancosDados: state.qtdBancosDados,
+      qtdSistemas: state.qtdSistemas,
+    };
+    const complexFlags: ComplexFlags = {
+      complexVirtualizacaoCluster: state.complexVirtualizacaoCluster,
+      complexBancoDadosHA: state.complexBancoDadosHA,
+      complexFirewallHA: state.complexFirewallHA,
+      complexMultiSites: state.complexMultiSites,
+      complexSiteBackup: state.complexSiteBackup,
+      complexHibridoCloudOnPrem: state.complexHibridoCloudOnPrem,
+      complexOperacao24x7: state.complexOperacao24x7,
+      complexErpMercado: state.complexErpMercado,
+    };
+    const map = new Map<string, { grupo: string; rotinas: number; cac: number }>();
+    let totalCac = 0;
+    let totalRot = 0;
+    rotinas.forEach((r) => {
+      // normaliza Sistema Operacional como Ambiente/Servidor (mesma regra do SmartTiers)
+      const grupoLower = r.grupo.toLowerCase();
+      const isOs = grupoLower.includes("sistema operacional");
+      const rNorm: Rotina = isOs
+        ? { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" }
+        : r;
+      const mult = rotinaMultiplicador(rNorm, inv, complexFlags);
+      if (mult <= 0) return;
+      const cac = r.cac * mult;
+      if (cac <= 0) return;
+      const cur = map.get(r.grupo) || { grupo: r.grupo, rotinas: 0, cac: 0 };
+      cur.rotinas += 1;
+      cur.cac += cac;
+      map.set(r.grupo, cur);
+      totalCac += cac;
+      totalRot += 1;
+    });
+    const items = Array.from(map.values()).sort((a, b) => b.cac - a.cac);
+    return { items, totalCac, totalRot };
+  }, [rotinas, state]);
 
   // === Demanda por origem ===
   const usuariosBruto = results.chamadosUsuarios;
@@ -349,6 +399,53 @@ export default function RelatorioDemanda() {
                 </TableRow>
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+
+        {/* Chamados previstos por grupo de rotinas (CACs) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-primary" />
+              Chamados previstos por grupo de rotinas (CACs)
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Volume de chamados gerados pelas rotinas preventivas/automatizadas, agrupado por categoria. CAC = chamados/mês previstos por execução, ponderado pelo inventário e pelas flags de complexidade.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {rotinasGrupos.items.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma rotina ativa para o inventário atual.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Grupo de rotinas</TableHead>
+                    <TableHead className="text-right">Rotinas ativas</TableHead>
+                    <TableHead className="text-right">CAC (ch/mês)</TableHead>
+                    <TableHead className="text-right">% do total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rotinasGrupos.items.map((g) => (
+                    <TableRow key={g.grupo}>
+                      <TableCell className="font-medium">{g.grupo}</TableCell>
+                      <TableCell className="text-right">{g.rotinas}</TableCell>
+                      <TableCell className="text-right">{formatNumber(g.cac, 2)}</TableCell>
+                      <TableCell className="text-right">
+                        {rotinasGrupos.totalCac > 0 ? ((g.cac / rotinasGrupos.totalCac) * 100).toFixed(1) : "0"}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="font-bold border-t-2 bg-muted/30">
+                    <TableCell>Total</TableCell>
+                    <TableCell className="text-right">{rotinasGrupos.totalRot}</TableCell>
+                    <TableCell className="text-right">{formatNumber(rotinasGrupos.totalCac, 2)}</TableCell>
+                    <TableCell className="text-right">100%</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
