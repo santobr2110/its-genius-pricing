@@ -437,10 +437,7 @@ export default function RelatorioDemanda() {
                 <TableRow className="text-xs text-muted-foreground bg-muted/10">
                   <TableCell className="font-medium">Composição do total previsto</TableCell>
                   <TableCell className="text-right">—</TableCell>
-                  <TableCell className="text-right">
-                    {totalBruto > 0 ? (((totalBruto - totalHumano) / totalBruto) * 100).toFixed(1) : "0"}%
-                    <span className="ml-1 opacity-70">do bruto</span>
-                  </TableCell>
+                  <TableCell className="text-right">—</TableCell>
                   <TableCell className="text-right">
                     {(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((totalHumano / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%
                     <span className="ml-1 opacity-70">incidentes</span>
