@@ -429,6 +429,14 @@ export default function RelatorioDemanda() {
                   <TableCell className="text-right tabular-nums">{formatNumber(totalHumano + rotinasPorAtivo.totalCac, 1)}</TableCell>
                   <TableCell className="text-right">100%</TableCell>
                 </TableRow>
+                <TableRow className="text-xs text-muted-foreground bg-muted/10">
+                  <TableCell className="font-medium">Composição (% do total previsto)</TableCell>
+                  <TableCell className="text-right">{(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((totalBruto / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%</TableCell>
+                  <TableCell className="text-right">{(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((totalHumano / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%</TableCell>
+                  <TableCell className="text-right text-primary">{(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((rotinasPorAtivo.totalCac / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%</TableCell>
+                  <TableCell className="text-right">100%</TableCell>
+                  <TableCell className="text-right">—</TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </CardContent>
