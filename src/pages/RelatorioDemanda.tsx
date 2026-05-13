@@ -129,22 +129,23 @@ export default function RelatorioDemanda() {
     },
   ];
 
-  // === Distribuição N0/N1/N2/N3 ===
-  const distData = [
-    { nivel: "N0 (automação)", volume: Math.round(results.chamadosResolvidosN0 * 10) / 10, fill: "hsl(var(--primary))" },
-    { nivel: "N1", volume: Math.round(results.volumeN1 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
-    { nivel: "N2", volume: Math.round(results.volumeN2 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
-    { nivel: "N3", volume: Math.round(results.volumeN3 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
-  ];
-
-  // === Previsão vs Volume informado pelo cliente ===
+  // === Distribuição N0/N1/N2/N3 — Previsão vs Cliente ===
   const clienteAtivos = state.semVolumesAtuais ? 0 : (state.volumeChamadosAtivosManual || 0);
   const clienteUsuarios = state.semVolumesAtuais ? 0 : (state.volumeChamadosUsuariosManual || 0);
   const clienteTotal = clienteAtivos + clienteUsuarios;
-  const previsaoVsClienteData = [
-    { categoria: "Usuários", previsto: Math.round(usuariosBruto * 10) / 10, cliente: clienteUsuarios },
-    { categoria: "Ativos", previsto: Math.round(ativosBruto * 10) / 10, cliente: clienteAtivos },
-    { categoria: "Total", previsto: Math.round(totalBruto * 10) / 10, cliente: clienteTotal },
+  // Aplica o mesmo funil (N0 + ratios N1/N2/N3) sobre o total informado pelo cliente
+  const clienteN0 = clienteTotal * reducaoN0;
+  const clienteHumano = clienteTotal - clienteN0;
+  const humanoPrev = results.volumeAtendimentoHumano || 0;
+  const ratioN1 = humanoPrev > 0 ? results.volumeN1 / humanoPrev : 0;
+  const ratioN2 = humanoPrev > 0 ? results.volumeN2 / humanoPrev : 0;
+  const ratioN3 = humanoPrev > 0 ? results.volumeN3 / humanoPrev : 0;
+  const round1 = (v: number) => Math.round(v * 10) / 10;
+  const distData = [
+    { nivel: "N0 (automação)", previsto: round1(results.chamadosResolvidosN0), cliente: round1(clienteN0) },
+    { nivel: "N1", previsto: round1(results.volumeN1), cliente: round1(clienteHumano * ratioN1) },
+    { nivel: "N2", previsto: round1(results.volumeN2), cliente: round1(clienteHumano * ratioN2) },
+    { nivel: "N3", previsto: round1(results.volumeN3), cliente: round1(clienteHumano * ratioN3) },
   ];
 
   return (
