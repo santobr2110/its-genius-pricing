@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface TeamRow {
   name: string;
@@ -129,22 +129,23 @@ export default function RelatorioDemanda() {
     },
   ];
 
-  // === Distribuição N0/N1/N2/N3 ===
-  const distData = [
-    { nivel: "N0 (automação)", volume: Math.round(results.chamadosResolvidosN0 * 10) / 10, fill: "hsl(var(--primary))" },
-    { nivel: "N1", volume: Math.round(results.volumeN1 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
-    { nivel: "N2", volume: Math.round(results.volumeN2 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
-    { nivel: "N3", volume: Math.round(results.volumeN3 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
-  ];
-
-  // === Previsão vs Volume informado pelo cliente ===
+  // === Distribuição N0/N1/N2/N3 — Previsão vs Cliente ===
   const clienteAtivos = state.semVolumesAtuais ? 0 : (state.volumeChamadosAtivosManual || 0);
   const clienteUsuarios = state.semVolumesAtuais ? 0 : (state.volumeChamadosUsuariosManual || 0);
   const clienteTotal = clienteAtivos + clienteUsuarios;
-  const previsaoVsClienteData = [
-    { categoria: "Usuários", previsto: Math.round(usuariosBruto * 10) / 10, cliente: clienteUsuarios },
-    { categoria: "Ativos", previsto: Math.round(ativosBruto * 10) / 10, cliente: clienteAtivos },
-    { categoria: "Total", previsto: Math.round(totalBruto * 10) / 10, cliente: clienteTotal },
+  // Aplica o mesmo funil (N0 + ratios N1/N2/N3) sobre o total informado pelo cliente
+  const clienteN0 = clienteTotal * reducaoN0;
+  const clienteHumano = clienteTotal - clienteN0;
+  const humanoPrev = results.volumeAtendimentoHumano || 0;
+  const ratioN1 = humanoPrev > 0 ? results.volumeN1 / humanoPrev : 0;
+  const ratioN2 = humanoPrev > 0 ? results.volumeN2 / humanoPrev : 0;
+  const ratioN3 = humanoPrev > 0 ? results.volumeN3 / humanoPrev : 0;
+  const round1 = (v: number) => Math.round(v * 10) / 10;
+  const distData = [
+    { nivel: "N0 (automação)", previsto: round1(results.chamadosResolvidosN0), cliente: round1(clienteN0) },
+    { nivel: "N1", previsto: round1(results.volumeN1), cliente: round1(clienteHumano * ratioN1) },
+    { nivel: "N2", previsto: round1(results.volumeN2), cliente: round1(clienteHumano * ratioN2) },
+    { nivel: "N3", previsto: round1(results.volumeN3), cliente: round1(clienteHumano * ratioN3) },
   ];
 
   return (
@@ -223,63 +224,32 @@ export default function RelatorioDemanda() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Distribuição N0/N1/N2/N3</CardTitle>
-              <p className="text-xs text-muted-foreground">
-                Destaque para o volume retido em N0 por automação ({state.reducaoN0}%).
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={distData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="nivel" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <RTooltip
-                      contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 12 }}
-                      formatter={(v: number) => formatNumber(v, 1)}
-                    />
-                    <Bar dataKey="volume" name="Chamados/mês" radius={[4, 4, 0, 0]}>
-                      {distData.map((d, i) => (<Cell key={i} fill={d.fill} />))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Previsão vs Volume informado pelo cliente</CardTitle>
-              <p className="text-xs text-muted-foreground">
-                {state.semVolumesAtuais
-                  ? "Cliente não informou volumes atuais no inventário."
-                  : "Comparação entre a demanda prevista pela calculadora e os volumes atuais reportados."}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={previsaoVsClienteData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="categoria" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                    <RTooltip
-                      contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 12 }}
-                      formatter={(v: number) => formatNumber(v, 1)}
-                    />
-                    <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Bar dataKey="previsto" name="Previsão (calculadora)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="cliente" name="Cliente (inventário)" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Distribuição no funil — Previsão vs Cliente</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Distribuição do volume entre N0 (retido por automação, {state.reducaoN0}%), N1, N2 e N3, comparando a previsão da calculadora com o total informado pelo cliente ({formatNumber(clienteTotal, 1)} ch/mês{state.semVolumesAtuais ? " — não informado" : ""}) aplicado no mesmo funil.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={distData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="nivel" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <RTooltip
+                    contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 12 }}
+                    formatter={(v: number) => formatNumber(v, 1)}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="previsto" name="Previsão (calculadora)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="cliente" name="Cliente (inventário)" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Demanda por origem */}
         <Card>
