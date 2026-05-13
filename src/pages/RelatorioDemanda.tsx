@@ -435,25 +435,22 @@ export default function RelatorioDemanda() {
                   <TableCell className="text-right">100%</TableCell>
                 </TableRow>
                 <TableRow className="text-xs text-muted-foreground bg-muted/10">
-                  <TableCell className="font-medium">Composição do total previsto</TableCell>
-                  <TableCell className="text-right">
-                    {totalBruto > 0 ? ((totalBruto / totalBruto) * 100).toFixed(0) : "0"}%
-                    <span className="ml-1 opacity-70">do bruto</span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {totalBruto > 0 ? (((totalBruto - totalHumano) / totalBruto) * 100).toFixed(1) : "0"}%
-                    <span className="ml-1 opacity-70">do bruto</span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((totalHumano / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%
-                    <span className="ml-1 opacity-70">incidentes</span>
-                  </TableCell>
-                  <TableCell className="text-right text-primary">
-                    {(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((rotinasPorAtivo.totalCac / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%
-                    <span className="ml-1 opacity-70">rotinas</span>
-                  </TableCell>
-                  <TableCell className="text-right">100%</TableCell>
-                  <TableCell className="text-right">—</TableCell>
+                  {(() => {
+                    const base = totalBruto + rotinasPorAtivo.totalCac; // volume previsto antes da automação N0
+                    const n0 = totalBruto - totalHumano;
+                    const pct = (v: number) => base > 0 ? ((v / base) * 100).toFixed(1) : "0";
+                    return (
+                      <>
+                        <TableCell className="font-medium">Composição (% sobre bruto + rotinas)</TableCell>
+                        <TableCell className="text-right">{pct(totalBruto)}%</TableCell>
+                        <TableCell className="text-right">{pct(n0)}%</TableCell>
+                        <TableCell className="text-right">{pct(totalHumano)}%</TableCell>
+                        <TableCell className="text-right text-primary">{pct(rotinasPorAtivo.totalCac)}%</TableCell>
+                        <TableCell className="text-right font-medium">{pct(totalHumano + rotinasPorAtivo.totalCac)}%</TableCell>
+                        <TableCell className="text-right">—</TableCell>
+                      </>
+                    );
+                  })()}
                 </TableRow>
               </TableBody>
             </Table>
