@@ -363,7 +363,9 @@ export default function RelatorioDemanda() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Demanda por origem</CardTitle>
-            <p className="text-xs text-muted-foreground">Volume bruto e volume após auto-resolução N0, por categoria de origem.</p>
+            <p className="text-xs text-muted-foreground">
+              Volume bruto e volume após auto-resolução N0, por categoria de origem. A coluna <span className="font-medium text-primary">Rotinas (CAC)</span> destaca os chamados gerados por rotinas preventivas/automatizadas configuradas em Gestão de TI.
+            </p>
           </CardHeader>
           <CardContent>
             <Table>
@@ -372,17 +374,30 @@ export default function RelatorioDemanda() {
                   <TableHead>Origem</TableHead>
                   <TableHead className="text-right">Bruto (ch/mês)</TableHead>
                   <TableHead className="text-right">Após N0 (ch/mês)</TableHead>
+                  <TableHead className="text-right">Rotinas (CAC)</TableHead>
                   <TableHead className="text-right">% do total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {origemRows.map(({ icon: Icon, label, bruto, humano }) => (
-                  <TableRow key={label}>
+                {origemRows.map(({ icon: Icon, label, bruto, humano, cac, rotCount }) => (
+                  <TableRow key={label} className={cac > 0 ? "bg-primary/5" : undefined}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2"><Icon className="h-4 w-4 text-muted-foreground" /> {label}</div>
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-muted-foreground" /> {label}
+                        {cac > 0 && (
+                          <Badge variant="secondary" className="ml-1 gap-1 text-[10px] font-normal">
+                            <ListChecks className="h-3 w-3" /> rotinas
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">{formatNumber(bruto, 1)}</TableCell>
                     <TableCell className="text-right">{formatNumber(humano, 1)}</TableCell>
+                    <TableCell className={`text-right tabular-nums ${cac > 0 ? "font-medium text-primary" : "text-muted-foreground"}`}>
+                      {cac > 0 ? (
+                        <span title={`${rotCount} rotina(s) ativa(s)`}>{formatNumber(cac, 2)}</span>
+                      ) : "—"}
+                    </TableCell>
                     <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((bruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
                   </TableRow>
                 ))}
@@ -392,6 +407,7 @@ export default function RelatorioDemanda() {
                   </TableCell>
                   <TableCell className="text-right">{formatNumber(usuariosBruto, 1)}</TableCell>
                   <TableCell className="text-right">{formatNumber(usuariosHumano, 1)}</TableCell>
+                  <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.usuarios.cac, 2)}</TableCell>
                   <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((usuariosBruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
                 </TableRow>
                 <TableRow className="font-semibold">
@@ -400,63 +416,31 @@ export default function RelatorioDemanda() {
                   </TableCell>
                   <TableCell className="text-right">{formatNumber(ativosBruto, 1)}</TableCell>
                   <TableCell className="text-right">{formatNumber(ativosHumano, 1)}</TableCell>
+                  <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.servidores.cac + rotinasPorAtivo.rede.cac + rotinasPorAtivo.bd.cac + rotinasPorAtivo.firewall.cac, 2)}</TableCell>
                   <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((ativosBruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
                 </TableRow>
+                {rotinasPorAtivo.ambiente.cac > 0 && (
+                  <TableRow className="bg-primary/5">
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <ListChecks className="h-4 w-4 text-primary" /> Rotinas de ambiente (não atreladas a inventário)
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">—</TableCell>
+                    <TableCell className="text-right text-muted-foreground">—</TableCell>
+                    <TableCell className="text-right tabular-nums font-medium text-primary">{formatNumber(rotinasPorAtivo.ambiente.cac, 2)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">—</TableCell>
+                  </TableRow>
+                )}
                 <TableRow className="font-bold border-t-2 bg-muted/30">
                   <TableCell>Total Geral</TableCell>
                   <TableCell className="text-right">{formatNumber(totalBruto, 1)}</TableCell>
                   <TableCell className="text-right">{formatNumber(totalHumano, 1)}</TableCell>
+                  <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.totalCac, 2)}</TableCell>
                   <TableCell className="text-right">100%</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-
-        {/* Chamados previstos por grupo de rotinas (CACs) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <ListChecks className="h-4 w-4 text-primary" />
-              Chamados previstos por grupo de rotinas (CACs)
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Volume de chamados gerados pelas rotinas preventivas/automatizadas, agrupado por categoria. CAC = chamados/mês previstos por execução, ponderado pelo inventário e pelas flags de complexidade.
-            </p>
-          </CardHeader>
-          <CardContent>
-            {rotinasGrupos.items.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma rotina ativa para o inventário atual.</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Grupo de rotinas</TableHead>
-                    <TableHead className="text-right">Rotinas ativas</TableHead>
-                    <TableHead className="text-right">CAC (ch/mês)</TableHead>
-                    <TableHead className="text-right">% do total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rotinasGrupos.items.map((g) => (
-                    <TableRow key={g.grupo}>
-                      <TableCell className="font-medium">{g.grupo}</TableCell>
-                      <TableCell className="text-right">{g.rotinas}</TableCell>
-                      <TableCell className="text-right">{formatNumber(g.cac, 2)}</TableCell>
-                      <TableCell className="text-right">
-                        {rotinasGrupos.totalCac > 0 ? ((g.cac / rotinasGrupos.totalCac) * 100).toFixed(1) : "0"}%
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow className="font-bold border-t-2 bg-muted/30">
-                    <TableCell>Total</TableCell>
-                    <TableCell className="text-right">{rotinasGrupos.totalRot}</TableCell>
-                    <TableCell className="text-right">{formatNumber(rotinasGrupos.totalCac, 2)}</TableCell>
-                    <TableCell className="text-right">100%</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            )}
           </CardContent>
         </Card>
 
