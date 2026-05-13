@@ -33,9 +33,9 @@ export default function RelatorioDemanda() {
   const limitePerc = state.percLimiteExcedente ?? 0;
   const fatorLimite = 1 + limitePerc / 100;
 
-  // === Rotinas (CACs previstos por grupo) ===
+  // === Rotinas (CACs previstos por origem/ativo) ===
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
-  const rotinasGrupos = useMemo(() => {
+  const rotinasPorAtivo = useMemo(() => {
     const inv = {
       qtdUsuarios: state.qtdUsuarios,
       qtdEquipamentos: state.qtdEquipamentos,
@@ -54,7 +54,14 @@ export default function RelatorioDemanda() {
       complexOperacao24x7: state.complexOperacao24x7,
       complexErpMercado: state.complexErpMercado,
     };
-    const map = new Map<string, { grupo: string; rotinas: number; cac: number }>();
+    const buckets = {
+      usuarios: { cac: 0, count: 0 },
+      servidores: { cac: 0, count: 0 },
+      rede: { cac: 0, count: 0 },
+      bd: { cac: 0, count: 0 },
+      firewall: { cac: 0, count: 0 },
+      ambiente: { cac: 0, count: 0 },
+    };
     let totalCac = 0;
     let totalRot = 0;
     rotinas.forEach((r) => {
@@ -68,15 +75,19 @@ export default function RelatorioDemanda() {
       if (mult <= 0) return;
       const cac = r.cac * mult;
       if (cac <= 0) return;
-      const cur = map.get(r.grupo) || { grupo: r.grupo, rotinas: 0, cac: 0 };
-      cur.rotinas += 1;
-      cur.cac += cac;
-      map.set(r.grupo, cur);
+      const k: keyof typeof buckets =
+        rNorm.ativo === "Servidor" ? "servidores"
+        : rNorm.ativo === "Ativo de Rede" ? "rede"
+        : rNorm.ativo === "Banco de Dados" ? "bd"
+        : rNorm.ativo === "Firewall" ? "firewall"
+        : rNorm.ativo === "Usuário" || rNorm.ativo === "Equipamento" ? "usuarios"
+        : "ambiente";
+      buckets[k].cac += cac;
+      buckets[k].count += 1;
       totalCac += cac;
       totalRot += 1;
     });
-    const items = Array.from(map.values()).sort((a, b) => b.cac - a.cac);
-    return { items, totalCac, totalRot };
+    return { ...buckets, totalCac, totalRot };
   }, [rotinas, state]);
 
   // === Demanda por origem ===
