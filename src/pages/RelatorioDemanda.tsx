@@ -167,11 +167,11 @@ export default function RelatorioDemanda() {
   const custoOperacaoTotal = results.custoTotalOperacao;
 
   const origemRows = [
-    { icon: Users, label: "Usuários (Service Desk)", bruto: usuariosBruto, humano: usuariosHumano },
-    { icon: Server, label: "Servidores", bruto: results.chamadosServidores, humano: results.chamadosServidores * (1 - reducaoN0) },
-    { icon: Network, label: "Rede", bruto: results.chamadosRede, humano: results.chamadosRede * (1 - reducaoN0) },
-    { icon: Database, label: "Banco de Dados", bruto: results.chamadosBancoDados, humano: results.chamadosBancoDados * (1 - reducaoN0) },
-    { icon: ShieldCheck, label: "Firewall", bruto: results.chamadosSistemas, humano: results.chamadosSistemas * (1 - reducaoN0) },
+    { icon: Users, label: "Usuários (Service Desk)", bruto: usuariosBruto, humano: usuariosHumano, cac: rotinasPorAtivo.usuarios.cac, rotCount: rotinasPorAtivo.usuarios.count },
+    { icon: Server, label: "Servidores", bruto: results.chamadosServidores, humano: results.chamadosServidores * (1 - reducaoN0), cac: rotinasPorAtivo.servidores.cac, rotCount: rotinasPorAtivo.servidores.count },
+    { icon: Network, label: "Rede", bruto: results.chamadosRede, humano: results.chamadosRede * (1 - reducaoN0), cac: rotinasPorAtivo.rede.cac, rotCount: rotinasPorAtivo.rede.count },
+    { icon: Database, label: "Banco de Dados", bruto: results.chamadosBancoDados, humano: results.chamadosBancoDados * (1 - reducaoN0), cac: rotinasPorAtivo.bd.cac, rotCount: rotinasPorAtivo.bd.count },
+    { icon: ShieldCheck, label: "Firewall", bruto: results.chamadosSistemas, humano: results.chamadosSistemas * (1 - reducaoN0), cac: rotinasPorAtivo.firewall.cac, rotCount: rotinasPorAtivo.firewall.count },
   ];
 
   const totalBruto = results.volumeTotalBruto;
