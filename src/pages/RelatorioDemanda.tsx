@@ -213,6 +213,7 @@ export default function RelatorioDemanda() {
                   <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                   <RTooltip
                     contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 12 }}
+                    cursor={{ fill: "hsl(var(--foreground) / 0.05)" }}
                     formatter={(v: number) => formatNumber(v, 1)}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
@@ -241,6 +242,7 @@ export default function RelatorioDemanda() {
                   <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                   <RTooltip
                     contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 12 }}
+                    cursor={{ fill: "hsl(var(--foreground) / 0.05)" }}
                     formatter={(v: number) => formatNumber(v, 1)}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
