@@ -364,7 +364,7 @@ export default function RelatorioDemanda() {
           <CardHeader>
             <CardTitle className="text-base">Demanda por origem</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Volume bruto e volume após auto-resolução N0, por categoria de origem. A coluna <span className="font-medium text-primary">Rotinas (CAC)</span> destaca os chamados gerados por rotinas preventivas/automatizadas configuradas em Gestão de TI.
+              Separação entre <span className="font-medium">incidentes</span> que cada ativo gera por existir (volume bruto e após auto-resolução N0) e os <span className="font-medium text-primary">chamados de rotina/CAC</span> previstos para o mesmo ativo. O <span className="font-medium">Total previsto</span> soma incidentes (após N0) + rotinas.
             </p>
           </CardHeader>
           <CardContent>
@@ -372,9 +372,10 @@ export default function RelatorioDemanda() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Origem</TableHead>
-                  <TableHead className="text-right">Bruto (ch/mês)</TableHead>
-                  <TableHead className="text-right">Após N0 (ch/mês)</TableHead>
-                  <TableHead className="text-right">Rotinas (CAC)</TableHead>
+                  <TableHead className="text-right">Incidentes do ativo<br/><span className="text-[10px] font-normal text-muted-foreground">bruto (ch/mês)</span></TableHead>
+                  <TableHead className="text-right">Incidentes após N0<br/><span className="text-[10px] font-normal text-muted-foreground">ch/mês</span></TableHead>
+                  <TableHead className="text-right text-primary">Rotinas / CAC<br/><span className="text-[10px] font-normal text-muted-foreground">ch/mês</span></TableHead>
+                  <TableHead className="text-right">Total previsto<br/><span className="text-[10px] font-normal text-muted-foreground">após N0 + rotinas</span></TableHead>
                   <TableHead className="text-right">% do total</TableHead>
                 </TableRow>
               </TableHeader>
@@ -398,6 +399,7 @@ export default function RelatorioDemanda() {
                         <span title={`${rotCount} rotina(s) ativa(s)`}>{formatNumber(cac, 2)}</span>
                       ) : "—"}
                     </TableCell>
+                    <TableCell className="text-right tabular-nums font-medium">{formatNumber(humano + cac, 1)}</TableCell>
                     <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((bruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
                   </TableRow>
                 ))}
@@ -408,6 +410,7 @@ export default function RelatorioDemanda() {
                   <TableCell className="text-right">{formatNumber(usuariosBruto, 1)}</TableCell>
                   <TableCell className="text-right">{formatNumber(usuariosHumano, 1)}</TableCell>
                   <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.usuarios.cac, 2)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatNumber(usuariosHumano + rotinasPorAtivo.usuarios.cac, 1)}</TableCell>
                   <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((usuariosBruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
                 </TableRow>
                 <TableRow className="font-semibold">
@@ -417,6 +420,7 @@ export default function RelatorioDemanda() {
                   <TableCell className="text-right">{formatNumber(ativosBruto, 1)}</TableCell>
                   <TableCell className="text-right">{formatNumber(ativosHumano, 1)}</TableCell>
                   <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.servidores.cac + rotinasPorAtivo.rede.cac + rotinasPorAtivo.bd.cac + rotinasPorAtivo.firewall.cac, 2)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatNumber(ativosHumano + rotinasPorAtivo.servidores.cac + rotinasPorAtivo.rede.cac + rotinasPorAtivo.bd.cac + rotinasPorAtivo.firewall.cac, 1)}</TableCell>
                   <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((ativosBruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
                 </TableRow>
                 {rotinasPorAtivo.ambiente.cac > 0 && (
@@ -429,6 +433,7 @@ export default function RelatorioDemanda() {
                     <TableCell className="text-right text-muted-foreground">—</TableCell>
                     <TableCell className="text-right text-muted-foreground">—</TableCell>
                     <TableCell className="text-right tabular-nums font-medium text-primary">{formatNumber(rotinasPorAtivo.ambiente.cac, 2)}</TableCell>
+                    <TableCell className="text-right tabular-nums font-medium">{formatNumber(rotinasPorAtivo.ambiente.cac, 2)}</TableCell>
                     <TableCell className="text-right text-muted-foreground">—</TableCell>
                   </TableRow>
                 )}
@@ -437,6 +442,7 @@ export default function RelatorioDemanda() {
                   <TableCell className="text-right">{formatNumber(totalBruto, 1)}</TableCell>
                   <TableCell className="text-right">{formatNumber(totalHumano, 1)}</TableCell>
                   <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.totalCac, 2)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatNumber(totalHumano + rotinasPorAtivo.totalCac, 1)}</TableCell>
                   <TableCell className="text-right">100%</TableCell>
                 </TableRow>
               </TableBody>
