@@ -380,7 +380,10 @@ export default function RelatorioDemanda() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {origemRows.map(({ icon: Icon, label, bruto, humano, cac, rotCount }) => (
+                {origemRows.map(({ icon: Icon, label, bruto, humano, cac, rotCount }) => {
+                  const totalPrev = humano + cac;
+                  const totalGeralPrev = totalHumano + rotinasPorAtivo.totalCac;
+                  return (
                   <TableRow key={label} className={cac > 0 ? "bg-primary/5" : undefined}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
@@ -399,30 +402,11 @@ export default function RelatorioDemanda() {
                         <span title={`${rotCount} rotina(s) ativa(s)`}>{formatNumber(cac, 2)}</span>
                       ) : "—"}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums font-medium">{formatNumber(humano + cac, 1)}</TableCell>
-                    <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((bruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
+                    <TableCell className="text-right tabular-nums font-medium">{formatNumber(totalPrev, 1)}</TableCell>
+                    <TableCell className="text-right">{totalGeralPrev > 0 ? ((totalPrev / totalGeralPrev) * 100).toFixed(1) : "0"}%</TableCell>
                   </TableRow>
-                ))}
-                <TableRow className="font-semibold border-t-2">
-                  <TableCell>
-                    <div className="flex items-center gap-2"><Users className="h-4 w-4" /> Total Usuários</div>
-                  </TableCell>
-                  <TableCell className="text-right">{formatNumber(usuariosBruto, 1)}</TableCell>
-                  <TableCell className="text-right">{formatNumber(usuariosHumano, 1)}</TableCell>
-                  <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.usuarios.cac, 2)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatNumber(usuariosHumano + rotinasPorAtivo.usuarios.cac, 1)}</TableCell>
-                  <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((usuariosBruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
-                </TableRow>
-                <TableRow className="font-semibold">
-                  <TableCell>
-                    <div className="flex items-center gap-2"><Server className="h-4 w-4" /> Total Ativos</div>
-                  </TableCell>
-                  <TableCell className="text-right">{formatNumber(ativosBruto, 1)}</TableCell>
-                  <TableCell className="text-right">{formatNumber(ativosHumano, 1)}</TableCell>
-                  <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.servidores.cac + rotinasPorAtivo.rede.cac + rotinasPorAtivo.bd.cac + rotinasPorAtivo.firewall.cac, 2)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatNumber(ativosHumano + rotinasPorAtivo.servidores.cac + rotinasPorAtivo.rede.cac + rotinasPorAtivo.bd.cac + rotinasPorAtivo.firewall.cac, 1)}</TableCell>
-                  <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((ativosBruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
-                </TableRow>
+                  );
+                })}
                 {rotinasPorAtivo.ambiente.cac > 0 && (
                   <TableRow className="bg-primary/5">
                     <TableCell className="font-medium">
@@ -434,7 +418,7 @@ export default function RelatorioDemanda() {
                     <TableCell className="text-right text-muted-foreground">—</TableCell>
                     <TableCell className="text-right tabular-nums font-medium text-primary">{formatNumber(rotinasPorAtivo.ambiente.cac, 2)}</TableCell>
                     <TableCell className="text-right tabular-nums font-medium">{formatNumber(rotinasPorAtivo.ambiente.cac, 2)}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">—</TableCell>
+                    <TableCell className="text-right">{(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((rotinasPorAtivo.ambiente.cac / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%</TableCell>
                   </TableRow>
                 )}
                 <TableRow className="font-bold border-t-2 bg-muted/30">
