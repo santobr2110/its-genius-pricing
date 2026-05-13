@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 
 interface TeamRow {
   name: string;
@@ -127,6 +127,24 @@ export default function RelatorioDemanda() {
       prevista: Math.round(totalHumano * 10) / 10,
       excedente: Math.round(totalHumano * fatorLimite * 10) / 10,
     },
+  ];
+
+  // === Distribuição N0/N1/N2/N3 ===
+  const distData = [
+    { nivel: "N0 (automação)", volume: Math.round(results.chamadosResolvidosN0 * 10) / 10, fill: "hsl(var(--primary))" },
+    { nivel: "N1", volume: Math.round(results.volumeN1 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
+    { nivel: "N2", volume: Math.round(results.volumeN2 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
+    { nivel: "N3", volume: Math.round(results.volumeN3 * 10) / 10, fill: "hsl(var(--muted-foreground))" },
+  ];
+
+  // === Previsão vs Volume informado pelo cliente ===
+  const clienteAtivos = state.semVolumesAtuais ? 0 : (state.volumeChamadosAtivosManual || 0);
+  const clienteUsuarios = state.semVolumesAtuais ? 0 : (state.volumeChamadosUsuariosManual || 0);
+  const clienteTotal = clienteAtivos + clienteUsuarios;
+  const previsaoVsClienteData = [
+    { categoria: "Usuários", previsto: Math.round(usuariosBruto * 10) / 10, cliente: clienteUsuarios },
+    { categoria: "Ativos", previsto: Math.round(ativosBruto * 10) / 10, cliente: clienteAtivos },
+    { categoria: "Total", previsto: Math.round(totalBruto * 10) / 10, cliente: clienteTotal },
   ];
 
   return (
