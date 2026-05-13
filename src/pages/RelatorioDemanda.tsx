@@ -142,10 +142,10 @@ export default function RelatorioDemanda() {
   const ratioN3 = humanoPrev > 0 ? results.volumeN3 / humanoPrev : 0;
   const round1 = (v: number) => Math.round(v * 10) / 10;
   const distData = [
-    { nivel: "N0 (automação)", previsto: round1(results.chamadosResolvidosN0), cliente: round1(clienteN0) },
-    { nivel: "N1", previsto: round1(results.volumeN1), cliente: round1(clienteHumano * ratioN1) },
-    { nivel: "N2", previsto: round1(results.volumeN2), cliente: round1(clienteHumano * ratioN2) },
-    { nivel: "N3", previsto: round1(results.volumeN3), cliente: round1(clienteHumano * ratioN3) },
+    { nivel: "N0 (automação)", previsto: round1(results.chamadosResolvidosN0), excedente: round1(results.chamadosResolvidosN0 * fatorLimite), cliente: round1(clienteN0) },
+    { nivel: "N1", previsto: round1(results.volumeN1), excedente: round1(results.volumeN1 * fatorLimite), cliente: round1(clienteHumano * ratioN1) },
+    { nivel: "N2", previsto: round1(results.volumeN2), excedente: round1(results.volumeN2 * fatorLimite), cliente: round1(clienteHumano * ratioN2) },
+    { nivel: "N3", previsto: round1(results.volumeN3), excedente: round1(results.volumeN3 * fatorLimite), cliente: round1(clienteHumano * ratioN3) },
   ];
 
   return (
@@ -244,6 +244,7 @@ export default function RelatorioDemanda() {
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                   <Bar dataKey="previsto" name="Previsão (calculadora)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="excedente" name={`Previsão com excedente (+${limitePerc}%)`} fill="hsl(210 80% 55%)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="cliente" name="Cliente (inventário)" fill="hsl(0 75% 55%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
