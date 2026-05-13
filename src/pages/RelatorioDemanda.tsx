@@ -201,7 +201,7 @@ export default function RelatorioDemanda() {
           <CardHeader>
             <CardTitle className="text-base">Distribuição no funil — Previsão vs Cliente</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Distribuição do volume entre N0 (retido por automação, {state.reducaoN0}%), N1, N2 e N3, comparando a previsão da calculadora com o total informado pelo cliente ({formatNumber(clienteTotal, 1)} ch/mês{state.semVolumesAtuais ? " — não informado" : ""}) aplicado no mesmo funil.
+              Volume informado pelo cliente ({formatNumber(clienteTotal, 1)} ch/mês{state.semVolumesAtuais ? " — não informado" : ""}) como base, e a previsão da calculadora e o limite com excedente (+{limitePerc}%) como metas contratuais por nível (N0, N1, N2, N3).
             </p>
           </CardHeader>
           <CardContent>
@@ -217,9 +217,9 @@ export default function RelatorioDemanda() {
                     formatter={(v: number) => formatNumber(v, 1)}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="previsto" name="Previsão (calculadora)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="excedente" name={`Previsão com excedente (+${limitePerc}%)`} fill="hsl(210 80% 55%)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="cliente" name="Cliente (inventário)" fill="hsl(0 75% 55%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="cliente" name="Cliente (inventário) — base" fill="hsl(0 75% 55%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="previsto" name="Previsão (calculadora) — meta" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="excedente" name={`Com excedente (+${limitePerc}%) — teto contratual`} fill="hsl(210 80% 55%)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
