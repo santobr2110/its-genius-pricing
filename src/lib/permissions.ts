@@ -10,6 +10,7 @@ export type PermissionKey =
   | "page.operacao"
   | "page.field_service"
   | "page.gestao_ti"
+  | "page.relatorio_demanda"
   | "pricing.edit"
   | "pricing.save_preset"
   | "pricing.delete_preset"
@@ -38,6 +39,7 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.taxas_demanda", label: "Acessar Métricas e Parâmetros", group: "Páginas" },
   { key: "page.operacao", label: "Acessar Operação", group: "Páginas" },
   { key: "page.precificacoes", label: "Acessar Precificações", group: "Páginas" },
+  { key: "page.relatorio_demanda", label: "Acessar Relatório de Demanda", group: "Páginas" },
   { key: "pricing.edit", label: "Editar parâmetros de precificação", group: "Precificação" },
   { key: "pricing.save_preset", label: "Salvar precificações", group: "Precificação" },
   { key: "pricing.delete_preset", label: "Remover precificações salvas", group: "Precificação" },
