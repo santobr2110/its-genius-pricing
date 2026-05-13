@@ -124,7 +124,7 @@ export default function TaxasDemanda() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Custo por ativo monitorado (R$/mês)</Label>
+                <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Monitor (R$/mês)</Label>
                 <Input
                   type="number"
                   step={1}
@@ -150,6 +150,63 @@ export default function TaxasDemanda() {
                 />
                 <p className="text-[11px] text-muted-foreground">
                   % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Operation (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={state.custoAtivoOperacao}
+                  onChange={(e) => update("custoAtivoOperacao", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Aplicado sobre Servidores + Rede + Firewall na camada Smart Operation.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Operation</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  max={100}
+                  value={state.percAlocacaoN1Operation}
+                  onChange={(e) => update("percAlocacaoN1Operation", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valor Proxy Inicial (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={state.valorProxyInicial}
+                  onChange={(e) => update("valorProxyInicial", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Custo fixo do primeiro proxy de monitoramento.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valor Proxy Adicional (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={state.valorProxyAdicional}
+                  onChange={(e) => update("valorProxyAdicional", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Custo de cada proxy adicional além do inicial.
                 </p>
               </div>
             </div>
