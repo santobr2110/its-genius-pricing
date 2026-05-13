@@ -41,6 +41,12 @@ export interface ITSMState {
   percAlocacaoN1Monitor: number;
   custoAtivoMonitorado: number;
   custoFerramentaEndpoint: number;
+  // Smart Operation (monitoramento ativo + automação)
+  custoAtivoOperacao: number;
+  percAlocacaoN1Operation: number;
+  // Proxy de monitoramento
+  valorProxyInicial: number;
+  valorProxyAdicional: number;
   // Criticidade do ambiente (0..4) e escala de ajuste aplicada às taxas
   criticidadeNivel: number;
   criticidadeEscala: number[];
@@ -193,6 +199,10 @@ const DEFAULTS: ITSMState = {
   percAlocacaoN1Monitor: 30,
   custoAtivoMonitorado: 50,
   custoFerramentaEndpoint: 25,
+  custoAtivoOperacao: 80,
+  percAlocacaoN1Operation: 50,
+  valorProxyInicial: 0,
+  valorProxyAdicional: 0,
   criticidadeNivel: 2,
   criticidadeEscala: [-0.3, -0.15, 0, 0.15, 0.3],
   complexVirtualizacaoCluster: false,
