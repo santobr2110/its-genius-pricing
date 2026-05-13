@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer, ComposedChart, Line } from "recharts";
 
 interface TeamRow {
   name: string;
@@ -147,6 +147,18 @@ export default function RelatorioDemanda() {
     { nivel: "N2", previsto: round1(results.volumeN2), excedente: round1(results.volumeN2 * fatorLimite), cliente: round1(clienteHumano * ratioN2) },
     { nivel: "N3", previsto: round1(results.volumeN3), excedente: round1(results.volumeN3 * fatorLimite), cliente: round1(clienteHumano * ratioN3) },
   ];
+
+  // Linha de tendência (regressão linear simples sobre 'previsto')
+  const _xs = distData.map((_, i) => i);
+  const _ys = distData.map((d) => d.previsto);
+  const _n = _xs.length;
+  const _mx = _xs.reduce((a, b) => a + b, 0) / _n;
+  const _my = _ys.reduce((a, b) => a + b, 0) / _n;
+  const _num = _xs.reduce((s, x, i) => s + (x - _mx) * (_ys[i] - _my), 0);
+  const _den = _xs.reduce((s, x) => s + (x - _mx) ** 2, 0) || 1;
+  const _slope = _num / _den;
+  const _intercept = _my - _slope * _mx;
+  const distDataWithTrend = distData.map((d, i) => ({ ...d, tendencia: round1(Math.max(0, _intercept + _slope * i)) }));
 
   return (
     <div className="min-h-screen bg-muted/30">
