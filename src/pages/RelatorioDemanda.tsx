@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface TeamRow {
   name: string;
@@ -112,6 +113,22 @@ export default function RelatorioDemanda() {
     { icon: ShieldCheck, label: "Firewall", bruto: results.chamadosSistemas, humano: results.chamadosSistemas * (1 - reducaoN0) },
   ];
 
+  const totalBruto = results.volumeTotalBruto;
+  const totalHumano = results.volumeAtendimentoHumano;
+
+  const chartData = [
+    ...origemRows.map((r) => ({
+      origem: r.label.replace(" (Service Desk)", ""),
+      prevista: Math.round(r.humano * 10) / 10,
+      excedente: Math.round(r.humano * fatorLimite * 10) / 10,
+    })),
+    {
+      origem: "Total geral",
+      prevista: Math.round(totalHumano * 10) / 10,
+      excedente: Math.round(totalHumano * fatorLimite * 10) / 10,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -203,8 +220,36 @@ export default function RelatorioDemanda() {
                   <TableCell className="text-right">{formatNumber(ativosHumano, 1)}</TableCell>
                   <TableCell className="text-right">{results.volumeTotalBruto > 0 ? ((ativosBruto / results.volumeTotalBruto) * 100).toFixed(1) : "0"}%</TableCell>
                 </TableRow>
+                <TableRow className="font-bold border-t-2 bg-muted/30">
+                  <TableCell>Total Geral</TableCell>
+                  <TableCell className="text-right">{formatNumber(totalBruto, 1)}</TableCell>
+                  <TableCell className="text-right">{formatNumber(totalHumano, 1)}</TableCell>
+                  <TableCell className="text-right">100%</TableCell>
+                </TableRow>
               </TableBody>
             </Table>
+
+            <div className="mt-6">
+              <p className="text-xs text-muted-foreground mb-2">
+                Demanda prevista (após N0) vs demanda prevista com excedente (+{limitePerc}%) — chamados/mês.
+              </p>
+              <div className="h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="origem" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                    <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                    <RTooltip
+                      contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 12 }}
+                      formatter={(v: number) => formatNumber(v, 1)}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="prevista" name="Demanda prevista" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="excedente" name={`Com excedente (+${limitePerc}%)`} fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
