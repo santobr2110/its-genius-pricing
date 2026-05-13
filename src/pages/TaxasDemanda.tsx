@@ -236,6 +236,21 @@ export default function TaxasDemanda() {
                   Aplicado sobre o nº de Equipamentos Desk/Note/Cel/Tablet — compõe custo de gestão.
                 </p>
               </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">% Limite de excedente por equipe</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  max={200}
+                  value={state.percLimiteExcedente}
+                  onChange={(e) => update("percLimiteExcedente", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Margem aceitável acima da capacidade da equipe antes de sinalizar excedente no Relatório de Demanda.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
