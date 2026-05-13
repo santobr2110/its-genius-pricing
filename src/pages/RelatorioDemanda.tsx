@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer, Customized } from "recharts";
 
 interface TeamRow {
   name: string;
@@ -148,6 +148,49 @@ export default function RelatorioDemanda() {
     { nivel: "N3", previsto: round1(results.volumeN3), excedente: round1(results.volumeN3 * fatorLimite), cliente: round1(clienteHumano * ratioN3) },
   ];
 
+  // Renderiza linhas conectando a barra "cliente" → "previsto" com o % de redução
+  const ReductionLines = (props: any) => {
+    const items = props?.formattedGraphicalItems;
+    if (!items) return null;
+    const cliente = items.find((g: any) => g?.item?.props?.dataKey === "cliente");
+    const previsto = items.find((g: any) => g?.item?.props?.dataKey === "previsto");
+    if (!cliente || !previsto) return null;
+    const cPts = cliente.props?.data || [];
+    const pPts = previsto.props?.data || [];
+    return (
+      <g>
+        {cPts.map((cp: any, i: number) => {
+          const pp = pPts[i];
+          if (!cp || !pp) return null;
+          const cv = cp.value ?? cp.cliente;
+          const pv = pp.value ?? pp.previsto;
+          const x1 = cp.x + (cp.width || 0) / 2;
+          const y1 = cp.y;
+          const x2 = pp.x + (pp.width || 0) / 2;
+          const y2 = pp.y;
+          if (!isFinite(x1) || !isFinite(x2) || !isFinite(y1) || !isFinite(y2)) return null;
+          if (!cv || cv <= 0) return null;
+          const reduction = ((cv - pv) / cv) * 100;
+          const midX = (x1 + x2) / 2;
+          const midY = Math.min(y1, y2) - 8;
+          const sign = reduction >= 0 ? "−" : "+";
+          const label = `${sign}${Math.abs(reduction).toFixed(1)}%`;
+          return (
+            <g key={i}>
+              <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(var(--foreground))" strokeWidth={1.5} strokeDasharray="4 3" />
+              <circle cx={x1} cy={y1} r={2.5} fill="hsl(var(--foreground))" />
+              <circle cx={x2} cy={y2} r={2.5} fill="hsl(var(--foreground))" />
+              <rect x={midX - 26} y={midY - 11} width={52} height={15} rx={3} fill="hsl(var(--background))" stroke="hsl(var(--border))" />
+              <text x={midX} y={midY} textAnchor="middle" fontSize={10} fontWeight={600} fill="hsl(var(--foreground))">
+                {label}
+              </text>
+            </g>
+          );
+        })}
+      </g>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -220,6 +263,7 @@ export default function RelatorioDemanda() {
                   <Bar dataKey="cliente" name="Cliente (inventário) — base" fill="hsl(0 75% 55%)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="previsto" name="Previsão (calculadora) — meta" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="excedente" name={`Com excedente (+${limitePerc}%) — teto contratual`} fill="hsl(210 80% 55%)" radius={[4, 4, 0, 0]} />
+                  <Customized component={ReductionLines} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
