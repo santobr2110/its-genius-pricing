@@ -373,6 +373,7 @@ export default function RelatorioDemanda() {
                 <TableRow>
                   <TableHead>Origem</TableHead>
                   <TableHead className="text-right">Incidentes do ativo<br/><span className="text-[10px] font-normal text-muted-foreground">bruto (ch/mês)</span></TableHead>
+                  <TableHead className="text-right">Resolvidos N0<br/><span className="text-[10px] font-normal text-muted-foreground">automação ({state.reducaoN0}%)</span></TableHead>
                   <TableHead className="text-right">Incidentes após N0<br/><span className="text-[10px] font-normal text-muted-foreground">ch/mês</span></TableHead>
                   <TableHead className="text-right text-primary">Rotinas / CAC<br/><span className="text-[10px] font-normal text-muted-foreground">ch/mês</span></TableHead>
                   <TableHead className="text-right">Total previsto<br/><span className="text-[10px] font-normal text-muted-foreground">após N0 + rotinas</span></TableHead>
@@ -383,6 +384,7 @@ export default function RelatorioDemanda() {
                 {origemRows.map(({ icon: Icon, label, bruto, humano, cac, rotCount }) => {
                   const totalPrev = humano + cac;
                   const totalGeralPrev = totalHumano + rotinasPorAtivo.totalCac;
+                  const n0 = bruto - humano;
                   return (
                   <TableRow key={label} className={cac > 0 ? "bg-primary/5" : undefined}>
                     <TableCell className="font-medium">
@@ -396,6 +398,7 @@ export default function RelatorioDemanda() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">{formatNumber(bruto, 1)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{formatNumber(n0, 1)}</TableCell>
                     <TableCell className="text-right">{formatNumber(humano, 1)}</TableCell>
                     <TableCell className={`text-right tabular-nums ${cac > 0 ? "font-medium text-primary" : "text-muted-foreground"}`}>
                       {cac > 0 ? (
@@ -416,6 +419,7 @@ export default function RelatorioDemanda() {
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground">—</TableCell>
                     <TableCell className="text-right text-muted-foreground">—</TableCell>
+                    <TableCell className="text-right text-muted-foreground">—</TableCell>
                     <TableCell className="text-right tabular-nums font-medium text-primary">{formatNumber(rotinasPorAtivo.ambiente.cac, 2)}</TableCell>
                     <TableCell className="text-right tabular-nums font-medium">{formatNumber(rotinasPorAtivo.ambiente.cac, 2)}</TableCell>
                     <TableCell className="text-right">{(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((rotinasPorAtivo.ambiente.cac / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%</TableCell>
@@ -424,6 +428,7 @@ export default function RelatorioDemanda() {
                 <TableRow className="font-bold border-t-2 bg-muted/30">
                   <TableCell>Total Geral</TableCell>
                   <TableCell className="text-right">{formatNumber(totalBruto, 1)}</TableCell>
+                  <TableCell className="text-right">{formatNumber(totalBruto - totalHumano, 1)}</TableCell>
                   <TableCell className="text-right">{formatNumber(totalHumano, 1)}</TableCell>
                   <TableCell className="text-right tabular-nums text-primary">{formatNumber(rotinasPorAtivo.totalCac, 2)}</TableCell>
                   <TableCell className="text-right tabular-nums">{formatNumber(totalHumano + rotinasPorAtivo.totalCac, 1)}</TableCell>
@@ -431,7 +436,14 @@ export default function RelatorioDemanda() {
                 </TableRow>
                 <TableRow className="text-xs text-muted-foreground bg-muted/10">
                   <TableCell className="font-medium">Composição do total previsto</TableCell>
-                  <TableCell className="text-right">—</TableCell>
+                  <TableCell className="text-right">
+                    {totalBruto > 0 ? ((totalBruto / totalBruto) * 100).toFixed(0) : "0"}%
+                    <span className="ml-1 opacity-70">do bruto</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {totalBruto > 0 ? (((totalBruto - totalHumano) / totalBruto) * 100).toFixed(1) : "0"}%
+                    <span className="ml-1 opacity-70">do bruto</span>
+                  </TableCell>
                   <TableCell className="text-right">
                     {(totalHumano + rotinasPorAtivo.totalCac) > 0 ? ((totalHumano / (totalHumano + rotinasPorAtivo.totalCac)) * 100).toFixed(1) : "0"}%
                     <span className="ml-1 opacity-70">incidentes</span>
