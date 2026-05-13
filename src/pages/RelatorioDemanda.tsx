@@ -402,6 +402,53 @@ export default function RelatorioDemanda() {
           </CardContent>
         </Card>
 
+        {/* Chamados previstos por grupo de rotinas (CACs) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ListChecks className="h-4 w-4 text-primary" />
+              Chamados previstos por grupo de rotinas (CACs)
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Volume de chamados gerados pelas rotinas preventivas/automatizadas, agrupado por categoria. CAC = chamados/mês previstos por execução, ponderado pelo inventário e pelas flags de complexidade.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {rotinasGrupos.items.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma rotina ativa para o inventário atual.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Grupo de rotinas</TableHead>
+                    <TableHead className="text-right">Rotinas ativas</TableHead>
+                    <TableHead className="text-right">CAC (ch/mês)</TableHead>
+                    <TableHead className="text-right">% do total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rotinasGrupos.items.map((g) => (
+                    <TableRow key={g.grupo}>
+                      <TableCell className="font-medium">{g.grupo}</TableCell>
+                      <TableCell className="text-right">{g.rotinas}</TableCell>
+                      <TableCell className="text-right">{formatNumber(g.cac, 2)}</TableCell>
+                      <TableCell className="text-right">
+                        {rotinasGrupos.totalCac > 0 ? ((g.cac / rotinasGrupos.totalCac) * 100).toFixed(1) : "0"}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="font-bold border-t-2 bg-muted/30">
+                    <TableCell>Total</TableCell>
+                    <TableCell className="text-right">{rotinasGrupos.totalRot}</TableCell>
+                    <TableCell className="text-right">{formatNumber(rotinasGrupos.totalCac, 2)}</TableCell>
+                    <TableCell className="text-right">100%</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Distribuição por time */}
         <Card>
           <CardHeader>
