@@ -199,33 +199,6 @@ export default function RelatorioDemanda() {
         {/* === GRÁFICOS === */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Demanda prevista vs com excedente</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Demanda prevista (após N0) vs demanda prevista com excedente (+{limitePerc}%) — chamados/mês.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="origem" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                  <RTooltip
-                    contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 12 }}
-                    formatter={(v: number) => formatNumber(v, 1)}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="prevista" name="Demanda prevista" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="excedente" name={`Com excedente (+${limitePerc}%)`} fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle className="text-base">Distribuição no funil — Previsão vs Cliente</CardTitle>
             <p className="text-xs text-muted-foreground">
               Distribuição do volume entre N0 (retido por automação, {state.reducaoN0}%), N1, N2 e N3, comparando a previsão da calculadora com o total informado pelo cliente ({formatNumber(clienteTotal, 1)} ch/mês{state.semVolumesAtuais ? " — não informado" : ""}) aplicado no mesmo funil.
@@ -246,6 +219,33 @@ export default function RelatorioDemanda() {
                   <Bar dataKey="previsto" name="Previsão (calculadora)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="excedente" name={`Previsão com excedente (+${limitePerc}%)`} fill="hsl(210 80% 55%)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="cliente" name="Cliente (inventário)" fill="hsl(0 75% 55%)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Demanda prevista vs com excedente</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Demanda prevista (após N0) vs demanda prevista com excedente (+{limitePerc}%) — chamados/mês.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="origem" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <RTooltip
+                    contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 6, fontSize: 12 }}
+                    formatter={(v: number) => formatNumber(v, 1)}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="prevista" name="Demanda prevista" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="excedente" name={`Com excedente (+${limitePerc}%)`} fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
