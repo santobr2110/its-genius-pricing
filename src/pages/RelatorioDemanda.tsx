@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer, ComposedChart, Line } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface TeamRow {
   name: string;
@@ -148,18 +148,6 @@ export default function RelatorioDemanda() {
     { nivel: "N3", previsto: round1(results.volumeN3), excedente: round1(results.volumeN3 * fatorLimite), cliente: round1(clienteHumano * ratioN3) },
   ];
 
-  // Linha de tendência (regressão linear simples sobre 'previsto')
-  const _xs = distData.map((_, i) => i);
-  const _ys = distData.map((d) => d.previsto);
-  const _n = _xs.length;
-  const _mx = _xs.reduce((a, b) => a + b, 0) / _n;
-  const _my = _ys.reduce((a, b) => a + b, 0) / _n;
-  const _num = _xs.reduce((s, x, i) => s + (x - _mx) * (_ys[i] - _my), 0);
-  const _den = _xs.reduce((s, x) => s + (x - _mx) ** 2, 0) || 1;
-  const _slope = _num / _den;
-  const _intercept = _my - _slope * _mx;
-  const distDataWithTrend = distData.map((d, i) => ({ ...d, tendencia: round1(Math.max(0, _intercept + _slope * i)) }));
-
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -219,7 +207,7 @@ export default function RelatorioDemanda() {
           <CardContent>
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={distDataWithTrend} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                <BarChart data={distData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="nivel" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                   <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
@@ -232,8 +220,7 @@ export default function RelatorioDemanda() {
                   <Bar dataKey="previsto" name="Previsão (calculadora)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="excedente" name={`Previsão com excedente (+${limitePerc}%)`} fill="hsl(210 80% 55%)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="cliente" name="Cliente (inventário)" fill="hsl(0 75% 55%)" radius={[4, 4, 0, 0]} />
-                  <Line type="monotone" dataKey="tendencia" name="Tendência" stroke="hsl(var(--foreground))" strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} />
-                </ComposedChart>
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
