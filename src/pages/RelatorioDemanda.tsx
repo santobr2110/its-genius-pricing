@@ -219,7 +219,7 @@ export default function RelatorioDemanda() {
           <CardContent>
             <div className="h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={distData} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+                <ComposedChart data={distDataWithTrend} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="nivel" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                   <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
@@ -232,7 +232,8 @@ export default function RelatorioDemanda() {
                   <Bar dataKey="previsto" name="Previsão (calculadora)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="excedente" name={`Previsão com excedente (+${limitePerc}%)`} fill="hsl(210 80% 55%)" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="cliente" name="Cliente (inventário)" fill="hsl(0 75% 55%)" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <Line type="monotone" dataKey="tendencia" name="Tendência" stroke="hsl(var(--foreground))" strokeWidth={2} strokeDasharray="5 4" dot={{ r: 3 }} />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
