@@ -73,7 +73,9 @@ export default function RelatorioDemanda() {
         : r;
       const mult = rotinaMultiplicador(rNorm, inv, complexFlags);
       if (mult <= 0) return;
-      const cac = r.cac * mult;
+      // Usa a demanda total da rotina em chamados/mês (mesma base do Smart Tiers),
+      // e não o fator CAC (20%), para que o total bata com a aba de tiers.
+      const cac = r.chamadosMes * mult;
       if (cac <= 0) return;
       const k: keyof typeof buckets =
         rNorm.ativo === "Servidor" ? "servidores"
@@ -375,7 +377,7 @@ export default function RelatorioDemanda() {
                   <TableHead className="text-right">Incidentes do ativo<br/><span className="text-[10px] font-normal text-muted-foreground">bruto (ch/mês)</span></TableHead>
                   <TableHead className="text-right">Resolvidos N0<br/><span className="text-[10px] font-normal text-muted-foreground">automação ({state.reducaoN0}%)</span></TableHead>
                   <TableHead className="text-right">Incidentes após N0<br/><span className="text-[10px] font-normal text-muted-foreground">ch/mês</span></TableHead>
-                  <TableHead className="text-right text-primary">Rotinas / CAC<br/><span className="text-[10px] font-normal text-muted-foreground">ch/mês</span></TableHead>
+                  <TableHead className="text-right text-primary">Rotinas<br/><span className="text-[10px] font-normal text-muted-foreground">ch/mês</span></TableHead>
                   <TableHead className="text-right">Total previsto<br/><span className="text-[10px] font-normal text-muted-foreground">após N0 + rotinas</span></TableHead>
                   <TableHead className="text-right">% do total</TableHead>
                 </TableRow>
