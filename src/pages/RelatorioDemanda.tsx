@@ -73,7 +73,9 @@ export default function RelatorioDemanda() {
         : r;
       const mult = rotinaMultiplicador(rNorm, inv, complexFlags);
       if (mult <= 0) return;
-      const cac = r.cac * mult;
+      // Usa a demanda total da rotina em chamados/mês (mesma base do Smart Tiers),
+      // e não o fator CAC (20%), para que o total bata com a aba de tiers.
+      const cac = r.chamadosMes * mult;
       if (cac <= 0) return;
       const k: keyof typeof buckets =
         rNorm.ativo === "Servidor" ? "servidores"
