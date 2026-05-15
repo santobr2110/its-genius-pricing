@@ -242,21 +242,26 @@ export default function ClientPanel({ state, update, results }: Props) {
               )}
             </div>
             <div className={`rounded-lg border grid grid-cols-2 gap-x-3 gap-y-1.5 p-2 ${!state.tierPerformance ? "opacity-50" : ""}`}>
-              {complexidadeItens.map(({ key, label }) => (
-                <label
-                  key={key}
-                  htmlFor={`cx-${key}`}
-                  className={`flex items-center gap-2 ${state.tierPerformance ? "cursor-pointer" : "cursor-not-allowed"}`}
-                >
-                  <Checkbox
-                    id={`cx-${key}`}
-                    checked={Boolean(state[key])}
-                    disabled={!state.tierPerformance}
-                    onCheckedChange={(v) => update(key, Boolean(v) as ITSMState[typeof key])}
-                  />
-                  <span className="text-[11px] leading-tight">{label}</span>
-                </label>
-              ))}
+              {complexidadeItens.map(({ key, label }) => {
+                const temRotina = flagsComRotina.has(key as ComplexFlagKey);
+                const desabilitado = !state.tierPerformance || !temRotina;
+                return (
+                  <label
+                    key={key}
+                    htmlFor={`cx-${key}`}
+                    title={!temRotina ? "Sem rotinas vinculadas em Gestão de TI / Rotinas" : undefined}
+                    className={`flex items-center gap-2 ${desabilitado ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                  >
+                    <Checkbox
+                      id={`cx-${key}`}
+                      checked={Boolean(state[key]) && temRotina}
+                      disabled={desabilitado}
+                      onCheckedChange={(v) => update(key, Boolean(v) as ITSMState[typeof key])}
+                    />
+                    <span className="text-[11px] leading-tight">{label}</span>
+                  </label>
+                );
+              })}
             </div>
           </section>
         </CardContent>
