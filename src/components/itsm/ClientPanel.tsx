@@ -5,6 +5,9 @@ import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Activity } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { usePersistentState } from "@/hooks/usePersistentState";
+import { ROTINAS_DEFAULT, type Rotina, type ComplexFlagKey } from "@/data/rotinas";
+import { useMemo } from "react";
 
 interface Props {
   state: ITSMState;
@@ -33,6 +36,14 @@ const groups = [
 ] as const;
 
 export default function ClientPanel({ state, update, results }: Props) {
+  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const flagsComRotina = useMemo(() => {
+    const set = new Set<ComplexFlagKey>();
+    rotinas.forEach((r) => {
+      if (r.complexFlag) set.add(r.complexFlag);
+    });
+    return set;
+  }, [rotinas]);
   const totalAtivos =
     (state.qtdServidores || 0) +
     (state.qtdAtivosRede || 0) +
