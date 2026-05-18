@@ -130,9 +130,13 @@ export function usePersistentState<T>(
       hydrate(session?.user?.id ?? null);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      // Ignore noisy events that don't change the user (token refresh, focus, user metadata updates).
+      if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") return;
+      const newUid = session?.user?.id ?? null;
+      if (newUid === userIdRef.current) return;
       hydratedRef.current = false;
-      hydrate(session?.user?.id ?? null);
+      hydrate(newUid);
     });
 
     return () => {
