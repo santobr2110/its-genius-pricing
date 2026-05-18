@@ -276,9 +276,10 @@ function SortableSlot({ slot, current, display }: SortableSlotProps) {
 
 interface Props {
   current?: NavItemId;
+  extras?: React.ReactNode;
 }
 
-export default function SortableNav({ current }: Props) {
+export default function SortableNav({ current, extras }: Props) {
   const [order, setOrder] = useState<SlotId[]>(() => loadOrder());
   const navigate = useNavigate();
   const { can } = useAuth();
