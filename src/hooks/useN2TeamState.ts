@@ -164,6 +164,7 @@ export function useN2TeamState() {
     updateProfessional,
     addProfessional,
     removeProfessional,
+    moveProfessional,
     updateTeamConfig,
     results,
   };
