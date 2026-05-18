@@ -8,6 +8,7 @@ import SavePresetButton from "@/components/SavePresetButton";
 import UserMenu from "@/components/auth/UserMenu";
 import Can from "@/components/auth/Can";
 import ParametrosMenu from "@/components/ParametrosMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const Index = () => {
@@ -22,10 +23,11 @@ const Index = () => {
             <h1 className="font-bold text-foreground truncate text-base">Smart ITO</h1>
           </div>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
+            <SortableNav current="home" />
             <ParametrosMenu />
             <Can permission="pricing.save_preset"><SavePresetButton /></Can>
             <Can permission="params.save_defaults"><SaveDefaultsButton /></Can>
-            <SortableNav current="home" />
+            <ThemeToggle />
             <UserMenu />
           </div>
         </div>
