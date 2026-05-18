@@ -2,11 +2,13 @@ import { useITSMContext } from "@/contexts/ITSMContext";
 import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import SmartTiersPanel from "@/components/itsm/SmartTiersPanel";
-import { Calculator } from "lucide-react";
+import { Calculator, Layers } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import SavePresetButton from "@/components/SavePresetButton";
 import UserMenu from "@/components/auth/UserMenu";
 import Can from "@/components/auth/Can";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const Index = () => {
@@ -21,6 +23,9 @@ const Index = () => {
             <h1 className="font-bold text-foreground truncate text-base">Smart ITO</h1>
           </div>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="gap-1.5 text-xs h-8">
+              <Link to="/perfis-parametros"><Layers className="h-3.5 w-3.5" /> Perfis</Link>
+            </Button>
             <Can permission="pricing.save_preset"><SavePresetButton /></Can>
             <Can permission="params.save_defaults"><SaveDefaultsButton /></Can>
             <SortableNav current="home" />

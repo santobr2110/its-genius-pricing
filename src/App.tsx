@@ -15,6 +15,7 @@ import Operacao from "./pages/Operacao";
 import FieldService from "./pages/FieldService";
 import GestaoTI from "./pages/GestaoTI";
 import RelatorioDemanda from "./pages/RelatorioDemanda";
+import PerfisParametros from "./pages/PerfisParametros";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import SemAcesso from "./pages/SemAcesso";
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/field-service" element={<ProtectedRoute permission="page.field_service"><FieldService /></ProtectedRoute>} />
               <Route path="/gestao-ti" element={<ProtectedRoute permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />
               <Route path="/relatorio-demanda" element={<ProtectedRoute permission="page.relatorio_demanda"><RelatorioDemanda /></ProtectedRoute>} />
+              <Route path="/perfis-parametros" element={<ProtectedRoute><PerfisParametros /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
