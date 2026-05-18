@@ -101,6 +101,18 @@ export function useN2TeamState() {
     }));
   }, []);
 
+  const moveProfessional = useCallback((id: string, dir: -1 | 1) => {
+    setTeamState((prev) => {
+      const list = prev.professionals;
+      const idx = list.findIndex((p) => p.id === id);
+      const newIdx = idx + dir;
+      if (idx < 0 || newIdx < 0 || newIdx >= list.length) return prev;
+      const next = list.slice();
+      [next[idx], next[newIdx]] = [next[newIdx], next[idx]];
+      return { ...prev, professionals: next };
+    });
+  }, []);
+
   const updateTeamConfig = useCallback(
     <K extends keyof Omit<N2TeamState, "professionals">>(key: K, value: N2TeamState[K]) => {
       setTeamState((prev) => ({ ...prev, [key]: value }));
@@ -152,6 +164,7 @@ export function useN2TeamState() {
     updateProfessional,
     addProfessional,
     removeProfessional,
+    moveProfessional,
     updateTeamConfig,
     results,
   };
