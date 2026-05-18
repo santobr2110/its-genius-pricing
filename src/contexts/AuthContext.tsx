@@ -81,17 +81,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Set up listener FIRST
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    let currentUid: string | null = null;
+    const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
-      if (newSession?.user) {
+      const newUid = newSession?.user?.id ?? null;
+      // Skip noisy events that don't change the user (token refresh, metadata).
+      if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") return;
+      if (newUid === currentUid) return;
+      currentUid = newUid;
+      if (newUid) {
         setLoading(true);
         setRole(null);
         setPermissions(new Set());
         setFullName(null);
         // Defer to avoid deadlocks
         setTimeout(() => {
-          loadAccess(newSession.user.id).finally(() => setLoading(false));
+          loadAccess(newUid).finally(() => setLoading(false));
         }, 0);
       } else {
         setRole(null);
@@ -104,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
+      currentUid = s?.user?.id ?? null;
       if (s?.user) {
         loadAccess(s.user.id).finally(() => setLoading(false));
       } else {
