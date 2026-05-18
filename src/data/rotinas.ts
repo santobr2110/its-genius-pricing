@@ -82,7 +82,7 @@ export const COMPLEX_FLAG_LABELS: Record<ComplexFlagKey, string> = {
   complexSiteBackup: "Site Backup",
   complexHibridoCloudOnPrem: "Ambiente Híbrido Cloud/On-Premises",
   complexOperacao24x7: "Operação 24x7",
-  complexErpMercado: "ERP de Mercado",
+  complexErpMercado: "Totvs Protheus",
 };
 
 export const COMPLEX_FLAG_KEYS = Object.keys(COMPLEX_FLAG_LABELS) as ComplexFlagKey[];
