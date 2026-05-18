@@ -22,6 +22,7 @@ import Admin from "./pages/Admin";
 import { ITSMProvider } from "./contexts/ITSMContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import SeoHead from "./components/SeoHead";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <ITSMProvider>
+            <SeoHead />
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/sem-acesso" element={<SemAcesso />} />
