@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -276,7 +276,7 @@ function SortableSlot({ slot, current, display }: SortableSlotProps) {
 
 interface Props {
   current?: NavItemId;
-  extras?: React.ReactNode;
+  extras?: ReactNode;
 }
 
 export default function SortableNav({ current, extras }: Props) {
