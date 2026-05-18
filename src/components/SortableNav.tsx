@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -276,9 +276,10 @@ function SortableSlot({ slot, current, display }: SortableSlotProps) {
 
 interface Props {
   current?: NavItemId;
+  extras?: ReactNode;
 }
 
-export default function SortableNav({ current }: Props) {
+export default function SortableNav({ current, extras }: Props) {
   const [order, setOrder] = useState<SlotId[]>(() => loadOrder());
   const navigate = useNavigate();
   const { can } = useAuth();
@@ -341,6 +342,7 @@ export default function SortableNav({ current }: Props) {
     <>
       <div className="md:hidden">
         <div className="inline-flex items-center gap-1">
+        {extras}
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -369,9 +371,9 @@ export default function SortableNav({ current }: Props) {
         </div>
       </div>
 
-      <div className="hidden md:flex lg:hidden items-center gap-1">{dndContent("icon")}<ThemeToggle /></div>
-      <div className="hidden lg:flex xl:hidden items-center gap-1">{dndContent("short")}<ThemeToggle /></div>
-      <div className="hidden xl:flex items-center gap-1">{dndContent("full")}<ThemeToggle /></div>
+      <div className="hidden md:flex lg:hidden items-center gap-1">{dndContent("icon")}{extras}<ThemeToggle /></div>
+      <div className="hidden lg:flex xl:hidden items-center gap-1">{dndContent("short")}{extras}<ThemeToggle /></div>
+      <div className="hidden xl:flex items-center gap-1">{dndContent("full")}{extras}<ThemeToggle /></div>
     </>
   );
 }

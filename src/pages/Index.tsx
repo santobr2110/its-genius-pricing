@@ -22,10 +22,16 @@ const Index = () => {
             <h1 className="font-bold text-foreground truncate text-base">Smart ITO</h1>
           </div>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <ParametrosMenu />
-            <Can permission="pricing.save_preset"><SavePresetButton /></Can>
-            <Can permission="params.save_defaults"><SaveDefaultsButton /></Can>
-            <SortableNav current="home" />
+            <SortableNav
+              current="home"
+              extras={
+                <div className="flex items-center gap-2 mx-1">
+                  <ParametrosMenu />
+                  <Can permission="pricing.save_preset"><SavePresetButton /></Can>
+                  <Can permission="params.save_defaults"><SaveDefaultsButton /></Can>
+                </div>
+              }
+            />
             <UserMenu />
           </div>
         </div>
