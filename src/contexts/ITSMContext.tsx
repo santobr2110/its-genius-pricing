@@ -14,12 +14,14 @@ interface ITSMContextType {
   updateN1Professional: ReturnType<typeof useN1TeamState>["updateProfessional"];
   addN1Professional: ReturnType<typeof useN1TeamState>["addProfessional"];
   removeN1Professional: ReturnType<typeof useN1TeamState>["removeProfessional"];
+  moveN1Professional: ReturnType<typeof useN1TeamState>["moveProfessional"];
   updateN1Config: ReturnType<typeof useN1TeamState>["updateTeamConfig"];
   n1Results: N1TeamResults;
   n2Team: N2TeamState;
   updateN2Professional: ReturnType<typeof useN2TeamState>["updateProfessional"];
   addN2Professional: ReturnType<typeof useN2TeamState>["addProfessional"];
   removeN2Professional: ReturnType<typeof useN2TeamState>["removeProfessional"];
+  moveN2Professional: ReturnType<typeof useN2TeamState>["moveProfessional"];
   updateN2Config: ReturnType<typeof useN2TeamState>["updateTeamConfig"];
   n2Results: N2TeamResults;
   fieldTeams: FieldTeamsState;
@@ -82,12 +84,14 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     updateN1Professional: n1.updateProfessional,
     addN1Professional: n1.addProfessional,
     removeN1Professional: n1.removeProfessional,
+    moveN1Professional: n1.moveProfessional,
     updateN1Config: n1.updateTeamConfig,
     n1Results: n1.results,
     n2Team: n2.teamState,
     updateN2Professional: n2.updateProfessional,
     addN2Professional: n2.addProfessional,
     removeN2Professional: n2.removeProfessional,
+    moveN2Professional: n2.moveProfessional,
     updateN2Config: n2.updateTeamConfig,
     n2Results: n2.results,
     fieldTeams: field.state,
