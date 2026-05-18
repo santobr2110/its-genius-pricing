@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Server, Trash2, Users, DollarSign, BarChart3, UserPlus } from "lucide-react";
+import { Server, Trash2, Users, DollarSign, BarChart3, UserPlus, ChevronUp, ChevronDown } from "lucide-react";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { N2Professional } from "@/hooks/useN2TeamState";
 import { Link } from "react-router-dom";
@@ -19,6 +19,7 @@ export default function EquipeN2() {
     updateN2Professional,
     addN2Professional,
     removeN2Professional,
+    moveN2Professional,
     updateN2Config,
     n2Results,
   } = useITSMContext();
@@ -79,11 +80,11 @@ export default function EquipeN2() {
                     <TableHead className="text-xs text-right w-28">Benefícios</TableHead>
                     <TableHead className="text-xs text-center w-20">Indiretos %</TableHead>
                     <TableHead className="text-xs text-right w-28">Custo Total</TableHead>
-                    <TableHead className="w-10"></TableHead>
+                    <TableHead className="w-24"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {n2Team.professionals.map((p) => (
+                  {n2Team.professionals.map((p, idx) => (
                     <TableRow key={p.id}>
                       <TableCell className="p-1">
                         <Input value={p.cargo} onChange={(e) => updateN2Professional(p.id, "cargo", e.target.value)} className="h-8 text-xs" />
@@ -110,11 +111,19 @@ export default function EquipeN2() {
                         <span className="text-xs font-semibold">{formatBRL(profCost(p))}</span>
                       </TableCell>
                       <TableCell className="p-1">
-                        {n2Team.professionals.length > 1 && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => removeN2Professional(p.id)}>
-                            <Trash2 className="h-3.5 w-3.5" />
+                        <div className="flex items-center justify-end gap-0.5">
+                          <Button variant="ghost" size="icon" className="h-6 w-6" disabled={idx === 0} onClick={() => moveN2Professional(p.id, -1)} title="Mover para cima">
+                            <ChevronUp className="h-3.5 w-3.5" />
                           </Button>
-                        )}
+                          <Button variant="ghost" size="icon" className="h-6 w-6" disabled={idx === n2Team.professionals.length - 1} onClick={() => moveN2Professional(p.id, 1)} title="Mover para baixo">
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          </Button>
+                          {n2Team.professionals.length > 1 && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => removeN2Professional(p.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
