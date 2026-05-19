@@ -48,9 +48,9 @@ function fromRow(r: DbRow): PricingPreset {
   };
 }
 
-export function usePricingPresets() {
+export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = {}) {
   const [presets, setPresets] = useState<PricingPreset[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(autoLoad);
 
   const refresh = useCallback(async () => {
     const { data, error } = await supabase
@@ -64,10 +64,13 @@ export function usePricingPresets() {
   }, []);
 
   useEffect(() => {
+    if (!autoLoad) return;
     refresh();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => refresh());
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") refresh();
+    });
     return () => sub.subscription.unsubscribe();
-  }, [refresh]);
+  }, [autoLoad, refresh]);
 
   const save = useCallback(
     async (
