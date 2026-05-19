@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export const PERSISTENT_STATE_RESTORED_EVENT = "itsm:persistent-state-restored";
+
+export function notifyPersistentStateRestored(key: string, value: unknown) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(PERSISTENT_STATE_RESTORED_EVENT, { detail: { key, value } }),
+  );
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -144,6 +153,37 @@ export function usePersistentState<T>(
       sub.subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  useEffect(() => {
+    const applyExternalValue = (value: unknown) => {
+      const merged = mergeWithInitial(value as T, initialRef.current);
+      setStateBase(merged);
+      stateRef.current = merged;
+      writeLocal(key, merged);
+    };
+
+    const onRestored = (event: Event) => {
+      const detail = (event as CustomEvent<{ key?: string; value?: unknown }>).detail;
+      if (detail?.key !== key) return;
+      applyExternalValue(detail.value);
+    };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== key || event.newValue == null) return;
+      try {
+        applyExternalValue(JSON.parse(event.newValue));
+      } catch {
+        /* ignore */
+      }
+    };
+
+    window.addEventListener(PERSISTENT_STATE_RESTORED_EVENT, onRestored);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(PERSISTENT_STATE_RESTORED_EVENT, onRestored);
+      window.removeEventListener("storage", onStorage);
+    };
   }, [key]);
 
   const setState: Dispatch<SetStateAction<T>> = useCallback(
