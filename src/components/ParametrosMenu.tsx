@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { useParameterProfiles, type ParameterProfile } from "@/hooks/useParameterProfiles";
 
 export default function ParametrosMenu() {
-  const { profiles, loading, save, apply } = useParameterProfiles();
+  const { profiles, loading, save, apply, refresh } = useParameterProfiles({ autoLoad: false });
   const [saveOpen, setSaveOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [name, setName] = useState("");
@@ -71,7 +71,7 @@ export default function ParametrosMenu() {
           <DropdownMenuItem onSelect={() => setSaveOpen(true)}>
             <Save className="h-3.5 w-3.5 mr-2" /> Salvar atual…
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setRestoreOpen(true)}>
+          <DropdownMenuItem onSelect={() => { setRestoreOpen(true); refresh(); }}>
             <RotateCcw className="h-3.5 w-3.5 mr-2" /> Restaurar…
           </DropdownMenuItem>
           <DropdownMenuSeparator />
