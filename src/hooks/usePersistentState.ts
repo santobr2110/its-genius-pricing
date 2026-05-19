@@ -42,6 +42,15 @@ function writeLocal<T>(key: string, value: T) {
   }
 }
 
+function isEqualValue<T>(a: T, b: T): boolean {
+  if (Object.is(a, b)) return true;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * State persistente sincronizado com Lovable Cloud (tabelas
  * `user_app_state` por usuário e `app_defaults` compartilhada).
@@ -71,6 +80,15 @@ export function usePersistentState<T>(
   const userIdRef = useRef<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const commitExternalValue = useCallback((value: unknown) => {
+    const merged = mergeWithInitial(value as T, initialRef.current);
+    if (!isEqualValue(stateRef.current, merged)) {
+      setStateBase(merged);
+      stateRef.current = merged;
+    }
+    writeLocal(key, merged);
+  }, [key]);
+
   // Hydrate from cloud + react to auth changes.
   useEffect(() => {
     let cancelled = false;
@@ -94,9 +112,7 @@ export function usePersistentState<T>(
       if (cancelled) return;
 
       if (own?.value !== undefined && own?.value !== null) {
-        const merged = mergeWithInitial(own.value as T, initialRef.current);
-        setStateBase(merged);
-        writeLocal(key, merged);
+        commitExternalValue(own.value);
         hydratedRef.current = true;
         return;
       }
@@ -112,8 +128,7 @@ export function usePersistentState<T>(
 
       if (def?.value !== undefined && def?.value !== null) {
         const merged = mergeWithInitial(def.value as T, initialRef.current);
-        setStateBase(merged);
-        writeLocal(key, merged);
+        commitExternalValue(def.value);
         hydratedRef.current = true;
         // Seed: salva como estado próprio do usuário para futuras edições
         supabase
@@ -153,26 +168,19 @@ export function usePersistentState<T>(
       sub.subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, commitExternalValue]);
 
   useEffect(() => {
-    const applyExternalValue = (value: unknown) => {
-      const merged = mergeWithInitial(value as T, initialRef.current);
-      setStateBase(merged);
-      stateRef.current = merged;
-      writeLocal(key, merged);
-    };
-
     const onRestored = (event: Event) => {
       const detail = (event as CustomEvent<{ key?: string; value?: unknown }>).detail;
       if (detail?.key !== key) return;
-      applyExternalValue(detail.value);
+      commitExternalValue(detail.value);
     };
 
     const onStorage = (event: StorageEvent) => {
       if (event.key !== key || event.newValue == null) return;
       try {
-        applyExternalValue(JSON.parse(event.newValue));
+        commitExternalValue(JSON.parse(event.newValue));
       } catch {
         /* ignore */
       }
@@ -184,7 +192,7 @@ export function usePersistentState<T>(
       window.removeEventListener(PERSISTENT_STATE_RESTORED_EVENT, onRestored);
       window.removeEventListener("storage", onStorage);
     };
-  }, [key]);
+  }, [key, commitExternalValue]);
 
   const setState: Dispatch<SetStateAction<T>> = useCallback(
     (value) => {
@@ -194,6 +202,9 @@ export function usePersistentState<T>(
             ? (value as (prevState: T) => T)(prev)
             : value;
         const merged = mergeWithInitial(next, initialRef.current);
+        if (isEqualValue(prev, merged)) return prev;
+
+        stateRef.current = merged;
         writeLocal(key, merged);
 
         // debounce cloud write
