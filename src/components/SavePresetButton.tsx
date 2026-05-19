@@ -17,7 +17,7 @@ import { toast } from "sonner";
 
 export default function SavePresetButton() {
   const { state, n1Team, n2Team, results } = useITSMContext();
-  const { save } = usePricingPresets();
+  const { save } = usePricingPresets({ autoLoad: false });
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
 
