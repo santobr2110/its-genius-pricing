@@ -148,40 +148,14 @@ export function usePersistentState<T>(
         return;
       }
 
-      // 1) tenta valor do próprio usuário
-      const { data: own } = await supabase
-        .from("user_app_state")
-        .select("value")
-        .eq("user_id", uid)
-        .eq("key", key)
-        .maybeSingle();
+      const cloudValue = await readCloudValue(uid, key);
 
       if (cancelled) return;
 
-      if (own?.value !== undefined && own?.value !== null) {
-        commitExternalValue(own.value);
+      if (cloudValue !== undefined && cloudValue !== null) {
+        const merged = mergeWithInitial(cloudValue as T, initialRef.current);
+        commitExternalValue(cloudValue);
         hydratedRef.current = true;
-        return;
-      }
-
-      // 2) fallback: defaults compartilhados
-      const { data: def } = await supabase
-        .from("app_defaults")
-        .select("value")
-        .eq("key", key)
-        .maybeSingle();
-
-      if (cancelled) return;
-
-      if (def?.value !== undefined && def?.value !== null) {
-        const merged = mergeWithInitial(def.value as T, initialRef.current);
-        commitExternalValue(def.value);
-        hydratedRef.current = true;
-        // Seed: salva como estado próprio do usuário para futuras edições
-        supabase
-          .from("user_app_state")
-          .upsert({ user_id: uid, key, value: merged as unknown as never }, { onConflict: "user_id,key" })
-          .then(() => undefined);
         return;
       }
 
@@ -269,7 +243,7 @@ export function usePersistentState<T>(
                 { user_id: uid, key, value: merged as unknown as never },
                 { onConflict: "user_id,key" },
               )
-              .then(() => undefined);
+              .then(() => cloudValueCache.set(cacheKey(uid, key), merged));
           }, 600);
         }
         return merged;
