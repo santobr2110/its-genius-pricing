@@ -63,9 +63,9 @@ async function snapshotCurrent(userId: string): Promise<ParamPayload> {
   return out;
 }
 
-export function useParameterProfiles() {
+export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean } = {}) {
   const [profiles, setProfiles] = useState<ParameterProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(autoLoad);
 
   const refresh = useCallback(async () => {
     const { data, error } = await supabase
@@ -79,12 +79,13 @@ export function useParameterProfiles() {
   }, []);
 
   useEffect(() => {
+    if (!autoLoad) return;
     refresh();
     const { data: sub } = supabase.auth.onAuthStateChange((e) => {
       if (e === "SIGNED_IN" || e === "SIGNED_OUT") refresh();
     });
     return () => sub.subscription.unsubscribe();
-  }, [refresh]);
+  }, [autoLoad, refresh]);
 
   const save = useCallback(async (name: string): Promise<ParameterProfile> => {
     const { data: { user } } = await supabase.auth.getUser();
