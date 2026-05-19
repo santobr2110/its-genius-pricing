@@ -3,6 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const PERSISTENT_STATE_RESTORED_EVENT = "itsm:persistent-state-restored";
 
+const cloudValueCache = new Map<string, unknown>();
+const cloudHydrationPromises = new Map<string, Promise<unknown | undefined>>();
+
+function cacheKey(uid: string, key: string) {
+  return `${uid}:${key}`;
+}
+
 export function notifyPersistentStateRestored(key: string, value: unknown) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(
@@ -49,6 +56,42 @@ function isEqualValue<T>(a: T, b: T): boolean {
   } catch {
     return false;
   }
+}
+
+async function readCloudValue(uid: string, key: string): Promise<unknown | undefined> {
+  const ck = cacheKey(uid, key);
+  if (cloudValueCache.has(ck)) return cloudValueCache.get(ck);
+  const pending = cloudHydrationPromises.get(ck);
+  if (pending) return pending;
+
+  const promise = (async () => {
+    const { data: own } = await supabase
+      .from("user_app_state")
+      .select("value")
+      .eq("user_id", uid)
+      .eq("key", key)
+      .maybeSingle();
+
+    if (own?.value !== undefined && own?.value !== null) {
+      cloudValueCache.set(ck, own.value);
+      return own.value;
+    }
+
+    const { data: def } = await supabase
+      .from("app_defaults")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+
+    const value = def?.value ?? undefined;
+    if (value !== undefined && value !== null) cloudValueCache.set(ck, value);
+    return value;
+  })().finally(() => {
+    cloudHydrationPromises.delete(ck);
+  });
+
+  cloudHydrationPromises.set(ck, promise);
+  return promise;
 }
 
 /**
