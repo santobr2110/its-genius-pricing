@@ -152,6 +152,15 @@ const ALL_SLOT_IDS: SlotId[] = SLOTS.map((s) => s.id);
 
 const STORAGE_KEY = "nav-order-v2";
 
+function getResponsiveMode(): "mobile" | "icon" | "short" | "full" {
+  if (typeof window === "undefined") return "full";
+  const width = window.innerWidth;
+  if (width < 768) return "mobile";
+  if (width < 1024) return "icon";
+  if (width < 1280) return "short";
+  return "full";
+}
+
 function loadOrder(): SlotId[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -281,6 +290,7 @@ interface Props {
 
 export default function SortableNav({ current, extras }: Props) {
   const [order, setOrder] = useState<SlotId[]>(() => loadOrder());
+  const [mode, setMode] = useState<"mobile" | "icon" | "short" | "full">(() => getResponsiveMode());
   const navigate = useNavigate();
   const { can } = useAuth();
 
@@ -294,6 +304,12 @@ export default function SortableNav({ current, extras }: Props) {
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => setMode(getResponsiveMode());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
@@ -340,7 +356,8 @@ export default function SortableNav({ current, extras }: Props) {
 
   return (
     <>
-      <div className="md:hidden">
+      {mode === "mobile" ? (
+      <div>
         <div className="inline-flex items-center gap-1">
         {extras}
         <ThemeToggle />
@@ -370,10 +387,9 @@ export default function SortableNav({ current, extras }: Props) {
         </DropdownMenu>
         </div>
       </div>
-
-      <div className="hidden md:flex lg:hidden items-center gap-1">{dndContent("icon")}{extras}<ThemeToggle /></div>
-      <div className="hidden lg:flex xl:hidden items-center gap-1">{dndContent("short")}{extras}<ThemeToggle /></div>
-      <div className="hidden xl:flex items-center gap-1">{dndContent("full")}{extras}<ThemeToggle /></div>
+      ) : (
+      <div className="flex items-center gap-1">{dndContent(mode)}{extras}<ThemeToggle /></div>
+      )}
     </>
   );
 }

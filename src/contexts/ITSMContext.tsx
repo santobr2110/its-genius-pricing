@@ -42,32 +42,72 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const field = useFieldTeamsState();
 
   useEffect(() => {
-    calc.update("custoPessoaN1", n1.results.custoTotalEquipe / 4);
-    calc.update("capacidadeChamadosN1", n1.teamState.capacidadeTimeTotal);
-    calc.update("percGestaoN1", 0);
-  }, [n1.results.custoTotalEquipe, n1.teamState.capacidadeTimeTotal]);
+    const nextCusto = n1.results.custoTotalEquipe / 4;
+    const nextCapacidade = n1.teamState.capacidadeTimeTotal;
+    if (
+      calc.state.custoPessoaN1 === nextCusto &&
+      calc.state.capacidadeChamadosN1 === nextCapacidade &&
+      calc.state.percGestaoN1 === 0
+    ) return;
+
+    calc.setState((prev) => ({
+      ...prev,
+      custoPessoaN1: nextCusto,
+      capacidadeChamadosN1: nextCapacidade,
+      percGestaoN1: 0,
+    }));
+  }, [n1.results.custoTotalEquipe, n1.teamState.capacidadeTimeTotal, calc.state.custoPessoaN1, calc.state.capacidadeChamadosN1, calc.state.percGestaoN1, calc.setState]);
 
   useEffect(() => {
-    calc.update("custoAnalistaN2", n2.results.custoTotalEquipe);
-    calc.update("capacidadeChamadosN2", n2.teamState.capacidadeChamadosTotal);
-    calc.update("percGestaoN2", 0);
-  }, [n2.results.custoTotalEquipe, n2.teamState.capacidadeChamadosTotal]);
+    const nextCusto = n2.results.custoTotalEquipe;
+    const nextCapacidade = n2.teamState.capacidadeChamadosTotal;
+    if (
+      calc.state.custoAnalistaN2 === nextCusto &&
+      calc.state.capacidadeChamadosN2 === nextCapacidade &&
+      calc.state.percGestaoN2 === 0
+    ) return;
+
+    calc.setState((prev) => ({
+      ...prev,
+      custoAnalistaN2: nextCusto,
+      capacidadeChamadosN2: nextCapacidade,
+      percGestaoN2: 0,
+    }));
+  }, [n2.results.custoTotalEquipe, n2.teamState.capacidadeChamadosTotal, calc.state.custoAnalistaN2, calc.state.capacidadeChamadosN2, calc.state.percGestaoN2, calc.setState]);
 
   useEffect(() => {
-    calc.update("custoEquipeFieldN1", field.results.n1f.custoTotalEquipe);
-    calc.update("capacidadeFieldN1", field.state.n1f.capacidadeChamadosTotal);
-    calc.update("custoUmFieldN1", field.results.n1f.custoUmProfissional);
-  }, [field.results.n1f.custoTotalEquipe, field.state.n1f.capacidadeChamadosTotal]);
+    const nextCusto = field.results.n1f.custoTotalEquipe;
+    const nextCapacidade = field.state.n1f.capacidadeChamadosTotal;
+    const nextCustoUm = field.results.n1f.custoUmProfissional;
+    if (
+      calc.state.custoEquipeFieldN1 === nextCusto &&
+      calc.state.capacidadeFieldN1 === nextCapacidade &&
+      calc.state.custoUmFieldN1 === nextCustoUm
+    ) return;
+    calc.setState((prev) => ({ ...prev, custoEquipeFieldN1: nextCusto, capacidadeFieldN1: nextCapacidade, custoUmFieldN1: nextCustoUm }));
+  }, [field.results.n1f.custoTotalEquipe, field.state.n1f.capacidadeChamadosTotal, field.results.n1f.custoUmProfissional, calc.state.custoEquipeFieldN1, calc.state.capacidadeFieldN1, calc.state.custoUmFieldN1, calc.setState]);
   useEffect(() => {
-    calc.update("custoEquipeFieldN2", field.results.n2f.custoTotalEquipe);
-    calc.update("capacidadeFieldN2", field.state.n2f.capacidadeChamadosTotal);
-    calc.update("custoUmFieldN2", field.results.n2f.custoUmProfissional);
-  }, [field.results.n2f.custoTotalEquipe, field.state.n2f.capacidadeChamadosTotal]);
+    const nextCusto = field.results.n2f.custoTotalEquipe;
+    const nextCapacidade = field.state.n2f.capacidadeChamadosTotal;
+    const nextCustoUm = field.results.n2f.custoUmProfissional;
+    if (
+      calc.state.custoEquipeFieldN2 === nextCusto &&
+      calc.state.capacidadeFieldN2 === nextCapacidade &&
+      calc.state.custoUmFieldN2 === nextCustoUm
+    ) return;
+    calc.setState((prev) => ({ ...prev, custoEquipeFieldN2: nextCusto, capacidadeFieldN2: nextCapacidade, custoUmFieldN2: nextCustoUm }));
+  }, [field.results.n2f.custoTotalEquipe, field.state.n2f.capacidadeChamadosTotal, field.results.n2f.custoUmProfissional, calc.state.custoEquipeFieldN2, calc.state.capacidadeFieldN2, calc.state.custoUmFieldN2, calc.setState]);
   useEffect(() => {
-    calc.update("custoEquipeFieldN3", field.results.n3f.custoTotalEquipe);
-    calc.update("capacidadeFieldN3", field.state.n3f.capacidadeChamadosTotal);
-    calc.update("custoUmFieldN3", field.results.n3f.custoUmProfissional);
-  }, [field.results.n3f.custoTotalEquipe, field.state.n3f.capacidadeChamadosTotal]);
+    const nextCusto = field.results.n3f.custoTotalEquipe;
+    const nextCapacidade = field.state.n3f.capacidadeChamadosTotal;
+    const nextCustoUm = field.results.n3f.custoUmProfissional;
+    if (
+      calc.state.custoEquipeFieldN3 === nextCusto &&
+      calc.state.capacidadeFieldN3 === nextCapacidade &&
+      calc.state.custoUmFieldN3 === nextCustoUm
+    ) return;
+    calc.setState((prev) => ({ ...prev, custoEquipeFieldN3: nextCusto, capacidadeFieldN3: nextCapacidade, custoUmFieldN3: nextCustoUm }));
+  }, [field.results.n3f.custoTotalEquipe, field.state.n3f.capacidadeChamadosTotal, field.results.n3f.custoUmProfissional, calc.state.custoEquipeFieldN3, calc.state.capacidadeFieldN3, calc.state.custoUmFieldN3, calc.setState]);
 
   const loadPreset = useCallback((preset: PricingPreset) => {
     calc.setState(preset.calculator);

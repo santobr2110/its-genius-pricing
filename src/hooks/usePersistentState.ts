@@ -3,6 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const PERSISTENT_STATE_RESTORED_EVENT = "itsm:persistent-state-restored";
 
+const cloudValueCache = new Map<string, unknown>();
+const cloudHydrationPromises = new Map<string, Promise<unknown | undefined>>();
+
+function cacheKey(uid: string, key: string) {
+  return `${uid}:${key}`;
+}
+
 export function notifyPersistentStateRestored(key: string, value: unknown) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(
@@ -42,6 +49,51 @@ function writeLocal<T>(key: string, value: T) {
   }
 }
 
+function isEqualValue<T>(a: T, b: T): boolean {
+  if (Object.is(a, b)) return true;
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+}
+
+async function readCloudValue(uid: string, key: string): Promise<unknown | undefined> {
+  const ck = cacheKey(uid, key);
+  if (cloudValueCache.has(ck)) return cloudValueCache.get(ck);
+  const pending = cloudHydrationPromises.get(ck);
+  if (pending) return pending;
+
+  const promise = (async () => {
+    const { data: own } = await supabase
+      .from("user_app_state")
+      .select("value")
+      .eq("user_id", uid)
+      .eq("key", key)
+      .maybeSingle();
+
+    if (own?.value !== undefined && own?.value !== null) {
+      cloudValueCache.set(ck, own.value);
+      return own.value;
+    }
+
+    const { data: def } = await supabase
+      .from("app_defaults")
+      .select("value")
+      .eq("key", key)
+      .maybeSingle();
+
+    const value = def?.value ?? undefined;
+    if (value !== undefined && value !== null) cloudValueCache.set(ck, value);
+    return value;
+  })().finally(() => {
+    cloudHydrationPromises.delete(ck);
+  });
+
+  cloudHydrationPromises.set(ck, promise);
+  return promise;
+}
+
 /**
  * State persistente sincronizado com Lovable Cloud (tabelas
  * `user_app_state` por usuário e `app_defaults` compartilhada).
@@ -71,6 +123,19 @@ export function usePersistentState<T>(
   const userIdRef = useRef<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const commitExternalValue = useCallback((value: unknown) => {
+    const merged = mergeWithInitial(value as T, initialRef.current);
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    if (!isEqualValue(stateRef.current, merged)) {
+      setStateBase(merged);
+      stateRef.current = merged;
+    }
+    writeLocal(key, merged);
+  }, [key]);
+
   // Hydrate from cloud + react to auth changes.
   useEffect(() => {
     let cancelled = false;
@@ -83,43 +148,14 @@ export function usePersistentState<T>(
         return;
       }
 
-      // 1) tenta valor do próprio usuário
-      const { data: own } = await supabase
-        .from("user_app_state")
-        .select("value")
-        .eq("user_id", uid)
-        .eq("key", key)
-        .maybeSingle();
+      const cloudValue = await readCloudValue(uid, key);
 
       if (cancelled) return;
 
-      if (own?.value !== undefined && own?.value !== null) {
-        const merged = mergeWithInitial(own.value as T, initialRef.current);
-        setStateBase(merged);
-        writeLocal(key, merged);
+      if (cloudValue !== undefined && cloudValue !== null) {
+        const merged = mergeWithInitial(cloudValue as T, initialRef.current);
+        commitExternalValue(cloudValue);
         hydratedRef.current = true;
-        return;
-      }
-
-      // 2) fallback: defaults compartilhados
-      const { data: def } = await supabase
-        .from("app_defaults")
-        .select("value")
-        .eq("key", key)
-        .maybeSingle();
-
-      if (cancelled) return;
-
-      if (def?.value !== undefined && def?.value !== null) {
-        const merged = mergeWithInitial(def.value as T, initialRef.current);
-        setStateBase(merged);
-        writeLocal(key, merged);
-        hydratedRef.current = true;
-        // Seed: salva como estado próprio do usuário para futuras edições
-        supabase
-          .from("user_app_state")
-          .upsert({ user_id: uid, key, value: merged as unknown as never }, { onConflict: "user_id,key" })
-          .then(() => undefined);
         return;
       }
 
@@ -153,26 +189,19 @@ export function usePersistentState<T>(
       sub.subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, commitExternalValue]);
 
   useEffect(() => {
-    const applyExternalValue = (value: unknown) => {
-      const merged = mergeWithInitial(value as T, initialRef.current);
-      setStateBase(merged);
-      stateRef.current = merged;
-      writeLocal(key, merged);
-    };
-
     const onRestored = (event: Event) => {
       const detail = (event as CustomEvent<{ key?: string; value?: unknown }>).detail;
       if (detail?.key !== key) return;
-      applyExternalValue(detail.value);
+      commitExternalValue(detail.value);
     };
 
     const onStorage = (event: StorageEvent) => {
       if (event.key !== key || event.newValue == null) return;
       try {
-        applyExternalValue(JSON.parse(event.newValue));
+        commitExternalValue(JSON.parse(event.newValue));
       } catch {
         /* ignore */
       }
@@ -184,7 +213,11 @@ export function usePersistentState<T>(
       window.removeEventListener(PERSISTENT_STATE_RESTORED_EVENT, onRestored);
       window.removeEventListener("storage", onStorage);
     };
-  }, [key]);
+  }, [key, commitExternalValue]);
+
+  useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+  }, []);
 
   const setState: Dispatch<SetStateAction<T>> = useCallback(
     (value) => {
@@ -194,6 +227,9 @@ export function usePersistentState<T>(
             ? (value as (prevState: T) => T)(prev)
             : value;
         const merged = mergeWithInitial(next, initialRef.current);
+        if (isEqualValue(prev, merged)) return prev;
+
+        stateRef.current = merged;
         writeLocal(key, merged);
 
         // debounce cloud write
@@ -207,7 +243,7 @@ export function usePersistentState<T>(
                 { user_id: uid, key, value: merged as unknown as never },
                 { onConflict: "user_id,key" },
               )
-              .then(() => undefined);
+              .then(() => cloudValueCache.set(cacheKey(uid, key), merged));
           }, 600);
         }
         return merged;
