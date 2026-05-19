@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { notifyPersistentStateRestored } from "./usePersistentState";
 
 // Todas as chaves de parâmetros persistidos (equipes + configurações + gestão TI).
 export const PARAM_KEYS = [
@@ -125,7 +126,7 @@ export function useParameterProfiles() {
     setProfiles((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  /** Aplica um perfil: grava em user_app_state + localStorage e recarrega. */
+  /** Aplica um perfil: grava em user_app_state + localStorage e notifica os hooks ativos. */
   const apply = useCallback(async (profile: ParameterProfile) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Faça login.");
@@ -143,9 +144,8 @@ export function useParameterProfiles() {
     if (typeof window !== "undefined") {
       for (const [key, value] of Object.entries(profile.payload)) {
         try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+        notifyPersistentStateRestored(key, value);
       }
-      // Recarrega para que todos os hooks re-hidratem do estado novo.
-      window.location.assign("/");
     }
   }, []);
 
