@@ -82,6 +82,10 @@ export function usePersistentState<T>(
 
   const commitExternalValue = useCallback((value: unknown) => {
     const merged = mergeWithInitial(value as T, initialRef.current);
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
     if (!isEqualValue(stateRef.current, merged)) {
       setStateBase(merged);
       stateRef.current = merged;
@@ -193,6 +197,10 @@ export function usePersistentState<T>(
       window.removeEventListener("storage", onStorage);
     };
   }, [key, commitExternalValue]);
+
+  useEffect(() => () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+  }, []);
 
   const setState: Dispatch<SetStateAction<T>> = useCallback(
     (value) => {
