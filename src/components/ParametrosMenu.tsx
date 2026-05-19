@@ -48,8 +48,12 @@ export default function ParametrosMenu() {
     setBusy(true);
     try {
       await apply(p);
+      toast.success(`Perfil "${p.name}" restaurado.`);
+      setConfirm(null);
+      setRestoreOpen(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao restaurar.");
+    } finally {
       setBusy(false);
     }
   };
@@ -110,7 +114,7 @@ export default function ParametrosMenu() {
             <DialogTitle>Restaurar perfil</DialogTitle>
             <DialogDescription>
               {confirm
-                ? `Substituir todos os parâmetros atuais pelo perfil "${confirm.name}"? A página será recarregada.`
+                ? `Substituir todos os parâmetros atuais pelo perfil "${confirm.name}"?`
                 : "Escolha um perfil para aplicar."}
             </DialogDescription>
           </DialogHeader>
