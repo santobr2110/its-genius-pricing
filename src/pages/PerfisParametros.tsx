@@ -48,12 +48,15 @@ export default function PerfisParametros() {
   const handleApply = async () => {
     if (!confirmApply) return;
     setBusy(true);
-    try { await apply(confirmApply); }
+    try {
+      await apply(confirmApply);
+      toast({ title: "Perfil aplicado", description: `"${confirmApply.name}" restaurado nos parâmetros atuais.` });
+      setConfirmApply(null);
+    }
     catch (e) {
       toast({ title: "Erro", description: (e as Error).message, variant: "destructive" });
-      setBusy(false);
     }
-    // not resetting busy on success — page will reload
+    finally { setBusy(false); }
   };
 
   const handleDelete = async () => {
@@ -182,7 +185,7 @@ export default function PerfisParametros() {
           <AlertDialogHeader>
             <AlertDialogTitle>Aplicar perfil "{confirmApply?.name}"?</AlertDialogTitle>
             <AlertDialogDescription>
-              Isto vai substituir todos os parâmetros atuais (equipes, financeiro, taxas, rotinas, GMUDs, etc.) pelos valores do perfil. A página será recarregada.
+              Isto vai substituir todos os parâmetros atuais (equipes, financeiro, taxas, rotinas, GMUDs, etc.) pelos valores do perfil.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
