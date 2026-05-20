@@ -367,13 +367,14 @@ export default function SmartTiersPanel() {
                     if (t.id === "tierPerformance" && next) {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
                       if (!state.tierOperation) update("tierOperation", true as any);
-                      // Faixa de horas N3 muda para 20–40 quando Performance ativo
-                      if ((state.horasN3Mensais || 0) < 20) update("horasN3Mensais", 20 as any);
-                      if ((state.horasN3Mensais || 0) > 40) update("horasN3Mensais", 40 as any);
+                      // Faixa de horas N3 conforme limites de Performance
+                      if ((state.horasN3Mensais || 0) < state.horasN3PerformanceMin) update("horasN3Mensais", state.horasN3PerformanceMin as any);
+                      if ((state.horasN3Mensais || 0) > state.horasN3PerformanceMax) update("horasN3Mensais", state.horasN3PerformanceMax as any);
                     }
-                    // Ao desativar Performance, devolver faixa Operation 10–30
+                    // Ao desativar Performance, devolver faixa Operation
                     if (t.id === "tierPerformance" && !next) {
-                      if ((state.horasN3Mensais || 0) > 30) update("horasN3Mensais", 30 as any);
+                      if ((state.horasN3Mensais || 0) > state.horasN3OperationMax) update("horasN3Mensais", state.horasN3OperationMax as any);
+                      if ((state.horasN3Mensais || 0) < state.horasN3OperationMin) update("horasN3Mensais", state.horasN3OperationMin as any);
                     }
                   }}
                   className="mt-0.5"
