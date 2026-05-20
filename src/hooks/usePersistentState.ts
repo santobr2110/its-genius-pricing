@@ -94,6 +94,14 @@ async function readCloudValue(uid: string, key: string): Promise<unknown | undef
   return promise;
 }
 
+function saveCloudValue(uid: string, key: string, value: unknown) {
+  cloudValueCache.set(cacheKey(uid, key), value);
+  return supabase
+    .from("user_app_state")
+    .upsert({ user_id: uid, key, value: value as never }, { onConflict: "user_id,key" })
+    .then(() => undefined);
+}
+
 /**
  * State persistente sincronizado com Lovable Cloud (tabelas
  * `user_app_state` por usuário e `app_defaults` compartilhada).
@@ -149,6 +157,19 @@ export function usePersistentState<T>(
         return;
       }
 
+      const local = readLocal<T>(key);
+      if (local !== undefined) {
+        const mergedLocal = mergeWithInitial(local, initialRef.current);
+        cloudValueCache.set(cacheKey(uid, key), mergedLocal);
+        hydratedRef.current = true;
+        if (!isEqualValue(stateRef.current, mergedLocal)) {
+          setStateBase(mergedLocal);
+          stateRef.current = mergedLocal;
+        }
+        saveCloudValue(uid, key, mergedLocal);
+        return;
+      }
+
       const versionAtStart = localVersionRef.current;
       const cloudValue = await readCloudValue(uid, key);
 
@@ -156,13 +177,9 @@ export function usePersistentState<T>(
 
       if (versionAtStart !== localVersionRef.current) {
         hydratedRef.current = true;
-        const local = readLocal<T>(key);
-        if (local !== undefined) {
-          cloudValueCache.set(cacheKey(uid, key), local);
-          supabase
-            .from("user_app_state")
-            .upsert({ user_id: uid, key, value: local as unknown as never }, { onConflict: "user_id,key" })
-            .then(() => undefined);
+        const latestLocal = readLocal<T>(key);
+        if (latestLocal !== undefined) {
+          saveCloudValue(uid, key, latestLocal);
         }
         return;
       }
@@ -175,13 +192,6 @@ export function usePersistentState<T>(
 
       // 3) nada na nuvem — se há valor local diferente do initial, faz seed
       hydratedRef.current = true;
-      const local = readLocal<T>(key);
-      if (local !== undefined) {
-        supabase
-          .from("user_app_state")
-          .upsert({ user_id: uid, key, value: local as unknown as never }, { onConflict: "user_id,key" })
-          .then(() => undefined);
-      }
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -250,13 +260,7 @@ export function usePersistentState<T>(
         if (uid && hydratedRef.current) {
           if (saveTimer.current) clearTimeout(saveTimer.current);
           saveTimer.current = setTimeout(() => {
-            supabase
-              .from("user_app_state")
-              .upsert(
-                { user_id: uid, key, value: merged as unknown as never },
-                { onConflict: "user_id,key" },
-              )
-              .then(() => cloudValueCache.set(cacheKey(uid, key), merged));
+            saveCloudValue(uid, key, merged);
           }, 600);
         }
         return merged;
