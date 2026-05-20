@@ -84,7 +84,7 @@ async function readCloudValue(uid: string, key: string): Promise<unknown | undef
       .maybeSingle();
 
     const value = def?.value ?? undefined;
-    if (value !== undefined && value !== null) cloudValueCache.set(ck, value);
+    cloudValueCache.set(ck, value);
     return value;
   })().finally(() => {
     cloudHydrationPromises.delete(ck);
@@ -119,6 +119,7 @@ export function usePersistentState<T>(
   initialRef.current = initial;
   const stateRef = useRef(state);
   stateRef.current = state;
+  const localVersionRef = useRef(0);
   const hydratedRef = useRef(false);
   const userIdRef = useRef<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -148,12 +149,25 @@ export function usePersistentState<T>(
         return;
       }
 
+      const versionAtStart = localVersionRef.current;
       const cloudValue = await readCloudValue(uid, key);
 
       if (cancelled) return;
 
+      if (versionAtStart !== localVersionRef.current) {
+        hydratedRef.current = true;
+        const local = readLocal<T>(key);
+        if (local !== undefined) {
+          cloudValueCache.set(cacheKey(uid, key), local);
+          supabase
+            .from("user_app_state")
+            .upsert({ user_id: uid, key, value: local as unknown as never }, { onConflict: "user_id,key" })
+            .then(() => undefined);
+        }
+        return;
+      }
+
       if (cloudValue !== undefined && cloudValue !== null) {
-        const merged = mergeWithInitial(cloudValue as T, initialRef.current);
         commitExternalValue(cloudValue);
         hydratedRef.current = true;
         return;
@@ -215,10 +229,6 @@ export function usePersistentState<T>(
     };
   }, [key, commitExternalValue]);
 
-  useEffect(() => () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-  }, []);
-
   const setState: Dispatch<SetStateAction<T>> = useCallback(
     (value) => {
       setStateBase((prev) => {
@@ -229,11 +239,14 @@ export function usePersistentState<T>(
         const merged = mergeWithInitial(next, initialRef.current);
         if (isEqualValue(prev, merged)) return prev;
 
+        localVersionRef.current += 1;
         stateRef.current = merged;
         writeLocal(key, merged);
+        const uidForCache = userIdRef.current;
+        if (uidForCache) cloudValueCache.set(cacheKey(uidForCache, key), merged);
 
         // debounce cloud write
-        const uid = userIdRef.current;
+        const uid = uidForCache;
         if (uid && hydratedRef.current) {
           if (saveTimer.current) clearTimeout(saveTimer.current);
           saveTimer.current = setTimeout(() => {
