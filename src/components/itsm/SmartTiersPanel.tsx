@@ -367,13 +367,14 @@ export default function SmartTiersPanel() {
                     if (t.id === "tierPerformance" && next) {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
                       if (!state.tierOperation) update("tierOperation", true as any);
-                      // Faixa de horas N3 muda para 20–40 quando Performance ativo
-                      if ((state.horasN3Mensais || 0) < 20) update("horasN3Mensais", 20 as any);
-                      if ((state.horasN3Mensais || 0) > 40) update("horasN3Mensais", 40 as any);
+                      // Faixa de horas N3 conforme limites de Performance
+                      if ((state.horasN3Mensais || 0) < state.horasN3PerformanceMin) update("horasN3Mensais", state.horasN3PerformanceMin as any);
+                      if ((state.horasN3Mensais || 0) > state.horasN3PerformanceMax) update("horasN3Mensais", state.horasN3PerformanceMax as any);
                     }
-                    // Ao desativar Performance, devolver faixa Operation 10–30
+                    // Ao desativar Performance, devolver faixa Operation
                     if (t.id === "tierPerformance" && !next) {
-                      if ((state.horasN3Mensais || 0) > 30) update("horasN3Mensais", 30 as any);
+                      if ((state.horasN3Mensais || 0) > state.horasN3OperationMax) update("horasN3Mensais", state.horasN3OperationMax as any);
+                      if ((state.horasN3Mensais || 0) < state.horasN3OperationMin) update("horasN3Mensais", state.horasN3OperationMin as any);
                     }
                   }}
                   className="mt-0.5"
@@ -440,10 +441,10 @@ export default function SmartTiersPanel() {
                 </span>
               </div>
               <Slider
-                value={[Math.min(40, Math.max(0, state.horasN3Monitor || 0))]}
+                value={[Math.min(state.horasN3MonitorMax, Math.max(state.horasN3MonitorMin, state.horasN3Monitor || 0))]}
                 onValueChange={([v]) => update("horasN3Monitor", v)}
-                min={0}
-                max={40}
+                min={state.horasN3MonitorMin}
+                max={state.horasN3MonitorMax}
                 step={1}
                 disabled={state.tierOperation}
               />
@@ -580,10 +581,10 @@ export default function SmartTiersPanel() {
                 <span className="text-xs font-semibold">{formatNumber(state.horasN3Mensais)}h/mês</span>
               </div>
               <Slider
-                value={[Math.min(30, Math.max(10, state.horasN3Mensais || 10))]}
+                value={[Math.min(state.horasN3OperationMax, Math.max(state.horasN3OperationMin, state.horasN3Mensais || state.horasN3OperationMin))]}
                 onValueChange={([v]) => update("horasN3Mensais", v)}
-                min={10}
-                max={30}
+                min={state.horasN3OperationMin}
+                max={state.horasN3OperationMax}
                 step={1}
               />
             </div>
@@ -800,10 +801,10 @@ export default function SmartTiersPanel() {
                 </span>
               </div>
               <Slider
-                value={[Math.min(40, Math.max(20, state.horasN3Mensais || 20))]}
+                value={[Math.min(state.horasN3PerformanceMax, Math.max(state.horasN3PerformanceMin, state.horasN3Mensais || state.horasN3PerformanceMin))]}
                 onValueChange={([v]) => update("horasN3Mensais", v)}
-                min={20}
-                max={40}
+                min={state.horasN3PerformanceMin}
+                max={state.horasN3PerformanceMax}
                 step={1}
               />
 

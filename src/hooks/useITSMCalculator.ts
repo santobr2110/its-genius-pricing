@@ -49,6 +49,13 @@ export interface ITSMState {
   valorProxyAdicional: number;
   // Limite de excedente (% acima da capacidade) usado nos relatórios.
   percLimiteExcedente: number;
+  // Limites de horas N3 por camada (slider min/max em Camadas de Oferta)
+  horasN3MonitorMin: number;
+  horasN3MonitorMax: number;
+  horasN3OperationMin: number;
+  horasN3OperationMax: number;
+  horasN3PerformanceMin: number;
+  horasN3PerformanceMax: number;
   // Criticidade do ambiente (0..4) e escala de ajuste aplicada às taxas
   criticidadeNivel: number;
   criticidadeEscala: number[];
@@ -206,6 +213,12 @@ const DEFAULTS: ITSMState = {
   valorProxyInicial: 0,
   valorProxyAdicional: 0,
   percLimiteExcedente: 20,
+  horasN3MonitorMin: 0,
+  horasN3MonitorMax: 40,
+  horasN3OperationMin: 10,
+  horasN3OperationMax: 30,
+  horasN3PerformanceMin: 20,
+  horasN3PerformanceMax: 40,
   criticidadeNivel: 2,
   criticidadeEscala: [-0.3, -0.15, 0, 0.15, 0.3],
   complexVirtualizacaoCluster: false,

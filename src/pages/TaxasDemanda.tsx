@@ -236,6 +236,19 @@ export default function TaxasDemanda() {
                   Aplicado sobre o nº de Equipamentos Desk/Note/Cel/Tablet — compõe custo de gestão.
                 </p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Tolerância</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Margem aceitável acima da capacidade nominal das equipes.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">% Limite de excedente por equipe</Label>
                 <Input
@@ -252,6 +265,48 @@ export default function TaxasDemanda() {
                 </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Limites N3</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Faixa mínima e máxima de horas mensais de N3 disponíveis em cada camada de oferta. Vincula-se aos sliders da tela Camadas de Oferta.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {([
+              { label: "Smart Monitor", minKey: "horasN3MonitorMin", maxKey: "horasN3MonitorMax" },
+              { label: "Smart Operation", minKey: "horasN3OperationMin", maxKey: "horasN3OperationMax" },
+              { label: "Smart Performance", minKey: "horasN3PerformanceMin", maxKey: "horasN3PerformanceMax" },
+            ] as const).map((row) => (
+              <div key={row.label} className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 items-center p-3 rounded-lg border bg-card">
+                <p className="text-sm font-semibold text-foreground">{row.label}</p>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Mínimo (h/mês)</Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    value={state[row.minKey] as number}
+                    onChange={(e) => update(row.minKey, (parseFloat(e.target.value) || 0) as any)}
+                    className="h-9"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Máximo (h/mês)</Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    value={state[row.maxKey] as number}
+                    onChange={(e) => update(row.maxKey, (parseFloat(e.target.value) || 0) as any)}
+                    className="h-9"
+                  />
+                </div>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
