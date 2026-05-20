@@ -801,10 +801,10 @@ export default function SmartTiersPanel() {
                 </span>
               </div>
               <Slider
-                value={[Math.min(40, Math.max(20, state.horasN3Mensais || 20))]}
+                value={[Math.min(state.horasN3PerformanceMax, Math.max(state.horasN3PerformanceMin, state.horasN3Mensais || state.horasN3PerformanceMin))]}
                 onValueChange={([v]) => update("horasN3Mensais", v)}
-                min={20}
-                max={40}
+                min={state.horasN3PerformanceMin}
+                max={state.horasN3PerformanceMax}
                 step={1}
               />
 
