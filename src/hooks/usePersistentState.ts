@@ -229,10 +229,6 @@ export function usePersistentState<T>(
     };
   }, [key, commitExternalValue]);
 
-  useEffect(() => () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-  }, []);
-
   const setState: Dispatch<SetStateAction<T>> = useCallback(
     (value) => {
       setStateBase((prev) => {
@@ -243,11 +239,14 @@ export function usePersistentState<T>(
         const merged = mergeWithInitial(next, initialRef.current);
         if (isEqualValue(prev, merged)) return prev;
 
+        localVersionRef.current += 1;
         stateRef.current = merged;
         writeLocal(key, merged);
+        const uidForCache = userIdRef.current;
+        if (uidForCache) cloudValueCache.set(cacheKey(uidForCache, key), merged);
 
         // debounce cloud write
-        const uid = userIdRef.current;
+        const uid = uidForCache;
         if (uid && hydratedRef.current) {
           if (saveTimer.current) clearTimeout(saveTimer.current);
           saveTimer.current = setTimeout(() => {
