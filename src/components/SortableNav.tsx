@@ -100,7 +100,7 @@ const PAGE_PERMISSION: Record<NavItemId, PermissionKey> = {
   "relatorio-demanda": "page.relatorio_demanda",
 };
 
-type SlotId = "menu-equipes" | "menu-config" | "menu-relatorio" | "precificacoes";
+type SlotId = "menu-equipes" | "menu-config" | "menu-relatorio";
 
 interface MenuSlot {
   kind: "menu";
@@ -144,7 +144,6 @@ const SLOTS: Slot[] = [
     icon: FileText,
     items: ["detalhamento", "relatorio-demanda"],
   },
-  { kind: "page", id: "precificacoes", page: "precificacoes" },
 ];
 
 const SLOT_MAP = new Map<SlotId, Slot>(SLOTS.map((s) => [s.id, s]));
