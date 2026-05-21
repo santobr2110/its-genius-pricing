@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ServerCog, RotateCcw, Sparkles, GitBranch, Plus, Trash2, ArrowLeftRight } from "lucide-react";
+import { ServerCog, Sparkles, GitBranch, Plus, Trash2, ArrowLeftRight } from "lucide-react";
 import BackHomeButton from "@/components/BackHomeButton";
 import SortableNav from "@/components/SortableNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -285,8 +285,6 @@ export default function GestaoTI() {
     [rotinas],
   );
 
-  const resetAll = () => setRotinas(ROTINAS_DEFAULT);
-  const resetGmuds = () => setGmuds(GMUDS_DEFAULT);
 
   const updateGmud = (id: string, patch: Partial<Gmud>) => {
     setGmuds((prev) =>
@@ -416,10 +414,6 @@ export default function GestaoTI() {
             <h1 className="text-sm font-bold text-foreground truncate">Gestão de TI</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={resetAll} className="gap-1.5">
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span className="text-xs">Restaurar padrão</span>
-            </Button>
             <SortableNav current="gestao-ti" />
           </div>
         </div>
@@ -702,10 +696,6 @@ export default function GestaoTI() {
                   <GitBranch className="h-4 w-4 text-primary" /> Gestão de Mudanças (GMUD)
                 </CardTitle>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={resetGmuds} className="gap-1.5">
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span className="text-xs">Restaurar padrão</span>
-                  </Button>
                   <Button size="sm" onClick={addGmud} className="gap-1.5">
                     <Plus className="h-3.5 w-3.5" />
                     <span className="text-xs">Nova GMUD</span>

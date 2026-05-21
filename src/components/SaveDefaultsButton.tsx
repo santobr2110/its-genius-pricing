@@ -10,7 +10,6 @@ const KEYS = [
   "itsm:n2team:v1",
   "itsm:fieldteams:v1",
   "gestao-ti:rotinas",
-  "gestao-ti:gmuds",
   "gestao-ti:smartPerf:n3Cortes",
 ];
 
