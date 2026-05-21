@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ServerCog, RotateCcw, Sparkles, GitBranch, Plus, Trash2, ArrowLeftRight } from "lucide-react";
+import { ServerCog, Sparkles, GitBranch, Plus, Trash2, ArrowLeftRight } from "lucide-react";
 import BackHomeButton from "@/components/BackHomeButton";
 import SortableNav from "@/components/SortableNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -285,8 +285,6 @@ export default function GestaoTI() {
     [rotinas],
   );
 
-  const resetAll = () => setRotinas(ROTINAS_DEFAULT);
-  const resetGmuds = () => setGmuds(GMUDS_DEFAULT);
 
   const updateGmud = (id: string, patch: Partial<Gmud>) => {
     setGmuds((prev) =>
