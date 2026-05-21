@@ -1,5 +1,4 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
-import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import ClientPanel from "@/components/itsm/ClientPanel";
 import SmartTiersPanel from "@/components/itsm/SmartTiersPanel";
 import { Calculator } from "lucide-react";
@@ -28,7 +27,6 @@ const Index = () => {
                 <div className="flex items-center gap-2 mx-1">
                   <ParametrosMenu />
                   <Can permission="pricing.save_preset"><SavePresetButton /></Can>
-                  <Can permission="params.save_defaults"><SaveDefaultsButton /></Can>
                 </div>
               }
             />

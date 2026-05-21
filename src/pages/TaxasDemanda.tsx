@@ -1,6 +1,5 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { useState } from "react";
-import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -107,7 +106,6 @@ export default function TaxasDemanda() {
             <h1 className="text-sm font-bold text-foreground truncate">Métricas e Parâmetros</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <SaveDefaultsButton />
             <SortableNav current="taxas" />
           </div>
         </div>

@@ -1,5 +1,4 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
-import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +49,6 @@ export default function FieldService() {
             <h1 className="text-sm font-bold text-foreground truncate">Field Service — Atendimento Presencial</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <SaveDefaultsButton />
             <SortableNav current="field-service" />
           </div>
         </div>
