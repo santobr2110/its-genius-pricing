@@ -64,10 +64,13 @@ import {
   GMUD_COMPLEXIDADES,
   GMUD_OFERTAS,
   CAC_FACTOR_GMUD,
+  GMUD_FREQUENCIAS,
+  GMUD_FREQ_TO_CHAMADOS,
   type Gmud,
   type GmudTipo,
   type GmudComplexidade,
   type GmudOferta,
+  type GmudFrequencia,
 } from "@/data/gmuds";
 
 const OFERTAS: Oferta[] = ["Operation", "Performance"];
@@ -197,6 +200,30 @@ export default function GestaoTI() {
     GMUDS_DEFAULT,
   );
 
+  // Migração: garante que GMUDs antigas tenham `frequencia`.
+  useEffect(() => {
+    let changed = false;
+    const next = gmuds.map((g) => {
+      if (!g.frequencia) {
+        changed = true;
+        // Estima frequência a partir do chamadosMes salvo.
+        const cm = g.chamadosMes ?? 1;
+        let freq: GmudFrequencia = "Mensal";
+        if (cm >= 4) freq = "Semanal";
+        else if (cm >= 2) freq = "Quinzenal";
+        else if (cm >= 1) freq = "Mensal";
+        else if (cm >= 0.5) freq = "Bimestral";
+        else if (cm >= 1 / 3) freq = "Trimestral";
+        else if (cm >= 1 / 6) freq = "Semestral";
+        else freq = "Anual";
+        const chamadosMes = GMUD_FREQ_TO_CHAMADOS[freq];
+        return { ...g, frequencia: freq, chamadosMes, cac: +(chamadosMes * CAC_FACTOR_GMUD).toFixed(4) };
+      }
+      return g;
+    });
+    if (changed) setGmuds(next);
+  }, []);
+
   const updateRotina = (id: string, patch: Partial<Rotina>) => {
     setRotinas((prev) =>
       prev.map((r) => {
@@ -266,6 +293,9 @@ export default function GestaoTI() {
       prev.map((g) => {
         if (g.id !== id) return g;
         const next = { ...g, ...patch };
+        if (patch.frequencia) {
+          next.chamadosMes = GMUD_FREQ_TO_CHAMADOS[patch.frequencia];
+        }
         next.cac = +(next.chamadosMes * CAC_FACTOR_GMUD).toFixed(4);
         return next;
       }),
@@ -281,8 +311,9 @@ export default function GestaoTI() {
         descricao: "Nova GMUD",
         complexidade: "Média",
         oferta: "Operation",
-        chamadosMes: 1,
-        cac: 0.2,
+        frequencia: "Mensal",
+        chamadosMes: GMUD_FREQ_TO_CHAMADOS["Mensal"],
+        cac: +(GMUD_FREQ_TO_CHAMADOS["Mensal"] * CAC_FACTOR_GMUD).toFixed(4),
       },
     ]);
   };
@@ -689,6 +720,7 @@ export default function GestaoTI() {
                       <TableHead className="min-w-[260px]">Descrição</TableHead>
                       <TableHead className="w-[130px]">Complexidade</TableHead>
                       <TableHead className="w-[140px]">Oferta</TableHead>
+                      <TableHead className="w-[130px]">Frequência</TableHead>
                       <TableHead className="w-[130px]">Chamados/mês</TableHead>
                       <TableHead className="w-[60px]"></TableHead>
                     </TableRow>
@@ -749,13 +781,24 @@ export default function GestaoTI() {
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            step={0.1}
-                            value={g.chamadosMes}
-                            onChange={(e) => updateGmud(g.id, { chamadosMes: parseFloat(e.target.value) || 0 })}
-                            className="h-8 text-sm"
-                          />
+                          <Select
+                            value={g.frequencia}
+                            onValueChange={(v: GmudFrequencia) => updateGmud(g.id, { frequencia: v })}
+                          >
+                            <SelectTrigger className="h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {GMUD_FREQUENCIAS.map((f) => (
+                                <SelectItem key={f} value={f}>{f}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-8 flex items-center justify-end pr-2 text-sm tabular-nums text-muted-foreground">
+                            {g.chamadosMes.toFixed(2)}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Button
@@ -771,12 +814,9 @@ export default function GestaoTI() {
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/40">
-                      <TableCell colSpan={4} className="font-semibold">Total</TableCell>
+                      <TableCell colSpan={5} className="font-semibold">Total</TableCell>
                       <TableCell className="tabular-nums font-bold">
                         {gmudTotals.totalChamados.toFixed(1)}
-                      </TableCell>
-                      <TableCell className="tabular-nums font-bold">
-                        {gmudTotals.totalCac.toFixed(2)}
                       </TableCell>
                       <TableCell></TableCell>
                     </TableRow>
