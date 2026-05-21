@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Layers, Save, RotateCcw, Loader2, Settings2 } from "lucide-react";
+import { Layers, Save, RotateCcw, Loader2, Settings2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -63,7 +63,9 @@ export default function ParametrosMenu() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
-            <Layers className="h-3.5 w-3.5" /> Parâmetros
+            <Layers className="h-3.5 w-3.5" />
+            <span>Parâmetros</span>
+            <ChevronDown className="h-3.5 w-3.5 opacity-70 shrink-0" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
