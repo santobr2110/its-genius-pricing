@@ -1,4 +1,4 @@
-import { BookmarkCheck } from "lucide-react";
+import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,8 +81,8 @@ export default function SaveDefaultsButton() {
       onClick={handleSave}
       title="Salva os valores atuais de todas as páginas como padrão para novas precificações"
     >
-      <BookmarkCheck className="h-3.5 w-3.5" />
-      <span className="hidden sm:inline">Salvar Parâmetros</span>
+      <Save className="h-3.5 w-3.5" />
+      <span className="hidden sm:inline">Salvar Status</span>
     </Button>
   );
 }
