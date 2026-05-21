@@ -90,7 +90,7 @@ export default function SaveDefaultsButton() {
         >
           <Save className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Salvar Status</span>
-          <ChevronDown className="h-3 w-3 opacity-60" />
+          <ChevronDown className="h-3.5 w-3.5 opacity-70 shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
