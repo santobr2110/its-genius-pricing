@@ -720,6 +720,7 @@ export default function GestaoTI() {
                       <TableHead className="min-w-[260px]">Descrição</TableHead>
                       <TableHead className="w-[130px]">Complexidade</TableHead>
                       <TableHead className="w-[140px]">Oferta</TableHead>
+                      <TableHead className="w-[130px]">Frequência</TableHead>
                       <TableHead className="w-[130px]">Chamados/mês</TableHead>
                       <TableHead className="w-[60px]"></TableHead>
                     </TableRow>
@@ -780,13 +781,24 @@ export default function GestaoTI() {
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            step={0.1}
-                            value={g.chamadosMes}
-                            onChange={(e) => updateGmud(g.id, { chamadosMes: parseFloat(e.target.value) || 0 })}
-                            className="h-8 text-sm"
-                          />
+                          <Select
+                            value={g.frequencia}
+                            onValueChange={(v: GmudFrequencia) => updateGmud(g.id, { frequencia: v })}
+                          >
+                            <SelectTrigger className="h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {GMUD_FREQUENCIAS.map((f) => (
+                                <SelectItem key={f} value={f}>{f}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <div className="h-8 flex items-center justify-end pr-2 text-sm tabular-nums text-muted-foreground">
+                            {g.chamadosMes.toFixed(2)}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <Button
@@ -802,12 +814,9 @@ export default function GestaoTI() {
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/40">
-                      <TableCell colSpan={4} className="font-semibold">Total</TableCell>
+                      <TableCell colSpan={5} className="font-semibold">Total</TableCell>
                       <TableCell className="tabular-nums font-bold">
                         {gmudTotals.totalChamados.toFixed(1)}
-                      </TableCell>
-                      <TableCell className="tabular-nums font-bold">
-                        {gmudTotals.totalCac.toFixed(2)}
                       </TableCell>
                       <TableCell></TableCell>
                     </TableRow>
