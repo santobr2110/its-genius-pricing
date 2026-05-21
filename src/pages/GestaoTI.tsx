@@ -64,10 +64,13 @@ import {
   GMUD_COMPLEXIDADES,
   GMUD_OFERTAS,
   CAC_FACTOR_GMUD,
+  GMUD_FREQUENCIAS,
+  GMUD_FREQ_TO_CHAMADOS,
   type Gmud,
   type GmudTipo,
   type GmudComplexidade,
   type GmudOferta,
+  type GmudFrequencia,
 } from "@/data/gmuds";
 
 const OFERTAS: Oferta[] = ["Operation", "Performance"];
@@ -266,6 +269,9 @@ export default function GestaoTI() {
       prev.map((g) => {
         if (g.id !== id) return g;
         const next = { ...g, ...patch };
+        if (patch.frequencia) {
+          next.chamadosMes = GMUD_FREQ_TO_CHAMADOS[patch.frequencia];
+        }
         next.cac = +(next.chamadosMes * CAC_FACTOR_GMUD).toFixed(4);
         return next;
       }),
@@ -281,8 +287,9 @@ export default function GestaoTI() {
         descricao: "Nova GMUD",
         complexidade: "Média",
         oferta: "Operation",
-        chamadosMes: 1,
-        cac: 0.2,
+        frequencia: "Mensal",
+        chamadosMes: GMUD_FREQ_TO_CHAMADOS["Mensal"],
+        cac: +(GMUD_FREQ_TO_CHAMADOS["Mensal"] * CAC_FACTOR_GMUD).toFixed(4),
       },
     ]);
   };
