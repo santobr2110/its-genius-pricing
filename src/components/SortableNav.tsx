@@ -61,7 +61,6 @@ export type NavItemId =
   | "field-service"
   | "detalhamento"
   | "precificacoes"
-  | "operacao"
   | "relatorio-demanda";
 
 interface PageDef {
@@ -74,7 +73,6 @@ interface PageDef {
 const PAGES: Record<NavItemId, PageDef> = {
   home: { id: "home", to: "/", label: "Início", icon: Activity },
   taxas: { id: "taxas", to: "/taxas-demanda", label: "Métricas e Parâmetros", icon: TrendingUp },
-  operacao: { id: "operacao", to: "/operacao", label: "Operação", icon: Activity },
   financeiro: { id: "financeiro", to: "/financeiro", label: "Financeiro", icon: DollarSign },
   "gestao-ti": { id: "gestao-ti", to: "/gestao-ti", label: "Gestão de TI", icon: ServerCog },
   "equipe-n1": { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", icon: Users },
@@ -89,7 +87,6 @@ const PAGES: Record<NavItemId, PageDef> = {
 const PAGE_PERMISSION: Record<NavItemId, PermissionKey> = {
   home: "page.home",
   taxas: "page.taxas_demanda",
-  operacao: "page.operacao",
   financeiro: "page.financeiro",
   "gestao-ti": "page.gestao_ti",
   "equipe-n1": "page.equipe_n1",
@@ -127,7 +124,7 @@ const SLOTS: Slot[] = [
     label: "Configurações",
     shortLabel: "Config",
     icon: Settings2,
-    items: ["taxas", "operacao", "financeiro", "gestao-ti"],
+    items: ["taxas", "financeiro", "gestao-ti"],
   },
   {
     kind: "menu",
