@@ -44,11 +44,6 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     description:
       "Gerencie presets de precificação ITSM salvos para reuso em propostas comerciais.",
   },
-  "/operacao": {
-    title: "Operação — Smart ITO",
-    description:
-      "Funil de atendimento N0→N1→N2→N3 e parâmetros operacionais da entrega ITSM.",
-  },
   "/field-service": {
     title: "Field Service — Smart ITO",
     description:
