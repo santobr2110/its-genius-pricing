@@ -416,10 +416,6 @@ export default function GestaoTI() {
             <h1 className="text-sm font-bold text-foreground truncate">Gestão de TI</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={resetAll} className="gap-1.5">
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span className="text-xs">Restaurar padrão</span>
-            </Button>
             <SortableNav current="gestao-ti" />
           </div>
         </div>
@@ -702,10 +698,6 @@ export default function GestaoTI() {
                   <GitBranch className="h-4 w-4 text-primary" /> Gestão de Mudanças (GMUD)
                 </CardTitle>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={resetGmuds} className="gap-1.5">
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span className="text-xs">Restaurar padrão</span>
-                  </Button>
                   <Button size="sm" onClick={addGmud} className="gap-1.5">
                     <Plus className="h-3.5 w-3.5" />
                     <span className="text-xs">Nova GMUD</span>
