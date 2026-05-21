@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ThemeToggle from "@/components/ThemeToggle";
+import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { useAuth } from "@/contexts/AuthContext";
 import type { PermissionKey } from "@/lib/permissions";
 
@@ -359,6 +360,7 @@ export default function SortableNav({ current, extras }: Props) {
       <div>
         <div className="inline-flex items-center gap-1">
         {extras}
+        <SaveDefaultsButton />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -387,7 +389,7 @@ export default function SortableNav({ current, extras }: Props) {
         </div>
       </div>
       ) : (
-      <div className="flex items-center gap-1">{dndContent(mode)}{extras}<ThemeToggle /></div>
+      <div className="flex items-center gap-1">{dndContent(mode)}{extras}<SaveDefaultsButton /><ThemeToggle /></div>
       )}
     </>
   );
