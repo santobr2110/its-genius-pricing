@@ -11,7 +11,6 @@ import EquipeN3 from "./pages/EquipeN3";
 import ConfiguracoesFinanceiras from "./pages/ConfiguracoesFinanceiras";
 import TaxasDemanda from "./pages/TaxasDemanda";
 import Precificacoes from "./pages/Precificacoes";
-import Operacao from "./pages/Operacao";
 import FieldService from "./pages/FieldService";
 import GestaoTI from "./pages/GestaoTI";
 import RelatorioDemanda from "./pages/RelatorioDemanda";
@@ -48,7 +47,6 @@ const App = () => (
               <Route path="/financeiro" element={<ProtectedRoute permission="page.financeiro"><ConfiguracoesFinanceiras /></ProtectedRoute>} />
               <Route path="/taxas-demanda" element={<ProtectedRoute permission="page.taxas_demanda"><TaxasDemanda /></ProtectedRoute>} />
               <Route path="/precificacoes" element={<ProtectedRoute permission="page.precificacoes"><Precificacoes /></ProtectedRoute>} />
-              <Route path="/operacao" element={<ProtectedRoute permission="page.operacao"><Operacao /></ProtectedRoute>} />
               <Route path="/field-service" element={<ProtectedRoute permission="page.field_service"><FieldService /></ProtectedRoute>} />
               <Route path="/gestao-ti" element={<ProtectedRoute permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />
               <Route path="/relatorio-demanda" element={<ProtectedRoute permission="page.relatorio_demanda"><RelatorioDemanda /></ProtectedRoute>} />

@@ -7,7 +7,6 @@ export type PermissionKey =
   | "page.financeiro"
   | "page.taxas_demanda"
   | "page.precificacoes"
-  | "page.operacao"
   | "page.field_service"
   | "page.gestao_ti"
   | "page.relatorio_demanda"
@@ -37,7 +36,6 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.gestao_ti", label: "Acessar Gestão de TI", group: "Páginas" },
   { key: "page.financeiro", label: "Acessar Financeiro", group: "Páginas" },
   { key: "page.taxas_demanda", label: "Acessar Métricas e Parâmetros", group: "Páginas" },
-  { key: "page.operacao", label: "Acessar Operação", group: "Páginas" },
   { key: "page.precificacoes", label: "Acessar Precificações", group: "Páginas" },
   { key: "page.relatorio_demanda", label: "Acessar Relatório de Demanda", group: "Páginas" },
   { key: "pricing.edit", label: "Editar parâmetros de precificação", group: "Precificação" },
