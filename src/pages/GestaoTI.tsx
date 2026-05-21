@@ -200,6 +200,30 @@ export default function GestaoTI() {
     GMUDS_DEFAULT,
   );
 
+  // Migração: garante que GMUDs antigas tenham `frequencia`.
+  useEffect(() => {
+    let changed = false;
+    const next = gmuds.map((g) => {
+      if (!g.frequencia) {
+        changed = true;
+        // Estima frequência a partir do chamadosMes salvo.
+        const cm = g.chamadosMes ?? 1;
+        let freq: GmudFrequencia = "Mensal";
+        if (cm >= 4) freq = "Semanal";
+        else if (cm >= 2) freq = "Quinzenal";
+        else if (cm >= 1) freq = "Mensal";
+        else if (cm >= 0.5) freq = "Bimestral";
+        else if (cm >= 1 / 3) freq = "Trimestral";
+        else if (cm >= 1 / 6) freq = "Semestral";
+        else freq = "Anual";
+        const chamadosMes = GMUD_FREQ_TO_CHAMADOS[freq];
+        return { ...g, frequencia: freq, chamadosMes, cac: +(chamadosMes * CAC_FACTOR_GMUD).toFixed(4) };
+      }
+      return g;
+    });
+    if (changed) setGmuds(next);
+  }, []);
+
   const updateRotina = (id: string, patch: Partial<Rotina>) => {
     setRotinas((prev) =>
       prev.map((r) => {
