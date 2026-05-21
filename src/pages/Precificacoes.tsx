@@ -1,5 +1,4 @@
 import { useState } from "react";
-import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { Link } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,7 +55,6 @@ export default function Precificacoes() {
           <BackHomeButton />
           <h1 className="text-sm font-bold truncate">Precificações Salvas</h1>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <SaveDefaultsButton />
             <SortableNav current="precificacoes" />
           </div>
         </div>

@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
-import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -247,7 +246,6 @@ export default function Detalhamento() {
               <FileDown className="h-4 w-4" />
               <span className="hidden sm:inline">Exportar PDF</span>
             </Button>
-            <SaveDefaultsButton />
             <SortableNav current="detalhamento" />
           </div>
         </div>

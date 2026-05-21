@@ -1,5 +1,4 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
-import SaveDefaultsButton from "@/components/SaveDefaultsButton";
 import { formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,6 @@ export default function ConfiguracoesFinanceiras() {
             <h1 className="text-sm font-bold text-foreground truncate">Configurações Financeiras</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <SaveDefaultsButton />
             <SortableNav current="financeiro" />
           </div>
         </div>
