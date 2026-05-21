@@ -1,11 +1,5 @@
-import { Save, ChevronDown } from "lucide-react";
+import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -80,25 +74,15 @@ export default function SaveDefaultsButton() {
   if (!allowed) return null;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 text-xs h-8"
-          title="Salva os valores atuais de todas as páginas como padrão para novas precificações"
-        >
-          <Save className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Salvar Status</span>
-          <ChevronDown className="h-3.5 w-3.5 opacity-70 shrink-0" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem className="gap-2 text-sm" onClick={handleSave}>
-          <Save className="h-4 w-4" />
-          <span className="flex-1">Salvar Status</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button
+      variant="outline"
+      size="sm"
+      className="gap-1.5 text-xs h-8"
+      title="Salva os valores atuais de todas as páginas como padrão para novas precificações"
+      onClick={handleSave}
+    >
+      <Save className="h-3.5 w-3.5" />
+      <span className="hidden sm:inline">Salvar Status</span>
+    </Button>
   );
 }
