@@ -47,6 +47,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ThemeToggle from "@/components/ThemeToggle";
 import SaveDefaultsButton from "@/components/SaveDefaultsButton";
+import BUMenu from "@/components/BUMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import type { PermissionKey } from "@/lib/permissions";
 
@@ -356,6 +357,7 @@ export default function SortableNav({ current, extras }: Props) {
       {mode === "mobile" ? (
       <div>
         <div className="inline-flex items-center gap-1">
+        <BUMenu />
         {extras}
         <SaveDefaultsButton />
         <ThemeToggle />
@@ -386,7 +388,7 @@ export default function SortableNav({ current, extras }: Props) {
         </div>
       </div>
       ) : (
-      <div className="flex items-center gap-1">{dndContent(mode)}{extras}<SaveDefaultsButton /><ThemeToggle /></div>
+      <div className="flex items-center gap-1"><BUMenu />{dndContent(mode)}{extras}<SaveDefaultsButton /><ThemeToggle /></div>
       )}
     </>
   );
