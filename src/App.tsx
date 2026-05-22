@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Hub from "./pages/Hub";
 import Detalhamento from "./pages/Detalhamento";
 import EquipeN1 from "./pages/EquipeN1";
 import EquipeN2 from "./pages/EquipeN2";
@@ -40,7 +41,8 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/sem-acesso" element={<SemAcesso />} />
               <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
-              <Route path="/" element={<ProtectedRoute permission="page.home"><Index /></ProtectedRoute>} />
+              <Route path="/" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
+              <Route path="/ito" element={<ProtectedRoute permission="page.home"><Index /></ProtectedRoute>} />
               <Route path="/detalhamento" element={<ProtectedRoute permission="page.detalhamento"><Detalhamento /></ProtectedRoute>} />
               <Route path="/equipe-n1" element={<ProtectedRoute permission="page.equipe_n1"><EquipeN1 /></ProtectedRoute>} />
               <Route path="/equipe-n2" element={<ProtectedRoute permission="page.equipe_n2"><EquipeN2 /></ProtectedRoute>} />

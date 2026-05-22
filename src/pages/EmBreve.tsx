@@ -39,7 +39,7 @@ export default function EmBreve() {
           <Button asChild variant="outline" className="mt-2">
             <Link to="/">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar para Smart ITO
+              Voltar para IT Solutions
             </Link>
           </Button>
         </div>
