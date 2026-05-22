@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check } from "lucide-react";
+import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home } from "lucide-react";
 
 const ITO_PATHS = new Set([
   "/ito",
@@ -25,6 +25,7 @@ const ITO_PATHS = new Set([
 ]);
 
 const OFFERINGS = [
+  { id: "hub", label: "Página inicial", description: "Hub de ofertas IT Solutions", to: "/", icon: Home },
   { id: "ito", label: "ITO", description: "Smart ITO — calculadora completa", to: "/ito", icon: Calculator },
   { id: "datacenter", label: "Datacenter", description: "Em breve", to: "/datacenter", icon: Server },
   { id: "cloud", label: "Cloud", description: "Em breve", to: "/cloud", icon: Cloud },
@@ -34,7 +35,8 @@ const OFFERINGS = [
 export default function BUMenu() {
   const { pathname } = useLocation();
   const currentId =
-    pathname === "/datacenter" ? "datacenter"
+    pathname === "/" ? "hub"
+    : pathname === "/datacenter" ? "datacenter"
     : pathname === "/cloud" ? "cloud"
     : pathname === "/observabilidade" ? "observabilidade"
     : ITO_PATHS.has(pathname) ? "ito"
