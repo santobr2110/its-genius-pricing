@@ -1,7 +1,8 @@
 import { useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Construction, ArrowLeft } from "lucide-react";
-import SortableNav from "@/components/SortableNav";
+import BUMenu from "@/components/BUMenu";
+import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/auth/UserMenu";
 
 const TITLES: Record<string, string> = {
@@ -23,7 +24,8 @@ export default function EmBreve() {
             <h1 className="font-bold text-foreground truncate text-base">IT Solutions · {title}</h1>
           </div>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <SortableNav />
+            <BUMenu />
+            <ThemeToggle />
             <UserMenu />
           </div>
         </div>
