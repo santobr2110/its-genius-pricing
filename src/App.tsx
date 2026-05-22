@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import SemAcesso from "./pages/SemAcesso";
 import Admin from "./pages/Admin";
+import EmBreve from "./pages/EmBreve";
 import { ITSMProvider } from "./contexts/ITSMContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -51,6 +52,9 @@ const App = () => (
               <Route path="/gestao-ti" element={<ProtectedRoute permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />
               <Route path="/relatorio-demanda" element={<ProtectedRoute permission="page.relatorio_demanda"><RelatorioDemanda /></ProtectedRoute>} />
               <Route path="/perfis-parametros" element={<ProtectedRoute><PerfisParametros /></ProtectedRoute>} />
+              <Route path="/datacenter" element={<ProtectedRoute><EmBreve /></ProtectedRoute>} />
+              <Route path="/cloud" element={<ProtectedRoute><EmBreve /></ProtectedRoute>} />
+              <Route path="/observabilidade" element={<ProtectedRoute><EmBreve /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
