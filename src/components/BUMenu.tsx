@@ -11,7 +11,7 @@ import {
 import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check } from "lucide-react";
 
 const ITO_PATHS = new Set([
-  "/",
+  "/ito",
   "/detalhamento",
   "/equipe-n1",
   "/equipe-n2",
@@ -25,7 +25,7 @@ const ITO_PATHS = new Set([
 ]);
 
 const OFFERINGS = [
-  { id: "ito", label: "ITO", description: "Smart ITO — calculadora completa", to: "/", icon: Calculator },
+  { id: "ito", label: "ITO", description: "Smart ITO — calculadora completa", to: "/ito", icon: Calculator },
   { id: "datacenter", label: "Datacenter", description: "Em breve", to: "/datacenter", icon: Server },
   { id: "cloud", label: "Cloud", description: "Em breve", to: "/cloud", icon: Cloud },
   { id: "observabilidade", label: "Observabilidade", description: "Em breve", to: "/observabilidade", icon: Activity },
