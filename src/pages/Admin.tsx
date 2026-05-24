@@ -687,51 +687,14 @@ function RolesTab({
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <div className="space-y-4">
-              {PERMISSION_GROUPS.map((group) => (
-                <div key={group}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-semibold uppercase text-muted-foreground">{group}</h3>
-                    {!role.is_system && (
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setGroupAll(group, true)}
-                          className="h-6 text-[10px] px-2"
-                        >
-                          todas
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setGroupAll(group, false)}
-                          className="h-6 text-[10px] px-2"
-                        >
-                          nenhuma
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {PERMISSIONS.filter((p) => p.group === group).map((p) => {
-                      const checked = role.is_system ? true : perms.has(p.key);
-                      return (
-                        <label
-                          key={p.key}
-                          className="flex items-center gap-2 text-sm py-1 px-2 rounded hover:bg-muted/60"
-                        >
-                          <Checkbox
-                            checked={checked}
-                            disabled={role.is_system}
-                            onCheckedChange={(v) => toggle(p.key, !!v)}
-                          />
-                          <span>{p.label}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+              <PermissionDrillDown
+                view={view}
+                setView={setView}
+                perms={perms}
+                isSystem={!!role.is_system}
+                toggle={toggle}
+                setKeysAll={setKeysAll}
+              />
               {!role.is_system && (
                 <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 flex items-center justify-between gap-2 border-t bg-background/95 px-6 py-3 backdrop-blur">
                   <p className="text-xs text-muted-foreground">
