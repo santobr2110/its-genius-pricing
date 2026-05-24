@@ -1,106 +1,129 @@
-## Objetivo
+# Reestruturação: Grupos, Ofertas e Permissionamento Hierárquico
 
-Hoje todos os dados editáveis (inventário do cliente, métricas, equipes N1/N2/N3, Field, Rotinas, GMUDs, Smart Performance, presets de precificação) ficam no `localStorage` do navegador. Em outra janela/navegador a informação some. Vamos centralizar tudo no backend (Lovable Cloud), por usuário autenticado.
+Objetivo: organizar todo o sistema em três níveis — **Grupo** (ITO, Datacenter, Cloud, Observabilidade) → **Oferta** (ex.: Smart ITO) → **Página/Recurso** — com dados isolados por oferta e permissões granulares em cada nível. **Sem alterar nenhuma regra de cálculo do Smart ITO.**
 
-## Escopo das chaves a migrar
+---
 
-Chaves hoje em `localStorage` que viram dado de banco:
+## 1. Modelo conceitual
 
-- `itsm:calculator:v1` — estado principal (inventário, métricas, flags de complexidade, tiers, % N0/N1/N2/N3 etc.)
-- `itsm:n1team:v1` — equipe N1
-- `itsm:n2team:v1` — equipe N2
-- `itsm:fieldteams:v1` — Field Service
-- `gestao-ti:rotinas` — rotinas (Operation/Performance + Padrão/Complexo)
-- `gestao-ti:gmuds` — GMUDs
-- `gestao-ti:smartPerf:n3Cortes` — cortes de Smart Performance
-- `itsm:pricingPresets:v1` — precificações salvas
-- Snapshots de "Salvar Parâmetros" (atualmente `<key>:default` no localStorage)
-
-Ficam locais (preferência de UI por dispositivo): tema (`ThemeToggle`) e ordem de navegação (`SortableNav`).
-
-## Modelo de dados
-
-Uma tabela genérica chave→JSON por usuário, e outra para defaults globais (admin define o "padrão" da empresa).
-
-```text
-user_app_state
-  user_id  uuid   (auth.uid)
-  key      text   (ex.: 'itsm:calculator:v1')
-  value    jsonb
-  updated_at timestamptz
-  PK (user_id, key)
-  RLS: usuário só lê/escreve as próprias linhas
-
-app_defaults
-  key      text PK
-  value    jsonb
-  updated_at timestamptz
-  updated_by uuid
-  RLS: leitura por authenticated; escrita só admin (has_permission 'params.save_defaults')
+```
+Business Unit: IT Solutions
+└── Grupo: ITO
+    └── Oferta: Smart ITO
+        ├── Página: Início (calculadora)
+        ├── Página: Proposição / Detalhamento
+        ├── Página: Equipes N1/N2/N3
+        ├── Página: Financeiro
+        ├── Página: Métricas e Parâmetros
+        ├── Página: Precificações salvas
+        ├── Página: Field Service
+        ├── Página: Gestão de TI
+        ├── Página: Relatório de Demanda
+        └── Recursos: editar preços, salvar preset, exportar PDF, salvar defaults...
+└── Grupo: Datacenter (vazio)
+└── Grupo: Cloud (vazio)
+└── Grupo: Observabilidade (vazio)
 ```
 
-Vantagem: nenhuma mudança de schema futura quando surgir uma nova chave de estado.
+Cada oferta tem **seu próprio escopo de dados** (presets, perfis de parâmetros, estado persistido). Hoje tudo está em chaves globais — passaremos a usar chaves namespaceadas por oferta.
 
-## Hook `useCloudState`
+---
 
-Substitui `usePersistentState` mantendo a mesma assinatura `(key, initial) → [state, setState]`:
+## 2. Isolamento de dados (frontend + backend)
 
-1. Primeira renderização: retorna `initial`, marca `loading=true`.
-2. Em `useEffect`, busca `user_app_state` para a chave. Se não houver linha do usuário, busca `app_defaults`. Se nenhum dos dois, usa `initial`.
-3. Cada `setState` faz upsert debounced (~500 ms) em `user_app_state`.
-4. Cache local em `localStorage` apenas para acelerar a primeira pintura ("optimistic"), com revalidação contra a nuvem.
-5. Expor também `loading` para esconder telas inconsistentes onde necessário.
+### 2.1 Convenção de namespace
+Todo dado passa a ser identificado por `groupSlug` + `offeringSlug`:
+- `ito/smart-ito/...` para o Smart ITO atual
+- Futuras ofertas usarão seu próprio namespace
 
-Para `usePricingPresets` (lista) a API muda para CRUD direto na tabela (presets viram linhas próprias).
+### 2.2 Persistência local (`localStorage` / `usePersistentState`)
+- Prefixar todas as chaves com `ito.smart-ito.` (ex.: `itsm-state` → `ito.smart-ito.itsm-state`).
+- Adicionar **migração one-shot** que copia chaves antigas para o novo namespace na primeira carga (sem perder dados de usuários atuais).
 
-## Refactor por arquivo
+### 2.3 Persistência no banco (tabelas existentes)
+Acrescentar colunas `group_slug text` e `offering_slug text` (com default `'ito'` / `'smart-ito'`) em:
+- `pricing_presets`
+- `parameter_profiles`
+- `user_app_state`
+- `app_defaults`
 
-- `src/hooks/usePersistentState.ts` → vira fino wrapper que delega para `useCloudState` quando há usuário autenticado, mantendo fallback offline.
-- `src/hooks/useITSMCalculator.ts`, `useN1TeamState.ts`, `useN2TeamState.ts`, `useFieldTeamsState.ts` — sem mudanças de API (continuam usando `usePersistentState`).
-- `src/pages/GestaoTI.tsx`, `Detalhamento.tsx`, `components/itsm/SmartTiersPanel.tsx` — idem.
-- `src/hooks/usePricingPresets.ts` — reescrever para usar tabela `pricing_presets` (linha por preset, RLS por user_id).
-- `src/components/SaveDefaultsButton.tsx` — em vez de gravar `<key>:default` no localStorage, faz upsert em `app_defaults` para todas as chaves relevantes (incluindo `gestao-ti:rotinas` e `gestao-ti:gmuds`, hoje fora da lista). Visível só para quem tem `params.save_defaults`.
-- `src/components/SavePresetButton.tsx` — insere/atualiza linha em `pricing_presets`.
+E ajustar índices únicos por `(user_id, offering_slug, key/name)`. Hooks (`usePricingPresets`, `useParameterProfiles`, etc.) passam a filtrar e gravar sempre com o offering ativo.
 
-## Migração de dados existentes
+### 2.4 Contexto de Oferta ativa
+Novo `OfferingContext` (`src/contexts/OfferingContext.tsx`) determina grupo/oferta correntes a partir da rota (`/ito/*` → ITO/Smart ITO) e expõe `{ groupSlug, offeringSlug }` para hooks de persistência. `ITSMContext` continua existindo, apenas consome esse namespace.
 
-Na primeira vez que o usuário autenticado abrir o app após o deploy:
-- Se houver dados em `localStorage` e não houver linha equivalente em `user_app_state`, fazemos um seed automático (upsert) e marcamos `user_app_state:migrated=true` no localStorage para não repetir.
-- Isso preserva o trabalho que já existe no navegador atual de cada usuário.
+---
 
-## Tabelas e RLS (resumo)
+## 3. Permissionamento hierárquico
 
-```text
-user_app_state (user_id, key, value jsonb, updated_at)
-  - select/insert/update/delete: user_id = auth.uid()
-
-app_defaults (key pk, value jsonb, updated_at, updated_by)
-  - select: authenticated
-  - insert/update/delete: has_permission(auth.uid(), 'params.save_defaults')
-
-pricing_presets (id, user_id, name, payload jsonb, created_at, updated_at)
-  - select/insert/update/delete: user_id = auth.uid()
-  - opcional: flag `shared boolean` + policy que libera leitura quando shared=true
+### 3.1 Novas tabelas
 ```
+groups        (id, slug, name, order)
+offerings     (id, group_id, slug, name, order, status)  -- status: active | coming_soon
+permissions   (key, group_slug, offering_slug, scope, label)
+              -- scope: 'group' | 'offering' | 'page' | 'action'
+```
+As permissões existentes (`page.home`, `pricing.edit`, etc.) serão **migradas** para chaves namespaceadas:
+- `page.home` → `ito.smart-ito.page.home`
+- `pricing.edit` → `ito.smart-ito.pricing.edit`
+- etc.
 
-## Entregáveis
+Novas chaves de nível superior:
+- `group.ito.access`, `group.datacenter.access`, `group.cloud.access`, `group.observabilidade.access`
+- `offering.ito.smart-ito.access`
 
-1. Migração SQL criando as três tabelas + RLS.
-2. Hook `useCloudState` e adaptação de `usePersistentState`.
-3. Refactor de `usePricingPresets`, `SaveDefaultsButton`, `SavePresetButton`.
-4. Seed automático a partir do localStorage existente.
-5. Indicador de "Salvando…/Salvo" no header (opcional, mas recomendado para o usuário ter feedback).
+Regra de avaliação (em `has_permission`): acesso a uma página exige **acesso ao grupo E à oferta E à página**. Admin continua bypass total.
 
-## Fora do escopo
+### 3.2 Seed
+Migration popula `groups` e `offerings` com os 4 grupos e a oferta Smart ITO; replica as `role_permissions` atuais para as novas chaves namespaceadas, preservando os acessos já concedidos.
 
-- Compartilhar precificações entre usuários (pode entrar numa fase 2 com `shared=true`).
-- Histórico/versão dos dados.
-- Tema e ordem da navegação continuam locais.
+### 3.3 Camada de código
+- `src/lib/permissions.ts`: passa a expor `PermissionKey` namespeada + helpers (`groupAccessKey(slug)`, `offeringAccessKey(group,offering)`, `pageKey(group,offering,page)`).
+- `AuthContext.can(key)`: inalterado na API, mas usa as novas chaves.
+- `ProtectedRoute`: para rotas do Smart ITO passa a verificar o trio (grupo+oferta+página) via um único helper `canPage('ito','smart-ito','home')`.
+- `Hub` esconde cards de grupos sem `group.<slug>.access`; `BUMenu` filtra ofertas pelo acesso.
 
-## Passo a passo de execução
+### 3.4 Tela de Admin
+`src/pages/Admin.tsx` / `PerfisParametros` ganham um seletor **Grupo → Oferta** e exibem as permissões agrupadas em três blocos: **Grupo**, **Oferta**, **Páginas/Ações da oferta**. Estrutura preparada para futuras ofertas aparecerem automaticamente assim que registradas.
 
-1. Criar migração das tabelas (`user_app_state`, `app_defaults`, `pricing_presets`) com RLS.
-2. Criar `useCloudState` e plugar em `usePersistentState`.
-3. Refatorar presets e botões de salvar.
-4. Implementar seed do localStorage → nuvem.
-5. Testar em duas janelas/navegadores diferentes para confirmar sincronização.
+---
+
+## 4. Compatibilidade e segurança
+
+- **Sem mudanças em cálculos**: nenhum arquivo em `src/hooks/useITSMCalculator.ts`, `src/lib/buildAreas.ts`, painéis e componentes de cálculo será alterado em lógica — apenas a camada de persistência/leitura.
+- Migração SQL idempotente, com defaults e backfill para não quebrar dados existentes.
+- RLS mantida; políticas continuam por `user_id`, com filtro adicional implícito por offering nas queries do frontend.
+
+---
+
+## 5. Detalhamento técnico (arquivos)
+
+**Novos**
+- `src/contexts/OfferingContext.tsx`
+- `src/lib/offerings.ts` (catálogo estático de grupos/ofertas + helpers de chaves)
+- Migration SQL: tabelas `groups`, `offerings`; colunas `offering_slug`/`group_slug`; backfill; novas permission keys.
+
+**Editados**
+- `src/lib/permissions.ts` — novas chaves namespaceadas + helpers
+- `src/App.tsx` — envolver com `OfferingProvider`
+- `src/components/auth/ProtectedRoute.tsx` — aceitar `{ group, offering, page }`
+- `src/hooks/usePersistentState.ts`, `usePricingPresets.ts`, `useParameterProfiles.ts` — prefixar por offering + migração one-shot
+- `src/pages/Hub.tsx`, `src/components/BUMenu.tsx` — filtrar por acesso
+- `src/pages/Admin.tsx`, `src/pages/PerfisParametros.tsx` — UI hierárquica de permissões
+
+**Intocados (regras de cálculo)**
+- `src/hooks/useITSMCalculator.ts`, `useN1TeamState.ts`, `useN2TeamState.ts`, `useFieldTeamsState.ts`
+- `src/contexts/ITSMContext.tsx` (apenas namespace de persistência muda, lógica não)
+- Todos os componentes em `src/components/itsm/*`
+- `src/lib/buildAreas.ts`
+
+---
+
+## 6. Entrega em ordem
+
+1. Migration SQL (tabelas, colunas, seed, backfill de permissões).
+2. `OfferingContext` + `lib/offerings.ts` + permissões namespaceadas.
+3. Refator dos hooks de persistência (com migração one-shot de chaves).
+4. Atualização de `ProtectedRoute`, `Hub`, `BUMenu`.
+5. UI de Admin/Perfis hierárquica.
+6. Verificação: build limpo, Smart ITO segue calculando idêntico, dados antigos visíveis.
