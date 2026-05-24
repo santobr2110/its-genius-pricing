@@ -68,10 +68,10 @@ export default function Detalhamento() {
   // Nome final da oferta = camada mais alta ativa.
   // As demais camadas são apresentadas como componentes desta oferta.
   const DOMINANT_OFFER: Record<string, { name: string; tagline: string }> = {
-    bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento proativo da infraestrutura" },
-    silver:  { name: "ITO Smart Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
-    gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
-    diamond: { name: "ITO Smart Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
+    bronze:  { name: "ITO Monitor",     tagline: "Monitoramento proativo da infraestrutura" },
+    silver:  { name: "ITO Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
+    gold:    { name: "ITO Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
+    diamond: { name: "ITO Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
   };
   const dominantOffer = dominantColor ? DOMINANT_OFFER[dominantColor] : null;
   const componentNames: string[] = [];
