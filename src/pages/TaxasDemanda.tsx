@@ -355,7 +355,8 @@ export default function TaxasDemanda() {
           </CardHeader>
           <CardContent className="space-y-4">
             {([
-              { label: "Smart Monitor", minKey: "horasN3MonitorMin", maxKey: "horasN3MonitorMax" },
+              { label: "Smart Monitor — Manutenção Monitoramento", minKey: "horasN3MonitorManutMin", maxKey: "horasN3MonitorManutMax" },
+              { label: "Smart Monitor — Acionamento N3", minKey: "horasN3MonitorMin", maxKey: "horasN3MonitorMax" },
               { label: "Smart Operation", minKey: "horasN3OperationMin", maxKey: "horasN3OperationMax" },
               { label: "Smart Performance", minKey: "horasN3PerformanceMin", maxKey: "horasN3PerformanceMax" },
             ] as const).map((row) => (
