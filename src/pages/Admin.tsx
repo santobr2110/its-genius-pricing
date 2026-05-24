@@ -32,9 +32,73 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
+import { PERMISSIONS } from "@/lib/permissions";
 import { toast } from "sonner";
-import { Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save } from "lucide-react";
+import {
+  Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save,
+  ChevronRight, Layers, Package, Settings2, Server, Cloud, Activity, Calculator,
+} from "lucide-react";
+import type { PermissionKey } from "@/lib/permissions";
+
+type PermCategory = { id: string; name: string; keys: PermissionKey[] };
+type OfferingNode = {
+  id: string;
+  name: string;
+  accessKey: PermissionKey;
+  icon: React.ComponentType<{ className?: string }>;
+  categories: PermCategory[];
+};
+type GroupNode = {
+  id: string;
+  name: string;
+  accessKey: PermissionKey;
+  icon: React.ComponentType<{ className?: string }>;
+  offerings: OfferingNode[];
+};
+
+const PERMISSION_TREE: GroupNode[] = [
+  {
+    id: "ito",
+    name: "ITO",
+    accessKey: "group.ito.access",
+    icon: Layers,
+    offerings: [
+      {
+        id: "smart-ito",
+        name: "Smart ITO",
+        accessKey: "offering.ito.smart-ito.access",
+        icon: Calculator,
+        categories: [
+          {
+            id: "paginas",
+            name: "Páginas",
+            keys: [
+              "page.home", "page.detalhamento", "page.equipe_n1", "page.equipe_n2",
+              "page.equipe_n3", "page.field_service", "page.gestao_ti", "page.financeiro",
+              "page.taxas_demanda", "page.precificacoes", "page.relatorio_demanda",
+            ],
+          },
+          {
+            id: "precificacao",
+            name: "Precificação",
+            keys: ["pricing.edit", "pricing.save_preset", "pricing.delete_preset", "params.save_defaults", "pricing.export_pdf"],
+          },
+          { id: "equipes", name: "Equipes", keys: ["teams.edit"] },
+          { id: "financeiro", name: "Financeiro", keys: ["financeiro.edit"] },
+        ],
+      },
+    ],
+  },
+  { id: "datacenter", name: "Datacenter", accessKey: "group.datacenter.access", icon: Server, offerings: [] },
+  { id: "cloud", name: "Cloud", accessKey: "group.cloud.access", icon: Cloud, offerings: [] },
+  { id: "observabilidade", name: "Observabilidade", accessKey: "group.observabilidade.access", icon: Activity, offerings: [] },
+];
+
+const ADMIN_KEYS: PermissionKey[] = ["admin.users.manage", "admin.roles.manage"];
+
+const PERMISSION_LABELS: Record<string, string> = Object.fromEntries(
+  PERMISSIONS.map((p) => [p.key, p.label]),
+);
 
 interface RoleRow {
   id: string;
@@ -427,6 +491,16 @@ function RolesTab({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newRoleName, setNewRoleName] = useState("");
+  const [view, setView] = useState<
+    | { level: "root" }
+    | { level: "group"; groupId: string }
+    | { level: "offering"; groupId: string; offeringId: string }
+    | { level: "admin" }
+  >({ level: "root" });
+
+  useEffect(() => {
+    setView({ level: "root" });
+  }, [selected]);
 
   useEffect(() => {
     if (!selected && roles[0]) setSelected(roles[0].id);
@@ -469,13 +543,13 @@ function RolesTab({
     });
   };
 
-  const setGroupAll = (group: string, on: boolean) => {
+  const setKeysAll = (keys: PermissionKey[], on: boolean) => {
     if (!selected || role?.is_system) return;
     setPerms((prev) => {
       const next = new Set(prev);
-      PERMISSIONS.filter((p) => p.group === group).forEach((p) => {
-        if (on) next.add(p.key);
-        else next.delete(p.key);
+      keys.forEach((k) => {
+        if (on) next.add(k);
+        else next.delete(k);
       });
       return next;
     });
@@ -613,51 +687,14 @@ function RolesTab({
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <div className="space-y-4">
-              {PERMISSION_GROUPS.map((group) => (
-                <div key={group}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-semibold uppercase text-muted-foreground">{group}</h3>
-                    {!role.is_system && (
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setGroupAll(group, true)}
-                          className="h-6 text-[10px] px-2"
-                        >
-                          todas
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setGroupAll(group, false)}
-                          className="h-6 text-[10px] px-2"
-                        >
-                          nenhuma
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {PERMISSIONS.filter((p) => p.group === group).map((p) => {
-                      const checked = role.is_system ? true : perms.has(p.key);
-                      return (
-                        <label
-                          key={p.key}
-                          className="flex items-center gap-2 text-sm py-1 px-2 rounded hover:bg-muted/60"
-                        >
-                          <Checkbox
-                            checked={checked}
-                            disabled={role.is_system}
-                            onCheckedChange={(v) => toggle(p.key, !!v)}
-                          />
-                          <span>{p.label}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+              <PermissionDrillDown
+                view={view}
+                setView={setView}
+                perms={perms}
+                isSystem={!!role.is_system}
+                toggle={toggle}
+                setKeysAll={setKeysAll}
+              />
               {!role.is_system && (
                 <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 flex items-center justify-between gap-2 border-t bg-background/95 px-6 py-3 backdrop-blur">
                   <p className="text-xs text-muted-foreground">
@@ -678,6 +715,381 @@ function RolesTab({
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+type DrillView =
+  | { level: "root" }
+  | { level: "group"; groupId: string }
+  | { level: "offering"; groupId: string; offeringId: string }
+  | { level: "admin" };
+
+function countActive(keys: PermissionKey[], perms: Set<string>) {
+  let n = 0;
+  for (const k of keys) if (perms.has(k)) n++;
+  return n;
+}
+
+function collectKeys(group: GroupNode): PermissionKey[] {
+  const keys: PermissionKey[] = [group.accessKey];
+  group.offerings.forEach((o) => {
+    keys.push(o.accessKey);
+    o.categories.forEach((c) => keys.push(...c.keys));
+  });
+  return keys;
+}
+
+function offeringKeys(o: OfferingNode): PermissionKey[] {
+  const keys: PermissionKey[] = [o.accessKey];
+  o.categories.forEach((c) => keys.push(...c.keys));
+  return keys;
+}
+
+function Crumb({
+  items,
+  onNavigate,
+}: {
+  items: { label: string; onClick?: () => void }[];
+  onNavigate?: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
+      {items.map((it, i) => (
+        <span key={i} className="flex items-center gap-1">
+          {i > 0 && <ChevronRight className="h-3 w-3 opacity-60" />}
+          {it.onClick ? (
+            <button
+              onClick={it.onClick}
+              className="hover:text-foreground hover:underline underline-offset-2"
+            >
+              {it.label}
+            </button>
+          ) : (
+            <span className="text-foreground font-medium">{it.label}</span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function TileCard({
+  icon: Icon,
+  title,
+  subtitle,
+  active,
+  total,
+  onOpen,
+  accent,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle?: string;
+  active: number;
+  total: number;
+  onOpen: () => void;
+  accent?: string;
+}) {
+  const pct = total > 0 ? Math.round((active / total) * 100) : 0;
+  return (
+    <button
+      onClick={onOpen}
+      className="group relative text-left rounded-lg border bg-card hover:bg-accent/40 hover:border-primary/40 transition-all p-4 flex flex-col gap-3"
+    >
+      <div className="flex items-start justify-between">
+        <div className={`h-9 w-9 rounded-md flex items-center justify-center bg-primary/10 text-primary ${accent ?? ""}`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+      </div>
+      <div>
+        <div className="font-medium text-sm">{title}</div>
+        {subtitle && <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>}
+      </div>
+      <div className="space-y-1">
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+          <span>{active} / {total} permissões</span>
+          <span>{pct}%</span>
+        </div>
+        <div className="h-1 rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full bg-primary transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function PermissionDrillDown({
+  view,
+  setView,
+  perms,
+  isSystem,
+  toggle,
+  setKeysAll,
+}: {
+  view: DrillView;
+  setView: (v: DrillView) => void;
+  perms: Set<string>;
+  isSystem: boolean;
+  toggle: (key: string, on: boolean) => void;
+  setKeysAll: (keys: PermissionKey[], on: boolean) => void;
+}) {
+  // ROOT
+  if (view.level === "root") {
+    return (
+      <div>
+        <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-3">
+          Grupos (Business Unit)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {PERMISSION_TREE.map((g) => {
+            const keys = collectKeys(g);
+            return (
+              <TileCard
+                key={g.id}
+                icon={g.icon}
+                title={g.name}
+                subtitle={g.offerings.length ? `${g.offerings.length} oferta(s)` : "Nenhuma oferta"}
+                active={countActive(keys, perms)}
+                total={keys.length}
+                onOpen={() => setView({ level: "group", groupId: g.id })}
+              />
+            );
+          })}
+          <TileCard
+            icon={Settings2}
+            title="Administração"
+            subtitle="Usuários e perfis"
+            active={countActive(ADMIN_KEYS, perms)}
+            total={ADMIN_KEYS.length}
+            onOpen={() => setView({ level: "admin" })}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ADMIN leaf
+  if (view.level === "admin") {
+    return (
+      <div>
+        <Crumb
+          items={[
+            { label: "Permissões", onClick: () => setView({ level: "root" }) },
+            { label: "Administração" },
+          ]}
+        />
+        <PermissionList
+          keys={ADMIN_KEYS}
+          perms={perms}
+          isSystem={isSystem}
+          toggle={toggle}
+          setKeysAll={setKeysAll}
+        />
+      </div>
+    );
+  }
+
+  const group = PERMISSION_TREE.find((g) => g.id === view.groupId);
+  if (!group) {
+    setView({ level: "root" });
+    return null;
+  }
+
+  // GROUP level
+  if (view.level === "group") {
+    const groupAllKeys = collectKeys(group);
+    return (
+      <div>
+        <Crumb
+          items={[
+            { label: "Permissões", onClick: () => setView({ level: "root" }) },
+            { label: group.name },
+          ]}
+        />
+
+        <div className="rounded-lg border bg-muted/30 p-3 mb-4 flex items-center justify-between gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={perms.has(group.accessKey)}
+              disabled={isSystem}
+              onCheckedChange={(v) => toggle(group.accessKey, !!v)}
+            />
+            <span className="font-medium">Acessar grupo {group.name}</span>
+          </label>
+          {!isSystem && (
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={() => setKeysAll(groupAllKeys, true)}>
+                marcar tudo
+              </Button>
+              <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={() => setKeysAll(groupAllKeys, false)}>
+                limpar tudo
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {group.offerings.length === 0 ? (
+          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+            <Package className="h-5 w-5 mx-auto mb-2 opacity-50" />
+            Nenhuma oferta cadastrada neste grupo ainda.
+          </div>
+        ) : (
+          <>
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-3">Ofertas</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {group.offerings.map((o) => {
+                const keys = offeringKeys(o);
+                return (
+                  <TileCard
+                    key={o.id}
+                    icon={o.icon}
+                    title={o.name}
+                    subtitle={`${o.categories.length} categoria(s)`}
+                    active={countActive(keys, perms)}
+                    total={keys.length}
+                    onOpen={() => setView({ level: "offering", groupId: group.id, offeringId: o.id })}
+                  />
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // OFFERING level — show categories with checkboxes
+  const offering = group.offerings.find((o) => o.id === view.offeringId);
+  if (!offering) {
+    setView({ level: "group", groupId: group.id });
+    return null;
+  }
+
+  const allOfferingKeys = offeringKeys(offering);
+
+  return (
+    <div>
+      <Crumb
+        items={[
+          { label: "Permissões", onClick: () => setView({ level: "root" }) },
+          { label: group.name, onClick: () => setView({ level: "group", groupId: group.id }) },
+          { label: offering.name },
+        ]}
+      />
+
+      <div className="rounded-lg border bg-muted/30 p-3 mb-4 flex items-center justify-between gap-3">
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={perms.has(offering.accessKey)}
+            disabled={isSystem}
+            onCheckedChange={(v) => toggle(offering.accessKey, !!v)}
+          />
+          <span className="font-medium">Acessar oferta {offering.name}</span>
+        </label>
+        {!isSystem && (
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={() => setKeysAll(allOfferingKeys, true)}>
+              marcar tudo
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-[11px]" onClick={() => setKeysAll(allOfferingKeys, false)}>
+              limpar tudo
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-4">
+        {offering.categories.map((cat) => {
+          const active = countActive(cat.keys, perms);
+          return (
+            <div key={cat.id} className="rounded-lg border">
+              <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-medium">{cat.name}</h4>
+                  <Badge variant="secondary" className="text-[10px] h-5">
+                    {active}/{cat.keys.length}
+                  </Badge>
+                </div>
+                {!isSystem && (
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setKeysAll(cat.keys, true)}>
+                      todas
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setKeysAll(cat.keys, false)}>
+                      nenhuma
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+                {cat.keys.map((k) => (
+                  <label key={k} className="flex items-center gap-2 text-sm py-1 px-2 rounded hover:bg-muted/60">
+                    <Checkbox
+                      checked={isSystem ? true : perms.has(k)}
+                      disabled={isSystem}
+                      onCheckedChange={(v) => toggle(k, !!v)}
+                    />
+                    <span>{PERMISSION_LABELS[k] ?? k}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PermissionList({
+  keys,
+  perms,
+  isSystem,
+  toggle,
+  setKeysAll,
+}: {
+  keys: PermissionKey[];
+  perms: Set<string>;
+  isSystem: boolean;
+  toggle: (key: string, on: boolean) => void;
+  setKeysAll: (keys: PermissionKey[], on: boolean) => void;
+}) {
+  const active = countActive(keys, perms);
+  return (
+    <div className="rounded-lg border">
+      <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20">
+        <div className="flex items-center gap-2">
+          <h4 className="text-sm font-medium">Permissões</h4>
+          <Badge variant="secondary" className="text-[10px] h-5">{active}/{keys.length}</Badge>
+        </div>
+        {!isSystem && (
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setKeysAll(keys, true)}>
+              todas
+            </Button>
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setKeysAll(keys, false)}>
+              nenhuma
+            </Button>
+          </div>
+        )}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+        {keys.map((k) => (
+          <label key={k} className="flex items-center gap-2 text-sm py-1 px-2 rounded hover:bg-muted/60">
+            <Checkbox
+              checked={isSystem ? true : perms.has(k)}
+              disabled={isSystem}
+              onCheckedChange={(v) => toggle(k, !!v)}
+            />
+            <span>{PERMISSION_LABELS[k] ?? k}</span>
+          </label>
+        ))}
+      </div>
     </div>
   );
 }
