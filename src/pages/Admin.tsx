@@ -40,7 +40,19 @@ import {
 } from "lucide-react";
 import type { PermissionKey } from "@/lib/permissions";
 
-type PermCategory = { id: string; name: string; keys: PermissionKey[] };
+type PermEntry = {
+  read: PermissionKey;
+  write?: PermissionKey;
+  label: string;
+};
+type PermCategory = {
+  id: string;
+  name: string;
+  /** Simple flat permissions */
+  keys?: PermissionKey[];
+  /** Page entries with optional write permission */
+  entries?: PermEntry[];
+};
 type OfferingNode = {
   id: string;
   name: string;
@@ -72,10 +84,18 @@ const PERMISSION_TREE: GroupNode[] = [
           {
             id: "paginas",
             name: "Páginas",
-            keys: [
-              "page.home", "page.detalhamento", "page.equipe_n1", "page.equipe_n2",
-              "page.equipe_n3", "page.field_service", "page.gestao_ti", "page.financeiro",
-              "page.taxas_demanda", "page.precificacoes", "page.relatorio_demanda",
+            entries: [
+              { read: "page.home",              write: "page.home.write",              label: "Início / calculadora" },
+              { read: "page.detalhamento",      write: "page.detalhamento.write",      label: "Proposição" },
+              { read: "page.equipe_n1",         write: "page.equipe_n1.write",         label: "Equipe N1" },
+              { read: "page.equipe_n2",         write: "page.equipe_n2.write",         label: "Equipe N2" },
+              { read: "page.equipe_n3",         write: "page.equipe_n3.write",         label: "Equipe N3" },
+              { read: "page.field_service",     write: "page.field_service.write",     label: "Field Service" },
+              { read: "page.gestao_ti",         write: "page.gestao_ti.write",         label: "Gestão de TI" },
+              { read: "page.financeiro",        write: "page.financeiro.write",        label: "Financeiro" },
+              { read: "page.taxas_demanda",     write: "page.taxas_demanda.write",     label: "Métricas e Parâmetros" },
+              { read: "page.precificacoes",                                            label: "Precificações salvas" },
+              { read: "page.relatorio_demanda",                                        label: "Relatório de Demanda" },
             ],
           },
           {
