@@ -324,7 +324,7 @@ export default function Detalhamento() {
             <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">Proposta Comercial</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
-            {dominantOffer ? dominantOffer.name : "Proposição de Smart ITO"}
+            {dominantOffer ? dominantOffer.name : "Proposição de ITO"}
           </h1>
           <p className="text-sm text-muted-foreground mt-3">
             {dominantOffer ? dominantOffer.tagline : "Detalhamento por camada da oferta"}
