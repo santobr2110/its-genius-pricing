@@ -68,7 +68,7 @@ export default function Detalhamento() {
   // Nome final da oferta = camada mais alta ativa.
   // As demais camadas são apresentadas como componentes desta oferta.
   const DOMINANT_OFFER: Record<string, { name: string; tagline: string }> = {
-    bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento proativo da infraestrutura" },
+    bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento da infraestrutura" },
     silver:  { name: "ITO Smart Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
     gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
     diamond: { name: "ITO Smart Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
