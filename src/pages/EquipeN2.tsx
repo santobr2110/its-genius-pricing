@@ -35,7 +35,7 @@ export default function EquipeN2() {
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
-          <BackHomeButton /><Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
+          <BackHomeButton /><Link to="/ito" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
             <Server className="h-5 w-5 text-amber-500 shrink-0" />
             <h1 className="text-sm font-bold text-foreground truncate">Equipe N2 — Estrutura de Custos</h1>
           </Link>
