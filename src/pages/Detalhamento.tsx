@@ -352,7 +352,7 @@ export default function Detalhamento() {
         {monitorVisible && (
         <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
-          title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
+          title="Monitor" tagline="Monitoramento proativo da infraestrutura"
           valor={valorMonitor}>
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -379,7 +379,7 @@ export default function Detalhamento() {
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
           dominant={dominantColor === "silver"}
-          title="Smart Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
+          title="Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
           valor={valorOperation}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
@@ -465,7 +465,7 @@ export default function Detalhamento() {
         {/* SMART PERFORMANCE */}
         <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
           dominant={dominantColor === "gold"}
-          title="Smart Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
+          title="Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
           valor={valorPerformance}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
@@ -507,7 +507,7 @@ export default function Detalhamento() {
         {/* SMART ENTERPRISE */}
         <TierBlock active={state.tierEnterprise} color="diamond" icon={Crown} tierIndex={5}
           dominant={dominantColor === "diamond"}
-          title="Smart Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
+          title="Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
             <Bullet color="diamond">Gestão estratégica e roadmap tecnológico</Bullet>
@@ -539,19 +539,19 @@ export default function Detalhamento() {
               </p>
               {monitorVisible && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Smart Monitor</span>
+                  <span className="text-muted-foreground">Monitor</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorMonitor)}</span>
                 </div>
               )}
               {state.tierOperation && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Smart Operation{state.tierFieldOperation ? " (com Field Service)" : ""}</span>
+                  <span className="text-muted-foreground">Operation{state.tierFieldOperation ? " (com Field Service)" : ""}</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorOperation)}</span>
                 </div>
               )}
               {state.tierPerformance && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Smart Performance</span>
+                  <span className="text-muted-foreground">Performance</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorPerformance)}</span>
                 </div>
               )}
@@ -652,9 +652,6 @@ function TierBlock({
           <div className="flex-1 min-w-[180px]">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-xl font-extrabold tracking-tight">{title}</h3>
-              <span className={`inline-flex items-center gap-1 ${theme.badge} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full shadow-md`}>
-                <Sparkles className="h-3 w-3" /> Componente
-              </span>
             </div>
             <p className={`text-[11px] font-semibold mt-1.5 inline-block px-2.5 py-1 rounded-full ${theme.chip}`}>{tagline}</p>
           </div>
