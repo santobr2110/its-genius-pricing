@@ -352,7 +352,7 @@ export default function Detalhamento() {
         {monitorVisible && (
         <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
-          title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
+          title="Monitor" tagline="Monitoramento proativo da infraestrutura"
           valor={valorMonitor}>
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -379,7 +379,7 @@ export default function Detalhamento() {
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
           dominant={dominantColor === "silver"}
-          title="Smart Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
+          title="Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
           valor={valorOperation}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
@@ -426,7 +426,7 @@ export default function Detalhamento() {
                 </div>
                 <div className="flex-1 min-w-[160px]">
                   <p className="text-sm font-extrabold tracking-tight">Field Service</p>
-                  <p className="text-[11px] text-muted-foreground italic">Suporte presencial — incluso no Smart Operation</p>
+                  <p className="text-[11px] text-muted-foreground italic">Suporte presencial — incluso no Operation</p>
                 </div>
                 {valorFieldService > 0 && (
                   <div className="text-right shrink-0">
@@ -465,7 +465,7 @@ export default function Detalhamento() {
         {/* SMART PERFORMANCE */}
         <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
           dominant={dominantColor === "gold"}
-          title="Smart Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
+          title="Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
           valor={valorPerformance}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
@@ -507,7 +507,7 @@ export default function Detalhamento() {
         {/* SMART ENTERPRISE */}
         <TierBlock active={state.tierEnterprise} color="diamond" icon={Crown} tierIndex={5}
           dominant={dominantColor === "diamond"}
-          title="Smart Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
+          title="Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
             <Bullet color="diamond">Gestão estratégica e roadmap tecnológico</Bullet>
