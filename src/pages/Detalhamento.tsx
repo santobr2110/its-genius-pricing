@@ -68,10 +68,10 @@ export default function Detalhamento() {
   // Nome final da oferta = camada mais alta ativa.
   // As demais camadas são apresentadas como componentes desta oferta.
   const DOMINANT_OFFER: Record<string, { name: string; tagline: string }> = {
-    bronze:  { name: "ITO Monitor",     tagline: "Monitoramento proativo da infraestrutura" },
-    silver:  { name: "ITO Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
-    gold:    { name: "ITO Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
-    diamond: { name: "ITO Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
+    bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento proativo da infraestrutura" },
+    silver:  { name: "ITO Smart Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
+    gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
+    diamond: { name: "ITO Smart Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
   };
   const dominantOffer = dominantColor ? DOMINANT_OFFER[dominantColor] : null;
   const componentNames: string[] = [];
@@ -324,7 +324,7 @@ export default function Detalhamento() {
             <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">Proposta Comercial</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
-            {dominantOffer ? dominantOffer.name : "Proposição de ITO"}
+            {dominantOffer ? dominantOffer.name : "Proposição de Smart ITO"}
           </h1>
           <p className="text-sm text-muted-foreground mt-3">
             {dominantOffer ? dominantOffer.tagline : "Detalhamento por camada da oferta"}
@@ -352,7 +352,7 @@ export default function Detalhamento() {
         {monitorVisible && (
         <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
-          title="Monitor" tagline="Monitoramento proativo da infraestrutura"
+          title="Smart Monitor" tagline="Monitoramento proativo da infraestrutura"
           valor={valorMonitor}>
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -379,7 +379,7 @@ export default function Detalhamento() {
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
           dominant={dominantColor === "silver"}
-          title="Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
+          title="Smart Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
           valor={valorOperation}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
@@ -426,7 +426,7 @@ export default function Detalhamento() {
                 </div>
                 <div className="flex-1 min-w-[160px]">
                   <p className="text-sm font-extrabold tracking-tight">Field Service</p>
-                  <p className="text-[11px] text-muted-foreground italic">Suporte presencial — incluso no Operation</p>
+                  <p className="text-[11px] text-muted-foreground italic">Suporte presencial — incluso no Smart Operation</p>
                 </div>
                 {valorFieldService > 0 && (
                   <div className="text-right shrink-0">
@@ -465,7 +465,7 @@ export default function Detalhamento() {
         {/* SMART PERFORMANCE */}
         <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
           dominant={dominantColor === "gold"}
-          title="Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
+          title="Smart Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
           valor={valorPerformance}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
@@ -507,7 +507,7 @@ export default function Detalhamento() {
         {/* SMART ENTERPRISE */}
         <TierBlock active={state.tierEnterprise} color="diamond" icon={Crown} tierIndex={5}
           dominant={dominantColor === "diamond"}
-          title="Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
+          title="Smart Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
             <Bullet color="diamond">Gestão estratégica e roadmap tecnológico</Bullet>
@@ -539,19 +539,19 @@ export default function Detalhamento() {
               </p>
               {monitorVisible && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Monitor</span>
+                  <span className="text-muted-foreground">Smart Monitor</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorMonitor)}</span>
                 </div>
               )}
               {state.tierOperation && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Operation{state.tierFieldOperation ? " (com Field Service)" : ""}</span>
+                  <span className="text-muted-foreground">Smart Operation{state.tierFieldOperation ? " (com Field Service)" : ""}</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorOperation)}</span>
                 </div>
               )}
               {state.tierPerformance && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Performance</span>
+                  <span className="text-muted-foreground">Smart Performance</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorPerformance)}</span>
                 </div>
               )}
@@ -652,6 +652,9 @@ function TierBlock({
           <div className="flex-1 min-w-[180px]">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-xl font-extrabold tracking-tight">{title}</h3>
+              <span className={`inline-flex items-center gap-1 ${theme.badge} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full shadow-md`}>
+                <Sparkles className="h-3 w-3" /> Componente
+              </span>
             </div>
             <p className={`text-[11px] font-semibold mt-1.5 inline-block px-2.5 py-1 rounded-full ${theme.chip}`}>{tagline}</p>
           </div>
