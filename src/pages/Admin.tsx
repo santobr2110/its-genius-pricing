@@ -32,7 +32,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
+import { PERMISSIONS } from "@/lib/permissions";
 import { toast } from "sonner";
 import {
   Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save,
