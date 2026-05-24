@@ -249,7 +249,8 @@ export default function Detalhamento() {
     ? [
         { label: "Monitoramento de ativos", value: toSell(sm.custoMonitoramento) },
         { label: "N1 alocado (triagem)", value: toSell(sm.custoN1Alocado) },
-        ...(sm.custoN3 > 0 ? [{ label: "N3 horas opcionais", value: toSell(sm.custoN3) }] : []),
+        ...(sm.custoN3Manut > 0 ? [{ label: "Manutenção do monitoramento (N3)", value: toSell(sm.custoN3Manut) }] : []),
+        ...(sm.custoN3 > 0 ? [{ label: "Acionamento N3 (horas opcionais)", value: toSell(sm.custoN3) }] : []),
       ]
     : [];
   const valorOperationParts = state.tierOperation
@@ -366,10 +367,20 @@ export default function Detalhamento() {
             <Stat label="Chamados de monitoramento" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre monitor" value={`${state.percAlocacaoN1Monitor}%`} />
           </div>
-          {!state.tierOperation && state.horasN3Monitor > 0 && (
-            <div className="mt-3 rounded border bg-background/70 p-3 text-xs">
-              <strong>{formatNumber(state.horasN3Monitor)}h</strong> de N3 opcional
-              · {formatBRL(state.valorHoraN3)}/h — para tratamento de incidentes detectados pelo monitoramento.
+          {!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0) && (
+            <div className="mt-3 rounded border bg-background/70 p-3 text-xs space-y-1">
+              {state.horasN3MonitorManut > 0 && (
+                <div>
+                  <strong>{formatNumber(state.horasN3MonitorManut)}h</strong> de Manutenção do Monitoramento
+                  · {formatBRL(state.valorHoraN3)}/h
+                </div>
+              )}
+              {state.horasN3Monitor > 0 && (
+                <div>
+                  <strong>{formatNumber(state.horasN3Monitor)}h</strong> de Acionamento N3
+                  · {formatBRL(state.valorHoraN3)}/h — para tratamento de incidentes detectados pelo monitoramento.
+                </div>
+              )}
             </div>
           )}
           <CompositionBox title="Composição do valor mensal" total={valorMonitor} parts={valorMonitorParts} color="bronze" />
