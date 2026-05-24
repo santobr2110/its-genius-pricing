@@ -886,7 +886,7 @@ function PermissionDrillDown({
                 icon={g.icon}
                 title={g.name}
                 subtitle={g.offerings.length ? `${g.offerings.length} oferta(s)` : "Nenhuma oferta"}
-                active={countActive(keys, perms)}
+                active={isSystem ? keys.length : countActive(keys, perms)}
                 total={keys.length}
                 onOpen={() => setView({ level: "group", groupId: g.id })}
               />
@@ -896,7 +896,7 @@ function PermissionDrillDown({
             icon={Settings2}
             title="Administração"
             subtitle="Usuários e perfis"
-            active={countActive(ADMIN_KEYS, perms)}
+            active={isSystem ? ADMIN_KEYS.length : countActive(ADMIN_KEYS, perms)}
             total={ADMIN_KEYS.length}
             onOpen={() => setView({ level: "admin" })}
           />
@@ -947,7 +947,7 @@ function PermissionDrillDown({
         <div className="rounded-lg border bg-muted/30 p-3 mb-4 flex items-center justify-between gap-3">
           <label className="flex items-center gap-2 text-sm">
             <Checkbox
-              checked={perms.has(group.accessKey)}
+              checked={isSystem ? true : perms.has(group.accessKey)}
               disabled={isSystem}
               onCheckedChange={(v) => toggle(group.accessKey, !!v)}
             />
@@ -982,7 +982,7 @@ function PermissionDrillDown({
                     icon={o.icon}
                     title={o.name}
                     subtitle={`${o.categories.length} categoria(s)`}
-                    active={countActive(keys, perms)}
+                    active={isSystem ? keys.length : countActive(keys, perms)}
                     total={keys.length}
                     onOpen={() => setView({ level: "offering", groupId: group.id, offeringId: o.id })}
                   />
@@ -1017,7 +1017,7 @@ function PermissionDrillDown({
       <div className="rounded-lg border bg-muted/30 p-3 mb-4 flex items-center justify-between gap-3">
         <label className="flex items-center gap-2 text-sm">
           <Checkbox
-            checked={perms.has(offering.accessKey)}
+            checked={isSystem ? true : perms.has(offering.accessKey)}
             disabled={isSystem}
             onCheckedChange={(v) => toggle(offering.accessKey, !!v)}
           />
@@ -1038,7 +1038,7 @@ function PermissionDrillDown({
       <div className="space-y-4">
         {offering.categories.map((cat) => {
           const allKeys = categoryKeys(cat);
-          const active = countActive(allKeys, perms);
+          const active = isSystem ? allKeys.length : countActive(allKeys, perms);
           return (
             <div key={cat.id} className="rounded-lg border">
               <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20">
