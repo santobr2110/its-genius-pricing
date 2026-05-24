@@ -34,7 +34,71 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
 import { toast } from "sonner";
-import { Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save } from "lucide-react";
+import {
+  Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save,
+  ChevronRight, Layers, Package, Settings2, Server, Cloud, Activity, Calculator,
+} from "lucide-react";
+import type { PermissionKey } from "@/lib/permissions";
+
+type PermCategory = { id: string; name: string; keys: PermissionKey[] };
+type OfferingNode = {
+  id: string;
+  name: string;
+  accessKey: PermissionKey;
+  icon: React.ComponentType<{ className?: string }>;
+  categories: PermCategory[];
+};
+type GroupNode = {
+  id: string;
+  name: string;
+  accessKey: PermissionKey;
+  icon: React.ComponentType<{ className?: string }>;
+  offerings: OfferingNode[];
+};
+
+const PERMISSION_TREE: GroupNode[] = [
+  {
+    id: "ito",
+    name: "ITO",
+    accessKey: "group.ito.access",
+    icon: Layers,
+    offerings: [
+      {
+        id: "smart-ito",
+        name: "Smart ITO",
+        accessKey: "offering.ito.smart-ito.access",
+        icon: Calculator,
+        categories: [
+          {
+            id: "paginas",
+            name: "Páginas",
+            keys: [
+              "page.home", "page.detalhamento", "page.equipe_n1", "page.equipe_n2",
+              "page.equipe_n3", "page.field_service", "page.gestao_ti", "page.financeiro",
+              "page.taxas_demanda", "page.precificacoes", "page.relatorio_demanda",
+            ],
+          },
+          {
+            id: "precificacao",
+            name: "Precificação",
+            keys: ["pricing.edit", "pricing.save_preset", "pricing.delete_preset", "params.save_defaults", "pricing.export_pdf"],
+          },
+          { id: "equipes", name: "Equipes", keys: ["teams.edit"] },
+          { id: "financeiro", name: "Financeiro", keys: ["financeiro.edit"] },
+        ],
+      },
+    ],
+  },
+  { id: "datacenter", name: "Datacenter", accessKey: "group.datacenter.access", icon: Server, offerings: [] },
+  { id: "cloud", name: "Cloud", accessKey: "group.cloud.access", icon: Cloud, offerings: [] },
+  { id: "observabilidade", name: "Observabilidade", accessKey: "group.observabilidade.access", icon: Activity, offerings: [] },
+];
+
+const ADMIN_KEYS: PermissionKey[] = ["admin.users.manage", "admin.roles.manage"];
+
+const PERMISSION_LABELS: Record<string, string> = Object.fromEntries(
+  PERMISSIONS.map((p) => [p.key, p.label]),
+);
 
 interface RoleRow {
   id: string;
