@@ -12,6 +12,7 @@ export interface ITSMState {
   qtdSistemas: number;
   horasN3Mensais: number;
   horasN3Monitor: number;
+  horasN3MonitorManut: number;
   // Taxas de demanda
   taxaUsuario: number;
   taxaServidor: number;
@@ -52,6 +53,8 @@ export interface ITSMState {
   // Limites de horas N3 por camada (slider min/max em Camadas de Oferta)
   horasN3MonitorMin: number;
   horasN3MonitorMax: number;
+  horasN3MonitorManutMin: number;
+  horasN3MonitorManutMax: number;
   horasN3OperationMin: number;
   horasN3OperationMax: number;
   horasN3PerformanceMin: number;
@@ -152,6 +155,8 @@ export interface ITSMResults {
     custoN1Alocado: number;
     horasN3: number;
     custoN3: number;
+    horasN3Manut: number;
+    custoN3Manut: number;
     total: number;
   };
   humanAttendanceActive: boolean;
@@ -186,6 +191,7 @@ const DEFAULTS: ITSMState = {
   qtdSistemas: 15,
   horasN3Mensais: 80,
   horasN3Monitor: 0,
+  horasN3MonitorManut: 0,
   taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
@@ -215,6 +221,8 @@ const DEFAULTS: ITSMState = {
   percLimiteExcedente: 20,
   horasN3MonitorMin: 0,
   horasN3MonitorMax: 40,
+  horasN3MonitorManutMin: 0,
+  horasN3MonitorManutMax: 40,
   horasN3OperationMin: 10,
   horasN3OperationMax: 30,
   horasN3PerformanceMin: 20,
@@ -393,6 +401,8 @@ export function useITSMCalculator() {
     // N3 opcional dentro do Smart Monitor (horas mensais avulsas) — desabilitado quando Smart Operation está ativo
     const smHorasN3 = monitorActive && !state.tierOperation ? Math.max(0, state.horasN3Monitor || 0) : 0;
     const smCustoN3 = smHorasN3 * state.valorHoraN3;
+    const smHorasN3Manut = monitorActive && !state.tierOperation ? Math.max(0, state.horasN3MonitorManut || 0) : 0;
+    const smCustoN3Manut = smHorasN3Manut * state.valorHoraN3;
 
     const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
 
@@ -442,7 +452,7 @@ export function useITSMCalculator() {
     }
     const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + smCustoN3 + custoEndpointTooling + custoFieldTotal;
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + custoEndpointTooling + custoFieldTotal;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
@@ -461,7 +471,9 @@ export function useITSMCalculator() {
       custoN1Alocado: smCustoN1Aloc,
       horasN3: smHorasN3,
       custoN3: smCustoN3,
-      total: smCustoMonit + smCustoN1Aloc + smCustoN3,
+      horasN3Manut: smHorasN3Manut,
+      custoN3Manut: smCustoN3Manut,
+      total: smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut,
     };
 
     const fieldService = {

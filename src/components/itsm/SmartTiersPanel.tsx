@@ -301,6 +301,7 @@ export default function SmartTiersPanel() {
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
   const smN3Venda = toSell(sm.custoN3);
+  const smN3ManutVenda = toSell(sm.custoN3Manut);
   const smTotalVenda = toSell(sm.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
@@ -433,7 +434,26 @@ export default function SmartTiersPanel() {
             <div className={`rounded border px-2 py-1.5 space-y-1.5 ${state.tierOperation ? "opacity-50 bg-muted/30" : "bg-background"}`}>
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
-                  Horas N3 opcional ({formatBRL(toSell(state.valorHoraN3))}/h)
+                  Horas Manutenção Monitoramento ({formatBRL(toSell(state.valorHoraN3))}/h)
+                  {state.tierOperation && " · desabilitado com Smart Operation"}
+                </Label>
+                <span className="text-xs font-semibold">
+                  {formatNumber(state.horasN3MonitorManut)}h · {formatBRL(smN3ManutVenda)}
+                </span>
+              </div>
+              <Slider
+                value={[Math.min(state.horasN3MonitorManutMax, Math.max(state.horasN3MonitorManutMin, state.horasN3MonitorManut || 0))]}
+                onValueChange={([v]) => update("horasN3MonitorManut", v)}
+                min={state.horasN3MonitorManutMin}
+                max={state.horasN3MonitorManutMax}
+                step={1}
+                disabled={state.tierOperation}
+              />
+            </div>
+            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${state.tierOperation ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-muted-foreground">
+                  Horas Acionamento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
                   {state.tierOperation && " · desabilitado com Smart Operation"}
                 </Label>
                 <span className="text-xs font-semibold">
