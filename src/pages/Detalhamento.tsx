@@ -229,6 +229,55 @@ export default function Detalhamento() {
     : 0;
   const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
 
+  // Subtotais decompostos para exibir a composição do valor de cada camada
+  const valorMonitorParts = monitorVisible
+    ? [
+        { label: "Monitoramento de ativos", value: toSell(sm.custoMonitoramento) },
+        { label: "N1 alocado (triagem)", value: toSell(sm.custoN1Alocado) },
+        ...(sm.custoN3 > 0 ? [{ label: "N3 horas opcionais", value: toSell(sm.custoN3) }] : []),
+      ]
+    : [];
+  const valorOperationParts = state.tierOperation
+    ? [
+        {
+          label: state.tierPerformance ? "Serviço base (N1 + N2)" : "Serviço base (N1 + N2 + N3)",
+          value: toSell(custoOperacaoBase),
+        },
+        ...(custoRotinasOp > 0
+          ? [{ label: "Rotinas Operation", value: toSell(custoRotinasOp) }]
+          : []),
+        ...(valorFieldService > 0
+          ? [{ label: "Field Service", value: valorFieldService }]
+          : []),
+      ]
+    : [];
+  const valorPerformanceParts = state.tierPerformance
+    ? [
+        {
+          label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`,
+          value: toSell(results.custoN3),
+        },
+        ...(custoRotinasPerfPadrao > 0
+          ? [{ label: "Rotinas Performance · Padrão", value: toSell(custoRotinasPerfPadrao) }]
+          : []),
+        ...(custoRotinasPerfComplexo > 0
+          ? [{ label: "Rotinas Performance · Complexo", value: toSell(custoRotinasPerfComplexo) }]
+          : []),
+      ]
+    : [];
+  const valorFieldParts = state.tierFieldOperation
+    ? [
+        { label: "Equipe presencial (N1F + N2F + N3F)", value: toSell(fs.custoN1F + fs.custoN2F + fs.custoN3F) },
+        { label: "Triagem N1", value: toSell(fs.custoTriagemN1) },
+        ...(fs.overflowAtivo
+          ? [{ label: "Transbordo remoto (N1 + N2F)", value: toSell(fs.custoTransbordoN1Remoto + fs.custoTransbordoN2F) }]
+          : []),
+        ...(custoRotinasField > 0
+          ? [{ label: "Rotinas Field · Microinformática", value: toSell(custoRotinasField) }]
+          : []),
+      ]
+    : [];
+
   const horasAtendN3 = results.horasAtendimentoN3;
   const horasPrev = Math.max(0, horasTotaisN3 - horasAtendN3);
 
@@ -288,6 +337,7 @@ export default function Detalhamento() {
               · {formatBRL(state.valorHoraN3)}/h — para tratamento de incidentes detectados pelo monitoramento.
             </div>
           )}
+          <CompositionBox title="Composição do valor mensal" total={valorMonitor} parts={valorMonitorParts} color="bronze" />
         </TierBlock>
         )}
 
@@ -371,8 +421,10 @@ export default function Detalhamento() {
                   <RoutineList items={rotinasField} accent="amber" />
                 </>
               )}
+              <CompositionBox title="Composição Field Service" total={valorFieldService} parts={valorFieldParts} color="amber" />
             </div>
           )}
+          <CompositionBox title="Composição do valor mensal" total={valorOperation} parts={valorOperationParts} color="silver" />
         </TierBlock>
 
         {/* SMART PERFORMANCE */}
@@ -414,6 +466,7 @@ export default function Detalhamento() {
               distribuicao={{ tam: pctTam, owner: pctOwner, livre: pctLivre }}
             />
           )}
+          <CompositionBox title="Composição do valor mensal" total={valorPerformance} parts={valorPerformanceParts} color="gold" />
         </TierBlock>
 
         {/* SMART ENTERPRISE */}
@@ -443,6 +496,33 @@ export default function Detalhamento() {
                 <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(investimentoTotal * 12)}</strong></div>
               </div>
             </div>
+            <div className="mt-4 border-t border-primary/20 pt-3 space-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+                Composição por camada
+              </p>
+              {monitorVisible && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Smart Monitor</span>
+                  <span className="font-semibold tabular-nums">{formatBRL(valorMonitor)}</span>
+                </div>
+              )}
+              {state.tierOperation && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Smart Operation{state.tierFieldOperation ? " (com Field Service)" : ""}</span>
+                  <span className="font-semibold tabular-nums">{formatBRL(valorOperation)}</span>
+                </div>
+              )}
+              {state.tierPerformance && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Smart Performance</span>
+                  <span className="font-semibold tabular-nums">{formatBRL(valorPerformance)}</span>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-primary/30 pt-1.5 mt-1">
+                <span className="text-xs font-bold">Total</span>
+                <span className="text-sm font-extrabold text-primary tabular-nums">{formatBRL(investimentoTotal)}</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </main>
@@ -451,6 +531,36 @@ export default function Detalhamento() {
 }
 
 /* ===== Subcomponents ===== */
+
+function CompositionBox({
+  title,
+  total,
+  parts,
+  color,
+}: {
+  title: string;
+  total: number;
+  parts: { label: string; value: number }[];
+  color: string;
+}) {
+  const theme = TIER_THEMES[color] ?? TIER_THEMES.silver;
+  if (parts.length < 2 || total <= 0) return null;
+  return (
+    <div className={`mt-4 rounded-xl border-2 ${theme.ring} bg-background/70 backdrop-blur-sm p-3 space-y-1.5`}>
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
+      {parts.map((p, i) => (
+        <div key={i} className="flex justify-between text-[12px]">
+          <span className="text-muted-foreground">{i === 0 ? "" : "+ "}{p.label}</span>
+          <span className="font-semibold tabular-nums">{formatBRL(p.value)}</span>
+        </div>
+      ))}
+      <div className="flex justify-between border-t border-dashed pt-1.5 mt-1">
+        <span className="text-[12px] font-bold">Total</span>
+        <span className={`text-sm font-extrabold tabular-nums bg-gradient-to-r ${theme.valueGrad} bg-clip-text text-transparent`}>{formatBRL(total)}</span>
+      </div>
+    </div>
+  );
+}
 
 function TierBlock({
   active, color, icon: Icon, title, tagline, valor, children, tierIndex, dominant,
