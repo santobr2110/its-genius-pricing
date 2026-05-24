@@ -155,6 +155,8 @@ export interface ITSMResults {
     custoN1Alocado: number;
     horasN3: number;
     custoN3: number;
+    horasN3Manut: number;
+    custoN3Manut: number;
     total: number;
   };
   humanAttendanceActive: boolean;
