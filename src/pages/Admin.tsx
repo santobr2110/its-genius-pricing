@@ -1017,7 +1017,7 @@ function PermissionDrillDown({
       <div className="rounded-lg border bg-muted/30 p-3 mb-4 flex items-center justify-between gap-3">
         <label className="flex items-center gap-2 text-sm">
           <Checkbox
-            checked={perms.has(offering.accessKey)}
+            checked={isSystem ? true : perms.has(offering.accessKey)}
             disabled={isSystem}
             onCheckedChange={(v) => toggle(offering.accessKey, !!v)}
           />
@@ -1038,7 +1038,7 @@ function PermissionDrillDown({
       <div className="space-y-4">
         {offering.categories.map((cat) => {
           const allKeys = categoryKeys(cat);
-          const active = countActive(allKeys, perms);
+          const active = isSystem ? allKeys.length : countActive(allKeys, perms);
           return (
             <div key={cat.id} className="rounded-lg border">
               <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20">
