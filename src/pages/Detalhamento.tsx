@@ -653,7 +653,7 @@ function TierBlock({
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-xl font-extrabold tracking-tight">{title}</h3>
               <span className={`inline-flex items-center gap-1 ${theme.badge} text-white text-[9px] font-extrabold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full shadow-md`}>
-                <Sparkles className="h-3 w-3" /> Incluído
+                <Sparkles className="h-3 w-3" /> Componente
               </span>
             </div>
             <p className={`text-[11px] font-semibold mt-1.5 inline-block px-2.5 py-1 rounded-full ${theme.chip}`}>{tagline}</p>
