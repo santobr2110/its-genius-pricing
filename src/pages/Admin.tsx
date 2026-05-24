@@ -491,6 +491,16 @@ function RolesTab({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newRoleName, setNewRoleName] = useState("");
+  const [view, setView] = useState<
+    | { level: "root" }
+    | { level: "group"; groupId: string }
+    | { level: "offering"; groupId: string; offeringId: string }
+    | { level: "admin" }
+  >({ level: "root" });
+
+  useEffect(() => {
+    setView({ level: "root" });
+  }, [selected]);
 
   useEffect(() => {
     if (!selected && roles[0]) setSelected(roles[0].id);
@@ -533,13 +543,13 @@ function RolesTab({
     });
   };
 
-  const setGroupAll = (group: string, on: boolean) => {
+  const setKeysAll = (keys: PermissionKey[], on: boolean) => {
     if (!selected || role?.is_system) return;
     setPerms((prev) => {
       const next = new Set(prev);
-      PERMISSIONS.filter((p) => p.group === group).forEach((p) => {
-        if (on) next.add(p.key);
-        else next.delete(p.key);
+      keys.forEach((k) => {
+        if (on) next.add(k);
+        else next.delete(k);
       });
       return next;
     });
