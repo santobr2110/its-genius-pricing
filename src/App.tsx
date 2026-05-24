@@ -42,21 +42,21 @@ const App = () => (
               <Route path="/sem-acesso" element={<SemAcesso />} />
               <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
               <Route path="/" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
-              <Route path="/ito" element={<ProtectedRoute permission="page.home"><Index /></ProtectedRoute>} />
-              <Route path="/detalhamento" element={<ProtectedRoute permission="page.detalhamento"><Detalhamento /></ProtectedRoute>} />
-              <Route path="/equipe-n1" element={<ProtectedRoute permission="page.equipe_n1"><EquipeN1 /></ProtectedRoute>} />
-              <Route path="/equipe-n2" element={<ProtectedRoute permission="page.equipe_n2"><EquipeN2 /></ProtectedRoute>} />
-              <Route path="/equipe-n3" element={<ProtectedRoute permission="page.equipe_n3"><EquipeN3 /></ProtectedRoute>} />
-              <Route path="/financeiro" element={<ProtectedRoute permission="page.financeiro"><ConfiguracoesFinanceiras /></ProtectedRoute>} />
-              <Route path="/taxas-demanda" element={<ProtectedRoute permission="page.taxas_demanda"><TaxasDemanda /></ProtectedRoute>} />
-              <Route path="/precificacoes" element={<ProtectedRoute permission="page.precificacoes"><Precificacoes /></ProtectedRoute>} />
-              <Route path="/field-service" element={<ProtectedRoute permission="page.field_service"><FieldService /></ProtectedRoute>} />
-              <Route path="/gestao-ti" element={<ProtectedRoute permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />
-              <Route path="/relatorio-demanda" element={<ProtectedRoute permission="page.relatorio_demanda"><RelatorioDemanda /></ProtectedRoute>} />
-              <Route path="/perfis-parametros" element={<ProtectedRoute><PerfisParametros /></ProtectedRoute>} />
-              <Route path="/datacenter" element={<ProtectedRoute><EmBreve /></ProtectedRoute>} />
-              <Route path="/cloud" element={<ProtectedRoute><EmBreve /></ProtectedRoute>} />
-              <Route path="/observabilidade" element={<ProtectedRoute><EmBreve /></ProtectedRoute>} />
+              <Route path="/ito" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.home"><Index /></ProtectedRoute>} />
+              <Route path="/detalhamento" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.detalhamento"><Detalhamento /></ProtectedRoute>} />
+              <Route path="/equipe-n1" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.equipe_n1"><EquipeN1 /></ProtectedRoute>} />
+              <Route path="/equipe-n2" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.equipe_n2"><EquipeN2 /></ProtectedRoute>} />
+              <Route path="/equipe-n3" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.equipe_n3"><EquipeN3 /></ProtectedRoute>} />
+              <Route path="/financeiro" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.financeiro"><ConfiguracoesFinanceiras /></ProtectedRoute>} />
+              <Route path="/taxas-demanda" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.taxas_demanda"><TaxasDemanda /></ProtectedRoute>} />
+              <Route path="/precificacoes" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.precificacoes"><Precificacoes /></ProtectedRoute>} />
+              <Route path="/field-service" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.field_service"><FieldService /></ProtectedRoute>} />
+              <Route path="/gestao-ti" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />
+              <Route path="/relatorio-demanda" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.relatorio_demanda"><RelatorioDemanda /></ProtectedRoute>} />
+              <Route path="/perfis-parametros" element={<ProtectedRoute group="ito" offering="smart-ito"><PerfisParametros /></ProtectedRoute>} />
+              <Route path="/datacenter" element={<ProtectedRoute group="datacenter"><EmBreve /></ProtectedRoute>} />
+              <Route path="/cloud" element={<ProtectedRoute group="cloud"><EmBreve /></ProtectedRoute>} />
+              <Route path="/observabilidade" element={<ProtectedRoute group="observabilidade"><EmBreve /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
