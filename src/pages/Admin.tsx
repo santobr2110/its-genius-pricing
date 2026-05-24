@@ -34,7 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
 import { toast } from "sonner";
-import { Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil } from "lucide-react";
+import { Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save } from "lucide-react";
 
 interface RoleRow {
   id: string;
