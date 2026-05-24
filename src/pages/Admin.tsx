@@ -751,18 +751,30 @@ function countActive(keys: PermissionKey[], perms: Set<string>) {
   return n;
 }
 
+function categoryKeys(c: PermCategory): PermissionKey[] {
+  const out: PermissionKey[] = [];
+  if (c.keys) out.push(...c.keys);
+  if (c.entries) {
+    c.entries.forEach((e) => {
+      out.push(e.read);
+      if (e.write) out.push(e.write);
+    });
+  }
+  return out;
+}
+
 function collectKeys(group: GroupNode): PermissionKey[] {
   const keys: PermissionKey[] = [group.accessKey];
   group.offerings.forEach((o) => {
     keys.push(o.accessKey);
-    o.categories.forEach((c) => keys.push(...c.keys));
+    o.categories.forEach((c) => keys.push(...categoryKeys(c)));
   });
   return keys;
 }
 
 function offeringKeys(o: OfferingNode): PermissionKey[] {
   const keys: PermissionKey[] = [o.accessKey];
-  o.categories.forEach((c) => keys.push(...c.keys));
+  o.categories.forEach((c) => keys.push(...categoryKeys(c)));
   return keys;
 }
 
