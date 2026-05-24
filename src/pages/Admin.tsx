@@ -1037,39 +1037,91 @@ function PermissionDrillDown({
 
       <div className="space-y-4">
         {offering.categories.map((cat) => {
-          const active = countActive(cat.keys, perms);
+          const allKeys = categoryKeys(cat);
+          const active = countActive(allKeys, perms);
           return (
             <div key={cat.id} className="rounded-lg border">
               <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20">
                 <div className="flex items-center gap-2">
                   <h4 className="text-sm font-medium">{cat.name}</h4>
                   <Badge variant="secondary" className="text-[10px] h-5">
-                    {active}/{cat.keys.length}
+                    {active}/{allKeys.length}
                   </Badge>
                 </div>
                 {!isSystem && (
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setKeysAll(cat.keys, true)}>
+                    <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setKeysAll(allKeys, true)}>
                       todas
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setKeysAll(cat.keys, false)}>
+                    <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setKeysAll(allKeys, false)}>
                       nenhuma
                     </Button>
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
-                {cat.keys.map((k) => (
-                  <label key={k} className="flex items-center gap-2 text-sm py-1 px-2 rounded hover:bg-muted/60">
-                    <Checkbox
-                      checked={isSystem ? true : perms.has(k)}
-                      disabled={isSystem}
-                      onCheckedChange={(v) => toggle(k, !!v)}
-                    />
-                    <span>{PERMISSION_LABELS[k] ?? k}</span>
-                  </label>
-                ))}
-              </div>
+
+              {cat.entries ? (
+                <div className="divide-y">
+                  <div className="grid grid-cols-[1fr_110px_110px] items-center px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground bg-muted/10">
+                    <span>Página</span>
+                    <span className="text-center">Leitura</span>
+                    <span className="text-center">Alteração</span>
+                  </div>
+                  {cat.entries.map((e) => {
+                    const readOn = isSystem ? true : perms.has(e.read);
+                    const writeOn = isSystem ? true : e.write ? perms.has(e.write) : false;
+                    return (
+                      <div
+                        key={e.read}
+                        className="grid grid-cols-[1fr_110px_110px] items-center px-3 py-1.5 text-sm hover:bg-muted/40"
+                      >
+                        <span>{e.label}</span>
+                        <div className="flex justify-center">
+                          <Checkbox
+                            checked={readOn}
+                            disabled={isSystem}
+                            onCheckedChange={(v) => {
+                              const on = !!v;
+                              toggle(e.read, on);
+                              // remover escrita ao tirar leitura
+                              if (!on && e.write && perms.has(e.write)) toggle(e.write, false);
+                            }}
+                          />
+                        </div>
+                        <div className="flex justify-center">
+                          {e.write ? (
+                            <Checkbox
+                              checked={writeOn}
+                              disabled={isSystem || (!readOn && !isSystem)}
+                              onCheckedChange={(v) => {
+                                const on = !!v;
+                                // habilitar escrita implica leitura
+                                if (on && !perms.has(e.read)) toggle(e.read, true);
+                                toggle(e.write!, on);
+                              }}
+                            />
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground">—</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 p-2">
+                  {(cat.keys ?? []).map((k) => (
+                    <label key={k} className="flex items-center gap-2 text-sm py-1 px-2 rounded hover:bg-muted/60">
+                      <Checkbox
+                        checked={isSystem ? true : perms.has(k)}
+                        disabled={isSystem}
+                        onCheckedChange={(v) => toggle(k, !!v)}
+                      />
+                      <span>{PERMISSION_LABELS[k] ?? k}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
