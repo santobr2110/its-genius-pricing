@@ -352,7 +352,7 @@ export default function Detalhamento() {
         {monitorVisible && (
         <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
-          title="Monitor" tagline="Monitoramento proativo da infraestrutura"
+          title="Monitor" tagline="Monitoramento da infraestrutura"
           valor={valorMonitor}>
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
