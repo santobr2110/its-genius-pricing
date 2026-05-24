@@ -34,7 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PERMISSIONS, PERMISSION_GROUPS } from "@/lib/permissions";
 import { toast } from "sonner";
-import { Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil } from "lucide-react";
+import { Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save } from "lucide-react";
 
 interface RoleRow {
   id: string;
@@ -423,7 +423,9 @@ function RolesTab({
 }) {
   const [selected, setSelected] = useState<string | null>(roles[0]?.id ?? null);
   const [perms, setPerms] = useState<Set<string>>(new Set());
+  const [initialPerms, setInitialPerms] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [newRoleName, setNewRoleName] = useState("");
 
   useEffect(() => {
@@ -434,32 +436,88 @@ function RolesTab({
 
   useEffect(() => {
     (async () => {
-      if (!selected) return setPerms(new Set());
+      if (!selected) {
+        setPerms(new Set());
+        setInitialPerms(new Set());
+        return;
+      }
       setLoading(true);
       const { data } = await supabase
         .from("role_permissions")
         .select("permission_key, allowed")
         .eq("role_id", selected);
-      setPerms(new Set((data ?? []).filter((p) => p.allowed).map((p) => p.permission_key)));
+      const initial = new Set((data ?? []).filter((p) => p.allowed).map((p) => p.permission_key));
+      setPerms(initial);
+      setInitialPerms(new Set(initial));
       setLoading(false);
     })();
   }, [selected]);
 
-  const toggle = async (key: string, on: boolean) => {
+  const dirty = (() => {
+    if (perms.size !== initialPerms.size) return true;
+    for (const k of perms) if (!initialPerms.has(k)) return true;
+    return false;
+  })();
+
+  const toggle = (key: string, on: boolean) => {
     if (!selected || role?.is_system) return;
-    const next = new Set(perms);
-    if (on) next.add(key);
-    else next.delete(key);
-    setPerms(next);
-    if (on) {
-      await supabase
-        .from("role_permissions")
-        .upsert({ role_id: selected, permission_key: key, allowed: true }, { onConflict: "role_id,permission_key" });
-    } else {
-      await supabase.from("role_permissions").delete().eq("role_id", selected).eq("permission_key", key);
-    }
-    onRolesChanged();
+    setPerms((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(key);
+      else next.delete(key);
+      return next;
+    });
   };
+
+  const setGroupAll = (group: string, on: boolean) => {
+    if (!selected || role?.is_system) return;
+    setPerms((prev) => {
+      const next = new Set(prev);
+      PERMISSIONS.filter((p) => p.group === group).forEach((p) => {
+        if (on) next.add(p.key);
+        else next.delete(p.key);
+      });
+      return next;
+    });
+  };
+
+  const setAll = (on: boolean) => {
+    if (!selected || role?.is_system) return;
+    setPerms(on ? new Set(PERMISSIONS.map((p) => p.key)) : new Set());
+  };
+
+  const save = async () => {
+    if (!selected || role?.is_system || !dirty) return;
+    setSaving(true);
+    const toAdd = [...perms].filter((k) => !initialPerms.has(k));
+    const toRemove = [...initialPerms].filter((k) => !perms.has(k));
+    try {
+      if (toAdd.length) {
+        const { error } = await supabase.from("role_permissions").upsert(
+          toAdd.map((k) => ({ role_id: selected, permission_key: k, allowed: true })),
+          { onConflict: "role_id,permission_key" },
+        );
+        if (error) throw error;
+      }
+      if (toRemove.length) {
+        const { error } = await supabase
+          .from("role_permissions")
+          .delete()
+          .eq("role_id", selected)
+          .in("permission_key", toRemove);
+        if (error) throw error;
+      }
+      setInitialPerms(new Set(perms));
+      toast.success("Permissões salvas.");
+      onRolesChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "Falha ao salvar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const discard = () => setPerms(new Set(initialPerms));
 
   const createRole = async () => {
     const name = newRoleName.trim();
@@ -535,9 +593,17 @@ function RolesTab({
             )}
           </div>
           {role && !role.is_system && (
-            <Button variant="ghost" size="sm" onClick={deleteRole} className="text-destructive gap-1.5">
-              <Trash2 className="h-3.5 w-3.5" /> Excluir
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button variant="outline" size="sm" onClick={() => setAll(true)} disabled={saving} className="h-8 text-xs">
+                Marcar todas
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setAll(false)} disabled={saving} className="h-8 text-xs">
+                Limpar todas
+              </Button>
+              <Button variant="ghost" size="sm" onClick={deleteRole} className="text-destructive gap-1.5 h-8">
+                <Trash2 className="h-3.5 w-3.5" /> Excluir
+              </Button>
+            </div>
           )}
         </CardHeader>
         <CardContent>
@@ -549,7 +615,29 @@ function RolesTab({
             <div className="space-y-4">
               {PERMISSION_GROUPS.map((group) => (
                 <div key={group}>
-                  <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">{group}</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-semibold uppercase text-muted-foreground">{group}</h3>
+                    {!role.is_system && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setGroupAll(group, true)}
+                          className="h-6 text-[10px] px-2"
+                        >
+                          todas
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setGroupAll(group, false)}
+                          className="h-6 text-[10px] px-2"
+                        >
+                          nenhuma
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {PERMISSIONS.filter((p) => p.group === group).map((p) => {
                       const checked = role.is_system ? true : perms.has(p.key);
@@ -570,6 +658,22 @@ function RolesTab({
                   </div>
                 </div>
               ))}
+              {!role.is_system && (
+                <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 flex items-center justify-between gap-2 border-t bg-background/95 px-6 py-3 backdrop-blur">
+                  <p className="text-xs text-muted-foreground">
+                    {dirty ? "Alterações não salvas" : "Sem alterações pendentes"}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={discard} disabled={!dirty || saving}>
+                      Descartar
+                    </Button>
+                    <Button size="sm" onClick={save} disabled={!dirty || saving} className="gap-1.5">
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      Salvar alterações
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
