@@ -593,9 +593,17 @@ function RolesTab({
             )}
           </div>
           {role && !role.is_system && (
-            <Button variant="ghost" size="sm" onClick={deleteRole} className="text-destructive gap-1.5">
-              <Trash2 className="h-3.5 w-3.5" /> Excluir
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button variant="outline" size="sm" onClick={() => setAll(true)} disabled={saving} className="h-8 text-xs">
+                Marcar todas
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setAll(false)} disabled={saving} className="h-8 text-xs">
+                Limpar todas
+              </Button>
+              <Button variant="ghost" size="sm" onClick={deleteRole} className="text-destructive gap-1.5 h-8">
+                <Trash2 className="h-3.5 w-3.5" /> Excluir
+              </Button>
+            </div>
           )}
         </CardHeader>
         <CardContent>
@@ -607,7 +615,29 @@ function RolesTab({
             <div className="space-y-4">
               {PERMISSION_GROUPS.map((group) => (
                 <div key={group}>
-                  <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2">{group}</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-semibold uppercase text-muted-foreground">{group}</h3>
+                    {!role.is_system && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setGroupAll(group, true)}
+                          className="h-6 text-[10px] px-2"
+                        >
+                          todas
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setGroupAll(group, false)}
+                          className="h-6 text-[10px] px-2"
+                        >
+                          nenhuma
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                     {PERMISSIONS.filter((p) => p.group === group).map((p) => {
                       const checked = role.is_system ? true : perms.has(p.key);
@@ -628,6 +658,22 @@ function RolesTab({
                   </div>
                 </div>
               ))}
+              {!role.is_system && (
+                <div className="sticky bottom-0 -mx-6 -mb-6 mt-4 flex items-center justify-between gap-2 border-t bg-background/95 px-6 py-3 backdrop-blur">
+                  <p className="text-xs text-muted-foreground">
+                    {dirty ? "Alterações não salvas" : "Sem alterações pendentes"}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={discard} disabled={!dirty || saving}>
+                      Descartar
+                    </Button>
+                    <Button size="sm" onClick={save} disabled={!dirty || saving} className="gap-1.5">
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      Salvar alterações
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
