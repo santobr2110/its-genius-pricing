@@ -2,6 +2,9 @@ import { Link } from "react-router-dom";
 import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { GROUP_ACCESS_KEYS } from "@/lib/offerings";
+import type { PermissionKey } from "@/lib/permissions";
 
 const OFFERINGS = [
   {
@@ -59,6 +62,11 @@ const OFFERINGS = [
 ];
 
 export default function Hub() {
+  const { can } = useAuth();
+  const visible = OFFERINGS.filter((o) =>
+    can(GROUP_ACCESS_KEYS[o.id as keyof typeof GROUP_ACCESS_KEYS] as PermissionKey),
+  );
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#020f0a] text-slate-100">
       {/* Background grid */}
@@ -121,7 +129,7 @@ export default function Hub() {
 
         {/* Grid */}
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {OFFERINGS.map((o) => {
+          {(visible.length ? visible : OFFERINGS).map((o) => {
             const Icon = o.icon;
             const Card = (
               <div
