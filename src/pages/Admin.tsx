@@ -886,7 +886,7 @@ function PermissionDrillDown({
                 icon={g.icon}
                 title={g.name}
                 subtitle={g.offerings.length ? `${g.offerings.length} oferta(s)` : "Nenhuma oferta"}
-                active={countActive(keys, perms)}
+                active={isSystem ? keys.length : countActive(keys, perms)}
                 total={keys.length}
                 onOpen={() => setView({ level: "group", groupId: g.id })}
               />
@@ -896,7 +896,7 @@ function PermissionDrillDown({
             icon={Settings2}
             title="Administração"
             subtitle="Usuários e perfis"
-            active={countActive(ADMIN_KEYS, perms)}
+            active={isSystem ? ADMIN_KEYS.length : countActive(ADMIN_KEYS, perms)}
             total={ADMIN_KEYS.length}
             onOpen={() => setView({ level: "admin" })}
           />
