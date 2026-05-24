@@ -748,10 +748,22 @@ export default function SmartTiersPanel() {
                 </div>
               )}
             </div>
-            <div className="flex justify-between border-t pt-2">
-              <span className="text-xs font-semibold">Total Smart Operation (venda)</span>
-              <span className="text-sm font-bold text-primary">{formatBRL(smOperationVenda)}</span>
-            </div>
+            <CompositionFooter
+              title="Total Smart Operation (venda)"
+              total={smOperationVenda}
+              parts={[
+                {
+                  label: state.tierPerformance
+                    ? "Serviço base (N1 + N2)"
+                    : "Serviço base (N1 + N2 + N3)",
+                  value: toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)),
+                },
+                ...(rotinasOperation.totals.venda > 0
+                  ? [{ label: "Rotinas Operation", value: rotinasOperation.totals.venda }]
+                  : []),
+                ...(fsVenda > 0 ? [{ label: "Field Service", value: fsVenda }] : []),
+              ]}
+            />
           </div>
         )}
 
@@ -877,19 +889,76 @@ export default function SmartTiersPanel() {
             </div>
             )}
 
-            <div className="flex justify-between border-t pt-2">
-              <span className="text-xs font-semibold">Total Smart Performance (venda)</span>
-              <span className="text-sm font-bold text-primary">{formatBRL(smPerformanceVenda)}</span>
-            </div>
+            <CompositionFooter
+              title="Total Smart Performance (venda)"
+              total={smPerformanceVenda}
+              parts={[
+                { label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`, value: toSell(results.custoN3) },
+                ...(rotinasPerfPadrao.totals.venda > 0
+                  ? [{ label: "Rotinas Performance · Padrão", value: rotinasPerfPadrao.totals.venda }]
+                  : []),
+                ...(rotinasPerfComplexo.totals.venda > 0
+                  ? [{ label: "Rotinas Performance · Complexo", value: rotinasPerfComplexo.totals.venda }]
+                  : []),
+              ]}
+            />
           </div>
         )}
 
-        <div className="flex justify-between border-t pt-3">
-          <span className="text-sm font-semibold">Valor Total de Venda</span>
-          <span className="text-base font-bold text-primary">{formatBRL(totalSelecionado)}</span>
+        <div className="rounded-lg border-2 border-primary/40 bg-primary/5 p-3 space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            Composição do valor total
+          </p>
+          {state.tierMonitor && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Smart Monitor</span>
+              <span className="font-semibold tabular-nums">{formatBRL(smTotalVenda)}</span>
+            </div>
+          )}
+          {state.tierOperation && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Smart Operation</span>
+              <span className="font-semibold tabular-nums">{formatBRL(smOperationVenda)}</span>
+            </div>
+          )}
+          {state.tierPerformance && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Smart Performance</span>
+              <span className="font-semibold tabular-nums">{formatBRL(smPerformanceVenda)}</span>
+            </div>
+          )}
+          <div className="flex justify-between border-t border-primary/30 pt-1.5">
+            <span className="text-sm font-bold">Valor Total de Venda</span>
+            <span className="text-base font-extrabold text-primary tabular-nums">{formatBRL(totalSelecionado)}</span>
+          </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function CompositionFooter({
+  title,
+  total,
+  parts,
+}: {
+  title: string;
+  total: number;
+  parts: { label: string; value: number }[];
+}) {
+  return (
+    <div className="border-t pt-2 space-y-1">
+      {parts.length > 1 && parts.map((p, i) => (
+        <div key={i} className="flex justify-between text-[11px]">
+          <span className="text-muted-foreground">{i === 0 ? "" : "+ "}{p.label}</span>
+          <span className="font-semibold tabular-nums">{formatBRL(p.value)}</span>
+        </div>
+      ))}
+      <div className="flex justify-between pt-1 border-t border-dashed">
+        <span className="text-xs font-semibold">{title}</span>
+        <span className="text-sm font-bold text-primary tabular-nums">{formatBRL(total)}</span>
+      </div>
+    </div>
   );
 }
 
