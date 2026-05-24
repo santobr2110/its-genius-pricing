@@ -35,27 +35,98 @@ export type Database = {
         }
         Relationships: []
       }
-      parameter_profiles: {
+      groups: {
         Row: {
           created_at: string
           id: string
           name: string
+          slug: string
+          sort_order: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      offerings: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offerings_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parameter_profiles: {
+        Row: {
+          created_at: string
+          group_slug: string
+          id: string
+          name: string
+          offering_slug: string
           payload: Json
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          group_slug?: string
           id?: string
           name: string
+          offering_slug?: string
           payload: Json
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          group_slug?: string
           id?: string
           name?: string
+          offering_slug?: string
           payload?: Json
           updated_at?: string
           user_id?: string
@@ -65,24 +136,30 @@ export type Database = {
       pricing_presets: {
         Row: {
           created_at: string
+          group_slug: string
           id: string
           name: string
+          offering_slug: string
           payload: Json
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          group_slug?: string
           id?: string
           name: string
+          offering_slug?: string
           payload: Json
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          group_slug?: string
           id?: string
           name?: string
+          offering_slug?: string
           payload?: Json
           updated_at?: string
           user_id?: string

@@ -4,6 +4,11 @@ import type { ITSMState } from "./useITSMCalculator";
 import type { N1TeamState } from "./useN1TeamState";
 import type { N2TeamState } from "./useN2TeamState";
 
+// Oferta atual a qual estes presets pertencem.
+// (Smart ITO é a única oferta com calculadora completa hoje.)
+const GROUP_SLUG = "ito";
+const OFFERING_SLUG = "smart-ito";
+
 export interface PresetVolumes {
   chamadosAtivosMes: number;
   chamadosUsuariosMes: number;
@@ -56,6 +61,7 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
     const { data, error } = await supabase
       .from("pricing_presets")
       .select("*")
+      .eq("offering_slug", OFFERING_SLUG)
       .order("created_at", { ascending: false });
     if (!error && data) {
       setPresets((data as unknown as DbRow[]).map(fromRow));
@@ -86,7 +92,13 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       const payload = { calculator, n1Team, n2Team, volumes };
       const { data, error } = await supabase
         .from("pricing_presets")
-        .insert({ user_id: user.id, name: finalName, payload: payload as unknown as never })
+        .insert({
+          user_id: user.id,
+          name: finalName,
+          payload: payload as unknown as never,
+          group_slug: GROUP_SLUG,
+          offering_slug: OFFERING_SLUG,
+        })
         .select("*")
         .single();
       if (error || !data) throw new Error(error?.message ?? "Falha ao salvar.");

@@ -1,10 +1,47 @@
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { SMART_ITO_NS } from "@/lib/offerings";
 
 export const PERSISTENT_STATE_RESTORED_EVENT = "itsm:persistent-state-restored";
 
 const cloudValueCache = new Map<string, unknown>();
 const cloudHydrationPromises = new Map<string, Promise<unknown | undefined>>();
+const migratedKeys = new Set<string>();
+
+/**
+ * Aplica o namespace da oferta corrente (hoje: Smart ITO) sobre uma chave bruta.
+ * Toda chave começando com `ito.smart-ito.`, `datacenter.`, `cloud.` ou
+ * `observabilidade.` é considerada já namespeada e passa intacta.
+ */
+function namespaceKey(rawKey: string): string {
+  if (
+    rawKey.startsWith("ito.") ||
+    rawKey.startsWith("datacenter.") ||
+    rawKey.startsWith("cloud.") ||
+    rawKey.startsWith("observabilidade.")
+  ) {
+    return rawKey;
+  }
+  return SMART_ITO_NS + rawKey;
+}
+
+/** Migração one-shot da chave legada (sem namespace) para a chave namespeada. */
+function migrateLegacyLocalKey(legacyKey: string, namespacedKey: string) {
+  if (typeof window === "undefined") return;
+  if (legacyKey === namespacedKey) return;
+  if (migratedKeys.has(namespacedKey)) return;
+  migratedKeys.add(namespacedKey);
+  try {
+    const legacy = window.localStorage.getItem(legacyKey);
+    if (legacy == null) return;
+    if (window.localStorage.getItem(namespacedKey) != null) return;
+    window.localStorage.setItem(namespacedKey, legacy);
+    // Não removemos o legado: mantemos como fallback caso o usuário volte para
+    // uma versão antiga do app. Pode ser limpo manualmente depois.
+  } catch {
+    /* ignore */
+  }
+}
 
 function cacheKey(uid: string, key: string) {
   return `${uid}:${key}`;
@@ -58,7 +95,7 @@ function isEqualValue<T>(a: T, b: T): boolean {
   }
 }
 
-async function readCloudValue(uid: string, key: string): Promise<unknown | undefined> {
+async function readCloudValue(uid: string, key: string, legacyKey: string): Promise<unknown | undefined> {
   const ck = cacheKey(uid, key);
   if (cloudValueCache.has(ck)) return cloudValueCache.get(ck);
   const pending = cloudHydrationPromises.get(ck);
@@ -75,6 +112,26 @@ async function readCloudValue(uid: string, key: string): Promise<unknown | undef
     if (own?.value !== undefined && own?.value !== null) {
       cloudValueCache.set(ck, own.value);
       return own.value;
+    }
+
+    // Migração one-shot da chave legada (sem namespace) para a chave namespeada.
+    if (legacyKey !== key) {
+      const { data: legacy } = await supabase
+        .from("user_app_state")
+        .select("value")
+        .eq("user_id", uid)
+        .eq("key", legacyKey)
+        .maybeSingle();
+      if (legacy?.value !== undefined && legacy?.value !== null) {
+        await supabase
+          .from("user_app_state")
+          .upsert(
+            { user_id: uid, key, value: legacy.value as never },
+            { onConflict: "user_id,key" },
+          );
+        cloudValueCache.set(ck, legacy.value);
+        return legacy.value;
+      }
     }
 
     const { data: def } = await supabase
@@ -115,9 +172,16 @@ function saveCloudValue(uid: string, key: string, value: unknown) {
  *   (mas nada na nuvem), faz seed local → nuvem.
  */
 export function usePersistentState<T>(
-  key: string,
+  rawKey: string,
   initial: T,
 ): [T, Dispatch<SetStateAction<T>>] {
+  const key = namespaceKey(rawKey);
+  const legacyKey = rawKey;
+  // Migra qualquer valor antigo do localStorage para a nova chave namespeada.
+  if (typeof window !== "undefined" && legacyKey !== key) {
+    migrateLegacyLocalKey(legacyKey, key);
+  }
+
   const [state, setStateBase] = useState<T>(() => {
     const local = readLocal<T>(key);
     return mergeWithInitial(local, initial);
@@ -171,7 +235,7 @@ export function usePersistentState<T>(
       }
 
       const versionAtStart = localVersionRef.current;
-      const cloudValue = await readCloudValue(uid, key);
+      const cloudValue = await readCloudValue(uid, key, legacyKey);
 
       if (cancelled) return;
 

@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyPersistentStateRestored } from "./usePersistentState";
+import { SMART_ITO_NS } from "@/lib/offerings";
 
-// Todas as chaves de parâmetros persistidos (equipes + configurações + gestão TI).
-export const PARAM_KEYS = [
+const GROUP_SLUG = "ito";
+const OFFERING_SLUG = "smart-ito";
+
+// Todas as chaves de parâmetros persistidos (equipes + configurações + gestão TI),
+// já namespeadas pela oferta Smart ITO.
+const RAW_PARAM_KEYS = [
   "itsm:calculator:v1",
   "itsm:n1team:v1",
   "itsm:n2team:v1",
@@ -12,6 +17,8 @@ export const PARAM_KEYS = [
   "gestao-ti:gmuds",
   "gestao-ti:smartPerf:n3Cortes",
 ] as const;
+
+export const PARAM_KEYS = RAW_PARAM_KEYS.map((k) => SMART_ITO_NS + k);
 
 export type ParamPayload = Record<string, unknown>;
 
@@ -71,6 +78,7 @@ export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean }
     const { data, error } = await supabase
       .from("parameter_profiles")
       .select("*")
+      .eq("offering_slug", OFFERING_SLUG)
       .order("updated_at", { ascending: false });
     if (!error && data) {
       setProfiles((data as unknown as DbRow[]).map(fromRow));
@@ -94,7 +102,13 @@ export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean }
     const payload = await snapshotCurrent(user.id);
     const { data, error } = await supabase
       .from("parameter_profiles")
-      .insert({ user_id: user.id, name: finalName, payload: payload as unknown as never })
+      .insert({
+        user_id: user.id,
+        name: finalName,
+        payload: payload as unknown as never,
+        group_slug: GROUP_SLUG,
+        offering_slug: OFFERING_SLUG,
+      })
       .select("*")
       .single();
     if (error || !data) throw new Error(error?.message ?? "Falha ao salvar.");

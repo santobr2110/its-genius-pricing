@@ -7,10 +7,14 @@ import { Loader2 } from "lucide-react";
 interface Props {
   children: ReactNode;
   permission?: PermissionKey;
+  /** Acesso requerido ao Grupo (ex.: "ito"). */
+  group?: string;
+  /** Acesso requerido à Oferta (ex.: "smart-ito") dentro do Grupo. */
+  offering?: string;
   requireAdmin?: boolean;
 }
 
-export default function ProtectedRoute({ children, permission, requireAdmin }: Props) {
+export default function ProtectedRoute({ children, permission, group, offering, requireAdmin }: Props) {
   const { user, loading, can, isAdmin, role } = useAuth();
   const location = useLocation();
 
@@ -31,6 +35,14 @@ export default function ProtectedRoute({ children, permission, requireAdmin }: P
   }
 
   if (requireAdmin && !isAdmin) {
+    return <Navigate to="/sem-acesso" replace />;
+  }
+
+  if (group && !can(`group.${group}.access` as PermissionKey)) {
+    return <Navigate to="/sem-acesso" replace />;
+  }
+
+  if (group && offering && !can(`offering.${group}.${offering}.access` as PermissionKey)) {
     return <Navigate to="/sem-acesso" replace />;
   }
 

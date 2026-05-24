@@ -9,6 +9,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { GROUP_ACCESS_KEYS } from "@/lib/offerings";
+import type { PermissionKey } from "@/lib/permissions";
 
 const ITO_PATHS = new Set([
   "/ito",
@@ -25,15 +28,21 @@ const ITO_PATHS = new Set([
 ]);
 
 const OFFERINGS = [
-  { id: "hub", label: "Página inicial", description: "Hub de ofertas IT Solutions", to: "/", icon: Home },
-  { id: "ito", label: "ITO", description: "Smart ITO — calculadora completa", to: "/ito", icon: Calculator },
-  { id: "datacenter", label: "Datacenter", description: "Em breve", to: "/datacenter", icon: Server },
-  { id: "cloud", label: "Cloud", description: "Em breve", to: "/cloud", icon: Cloud },
-  { id: "observabilidade", label: "Observabilidade", description: "Em breve", to: "/observabilidade", icon: Activity },
+  { id: "hub", label: "Página inicial", description: "Hub de ofertas IT Solutions", to: "/", icon: Home, groupSlug: null as null | keyof typeof GROUP_ACCESS_KEYS },
+  { id: "ito", label: "ITO", description: "Smart ITO — calculadora completa", to: "/ito", icon: Calculator, groupSlug: "ito" as const },
+  { id: "datacenter", label: "Datacenter", description: "Em breve", to: "/datacenter", icon: Server, groupSlug: "datacenter" as const },
+  { id: "cloud", label: "Cloud", description: "Em breve", to: "/cloud", icon: Cloud, groupSlug: "cloud" as const },
+  { id: "observabilidade", label: "Observabilidade", description: "Em breve", to: "/observabilidade", icon: Activity, groupSlug: "observabilidade" as const },
 ];
 
 export default function BUMenu() {
   const { pathname } = useLocation();
+  const { can } = useAuth();
+  const visible = OFFERINGS.filter((o) =>
+    o.groupSlug == null
+      ? true
+      : can(GROUP_ACCESS_KEYS[o.groupSlug] as PermissionKey),
+  );
   const currentId =
     pathname === "/" ? "hub"
     : pathname === "/datacenter" ? "datacenter"
@@ -56,7 +65,7 @@ export default function BUMenu() {
       <DropdownMenuContent align="start" className="w-64">
         <DropdownMenuLabel className="text-xs">Business Unit · IT Solutions</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {OFFERINGS.map((o) => {
+        {visible.map((o) => {
           const Icon = o.icon;
           const active = currentId === o.id;
           return (
