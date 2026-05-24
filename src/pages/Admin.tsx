@@ -423,7 +423,9 @@ function RolesTab({
 }) {
   const [selected, setSelected] = useState<string | null>(roles[0]?.id ?? null);
   const [perms, setPerms] = useState<Set<string>>(new Set());
+  const [initialPerms, setInitialPerms] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [newRoleName, setNewRoleName] = useState("");
 
   useEffect(() => {
@@ -434,32 +436,88 @@ function RolesTab({
 
   useEffect(() => {
     (async () => {
-      if (!selected) return setPerms(new Set());
+      if (!selected) {
+        setPerms(new Set());
+        setInitialPerms(new Set());
+        return;
+      }
       setLoading(true);
       const { data } = await supabase
         .from("role_permissions")
         .select("permission_key, allowed")
         .eq("role_id", selected);
-      setPerms(new Set((data ?? []).filter((p) => p.allowed).map((p) => p.permission_key)));
+      const initial = new Set((data ?? []).filter((p) => p.allowed).map((p) => p.permission_key));
+      setPerms(initial);
+      setInitialPerms(new Set(initial));
       setLoading(false);
     })();
   }, [selected]);
 
-  const toggle = async (key: string, on: boolean) => {
+  const dirty = (() => {
+    if (perms.size !== initialPerms.size) return true;
+    for (const k of perms) if (!initialPerms.has(k)) return true;
+    return false;
+  })();
+
+  const toggle = (key: string, on: boolean) => {
     if (!selected || role?.is_system) return;
-    const next = new Set(perms);
-    if (on) next.add(key);
-    else next.delete(key);
-    setPerms(next);
-    if (on) {
-      await supabase
-        .from("role_permissions")
-        .upsert({ role_id: selected, permission_key: key, allowed: true }, { onConflict: "role_id,permission_key" });
-    } else {
-      await supabase.from("role_permissions").delete().eq("role_id", selected).eq("permission_key", key);
-    }
-    onRolesChanged();
+    setPerms((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(key);
+      else next.delete(key);
+      return next;
+    });
   };
+
+  const setGroupAll = (group: string, on: boolean) => {
+    if (!selected || role?.is_system) return;
+    setPerms((prev) => {
+      const next = new Set(prev);
+      PERMISSIONS.filter((p) => p.group === group).forEach((p) => {
+        if (on) next.add(p.key);
+        else next.delete(p.key);
+      });
+      return next;
+    });
+  };
+
+  const setAll = (on: boolean) => {
+    if (!selected || role?.is_system) return;
+    setPerms(on ? new Set(PERMISSIONS.map((p) => p.key)) : new Set());
+  };
+
+  const save = async () => {
+    if (!selected || role?.is_system || !dirty) return;
+    setSaving(true);
+    const toAdd = [...perms].filter((k) => !initialPerms.has(k));
+    const toRemove = [...initialPerms].filter((k) => !perms.has(k));
+    try {
+      if (toAdd.length) {
+        const { error } = await supabase.from("role_permissions").upsert(
+          toAdd.map((k) => ({ role_id: selected, permission_key: k, allowed: true })),
+          { onConflict: "role_id,permission_key" },
+        );
+        if (error) throw error;
+      }
+      if (toRemove.length) {
+        const { error } = await supabase
+          .from("role_permissions")
+          .delete()
+          .eq("role_id", selected)
+          .in("permission_key", toRemove);
+        if (error) throw error;
+      }
+      setInitialPerms(new Set(perms));
+      toast.success("Permissões salvas.");
+      onRolesChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "Falha ao salvar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const discard = () => setPerms(new Set(initialPerms));
 
   const createRole = async () => {
     const name = newRoleName.trim();
