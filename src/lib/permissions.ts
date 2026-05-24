@@ -1,4 +1,12 @@
 export type PermissionKey =
+  // Acesso a Grupos (Business Unit)
+  | "group.ito.access"
+  | "group.datacenter.access"
+  | "group.cloud.access"
+  | "group.observabilidade.access"
+  // Acesso a Ofertas dentro dos Grupos
+  | "offering.ito.smart-ito.access"
+  // Páginas e ações da oferta Smart ITO (ITO)
   | "page.home"
   | "page.detalhamento"
   | "page.equipe_n1"
@@ -23,28 +31,40 @@ export type PermissionKey =
 export interface PermissionDef {
   key: PermissionKey;
   label: string;
-  group: "Páginas" | "Precificação" | "Equipes" | "Financeiro" | "Administração";
+  group:
+    | "Grupos (Business Unit)"
+    | "Ofertas"
+    | "ITO › Smart ITO › Páginas"
+    | "ITO › Smart ITO › Precificação"
+    | "ITO › Smart ITO › Equipes"
+    | "ITO › Smart ITO › Financeiro"
+    | "Administração";
 }
 
 export const PERMISSIONS: PermissionDef[] = [
-  { key: "page.home", label: "Acessar Início", group: "Páginas" },
-  { key: "page.detalhamento", label: "Acessar Proposição", group: "Páginas" },
-  { key: "page.equipe_n1", label: "Acessar Equipe N1", group: "Páginas" },
-  { key: "page.equipe_n2", label: "Acessar Equipe N2", group: "Páginas" },
-  { key: "page.equipe_n3", label: "Acessar Equipe N3", group: "Páginas" },
-  { key: "page.field_service", label: "Acessar Field Service", group: "Páginas" },
-  { key: "page.gestao_ti", label: "Acessar Gestão de TI", group: "Páginas" },
-  { key: "page.financeiro", label: "Acessar Financeiro", group: "Páginas" },
-  { key: "page.taxas_demanda", label: "Acessar Métricas e Parâmetros", group: "Páginas" },
-  { key: "page.precificacoes", label: "Acessar Precificações", group: "Páginas" },
-  { key: "page.relatorio_demanda", label: "Acessar Relatório de Demanda", group: "Páginas" },
-  { key: "pricing.edit", label: "Editar parâmetros de precificação", group: "Precificação" },
-  { key: "pricing.save_preset", label: "Salvar precificações", group: "Precificação" },
-  { key: "pricing.delete_preset", label: "Remover precificações salvas", group: "Precificação" },
-  { key: "params.save_defaults", label: "Salvar parâmetros padrão", group: "Precificação" },
-  { key: "pricing.export_pdf", label: "Exportar PDF / proposta", group: "Precificação" },
-  { key: "teams.edit", label: "Editar equipes N1/N2/N3", group: "Equipes" },
-  { key: "financeiro.edit", label: "Editar configurações financeiras", group: "Financeiro" },
+  { key: "group.ito.access",             label: "Acessar Grupo ITO",             group: "Grupos (Business Unit)" },
+  { key: "group.datacenter.access",      label: "Acessar Grupo Datacenter",      group: "Grupos (Business Unit)" },
+  { key: "group.cloud.access",           label: "Acessar Grupo Cloud",           group: "Grupos (Business Unit)" },
+  { key: "group.observabilidade.access", label: "Acessar Grupo Observabilidade", group: "Grupos (Business Unit)" },
+  { key: "offering.ito.smart-ito.access", label: "Acessar Oferta Smart ITO",     group: "Ofertas" },
+  { key: "page.home",              label: "Início / calculadora",              group: "ITO › Smart ITO › Páginas" },
+  { key: "page.detalhamento",      label: "Proposição",                        group: "ITO › Smart ITO › Páginas" },
+  { key: "page.equipe_n1",         label: "Equipe N1",                         group: "ITO › Smart ITO › Páginas" },
+  { key: "page.equipe_n2",         label: "Equipe N2",                         group: "ITO › Smart ITO › Páginas" },
+  { key: "page.equipe_n3",         label: "Equipe N3",                         group: "ITO › Smart ITO › Páginas" },
+  { key: "page.field_service",     label: "Field Service",                     group: "ITO › Smart ITO › Páginas" },
+  { key: "page.gestao_ti",         label: "Gestão de TI",                      group: "ITO › Smart ITO › Páginas" },
+  { key: "page.financeiro",        label: "Financeiro",                        group: "ITO › Smart ITO › Páginas" },
+  { key: "page.taxas_demanda",     label: "Métricas e Parâmetros",             group: "ITO › Smart ITO › Páginas" },
+  { key: "page.precificacoes",     label: "Precificações salvas",              group: "ITO › Smart ITO › Páginas" },
+  { key: "page.relatorio_demanda", label: "Relatório de Demanda",              group: "ITO › Smart ITO › Páginas" },
+  { key: "pricing.edit",           label: "Editar parâmetros de precificação", group: "ITO › Smart ITO › Precificação" },
+  { key: "pricing.save_preset",    label: "Salvar precificações",              group: "ITO › Smart ITO › Precificação" },
+  { key: "pricing.delete_preset",  label: "Remover precificações salvas",      group: "ITO › Smart ITO › Precificação" },
+  { key: "params.save_defaults",   label: "Salvar parâmetros padrão",          group: "ITO › Smart ITO › Precificação" },
+  { key: "pricing.export_pdf",     label: "Exportar PDF / proposta",           group: "ITO › Smart ITO › Precificação" },
+  { key: "teams.edit",             label: "Editar equipes N1/N2/N3",           group: "ITO › Smart ITO › Equipes" },
+  { key: "financeiro.edit",        label: "Editar configurações financeiras",  group: "ITO › Smart ITO › Financeiro" },
   { key: "admin.users.manage", label: "Gerenciar usuários", group: "Administração" },
   { key: "admin.roles.manage", label: "Gerenciar perfis e permissões", group: "Administração" },
 ];
