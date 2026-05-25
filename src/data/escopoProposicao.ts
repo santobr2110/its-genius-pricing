@@ -133,3 +133,14 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
 };
 
 export const ESCOPO_STORAGE_KEY = "escopo:proposicao";
+
+export const RESTRICOES_GERAIS_STORAGE_KEY = "escopo:restricoesGerais";
+
+export const RESTRICOES_GERAIS_DEFAULT: string[] = [
+  "Atendimentos em horário comercial (08h às 18h, dias úteis); fora desse período seguem regras de plantão acordadas em contrato.",
+  "SLA e janelas de atendimento conforme contrato vigente.",
+  "Atividades não previstas neste escopo podem ser atendidas sob demanda mediante orçamento específico.",
+  "Mudanças de inventário (usuários, equipamentos ou ativos) que ultrapassem 10% do volume contratado podem implicar revisão comercial.",
+  "Valores apresentados são mensais e em Reais (BRL), reajustados anualmente pelo índice previsto em contrato.",
+  "Aquisição de hardware, software, licenças e insumos não está inclusa, salvo menção expressa.",
+];
