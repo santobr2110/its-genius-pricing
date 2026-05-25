@@ -9,6 +9,8 @@ const TITLES: Record<string, string> = {
   "/datacenter": "Datacenter",
   "/cloud": "Cloud",
   "/observabilidade": "Observabilidade",
+  "/pacote-horas": "Pacote de Horas",
+  "/bodyshop": "Bodyshop",
 };
 
 export default function EmBreve() {
