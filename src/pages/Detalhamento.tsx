@@ -371,22 +371,43 @@ export default function Detalhamento() {
             <Stat label="Chamados de monitoramento" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre monitor" value={`${state.percAlocacaoN1Monitor}%`} />
           </div>
-          {!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0) && (
-            <div className="mt-3 rounded border bg-background/70 p-3 text-xs space-y-1">
-              {state.horasN3MonitorManut > 0 && (
-                <div>
-                  <strong>{formatNumber(state.horasN3MonitorManut)}h</strong> de Manutenção do Monitoramento
-                  · {formatBRL(state.valorHoraN3)}/h
+          {!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0) && (() => {
+            const hManut = Math.max(0, state.horasN3MonitorManut || 0);
+            const hAcion = Math.max(0, state.horasN3Monitor || 0);
+            const hTotal = hManut + hAcion;
+            const pctManut = hTotal > 0 ? (hManut / hTotal) * 100 : 0;
+            const pctAcion = hTotal > 0 ? (hAcion / hTotal) * 100 : 0;
+            return (
+              <div className="mt-3 rounded border bg-background/70 p-3 text-xs space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold">Consumo das horas N3 — Smart Monitor</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    Total: {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
+                  </span>
                 </div>
-              )}
-              {state.horasN3Monitor > 0 && (
-                <div>
-                  <strong>{formatNumber(state.horasN3Monitor)}h</strong> de Acionamento N3
-                  · {formatBRL(state.valorHoraN3)}/h — para tratamento de incidentes detectados pelo monitoramento.
+                <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
+                  {pctManut > 0 && (
+                    <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctManut}%` }} />
+                  )}
+                  {pctAcion > 0 && (
+                    <div className="bg-gradient-to-r from-amber-400 to-orange-500" style={{ width: `${pctAcion}%` }} />
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
+                    <div className="text-muted-foreground text-[10px]">Manut. de Monitoramento · {pctManut.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sm.custoN3Manut * fatorVenda)}</div>
+                    <div className="text-[10px] text-muted-foreground">Ajustes e tunings do monitoramento.</div>
+                  </div>
+                  <div className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-1.5">
+                    <div className="text-muted-foreground text-[10px]">Acionamento N3 · {pctAcion.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sm.custoN3 * fatorVenda)}</div>
+                    <div className="text-[10px] text-muted-foreground">Tratamento de incidentes detectados.</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
           <CompositionBox title="Composição do valor mensal" total={valorMonitor} parts={valorMonitorParts} color="bronze" />
         </TierBlock>
         )}
