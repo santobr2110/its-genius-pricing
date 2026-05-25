@@ -18,6 +18,10 @@ import {
   ROTINAS_DEFAULT, rotinaMultiplicador, COMPLEX_FLAG_KEYS,
   type ComplexFlags, type Rotina,
 } from "@/data/rotinas";
+import {
+  ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
+  type EscopoProposicao, type CamadaKey,
+} from "@/data/escopoProposicao";
 
 function normalizeOsRotina(r: Rotina): Rotina {
   const isOs = r.grupo.toLowerCase().includes("sistema operacional");
@@ -125,6 +129,7 @@ export default function Detalhamento() {
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
