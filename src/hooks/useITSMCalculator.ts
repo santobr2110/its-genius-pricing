@@ -64,6 +64,9 @@ export interface ITSMState {
   qtdAtendentesMonitorMin: number;
   qtdAtendentesMonitorMax: number;
   custoAtendenteMonitor: number;
+  // Monitoramento — proxys (Smart Monitor)
+  qtdProxysMonitor: number;
+  qtdProxysMonitorMax: number;
   // Criticidade do ambiente (0..4) e escala de ajuste aplicada às taxas
   criticidadeNivel: number;
   criticidadeEscala: number[];
