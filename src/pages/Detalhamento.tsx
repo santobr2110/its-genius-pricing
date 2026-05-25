@@ -228,6 +228,12 @@ export default function Detalhamento() {
   const custoRotinasPerfComplexo = sumCusto(rotinasPerfComplexo);
   const custoRotinasField = sumCusto(rotinasField);
 
+  // Rotinas Performance consomem horas do pool N3 contratado (slider).
+  // O custo das rotinas é abatido das horas N3 (sem cobrar em separado).
+  const horasRotinasN3 = state.valorHoraN3 > 0
+    ? (custoRotinasPerfPadrao + custoRotinasPerfComplexo) / state.valorHoraN3
+    : 0;
+
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
   const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
@@ -240,7 +246,7 @@ export default function Detalhamento() {
     ? toSell(custoOperacaoBase) + toSell(custoRotinasOp) + valorFieldService
     : 0;
   const valorPerformance = state.tierPerformance
-    ? toSell(results.custoN3) + toSell(custoRotinasPerfPadrao) + toSell(custoRotinasPerfComplexo)
+    ? toSell(results.custoN3)
     : 0;
   const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
 
@@ -273,12 +279,6 @@ export default function Detalhamento() {
           label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`,
           value: toSell(results.custoN3),
         },
-        ...(custoRotinasPerfPadrao > 0
-          ? [{ label: "Rotinas Performance · Padrão", value: toSell(custoRotinasPerfPadrao) }]
-          : []),
-        ...(custoRotinasPerfComplexo > 0
-          ? [{ label: "Rotinas Performance · Complexo", value: toSell(custoRotinasPerfComplexo) }]
-          : []),
       ]
     : [];
   const valorFieldParts = state.tierFieldOperation
