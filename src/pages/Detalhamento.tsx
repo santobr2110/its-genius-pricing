@@ -420,13 +420,15 @@ export default function Detalhamento() {
             const pctManut = hTotal > 0 ? (hManut / hTotal) * 100 : 0;
             const pctAcion = hTotal > 0 ? (hAcion / hTotal) * 100 : 0;
             return (
-              <div className="mt-3 rounded border bg-background/70 p-3 text-xs space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold">Consumo das horas N3 — Smart Monitor</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    Total: {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
-                  </span>
-                </div>
+              <div className="mt-4">
+                <SubTitle>Consumo das horas N3</SubTitle>
+                <div className="rounded border bg-background/70 p-3 text-xs space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">Total contratado</span>
+                    <span className="font-semibold">
+                      {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
+                    </span>
+                  </div>
                 <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
                   {pctManut > 0 && (
                     <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctManut}%` }} />
@@ -446,6 +448,7 @@ export default function Detalhamento() {
                     <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sm.custoN3 * fatorVenda)}</div>
                     <div className="text-[10px] text-muted-foreground">Tratamento de incidentes detectados.</div>
                   </div>
+                </div>
                 </div>
               </div>
             );
