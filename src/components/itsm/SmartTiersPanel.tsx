@@ -321,6 +321,7 @@ export default function SmartTiersPanel() {
   const smN3Venda = toSell(sm.custoN3);
   const smN3ManutVenda = toSell(sm.custoN3Manut);
   const smAtendentesVenda = toSell(sm.custoAtendentes);
+  const smProxysVenda = toSell(sm.custoProxys);
   const smTotalVenda = toSell(sm.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
