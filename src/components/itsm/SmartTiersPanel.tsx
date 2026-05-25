@@ -523,6 +523,46 @@ export default function SmartTiersPanel() {
                 step={1}
               />
             </div>
+            {!state.tierOperation && (state.horasN3MonitorManut + state.horasN3Monitor > 0) && (() => {
+              const hManut = Math.max(0, state.horasN3MonitorManut || 0);
+              const hAcion = Math.max(0, state.horasN3Monitor || 0);
+              const hTotal = hManut + hAcion;
+              const pctManut = hTotal > 0 ? (hManut / hTotal) * 100 : 0;
+              const pctAcion = hTotal > 0 ? (hAcion / hTotal) * 100 : 0;
+              return (
+                <div className="rounded border bg-background px-2 py-2 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label className="text-[11px] text-muted-foreground font-semibold">
+                      Consumo das horas N3 — Smart Monitor
+                    </Label>
+                    <span className="text-[10px] text-muted-foreground">
+                      Total: {formatNumber(hTotal)}h · {formatBRL(toSell(hTotal * state.valorHoraN3))}
+                    </span>
+                  </div>
+                  <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
+                    {pctManut > 0 && (
+                      <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctManut}%` }} />
+                    )}
+                    {pctAcion > 0 && (
+                      <div className="bg-gradient-to-r from-amber-400 to-orange-500" style={{ width: `${pctAcion}%` }} />
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 text-[11px]">
+                    <div className="rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-1">
+                      <div className="text-muted-foreground">Manut. de Monitoramento · {pctManut.toFixed(0)}%</div>
+                      <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(smN3ManutVenda)}</div>
+                    </div>
+                    <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
+                      <div className="text-muted-foreground">Acionamento N3 · {pctAcion.toFixed(0)}%</div>
+                      <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(smN3Venda)}</div>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Manut. = ajustes/tunings do monitoramento · Acionamento N3 = horas para tratar incidentes detectados.
+                  </p>
+                </div>
+              );
+            })()}
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Monitor (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smTotalVenda)}</span>
