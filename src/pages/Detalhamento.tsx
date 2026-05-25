@@ -230,9 +230,16 @@ export default function Detalhamento() {
 
   // Rotinas Performance consomem horas do pool N3 contratado (slider).
   // O custo das rotinas é abatido das horas N3 (sem cobrar em separado).
-  const horasRotinasN3 = state.valorHoraN3 > 0
+  // Rotinas Operation seguem o mesmo princípio (absorvidas pelo pool N3 contratado).
+  const horasRotinasOpN3 = state.valorHoraN3 > 0
+    ? custoRotinasOp / state.valorHoraN3
+    : 0;
+  const horasRotinasPerfN3 = state.valorHoraN3 > 0
     ? (custoRotinasPerfPadrao + custoRotinasPerfComplexo) / state.valorHoraN3
     : 0;
+  // Quando Performance está ativo, o pool N3 fica em Performance e absorve
+  // tanto as rotinas de Performance quanto as de Operation.
+  const horasRotinasN3 = horasRotinasOpN3 + horasRotinasPerfN3;
 
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
@@ -243,7 +250,7 @@ export default function Detalhamento() {
     ? toSell(fs.total) + toSell(custoRotinasField)
     : 0;
   const valorOperation = state.tierOperation
-    ? toSell(custoOperacaoBase) + toSell(custoRotinasOp) + valorFieldService
+    ? toSell(custoOperacaoBase) + valorFieldService
     : 0;
   const valorPerformance = state.tierPerformance
     ? toSell(results.custoN3)
@@ -265,9 +272,6 @@ export default function Detalhamento() {
           label: state.tierPerformance ? "Serviço base (N1 + N2)" : "Serviço base (N1 + N2 + N3)",
           value: toSell(custoOperacaoBase),
         },
-        ...(custoRotinasOp > 0
-          ? [{ label: "Rotinas Operation", value: toSell(custoRotinasOp) }]
-          : []),
         ...(valorFieldService > 0
           ? [{ label: "Field Service", value: valorFieldService }]
           : []),
