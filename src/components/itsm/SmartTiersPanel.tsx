@@ -706,9 +706,9 @@ export default function SmartTiersPanel() {
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         {([
-                          ["fieldDirectQtdN1", "Qtd N1F"],
-                          ["fieldDirectQtdN2", "Qtd N2F"],
-                          ["fieldDirectQtdN3", "Qtd N3F"],
+                          ["fieldDirectQtdN1", "Field Junior"],
+                          ["fieldDirectQtdN2", "Field Pleno"],
+                          ["fieldDirectQtdN3", "Field Senior"],
                         ] as const).map(([key, label]) => (
                           <div key={key} className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
                             <Label className="text-[11px] text-muted-foreground">{label}</Label>
