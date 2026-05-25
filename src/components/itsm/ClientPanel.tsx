@@ -57,7 +57,7 @@ export default function ClientPanel({ state, update, results }: Props) {
     state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0;
   const fmt = (n: number) =>
     n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-  const niveis = ["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"];
+  const niveis = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
   const descritivos = [
     "Ambiente Cloud Native, PaaS, sem equipamentos físicos. Alto Investimento.",
     "Ambiente Cloud IaaS, Baremetal em Cloud suportado pelo Provedor. Investimento previsto.",

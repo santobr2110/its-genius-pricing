@@ -398,7 +398,7 @@ export default function TaxasDemanda() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {["Muito Baixo", "Baixo", "Ideal", "Alto", "Muito Alto"].map((nome, idx) => (
+              {["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"].map((nome, idx) => (
                 <div key={nome} className="space-y-1">
                   <Label className="text-xs text-muted-foreground">{nome}</Label>
                   <div className="relative">
