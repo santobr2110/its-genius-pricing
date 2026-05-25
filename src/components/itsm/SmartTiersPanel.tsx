@@ -724,19 +724,19 @@ export default function SmartTiersPanel() {
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                       <span className="text-muted-foreground">
-                        N1F ({state.fieldDirectQtdN1} prof.)
+                        {state.fieldDirectQtdN1} prof.
                       </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN1F))}</span>
                     </div>
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                       <span className="text-muted-foreground">
-                        N2F ({state.fieldDirectQtdN2} prof.)
+                        {state.fieldDirectQtdN2} prof.
                       </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN2F))}</span>
                     </div>
                     <div className="flex justify-between rounded border bg-background px-2 py-1.5">
                       <span className="text-muted-foreground">
-                        N3F ({state.fieldDirectQtdN3} prof.)
+                        {state.fieldDirectQtdN3} prof.
                       </span>
                       <span className="font-semibold">{formatBRL(toSell(fs.custoN3F))}</span>
                     </div>
