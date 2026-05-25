@@ -376,6 +376,18 @@ export default function Detalhamento() {
             <Stat label="Total de ativos" value={formatNumber(sm.ativos)} />
             <Stat label="Chamados de monitoramento" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre monitor" value={`${state.percAlocacaoN1Monitor}%`} />
+            {sm.qtdAtendentes > 0 && (
+              <Stat
+                label={`Atendentes do cliente (${sm.qtdAtendentes}x)`}
+                value={`${formatBRL(state.custoAtendenteMonitor)}/atendente · ${formatBRL(toSell(sm.custoAtendentes))}`}
+              />
+            )}
+            {sm.qtdProxys > 0 && (
+              <Stat
+                label={`Proxys de monitoramento (${sm.qtdProxys}x)`}
+                value={`${formatBRL(state.valorProxyInicial)} inicial${sm.qtdProxys > 1 ? ` + ${formatBRL(state.valorProxyAdicional)} × ${sm.qtdProxys - 1}` : ""} · ${formatBRL(toSell(sm.custoProxys))}`}
+              />
+            )}
           </div>
           {!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0) && (() => {
             const hManut = Math.max(0, state.horasN3MonitorManut || 0);
