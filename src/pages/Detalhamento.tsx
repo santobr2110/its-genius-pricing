@@ -775,11 +775,12 @@ function RoutineList({
 }
 
 function N3HoursBox({
-  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, distribuicao,
+  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, distribuicao,
 }: {
   total: number; consumidas: number; previstas: number;
   chamadosN3: number; tempoMedio: number; valorHora: number;
   modo: "operation" | "performance";
+  horasRotinas?: number;
   distribuicao?: { tam: number; owner: number; livre: number };
 }) {
   const pctConsumido = total > 0 ? Math.min(100, (consumidas / total) * 100) : 0;
@@ -787,13 +788,14 @@ function N3HoursBox({
   const horasTam = distribuicao ? (total * distribuicao.tam) / 100 : 0;
   const horasOwner = distribuicao ? (total * distribuicao.owner) / 100 : 0;
   // Livre = sobra após chamados + TAM + Owner
-  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasTam - horasOwner) : 0;
+  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner) : 0;
   const pctChamados = total > 0 ? (consumidas / total) * 100 : 0;
+  const pctRotinas = total > 0 ? (horasRotinas / total) * 100 : 0;
   const pctTam = distribuicao?.tam ?? 0;
   const pctOwner = distribuicao?.owner ?? 0;
   const pctLivre = total > 0 ? (horasLivre / total) * 100 : 0;
   const valorTotalVenda = total * valorHora;
-  const livreNegativo = distribuicao && (consumidas + horasTam + horasOwner) > total;
+  const livreNegativo = !!distribuicao && (consumidas + horasRotinas + horasTam + horasOwner) > total;
 
   return (
     <div className="mt-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background/90 to-background/60 backdrop-blur-sm p-4 space-y-4 shadow-md">
