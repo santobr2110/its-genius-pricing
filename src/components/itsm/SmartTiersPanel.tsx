@@ -846,7 +846,7 @@ export default function SmartTiersPanel() {
                   <Label className="text-[11px] text-muted-foreground font-semibold">
                     Distribuição das horas N3
                   </Label>
-                  <span className="text-[10px] text-muted-foreground">Livre recalculado automaticamente</span>
+                  <span className="text-[10px] text-muted-foreground">Horas Técnicas recalculadas automaticamente</span>
                 </div>
                 <div className="space-y-3 rounded border bg-muted/20 p-2">
                   <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
@@ -901,7 +901,7 @@ export default function SmartTiersPanel() {
                     <div className="font-semibold">{formatNumber(horasOwner)}h</div>
                   </div>
                   <div className={`rounded px-1.5 py-1 border ${livreEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
-                    <div className="text-muted-foreground">Livre · {pctLivreReal.toFixed(0)}%</div>
+                    <div className="text-muted-foreground">Horas Técnicas · {pctLivreReal.toFixed(0)}%</div>
                     <div className={`font-semibold ${livreEstourado ? "text-destructive" : ""}`}>{formatNumber(horasLivre, 1)}h</div>
                   </div>
                 </div>
