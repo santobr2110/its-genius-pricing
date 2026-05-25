@@ -321,6 +321,7 @@ export default function SmartTiersPanel() {
   const smN3Venda = toSell(sm.custoN3);
   const smN3ManutVenda = toSell(sm.custoN3Manut);
   const smAtendentesVenda = toSell(sm.custoAtendentes);
+  const smProxysVenda = toSell(sm.custoProxys);
   const smTotalVenda = toSell(sm.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
@@ -502,6 +503,23 @@ export default function SmartTiersPanel() {
                 onValueChange={([v]) => update("qtdAtendentesMonitor", v)}
                 min={state.qtdAtendentesMonitorMin}
                 max={state.qtdAtendentesMonitorMax}
+                step={1}
+              />
+            </div>
+            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-muted-foreground">
+                  Quantidade de Proxys ({formatBRL(toSell(state.valorProxyInicial))} inicial · {formatBRL(toSell(state.valorProxyAdicional))} adicional)
+                </Label>
+                <span className="text-xs font-semibold">
+                  {sm.qtdProxys} · {formatBRL(smProxysVenda)}
+                </span>
+              </div>
+              <Slider
+                value={[Math.min(state.qtdProxysMonitorMax, Math.max(1, state.qtdProxysMonitor || 1))]}
+                onValueChange={([v]) => update("qtdProxysMonitor", v)}
+                min={1}
+                max={Math.max(1, state.qtdProxysMonitorMax)}
                 step={1}
               />
             </div>
