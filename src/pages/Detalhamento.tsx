@@ -680,6 +680,52 @@ export default function Detalhamento() {
             </div>
           </CardContent>
         </Card>
+
+        {/* RESTRIÇÕES DE ATUAÇÃO — bloco compacto por camada ativa */}
+        {(() => {
+          const ativos: CamadaKey[] = [];
+          if (monitorVisible) ativos.push("monitor");
+          if (state.tierOperation) ativos.push("operation");
+          if (state.tierFieldOperation) ativos.push("fieldService");
+          if (state.tierPerformance) ativos.push("performance");
+          if (state.tierEnterprise) ativos.push("enterprise");
+          const blocos = ativos
+            .map((k) => ({ k, items: escopo[k]?.restricoes ?? [] }))
+            .filter((b) => b.items.length > 0);
+          if (blocos.length === 0) return null;
+          return (
+            <Card className="border-muted-foreground/20 bg-muted/20">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
+                    Restrições de atuação
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {blocos.map((b) => (
+                    <div key={b.k} className="rounded-lg border bg-background/70 p-3">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/80 mb-1.5">
+                        {CAMADA_LABEL[b.k]}
+                      </p>
+                      <ul className="space-y-1 text-[11px] text-muted-foreground leading-snug">
+                        {b.items.map((t, i) => (
+                          <li key={i} className="flex gap-1.5">
+                            <span className="text-muted-foreground/60">·</span>
+                            <span>{t}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground italic">
+                  Itens fora deste escopo podem ser atendidos sob demanda mediante orçamento específico.
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })()}
       </main>
     </div>
   );
