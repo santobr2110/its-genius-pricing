@@ -860,13 +860,13 @@ function N3HoursBox({
             )}
             {pctLivre > 0 && (
               <div className="bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctLivre}%` }}>
-                {pctLivre >= 8 && `Livre ${pctLivre.toFixed(0)}%`}
+                {pctLivre >= 8 && `Horas Técnicas ${pctLivre.toFixed(0)}%`}
               </div>
             )}
           </div>
 
           <p className="text-[10px] text-muted-foreground italic">
-            Livre = Total contratado − Chamados N3 − Horas TAM − Horas Owner
+            Horas Técnicas = Total contratado − Chamados N3 − Horas TAM − Horas Owner
           </p>
 
           {/* Cards detalhados */}
@@ -881,13 +881,13 @@ function N3HoursBox({
               titulo="Owner" subtitulo="Especialista dedicado"
               desc="Execução das rotinas preventivas e melhorias contínuas no ambiente." />
             <DistCard color="violet" pct={pctLivre} horas={horasLivre} valor={horasLivre * valorHora}
-              titulo="Livre" subtitulo="Saldo disponível"
+              titulo="Horas Técnicas" subtitulo="Saldo disponível"
               desc="Horas remanescentes para projetos, mudanças e demandas pontuais." alerta={livreNegativo} />
           </div>
 
           {livreNegativo && (
             <div className="rounded-lg border-2 border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px]">
-              <strong className="text-destructive">⚠ Saldo livre zerado:</strong> a soma de Chamados + TAM + Owner já consome todas as horas N3 contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
+              <strong className="text-destructive">⚠ Horas Técnicas zeradas:</strong> a soma de Chamados + TAM + Owner já consome todas as horas N3 contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
             </div>
           )}
         </div>
