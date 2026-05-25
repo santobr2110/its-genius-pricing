@@ -376,19 +376,43 @@ export default function Detalhamento() {
             <Stat label="Total de ativos" value={formatNumber(sm.ativos)} />
             <Stat label="Chamados de monitoramento" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre monitor" value={`${state.percAlocacaoN1Monitor}%`} />
-            {sm.qtdAtendentes > 0 && (
-              <>
-                <Stat label="Quantidade de Atendentes" value={formatNumber(sm.qtdAtendentes)} />
-                <Stat label="Valor de Atendentes" value={formatBRL(toSell(sm.custoAtendentes))} />
-              </>
-            )}
-            {sm.qtdProxys > 0 && (
-              <>
-                <Stat label="Quantidade de Proxys" value={formatNumber(sm.qtdProxys)} />
-                <Stat label="Valor de Proxys" value={formatBRL(toSell(sm.custoProxys))} />
-              </>
-            )}
           </div>
+
+          {(sm.qtdAtendentes > 0 || sm.qtdProxys > 0) && (
+            <div className="mt-4">
+              <SubTitle>Recursos dimensionados</SubTitle>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {sm.qtdAtendentes > 0 && (
+                  <div className="rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Atendentes do cliente</div>
+                      <div className="text-lg font-bold leading-tight">{formatNumber(sm.qtdAtendentes)}</div>
+                      <div className="text-[11px] text-muted-foreground">profissionais dedicados</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
+                      <div className="text-base font-bold text-primary">{formatBRL(toSell(sm.custoAtendentes))}</div>
+                    </div>
+                  </div>
+                )}
+                {sm.qtdProxys > 0 && (
+                  <div className="rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Proxys de monitoramento</div>
+                      <div className="text-lg font-bold leading-tight">{formatNumber(sm.qtdProxys)}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adicional${sm.qtdProxys - 1 > 1 ? "is" : ""}`}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
+                      <div className="text-base font-bold text-primary">{formatBRL(toSell(sm.custoProxys))}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           {!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0) && (() => {
             const hManut = Math.max(0, state.horasN3MonitorManut || 0);
             const hAcion = Math.max(0, state.horasN3Monitor || 0);
@@ -396,13 +420,15 @@ export default function Detalhamento() {
             const pctManut = hTotal > 0 ? (hManut / hTotal) * 100 : 0;
             const pctAcion = hTotal > 0 ? (hAcion / hTotal) * 100 : 0;
             return (
-              <div className="mt-3 rounded border bg-background/70 p-3 text-xs space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold">Consumo das horas N3 — Smart Monitor</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    Total: {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
-                  </span>
-                </div>
+              <div className="mt-4">
+                <SubTitle>Consumo das horas N3</SubTitle>
+                <div className="rounded border bg-background/70 p-3 text-xs space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">Total contratado</span>
+                    <span className="font-semibold">
+                      {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
+                    </span>
+                  </div>
                 <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
                   {pctManut > 0 && (
                     <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctManut}%` }} />
@@ -422,6 +448,7 @@ export default function Detalhamento() {
                     <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sm.custoN3 * fatorVenda)}</div>
                     <div className="text-[10px] text-muted-foreground">Tratamento de incidentes detectados.</div>
                   </div>
+                </div>
                 </div>
               </div>
             );
