@@ -509,6 +509,7 @@ export default function Detalhamento() {
               tempoMedio={state.tempoMedioChamadoN3}
               valorHora={valorHoraN3Venda}
               modo="performance"
+              horasRotinas={horasRotinasN3}
               distribuicao={{ tam: pctTam, owner: pctOwner, livre: pctLivre }}
             />
           )}
