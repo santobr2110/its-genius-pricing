@@ -228,6 +228,12 @@ export default function Detalhamento() {
   const custoRotinasPerfComplexo = sumCusto(rotinasPerfComplexo);
   const custoRotinasField = sumCusto(rotinasField);
 
+  // Rotinas Performance consomem horas do pool N3 contratado (slider).
+  // O custo das rotinas é abatido das horas N3 (sem cobrar em separado).
+  const horasRotinasN3 = state.valorHoraN3 > 0
+    ? (custoRotinasPerfPadrao + custoRotinasPerfComplexo) / state.valorHoraN3
+    : 0;
+
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
   const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
@@ -240,7 +246,7 @@ export default function Detalhamento() {
     ? toSell(custoOperacaoBase) + toSell(custoRotinasOp) + valorFieldService
     : 0;
   const valorPerformance = state.tierPerformance
-    ? toSell(results.custoN3) + toSell(custoRotinasPerfPadrao) + toSell(custoRotinasPerfComplexo)
+    ? toSell(results.custoN3)
     : 0;
   const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
 
@@ -273,12 +279,6 @@ export default function Detalhamento() {
           label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`,
           value: toSell(results.custoN3),
         },
-        ...(custoRotinasPerfPadrao > 0
-          ? [{ label: "Rotinas Performance · Padrão", value: toSell(custoRotinasPerfPadrao) }]
-          : []),
-        ...(custoRotinasPerfComplexo > 0
-          ? [{ label: "Rotinas Performance · Complexo", value: toSell(custoRotinasPerfComplexo) }]
-          : []),
       ]
     : [];
   const valorFieldParts = state.tierFieldOperation
@@ -509,6 +509,7 @@ export default function Detalhamento() {
               tempoMedio={state.tempoMedioChamadoN3}
               valorHora={valorHoraN3Venda}
               modo="performance"
+              horasRotinas={horasRotinasN3}
               distribuicao={{ tam: pctTam, owner: pctOwner, livre: pctLivre }}
             />
           )}
@@ -774,11 +775,12 @@ function RoutineList({
 }
 
 function N3HoursBox({
-  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, distribuicao,
+  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, distribuicao,
 }: {
   total: number; consumidas: number; previstas: number;
   chamadosN3: number; tempoMedio: number; valorHora: number;
   modo: "operation" | "performance";
+  horasRotinas?: number;
   distribuicao?: { tam: number; owner: number; livre: number };
 }) {
   const pctConsumido = total > 0 ? Math.min(100, (consumidas / total) * 100) : 0;
@@ -786,13 +788,14 @@ function N3HoursBox({
   const horasTam = distribuicao ? (total * distribuicao.tam) / 100 : 0;
   const horasOwner = distribuicao ? (total * distribuicao.owner) / 100 : 0;
   // Livre = sobra após chamados + TAM + Owner
-  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasTam - horasOwner) : 0;
+  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner) : 0;
   const pctChamados = total > 0 ? (consumidas / total) * 100 : 0;
+  const pctRotinas = total > 0 ? (horasRotinas / total) * 100 : 0;
   const pctTam = distribuicao?.tam ?? 0;
   const pctOwner = distribuicao?.owner ?? 0;
   const pctLivre = total > 0 ? (horasLivre / total) * 100 : 0;
   const valorTotalVenda = total * valorHora;
-  const livreNegativo = distribuicao && (consumidas + horasTam + horasOwner) > total;
+  const livreNegativo = !!distribuicao && (consumidas + horasRotinas + horasTam + horasOwner) > total;
 
   return (
     <div className="mt-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background/90 to-background/60 backdrop-blur-sm p-4 space-y-4 shadow-md">
@@ -848,6 +851,11 @@ function N3HoursBox({
                 {pctChamados >= 10 && `Chamados ${pctChamados.toFixed(0)}%`}
               </div>
             )}
+            {pctRotinas > 0 && (
+              <div className="bg-gradient-to-r from-rose-400 to-rose-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${Math.min(100, pctRotinas)}%` }}>
+                {pctRotinas >= 10 && `Rotinas ${pctRotinas.toFixed(0)}%`}
+              </div>
+            )}
             {pctTam > 0 && (
               <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctTam}%` }}>
                 {pctTam >= 8 && `TAM ${pctTam}%`}
@@ -866,14 +874,17 @@ function N3HoursBox({
           </div>
 
           <p className="text-[10px] text-muted-foreground italic">
-            Horas Técnicas = Total contratado − Chamados N3 − Horas TAM − Horas Owner
+            Horas Técnicas = Total contratado − Chamados N3 − Rotinas Performance − Horas TAM − Horas Owner
           </p>
 
           {/* Cards detalhados */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
             <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
               titulo="Chamados" subtitulo="Atendimento reativo N3"
               desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
+            <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
+              titulo="Rotinas" subtitulo="Rotinas Performance"
+              desc="Horas consumidas pelas rotinas preventivas Padrão/Complexo, já cobradas dentro do pool de horas N3." />
             <DistCard color="emerald" pct={pctTam} horas={horasTam} valor={horasTam * valorHora}
               titulo="TAM" subtitulo="Technical Account Manager"
               desc="Acompanhamento técnico, governança do contrato e relacionamento com o cliente." />
@@ -887,7 +898,7 @@ function N3HoursBox({
 
           {livreNegativo && (
             <div className="rounded-lg border-2 border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px]">
-              <strong className="text-destructive">⚠ Horas Técnicas zeradas:</strong> a soma de Chamados + TAM + Owner já consome todas as horas N3 contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
+              <strong className="text-destructive">⚠ Horas Técnicas zeradas:</strong> a soma de Chamados + Rotinas + TAM + Owner já consome todas as horas N3 contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
             </div>
           )}
         </div>
@@ -899,7 +910,7 @@ function N3HoursBox({
 function DistCard({
   color, pct, horas, valor, titulo, subtitulo, desc, alerta,
 }: {
-  color: "emerald" | "sky" | "violet" | "amber";
+  color: "emerald" | "sky" | "violet" | "amber" | "rose";
   pct: number; horas: number; valor: number;
   titulo: string; subtitulo: string; desc: string; alerta?: boolean;
 }) {
@@ -908,6 +919,7 @@ function DistCard({
     sky:     { bg: "from-sky-50 to-sky-100/50 dark:from-sky-950/40 dark:to-sky-900/20",                 border: "border-sky-300/60 dark:border-sky-700/60",         dot: "bg-gradient-to-br from-sky-400 to-sky-600",         text: "text-sky-700 dark:text-sky-300" },
     violet:  { bg: "from-violet-50 to-fuchsia-100/50 dark:from-violet-950/40 dark:to-fuchsia-900/20",   border: "border-violet-300/60 dark:border-violet-700/60",   dot: "bg-gradient-to-br from-violet-500 to-fuchsia-600",  text: "text-violet-700 dark:text-violet-300" },
     amber:   { bg: "from-amber-50 to-orange-100/50 dark:from-amber-950/40 dark:to-orange-900/20",       border: "border-amber-300/60 dark:border-amber-700/60",     dot: "bg-gradient-to-br from-amber-400 to-orange-500",    text: "text-amber-700 dark:text-amber-300" },
+    rose:    { bg: "from-rose-50 to-rose-100/50 dark:from-rose-950/40 dark:to-rose-900/20",             border: "border-rose-300/60 dark:border-rose-700/60",       dot: "bg-gradient-to-br from-rose-400 to-rose-600",       text: "text-rose-700 dark:text-rose-300" },
   }[color];
   const dimmed = pct === 0 && !alerta;
   return (
