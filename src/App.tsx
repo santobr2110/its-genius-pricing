@@ -16,6 +16,7 @@ import FieldService from "./pages/FieldService";
 import GestaoTI from "./pages/GestaoTI";
 import RelatorioDemanda from "./pages/RelatorioDemanda";
 import PerfisParametros from "./pages/PerfisParametros";
+import Escopo from "./pages/Escopo";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import SemAcesso from "./pages/SemAcesso";
@@ -53,6 +54,7 @@ const App = () => (
               <Route path="/field-service" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.field_service"><FieldService /></ProtectedRoute>} />
               <Route path="/gestao-ti" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />
               <Route path="/relatorio-demanda" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.relatorio_demanda"><RelatorioDemanda /></ProtectedRoute>} />
+              <Route path="/escopo" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.escopo"><Escopo /></ProtectedRoute>} />
               <Route path="/perfis-parametros" element={<ProtectedRoute group="ito" offering="smart-ito"><PerfisParametros /></ProtectedRoute>} />
               <Route path="/datacenter" element={<ProtectedRoute group="datacenter"><EmBreve /></ProtectedRoute>} />
               <Route path="/cloud" element={<ProtectedRoute group="cloud"><EmBreve /></ProtectedRoute>} />

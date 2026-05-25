@@ -56,6 +56,7 @@ export type NavItemId =
   | "taxas"
   | "financeiro"
   | "gestao-ti"
+  | "escopo"
   | "equipe-n1"
   | "equipe-n2"
   | "equipe-n3"
@@ -76,6 +77,7 @@ const PAGES: Record<NavItemId, PageDef> = {
   taxas: { id: "taxas", to: "/taxas-demanda", label: "Métricas e Parâmetros", icon: TrendingUp },
   financeiro: { id: "financeiro", to: "/financeiro", label: "Financeiro", icon: DollarSign },
   "gestao-ti": { id: "gestao-ti", to: "/gestao-ti", label: "Gestão de TI", icon: ServerCog },
+  escopo: { id: "escopo", to: "/escopo", label: "Escopo", icon: ClipboardList },
   "equipe-n1": { id: "equipe-n1", to: "/equipe-n1", label: "Equipe N1", icon: Users },
   "equipe-n2": { id: "equipe-n2", to: "/equipe-n2", label: "Equipe N2", icon: Server },
   "equipe-n3": { id: "equipe-n3", to: "/equipe-n3", label: "Equipe N3", icon: Clock },
@@ -90,6 +92,7 @@ const PAGE_PERMISSION: Record<NavItemId, PermissionKey> = {
   taxas: "page.taxas_demanda",
   financeiro: "page.financeiro",
   "gestao-ti": "page.gestao_ti",
+  escopo: "page.escopo",
   "equipe-n1": "page.equipe_n1",
   "equipe-n2": "page.equipe_n2",
   "equipe-n3": "page.equipe_n3",
@@ -125,7 +128,7 @@ const SLOTS: Slot[] = [
     label: "Configurações",
     shortLabel: "Config",
     icon: Settings2,
-    items: ["taxas", "financeiro", "gestao-ti"],
+    items: ["taxas", "financeiro", "gestao-ti", "escopo"],
   },
   {
     kind: "menu",

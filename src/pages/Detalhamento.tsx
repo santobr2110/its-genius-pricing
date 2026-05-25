@@ -18,6 +18,10 @@ import {
   ROTINAS_DEFAULT, rotinaMultiplicador, COMPLEX_FLAG_KEYS,
   type ComplexFlags, type Rotina,
 } from "@/data/rotinas";
+import {
+  ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
+  type EscopoProposicao, type CamadaKey,
+} from "@/data/escopoProposicao";
 
 function normalizeOsRotina(r: Rotina): Rotina {
   const isOs = r.grupo.toLowerCase().includes("sistema operacional");
@@ -125,6 +129,7 @@ export default function Detalhamento() {
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
@@ -363,8 +368,21 @@ export default function Detalhamento() {
         {monitorVisible && (
         <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
-          title="Monitor" tagline="Monitoramento da infraestrutura"
+          title={escopo.monitor.titulo} tagline={escopo.monitor.tagline}
           valor={valorMonitor}>
+          {escopo.monitor.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.monitor.descricao}</p>
+          )}
+          {escopo.monitor.incluidos.length > 0 && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopo.monitor.incluidos.map((t, i) => (
+                  <Bullet key={i} color="bronze">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
@@ -460,17 +478,16 @@ export default function Detalhamento() {
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
           dominant={dominantColor === "silver"}
-          title="Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
+          title={escopo.operation.titulo} tagline={escopo.operation.tagline}
           valor={valorOperation}>
+          {escopo.operation.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.operation.descricao}</p>
+          )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="silver">Funil N1 ({state.percN1}%) e N2 ({state.percN2}%) reativo com SLA controlado</Bullet>
-            <Bullet color="silver">Triagem técnica e roteamento dos chamados</Bullet>
-            <Bullet color="silver">Rotinas preventivas básicas (Operation)</Bullet>
-            <Bullet color="silver">Indicadores e relatórios mensais</Bullet>
-            {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && (
-              <Bullet color="silver">Atendimento N3 contratado em horas ({formatNumber(state.horasN3Mensais)}h/mês)</Bullet>
-            )}
+            {escopo.operation.incluidos.map((t, i) => (
+              <Bullet key={i} color="silver">{t}</Bullet>
+            ))}
           </ul>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
@@ -507,8 +524,8 @@ export default function Detalhamento() {
                   <Wrench className="h-4 w-4" strokeWidth={2.5} />
                 </div>
                 <div className="flex-1 min-w-[160px]">
-                  <p className="text-sm font-extrabold tracking-tight">Field Service</p>
-                  <p className="text-[11px] text-muted-foreground italic">Suporte presencial — incluso no Smart Operation</p>
+                  <p className="text-sm font-extrabold tracking-tight">{escopo.fieldService.titulo}</p>
+                  <p className="text-[11px] text-muted-foreground italic">{escopo.fieldService.tagline}</p>
                 </div>
                 {valorFieldService > 0 && (
                   <div className="text-right shrink-0">
@@ -517,6 +534,19 @@ export default function Detalhamento() {
                   </div>
                 )}
               </div>
+              {escopo.fieldService.descricao && (
+                <p className="text-xs text-muted-foreground leading-relaxed">{escopo.fieldService.descricao}</p>
+              )}
+              {escopo.fieldService.incluidos.length > 0 && (
+                <>
+                  <SubTitle>O que está incluído</SubTitle>
+                  <ul className="space-y-1.5">
+                    {escopo.fieldService.incluidos.map((t, i) => (
+                      <Bullet key={i} color="amber">{t}</Bullet>
+                    ))}
+                  </ul>
+                </>
+              )}
               <SubTitle>Equipe presencial alocada</SubTitle>
               <div className="grid grid-cols-3 gap-2">
                 <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} sub={formatBRL(fs.custoN1F)} />
@@ -547,14 +577,16 @@ export default function Detalhamento() {
         {/* SMART PERFORMANCE */}
         <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
           dominant={dominantColor === "gold"}
-          title="Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
+          title={escopo.performance.titulo} tagline={escopo.performance.tagline}
           valor={valorPerformance}>
+          {escopo.performance.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.performance.descricao}</p>
+          )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="gold">Rotinas preventivas avançadas executadas pelo N3</Bullet>
-            <Bullet color="gold">Cobertura de ambientes complexos (HA, multi-site, 24x7, ERP)</Bullet>
-            <Bullet color="gold">Otimização contínua de performance e capacidade</Bullet>
-            <Bullet color="gold">Horas técnicas N3 dedicadas ao cliente</Bullet>
+            {escopo.performance.incluidos.map((t, i) => (
+              <Bullet key={i} color="gold">{t}</Bullet>
+            ))}
           </ul>
 
           {rotinasPerfPadrao.length > 0 && (
@@ -590,12 +622,15 @@ export default function Detalhamento() {
         {/* SMART ENTERPRISE */}
         <TierBlock active={state.tierEnterprise} color="diamond" icon={Crown} tierIndex={5}
           dominant={dominantColor === "diamond"}
-          title="Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
+          title={escopo.enterprise.titulo} tagline={escopo.enterprise.tagline} valor={0}>
+          {escopo.enterprise.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.enterprise.descricao}</p>
+          )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="diamond">Gestão estratégica e roadmap tecnológico</Bullet>
-            <Bullet color="diamond">Comitê executivo e governança de mudanças (GMUDs)</Bullet>
-            <Bullet color="diamond">Alinhamento contínuo entre TI e negócio</Bullet>
+            {escopo.enterprise.incluidos.map((t, i) => (
+              <Bullet key={i} color="diamond">{t}</Bullet>
+            ))}
           </ul>
         </TierBlock>
 
@@ -645,6 +680,52 @@ export default function Detalhamento() {
             </div>
           </CardContent>
         </Card>
+
+        {/* RESTRIÇÕES DE ATUAÇÃO — bloco compacto por camada ativa */}
+        {(() => {
+          const ativos: CamadaKey[] = [];
+          if (monitorVisible) ativos.push("monitor");
+          if (state.tierOperation) ativos.push("operation");
+          if (state.tierFieldOperation) ativos.push("fieldService");
+          if (state.tierPerformance) ativos.push("performance");
+          if (state.tierEnterprise) ativos.push("enterprise");
+          const blocos = ativos
+            .map((k) => ({ k, items: escopo[k]?.restricoes ?? [] }))
+            .filter((b) => b.items.length > 0);
+          if (blocos.length === 0) return null;
+          return (
+            <Card className="border-muted-foreground/20 bg-muted/20">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
+                    Restrições de atuação
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {blocos.map((b) => (
+                    <div key={b.k} className="rounded-lg border bg-background/70 p-3">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/80 mb-1.5">
+                        {CAMADA_LABEL[b.k]}
+                      </p>
+                      <ul className="space-y-1 text-[11px] text-muted-foreground leading-snug">
+                        {b.items.map((t, i) => (
+                          <li key={i} className="flex gap-1.5">
+                            <span className="text-muted-foreground/60">·</span>
+                            <span>{t}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground italic">
+                  Itens fora deste escopo podem ser atendidos sob demanda mediante orçamento específico.
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })()}
       </main>
     </div>
   );
