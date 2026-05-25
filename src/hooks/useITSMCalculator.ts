@@ -59,7 +59,7 @@ export interface ITSMState {
   horasN3OperationMax: number;
   horasN3PerformanceMin: number;
   horasN3PerformanceMax: number;
-  // Monitoramento — atendentes dedicados (Smart Monitor)
+  // Monitoramento — Atendentes no ITSM (Smart Monitor)
   qtdAtendentesMonitor: number;
   qtdAtendentesMonitorMin: number;
   qtdAtendentesMonitorMax: number;
@@ -414,7 +414,7 @@ export function useITSMCalculator() {
     // a partir do 11º cada item adicional acrescenta o valor unitário.
     const smAtivosBillable = Math.max(10, smAtivos);
     const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivosBillable : 0;
-    // Custo de atendentes dedicados ao Smart Monitor
+    // Custo de Atendentes no ITSM (Smart Monitor)
     const smCustoAtendentes = monitorActive
       ? Math.max(0, state.qtdAtendentesMonitor || 0) * Math.max(0, state.custoAtendenteMonitor || 0)
       : 0;

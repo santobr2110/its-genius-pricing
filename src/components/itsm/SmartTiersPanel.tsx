@@ -492,7 +492,7 @@ export default function SmartTiersPanel() {
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
-                  Custo por Atendente do Cliente ({formatBRL(toSell(state.custoAtendenteMonitor))}/atendente)
+                  Atendentes no ITSM ({formatBRL(toSell(state.custoAtendenteMonitor))}/acesso)
                 </Label>
                 <span className="text-xs font-semibold">
                   {state.qtdAtendentesMonitor} · {formatBRL(smAtendentesVenda)}
