@@ -8,9 +8,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users } from "lucide-react";
+import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { GROUP_ACCESS_KEYS, PACOTE_HORAS_ACCESS_KEY, BODYSHOP_ACCESS_KEY } from "@/lib/offerings";
+import { GROUP_ACCESS_KEYS, PACOTE_HORAS_ACCESS_KEY, BODYSHOP_ACCESS_KEY, SMART_ITO_ACCESS_KEY } from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";
 
 const ITO_PATHS = new Set([
@@ -27,35 +27,79 @@ const ITO_PATHS = new Set([
   "/relatorio-demanda",
 ]);
 
-const OFFERINGS = [
-  { id: "hub", label: "Página inicial", description: "Hub de ofertas IT Solutions", to: "/", icon: Home, groupSlug: null as null | keyof typeof GROUP_ACCESS_KEYS },
-  { id: "ito", label: "ITO · Smart ITO", description: "Smart ITO — calculadora completa", to: "/ito", icon: Calculator, groupSlug: "ito" as const, permissionKey: null as string | null },
-  { id: "pacote-horas", label: "ITO · Pacote de Horas", description: "Em breve", to: "/pacote-horas", icon: Clock, groupSlug: "ito" as const, permissionKey: PACOTE_HORAS_ACCESS_KEY },
-  { id: "bodyshop", label: "ITO · Bodyshop", description: "Em breve", to: "/bodyshop", icon: Users, groupSlug: "ito" as const, permissionKey: BODYSHOP_ACCESS_KEY },
-  { id: "datacenter", label: "Datacenter", description: "Em breve", to: "/datacenter", icon: Server, groupSlug: "datacenter" as const, permissionKey: null },
-  { id: "cloud", label: "Cloud", description: "Em breve", to: "/cloud", icon: Cloud, groupSlug: "cloud" as const, permissionKey: null },
-  { id: "observabilidade", label: "Observabilidade", description: "Em breve", to: "/observabilidade", icon: Activity, groupSlug: "observabilidade" as const, permissionKey: null },
+type GroupSlug = keyof typeof GROUP_ACCESS_KEYS;
+
+interface OfferingItem {
+  id: string;
+  label: string;
+  description: string;
+  to: string;
+  icon: typeof Calculator;
+  permissionKey: string | null;
+}
+
+interface GroupItem {
+  id: GroupSlug;
+  label: string;
+  icon: typeof Package;
+  offerings: OfferingItem[];
+}
+
+const GROUPS_MENU: GroupItem[] = [
+  {
+    id: "ito",
+    label: "ITO",
+    icon: Package,
+    offerings: [
+      { id: "ito", label: "Smart ITO", description: "Calculadora completa", to: "/ito", icon: Calculator, permissionKey: SMART_ITO_ACCESS_KEY },
+      { id: "pacote-horas", label: "Pacote de Horas", description: "Em breve", to: "/pacote-horas", icon: Clock, permissionKey: PACOTE_HORAS_ACCESS_KEY },
+      { id: "bodyshop", label: "Bodyshop", description: "Em breve", to: "/bodyshop", icon: Users, permissionKey: BODYSHOP_ACCESS_KEY },
+    ],
+  },
+  { id: "datacenter", label: "Datacenter", icon: Server, offerings: [] },
+  { id: "cloud", label: "Cloud", icon: Cloud, offerings: [] },
+  { id: "observabilidade", label: "Observabilidade", icon: Activity, offerings: [] },
 ];
+
+const GROUP_ROUTE: Record<GroupSlug, string> = {
+  ito: "/ito",
+  datacenter: "/datacenter",
+  cloud: "/cloud",
+  observabilidade: "/observabilidade",
+};
 
 export default function BUMenu() {
   const { pathname } = useLocation();
   const { can } = useAuth();
-  const visible = OFFERINGS.filter((o) => {
-    if (o.groupSlug == null) return true;
-    if (!can(GROUP_ACCESS_KEYS[o.groupSlug] as PermissionKey)) return false;
-    if (o.permissionKey && !can(o.permissionKey as PermissionKey)) return false;
-    return true;
-  });
-  const currentId =
-    pathname === "/" ? "hub"
-    : pathname === "/datacenter" ? "datacenter"
+
+  const visibleGroups = GROUPS_MENU
+    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey))
+    .map((g) => ({
+      ...g,
+      offerings: g.offerings.filter((o) => !o.permissionKey || can(o.permissionKey as PermissionKey)),
+    }));
+
+  const currentGroupId: GroupSlug | null =
+    pathname === "/datacenter" ? "datacenter"
     : pathname === "/cloud" ? "cloud"
     : pathname === "/observabilidade" ? "observabilidade"
-    : pathname === "/pacote-horas" ? "pacote-horas"
+    : (pathname === "/pacote-horas" || pathname === "/bodyshop" || ITO_PATHS.has(pathname)) ? "ito"
+    : null;
+  const currentOfferingId: string | null =
+    pathname === "/pacote-horas" ? "pacote-horas"
     : pathname === "/bodyshop" ? "bodyshop"
     : ITO_PATHS.has(pathname) ? "ito"
     : null;
-  const currentLabel = OFFERINGS.find((o) => o.id === currentId)?.label ?? "Ofertas";
+
+  const currentGroupLabel = GROUPS_MENU.find((g) => g.id === currentGroupId)?.label;
+  const currentOfferingLabel = currentGroupId
+    ? GROUPS_MENU.find((g) => g.id === currentGroupId)?.offerings.find((o) => o.id === currentOfferingId)?.label
+    : null;
+  const currentLabel = pathname === "/"
+    ? "Página inicial"
+    : currentOfferingLabel
+      ? `${currentGroupLabel} · ${currentOfferingLabel}`
+      : currentGroupLabel ?? "Ofertas";
 
   return (
     <DropdownMenu>
@@ -67,23 +111,53 @@ export default function BUMenu() {
           <ChevronDown className="h-3 w-3 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64">
+      <DropdownMenuContent align="start" className="w-72">
         <DropdownMenuLabel className="text-xs">Business Unit · IT Solutions</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {visible.map((o) => {
-          const Icon = o.icon;
-          const active = currentId === o.id;
+        <DropdownMenuItem asChild className="gap-2">
+          <Link to="/" className="flex items-center gap-2 w-full">
+            <Home className="h-4 w-4 shrink-0" />
+            <span className="text-sm font-medium flex-1">Página inicial</span>
+            {pathname === "/" && <Check className="h-3.5 w-3.5 text-primary" />}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {visibleGroups.map((g, idx) => {
+          const GIcon = g.icon;
+          const groupActive = currentGroupId === g.id;
           return (
-            <DropdownMenuItem key={o.id} asChild className="gap-2">
-              <Link to={o.to} className="flex items-start gap-2 w-full">
-                <Icon className="h-4 w-4 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium">{o.label}</div>
-                  <div className="text-xs text-muted-foreground">{o.description}</div>
-                </div>
-                {active && <Check className="h-3.5 w-3.5 text-primary mt-1" />}
-              </Link>
-            </DropdownMenuItem>
+            <div key={g.id}>
+              {idx > 0 && <DropdownMenuSeparator />}
+              <DropdownMenuLabel className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold pt-2">
+                <GIcon className="h-3.5 w-3.5" />
+                <span className="flex-1">Grupo · {g.label}</span>
+                {groupActive && !currentOfferingId && <Check className="h-3 w-3 text-primary" />}
+              </DropdownMenuLabel>
+              {g.offerings.length === 0 ? (
+                <DropdownMenuItem asChild className="gap-2 pl-7">
+                  <Link to={GROUP_ROUTE[g.id]} className="flex items-center gap-2 w-full">
+                    <span className="text-sm flex-1 text-muted-foreground">Em breve</span>
+                  </Link>
+                </DropdownMenuItem>
+              ) : (
+                g.offerings.map((o) => {
+                  const OIcon = o.icon;
+                  const active = groupActive && currentOfferingId === o.id;
+                  return (
+                    <DropdownMenuItem key={o.id} asChild className="gap-2 pl-7">
+                      <Link to={o.to} className="flex items-start gap-2 w-full">
+                        <OIcon className="h-4 w-4 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium">{o.label}</div>
+                          <div className="text-xs text-muted-foreground">{o.description}</div>
+                        </div>
+                        {active && <Check className="h-3.5 w-3.5 text-primary mt-1" />}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })
+              )}
+            </div>
           );
         })}
       </DropdownMenuContent>
