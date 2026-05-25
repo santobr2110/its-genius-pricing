@@ -111,6 +111,12 @@ export default function SmartTiersPanel() {
   // Horas consumidas pelo atendimento de chamados N3 (do funil)
   const horasChamadosN3 = results.horasAtendimentoN3 || 0;
   const pctChamadosN3 = horasTotaisN3 > 0 ? (horasChamadosN3 / horasTotaisN3) * 100 : 0;
+  // placeholders; recalculados após rotinasPerf* (que dependem de inv/complexFlags)
+  let horasRotinasN3 = 0;
+  let pctRotinasN3 = 0;
+  let horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasTam - horasOwner);
+  let pctLivreReal = horasTotaisN3 > 0 ? (horasLivre / horasTotaisN3) * 100 : 0;
+  let livreEstourado = horasChamadosN3 + horasTam + horasOwner > horasTotaisN3;
 
   const inv = {
     qtdUsuarios: state.qtdUsuarios,
