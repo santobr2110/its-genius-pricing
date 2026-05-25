@@ -171,16 +171,16 @@ export default function MetricsPanel({ state, results, update }: Props) {
             <Activity className="h-3.5 w-3.5 text-amber-600" />
             Monitoramento
           </CardTitle>
-          <p className="text-[10px] text-muted-foreground">Atendentes dedicados ao Smart Monitor</p>
+          <p className="text-[10px] text-muted-foreground">Atendentes no ITSM (acessos no Smart Monitor)</p>
         </CardHeader>
         <CardContent className="space-y-3">
           <NumInput
-            label="Custo por Atendente do Cliente"
+            label="Custo por Atendente no ITSM"
             value={state.custoAtendenteMonitor}
             onChange={(v) => update("custoAtendenteMonitor", v)}
             prefix="R$"
             step={100}
-            tooltip="Custo mensal de 1 atendente dedicado ao monitoramento"
+            tooltip="Custo mensal de 1 acesso de Atendente no ITSM"
           />
           <div className="grid grid-cols-2 gap-2">
             <NumInput
