@@ -243,6 +243,8 @@ const DEFAULTS: ITSMState = {
   qtdAtendentesMonitorMin: 1,
   qtdAtendentesMonitorMax: 5,
   custoAtendenteMonitor: 4000,
+  qtdProxysMonitor: 1,
+  qtdProxysMonitorMax: 5,
   criticidadeNivel: 2,
   criticidadeEscala: [-0.3, -0.15, 0, 0.15, 0.3],
   complexVirtualizacaoCluster: false,
@@ -416,6 +418,12 @@ export function useITSMCalculator() {
     const smCustoAtendentes = monitorActive
       ? Math.max(0, state.qtdAtendentesMonitor || 0) * Math.max(0, state.custoAtendenteMonitor || 0)
       : 0;
+    // Custo de proxys: 1 = inicial; n>1 = inicial + adicional*(n-1)
+    const qtdProxys = monitorActive ? Math.max(1, Math.floor(state.qtdProxysMonitor || 1)) : 0;
+    const smCustoProxys = monitorActive
+      ? Math.max(0, state.valorProxyInicial || 0) +
+        Math.max(0, qtdProxys - 1) * Math.max(0, state.valorProxyAdicional || 0)
+      : 0;
     // Quando Smart Operation está ativo, o N1 atende todos os chamados
     // pelo funil normal — não há alocação extra do Smart Monitor.
     const smCustoN1Aloc = monitorActive && !state.tierOperation
@@ -475,7 +483,7 @@ export function useITSMCalculator() {
     }
     const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + custoEndpointTooling + custoFieldTotal;
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys + custoEndpointTooling + custoFieldTotal;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
@@ -498,7 +506,9 @@ export function useITSMCalculator() {
       custoN3Manut: smCustoN3Manut,
       custoAtendentes: smCustoAtendentes,
       qtdAtendentes: monitorActive ? (state.qtdAtendentesMonitor || 0) : 0,
-      total: smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes,
+      custoProxys: smCustoProxys,
+      qtdProxys,
+      total: smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys,
     };
 
     const fieldService = {
