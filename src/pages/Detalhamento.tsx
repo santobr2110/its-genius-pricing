@@ -377,16 +377,16 @@ export default function Detalhamento() {
             <Stat label="Chamados de monitoramento" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre monitor" value={`${state.percAlocacaoN1Monitor}%`} />
             {sm.qtdAtendentes > 0 && (
-              <Stat
-                label={`Atendentes do cliente (${sm.qtdAtendentes}x)`}
-                value={`${formatBRL(toSell(state.custoAtendenteMonitor))}/atendente · ${formatBRL(toSell(sm.custoAtendentes))}`}
-              />
+              <>
+                <Stat label="Quantidade de Atendentes" value={formatNumber(sm.qtdAtendentes)} />
+                <Stat label="Valor de Atendentes" value={formatBRL(toSell(sm.custoAtendentes))} />
+              </>
             )}
             {sm.qtdProxys > 0 && (
-              <Stat
-                label={`Proxys de monitoramento (${sm.qtdProxys}x)`}
-                value={`${formatBRL(toSell(state.valorProxyInicial))} inicial${sm.qtdProxys > 1 ? ` + ${formatBRL(toSell(state.valorProxyAdicional))} × ${sm.qtdProxys - 1}` : ""} · ${formatBRL(toSell(sm.custoProxys))}`}
-              />
+              <>
+                <Stat label="Quantidade de Proxys" value={formatNumber(sm.qtdProxys)} />
+                <Stat label="Valor de Proxys" value={formatBRL(toSell(sm.custoProxys))} />
+              </>
             )}
           </div>
           {!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0) && (() => {
