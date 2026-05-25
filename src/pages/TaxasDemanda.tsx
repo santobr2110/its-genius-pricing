@@ -287,6 +287,44 @@ export default function TaxasDemanda() {
                   Custo de cada proxy adicional além do inicial.
                 </p>
               </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Custo por Atendente do Cliente (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={100}
+                  min={0}
+                  value={state.custoAtendenteMonitor}
+                  onChange={(e) => update("custoAtendenteMonitor", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Custo mensal de 1 atendente dedicado ao Smart Monitor. Multiplicado pela quantidade do slider na camada.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Atendentes — Mínimo / Máximo (slider Smart Monitor)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    value={state.qtdAtendentesMonitorMin}
+                    onChange={(e) => update("qtdAtendentesMonitorMin", Math.max(0, Math.floor(parseFloat(e.target.value) || 0)))}
+                    className="h-9"
+                  />
+                  <Input
+                    type="number"
+                    step={1}
+                    min={1}
+                    value={state.qtdAtendentesMonitorMax}
+                    onChange={(e) => update("qtdAtendentesMonitorMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
+                    className="h-9"
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Limites do slider "Custo por Atendente do Cliente" na camada Smart Monitor.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
