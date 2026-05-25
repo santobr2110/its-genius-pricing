@@ -248,13 +248,25 @@ export default function SmartTiersPanel() {
 
   // Rotinas Performance consomem horas do pool N3 contratado (slider).
   // Convertemos o custo em horas equivalentes e abatemos do "Horas Técnicas".
-  const horasRotinasN3 = state.valorHoraN3 > 0
+  // Inclui também as rotinas de Operation (mesmo princípio: absorvidas pelo pool N3).
+  const horasRotinasOperationN3 = state.valorHoraN3 > 0
+    ? rotinasOperation.totals.custo / state.valorHoraN3
+    : 0;
+  const horasRotinasPerformanceN3 = state.valorHoraN3 > 0
     ? (rotinasPerfPadrao.totals.custo + rotinasPerfComplexo.totals.custo) / state.valorHoraN3
     : 0;
+  const horasRotinasN3 = horasRotinasOperationN3 + horasRotinasPerformanceN3;
   const pctRotinasN3 = horasTotaisN3 > 0 ? (horasRotinasN3 / horasTotaisN3) * 100 : 0;
   const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasN3 - horasTam - horasOwner);
   const pctLivreReal = horasTotaisN3 > 0 ? (horasLivre / horasTotaisN3) * 100 : 0;
   const livreEstourado = horasChamadosN3 + horasRotinasN3 + horasTam + horasOwner > horasTotaisN3;
+
+  // Mesma distribuição, mas para o pool N3 do Smart Operation (quando Performance está desativado).
+  const horasLivreOperation = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasOperationN3);
+  const pctChamadosN3Op = horasTotaisN3 > 0 ? (horasChamadosN3 / horasTotaisN3) * 100 : 0;
+  const pctRotinasN3Op = horasTotaisN3 > 0 ? (horasRotinasOperationN3 / horasTotaisN3) * 100 : 0;
+  const pctLivreOperation = horasTotaisN3 > 0 ? (horasLivreOperation / horasTotaisN3) * 100 : 0;
+  const livreOperationEstourado = horasChamadosN3 + horasRotinasOperationN3 > horasTotaisN3;
 
   // Rotinas de Field Service (Microinformática) — agregam Operation + Performance
   // num único bloco exibido dentro da composição de Field Service.
@@ -313,7 +325,7 @@ export default function SmartTiersPanel() {
   const fs = results.fieldService;
   const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
   const smOperationVenda = state.tierOperation
-    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + rotinasOperation.totals.venda + fsVenda
+    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda
     : 0;
   const smPerformanceVenda = state.tierPerformance
     ? toSell(results.custoN3)
@@ -613,6 +625,49 @@ export default function SmartTiersPanel() {
                 max={state.horasN3OperationMax}
                 step={1}
               />
+
+              {/* Distribuição do pool N3 contratado no Operation */}
+              <div className="pt-2 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label className="text-[11px] text-muted-foreground font-semibold">
+                    Distribuição das horas N3 contratadas
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground">Horas Técnicas recalculadas automaticamente</span>
+                </div>
+                <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
+                  {pctChamadosN3Op > 0 && (
+                    <div className="bg-gradient-to-r from-amber-400 to-orange-500" style={{ width: `${Math.min(100, pctChamadosN3Op)}%` }} />
+                  )}
+                  {pctRotinasN3Op > 0 && (
+                    <div className="bg-gradient-to-r from-rose-400 to-rose-500" style={{ width: `${Math.min(100, pctRotinasN3Op)}%` }} />
+                  )}
+                  {pctLivreOperation > 0 && (
+                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${Math.min(100, pctLivreOperation)}%` }} />
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-1 text-[11px]">
+                  <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Chamados N3 · {pctChamadosN3Op.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(horasChamadosN3, 1)}h</div>
+                  </div>
+                  <div className="rounded bg-rose-500/10 border border-rose-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Rotinas · {pctRotinasN3Op.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(horasRotinasOperationN3, 1)}h</div>
+                  </div>
+                  <div className={`rounded px-1.5 py-1 border ${livreOperationEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
+                    <div className="text-muted-foreground">Horas Técnicas · {pctLivreOperation.toFixed(0)}%</div>
+                    <div className={`font-semibold ${livreOperationEstourado ? "text-destructive" : ""}`}>{formatNumber(horasLivreOperation, 1)}h</div>
+                  </div>
+                </div>
+                {livreOperationEstourado && (
+                  <p className="text-[10px] text-destructive">
+                    ⚠ Horas contratadas insuficientes para absorver chamados N3 + rotinas. Aumente o slider.
+                  </p>
+                )}
+                <p className="text-[10px] text-muted-foreground">
+                  Horas Técnicas = Horas contratadas − Chamados N3 (funil) − Rotinas Operation
+                </p>
+              </div>
             </div>
             )}
 
@@ -784,9 +839,6 @@ export default function SmartTiersPanel() {
                     : "Serviço base (N1 + N2 + N3)",
                   value: toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)),
                 },
-                ...(rotinasOperation.totals.venda > 0
-                  ? [{ label: "Rotinas Operation", value: rotinasOperation.totals.venda }]
-                  : []),
                 ...(fsVenda > 0 ? [{ label: "Field Service", value: fsVenda }] : []),
               ]}
             />
