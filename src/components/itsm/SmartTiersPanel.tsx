@@ -316,7 +316,7 @@ export default function SmartTiersPanel() {
     ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + rotinasOperation.totals.venda + fsVenda
     : 0;
   const smPerformanceVenda = state.tierPerformance
-    ? toSell(results.custoN3) + rotinasPerfPadrao.totals.venda + rotinasPerfComplexo.totals.venda
+    ? toSell(results.custoN3)
     : 0;
   const totalSelecionado =
     (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
