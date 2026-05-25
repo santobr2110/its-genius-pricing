@@ -345,6 +345,17 @@ export default function SmartTiersPanel() {
   const dominantRing = (id: string) =>
     dominantTier === id ? "ring-2 ring-offset-2 ring-offset-background ring-current/40 shadow-lg" : "";
 
+  // Em camadas superiores (Operation/Performance/Enterprise), os recursos
+  // avulsos do Smart Monitor (horas N3 e atendentes no ITSM) são absorvidos
+  // pela camada superior — desabilitamos os sliders e zeramos os valores.
+  const monitorAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+  useEffect(() => {
+    if (!monitorAdvanced) return;
+    if ((state.horasN3MonitorManut || 0) !== 0) update("horasN3MonitorManut", 0);
+    if ((state.horasN3Monitor || 0) !== 0) update("horasN3Monitor", 0);
+    if ((state.qtdAtendentesMonitor || 0) !== 0) update("qtdAtendentesMonitor", 0);
+  }, [monitorAdvanced, state.horasN3MonitorManut, state.horasN3Monitor, state.qtdAtendentesMonitor]);
+
   return (
     <Card>
       <CardHeader className="pb-3">
