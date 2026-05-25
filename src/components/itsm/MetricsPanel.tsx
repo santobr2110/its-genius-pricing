@@ -175,7 +175,7 @@ export default function MetricsPanel({ state, results, update }: Props) {
         </CardHeader>
         <CardContent className="space-y-3">
           <NumInput
-            label="Custo/Atendente"
+            label="Custo por Atendente do Cliente"
             value={state.custoAtendenteMonitor}
             onChange={(v) => update("custoAtendenteMonitor", v)}
             prefix="R$"
