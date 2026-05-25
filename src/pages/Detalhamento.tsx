@@ -379,13 +379,13 @@ export default function Detalhamento() {
             {sm.qtdAtendentes > 0 && (
               <Stat
                 label={`Atendentes do cliente (${sm.qtdAtendentes}x)`}
-                value={`${formatBRL(state.custoAtendenteMonitor)}/atendente · ${formatBRL(toSell(sm.custoAtendentes))}`}
+                value={`${formatBRL(toSell(state.custoAtendenteMonitor))}/atendente · ${formatBRL(toSell(sm.custoAtendentes))}`}
               />
             )}
             {sm.qtdProxys > 0 && (
               <Stat
                 label={`Proxys de monitoramento (${sm.qtdProxys}x)`}
-                value={`${formatBRL(state.valorProxyInicial)} inicial${sm.qtdProxys > 1 ? ` + ${formatBRL(state.valorProxyAdicional)} × ${sm.qtdProxys - 1}` : ""} · ${formatBRL(toSell(sm.custoProxys))}`}
+                value={`${formatBRL(toSell(state.valorProxyInicial))} inicial${sm.qtdProxys > 1 ? ` + ${formatBRL(toSell(state.valorProxyAdicional))} × ${sm.qtdProxys - 1}` : ""} · ${formatBRL(toSell(sm.custoProxys))}`}
               />
             )}
           </div>
