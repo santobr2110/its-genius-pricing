@@ -698,6 +698,7 @@ export default function Detalhamento() {
             .map((k) => ({ k, items: escopo[k]?.restricoes ?? [] }))
             .filter((b) => b.items.length > 0);
           if (blocos.length === 0) return null;
+          const gerais = restricoesGerais.filter((r) => r.trim().length > 0);
           return (
             <Card className="border-muted-foreground/20 bg-muted/20">
               <CardContent className="p-5 space-y-3">
@@ -724,6 +725,21 @@ export default function Detalhamento() {
                     </div>
                   ))}
                 </div>
+                {gerais.length > 0 && (
+                  <div className="rounded-lg border border-dashed bg-background/50 p-3 mt-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/80 mb-1.5">
+                      Restrições Gerais
+                    </p>
+                    <ul className="space-y-1 text-[11px] text-muted-foreground leading-snug">
+                      {gerais.map((t, i) => (
+                        <li key={i} className="flex gap-1.5">
+                          <span className="text-muted-foreground/60">·</span>
+                          <span>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <p className="text-[10px] text-muted-foreground italic">
                   Itens fora deste escopo podem ser atendidos sob demanda mediante orçamento específico.
                 </p>
