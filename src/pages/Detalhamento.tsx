@@ -368,8 +368,21 @@ export default function Detalhamento() {
         {monitorVisible && (
         <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
-          title="Monitor" tagline="Monitoramento da infraestrutura"
+          title={escopo.monitor.titulo} tagline={escopo.monitor.tagline}
           valor={valorMonitor}>
+          {escopo.monitor.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.monitor.descricao}</p>
+          )}
+          {escopo.monitor.incluidos.length > 0 && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopo.monitor.incluidos.map((t, i) => (
+                  <Bullet key={i} color="bronze">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
@@ -465,17 +478,16 @@ export default function Detalhamento() {
         {/* SMART OPERATION */}
         <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
           dominant={dominantColor === "silver"}
-          title="Operation" tagline="Service Desk humano N1 e N2 com rotinas básicas"
+          title={escopo.operation.titulo} tagline={escopo.operation.tagline}
           valor={valorOperation}>
+          {escopo.operation.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.operation.descricao}</p>
+          )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="silver">Funil N1 ({state.percN1}%) e N2 ({state.percN2}%) reativo com SLA controlado</Bullet>
-            <Bullet color="silver">Triagem técnica e roteamento dos chamados</Bullet>
-            <Bullet color="silver">Rotinas preventivas básicas (Operation)</Bullet>
-            <Bullet color="silver">Indicadores e relatórios mensais</Bullet>
-            {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && (
-              <Bullet color="silver">Atendimento N3 contratado em horas ({formatNumber(state.horasN3Mensais)}h/mês)</Bullet>
-            )}
+            {escopo.operation.incluidos.map((t, i) => (
+              <Bullet key={i} color="silver">{t}</Bullet>
+            ))}
           </ul>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
@@ -552,14 +564,16 @@ export default function Detalhamento() {
         {/* SMART PERFORMANCE */}
         <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
           dominant={dominantColor === "gold"}
-          title="Performance" tagline="Rotinas preventivas avançadas e horas técnicas N3"
+          title={escopo.performance.titulo} tagline={escopo.performance.tagline}
           valor={valorPerformance}>
+          {escopo.performance.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.performance.descricao}</p>
+          )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="gold">Rotinas preventivas avançadas executadas pelo N3</Bullet>
-            <Bullet color="gold">Cobertura de ambientes complexos (HA, multi-site, 24x7, ERP)</Bullet>
-            <Bullet color="gold">Otimização contínua de performance e capacidade</Bullet>
-            <Bullet color="gold">Horas técnicas N3 dedicadas ao cliente</Bullet>
+            {escopo.performance.incluidos.map((t, i) => (
+              <Bullet key={i} color="gold">{t}</Bullet>
+            ))}
           </ul>
 
           {rotinasPerfPadrao.length > 0 && (
@@ -595,12 +609,15 @@ export default function Detalhamento() {
         {/* SMART ENTERPRISE */}
         <TierBlock active={state.tierEnterprise} color="diamond" icon={Crown} tierIndex={5}
           dominant={dominantColor === "diamond"}
-          title="Enterprise" tagline="Governança e visão executiva da TI" valor={0}>
+          title={escopo.enterprise.titulo} tagline={escopo.enterprise.tagline} valor={0}>
+          {escopo.enterprise.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.enterprise.descricao}</p>
+          )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            <Bullet color="diamond">Gestão estratégica e roadmap tecnológico</Bullet>
-            <Bullet color="diamond">Comitê executivo e governança de mudanças (GMUDs)</Bullet>
-            <Bullet color="diamond">Alinhamento contínuo entre TI e negócio</Bullet>
+            {escopo.enterprise.incluidos.map((t, i) => (
+              <Bullet key={i} color="diamond">{t}</Bullet>
+            ))}
           </ul>
         </TierBlock>
 
