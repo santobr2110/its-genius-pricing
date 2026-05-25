@@ -20,6 +20,7 @@ import {
 } from "@/data/rotinas";
 import {
   ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
+  RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   type EscopoProposicao, type CamadaKey,
 } from "@/data/escopoProposicao";
 
@@ -130,6 +131,10 @@ export default function Detalhamento() {
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
   const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
+  const [restricoesGerais] = usePersistentState<string[]>(
+    RESTRICOES_GERAIS_STORAGE_KEY,
+    RESTRICOES_GERAIS_DEFAULT,
+  );
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
@@ -693,6 +698,7 @@ export default function Detalhamento() {
             .map((k) => ({ k, items: escopo[k]?.restricoes ?? [] }))
             .filter((b) => b.items.length > 0);
           if (blocos.length === 0) return null;
+          const gerais = restricoesGerais.filter((r) => r.trim().length > 0);
           return (
             <Card className="border-muted-foreground/20 bg-muted/20">
               <CardContent className="p-5 space-y-3">
@@ -719,6 +725,21 @@ export default function Detalhamento() {
                     </div>
                   ))}
                 </div>
+                {gerais.length > 0 && (
+                  <div className="rounded-lg border border-dashed bg-background/50 p-3 mt-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/80 mb-1.5">
+                      Restrições Gerais
+                    </p>
+                    <ul className="space-y-1 text-[11px] text-muted-foreground leading-snug">
+                      {gerais.map((t, i) => (
+                        <li key={i} className="flex gap-1.5">
+                          <span className="text-muted-foreground/60">·</span>
+                          <span>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <p className="text-[10px] text-muted-foreground italic">
                   Itens fora deste escopo podem ser atendidos sob demanda mediante orçamento específico.
                 </p>

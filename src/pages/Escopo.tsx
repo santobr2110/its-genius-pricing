@@ -12,6 +12,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   CAMADA_LABEL, CAMADA_ORDEM, ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY,
+  RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   type CamadaKey, type EscopoCamada, type EscopoProposicao,
 } from "@/data/escopoProposicao";
 
@@ -25,6 +26,10 @@ export default function Escopo() {
   const [escopo, setEscopo] = usePersistentState<EscopoProposicao>(
     ESCOPO_STORAGE_KEY,
     ESCOPO_DEFAULT,
+  );
+  const [restricoesGerais, setRestricoesGerais] = usePersistentState<string[]>(
+    RESTRICOES_GERAIS_STORAGE_KEY,
+    RESTRICOES_GERAIS_DEFAULT,
   );
 
   const updateCamada = (key: CamadaKey, patch: Partial<EscopoCamada>) => {
@@ -153,6 +158,46 @@ export default function Escopo() {
             </Card>
           );
         })}
+
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">
+                  Geral
+                </Badge>
+                <CardTitle className="text-base">Restrições Gerais</CardTitle>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="gap-1.5 text-xs"
+                onClick={() => setRestricoesGerais(RESTRICOES_GERAIS_DEFAULT)}
+                disabled={!canEdit}
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> Restaurar padrão
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Label className="text-xs">
+              Restrições aplicáveis a todas as proposições{" "}
+              <span className="text-muted-foreground">(uma por linha)</span>
+            </Label>
+            <Textarea
+              rows={8}
+              value={listToLines(restricoesGerais)}
+              onChange={(e) => setRestricoesGerais(linesToList(e.target.value))}
+              disabled={!canEdit}
+              placeholder="Uma restrição por linha"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Exibidas ao final do bloco “Restrições de atuação” do Relatório de Proposição,
+              independentemente das camadas ativas.
+            </p>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
