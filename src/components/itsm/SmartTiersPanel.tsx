@@ -325,7 +325,7 @@ export default function SmartTiersPanel() {
   const fs = results.fieldService;
   const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
   const smOperationVenda = state.tierOperation
-    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + rotinasOperation.totals.venda + fsVenda
+    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda
     : 0;
   const smPerformanceVenda = state.tierPerformance
     ? toSell(results.custoN3)
