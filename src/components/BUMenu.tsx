@@ -8,9 +8,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home } from "lucide-react";
+import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { GROUP_ACCESS_KEYS } from "@/lib/offerings";
+import { GROUP_ACCESS_KEYS, PACOTE_HORAS_ACCESS_KEY, BODYSHOP_ACCESS_KEY } from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";
 
 const ITO_PATHS = new Set([
@@ -29,25 +29,30 @@ const ITO_PATHS = new Set([
 
 const OFFERINGS = [
   { id: "hub", label: "Página inicial", description: "Hub de ofertas IT Solutions", to: "/", icon: Home, groupSlug: null as null | keyof typeof GROUP_ACCESS_KEYS },
-  { id: "ito", label: "ITO", description: "Smart ITO — calculadora completa", to: "/ito", icon: Calculator, groupSlug: "ito" as const },
-  { id: "datacenter", label: "Datacenter", description: "Em breve", to: "/datacenter", icon: Server, groupSlug: "datacenter" as const },
-  { id: "cloud", label: "Cloud", description: "Em breve", to: "/cloud", icon: Cloud, groupSlug: "cloud" as const },
-  { id: "observabilidade", label: "Observabilidade", description: "Em breve", to: "/observabilidade", icon: Activity, groupSlug: "observabilidade" as const },
+  { id: "ito", label: "ITO · Smart ITO", description: "Smart ITO — calculadora completa", to: "/ito", icon: Calculator, groupSlug: "ito" as const, permissionKey: null as string | null },
+  { id: "pacote-horas", label: "ITO · Pacote de Horas", description: "Em breve", to: "/pacote-horas", icon: Clock, groupSlug: "ito" as const, permissionKey: PACOTE_HORAS_ACCESS_KEY },
+  { id: "bodyshop", label: "ITO · Bodyshop", description: "Em breve", to: "/bodyshop", icon: Users, groupSlug: "ito" as const, permissionKey: BODYSHOP_ACCESS_KEY },
+  { id: "datacenter", label: "Datacenter", description: "Em breve", to: "/datacenter", icon: Server, groupSlug: "datacenter" as const, permissionKey: null },
+  { id: "cloud", label: "Cloud", description: "Em breve", to: "/cloud", icon: Cloud, groupSlug: "cloud" as const, permissionKey: null },
+  { id: "observabilidade", label: "Observabilidade", description: "Em breve", to: "/observabilidade", icon: Activity, groupSlug: "observabilidade" as const, permissionKey: null },
 ];
 
 export default function BUMenu() {
   const { pathname } = useLocation();
   const { can } = useAuth();
-  const visible = OFFERINGS.filter((o) =>
-    o.groupSlug == null
-      ? true
-      : can(GROUP_ACCESS_KEYS[o.groupSlug] as PermissionKey),
-  );
+  const visible = OFFERINGS.filter((o) => {
+    if (o.groupSlug == null) return true;
+    if (!can(GROUP_ACCESS_KEYS[o.groupSlug] as PermissionKey)) return false;
+    if (o.permissionKey && !can(o.permissionKey as PermissionKey)) return false;
+    return true;
+  });
   const currentId =
     pathname === "/" ? "hub"
     : pathname === "/datacenter" ? "datacenter"
     : pathname === "/cloud" ? "cloud"
     : pathname === "/observabilidade" ? "observabilidade"
+    : pathname === "/pacote-horas" ? "pacote-horas"
+    : pathname === "/bodyshop" ? "bodyshop"
     : ITO_PATHS.has(pathname) ? "ito"
     : null;
   const currentLabel = OFFERINGS.find((o) => o.id === currentId)?.label ?? "Ofertas";
