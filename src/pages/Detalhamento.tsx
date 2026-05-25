@@ -429,6 +429,7 @@ export default function Detalhamento() {
               tempoMedio={state.tempoMedioChamadoN3}
               valorHora={valorHoraN3Venda}
               modo="operation"
+              horasRotinas={horasRotinasOpN3}
             />
           )}
 
