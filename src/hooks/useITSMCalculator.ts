@@ -406,6 +406,10 @@ export function useITSMCalculator() {
     // Smart Monitor: custo de monitoramento por ativo entra no custo total da operação.
     // (A parcela de N1 alocada ao Smart Monitor já está incluída em custoN1.)
     const monitorActive = state.tierMonitor;
+    // Em ofertas superiores (Operation/Performance/Enterprise), atendentes no
+    // ITSM e horas N3 avulsas do Smart Monitor são absorvidos pela camada
+    // superior — não devem ser cobrados nem editáveis no Smart Monitor.
+    const monitorAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
     const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
     const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas;
     // Considera chamados evitados pelo N0
@@ -414,8 +418,8 @@ export function useITSMCalculator() {
     // a partir do 11º cada item adicional acrescenta o valor unitário.
     const smAtivosBillable = Math.max(10, smAtivos);
     const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivosBillable : 0;
-    // Custo de Atendentes no ITSM (Smart Monitor)
-    const smCustoAtendentes = monitorActive
+    // Custo de Atendentes no ITSM (Smart Monitor) — desabilitado em camadas superiores
+    const smCustoAtendentes = monitorActive && !monitorAdvanced
       ? Math.max(0, state.qtdAtendentesMonitor || 0) * Math.max(0, state.custoAtendenteMonitor || 0)
       : 0;
     // Custo de proxys: 1 = inicial; n>1 = inicial + adicional*(n-1)
@@ -429,10 +433,10 @@ export function useITSMCalculator() {
     const smCustoN1Aloc = monitorActive && !state.tierOperation
       ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
       : 0;
-    // N3 opcional dentro do Smart Monitor (horas mensais avulsas) — desabilitado quando Smart Operation está ativo
-    const smHorasN3 = monitorActive && !state.tierOperation ? Math.max(0, state.horasN3Monitor || 0) : 0;
+    // N3 opcional dentro do Smart Monitor (horas mensais avulsas) — desabilitado em camadas superiores
+    const smHorasN3 = monitorActive && !monitorAdvanced ? Math.max(0, state.horasN3Monitor || 0) : 0;
     const smCustoN3 = smHorasN3 * state.valorHoraN3;
-    const smHorasN3Manut = monitorActive && !state.tierOperation ? Math.max(0, state.horasN3MonitorManut || 0) : 0;
+    const smHorasN3Manut = monitorActive && !monitorAdvanced ? Math.max(0, state.horasN3MonitorManut || 0) : 0;
     const smCustoN3Manut = smHorasN3Manut * state.valorHoraN3;
 
     const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
@@ -505,7 +509,7 @@ export function useITSMCalculator() {
       horasN3Manut: smHorasN3Manut,
       custoN3Manut: smCustoN3Manut,
       custoAtendentes: smCustoAtendentes,
-      qtdAtendentes: monitorActive ? (state.qtdAtendentesMonitor || 0) : 0,
+      qtdAtendentes: monitorActive && !monitorAdvanced ? (state.qtdAtendentesMonitor || 0) : 0,
       custoProxys: smCustoProxys,
       qtdProxys,
       total: smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys,

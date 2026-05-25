@@ -15,7 +15,7 @@ import {
   type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 // Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
 // unitárias por ambiente, independente da oferta (Operation/Performance) ou
@@ -345,6 +345,17 @@ export default function SmartTiersPanel() {
   const dominantRing = (id: string) =>
     dominantTier === id ? "ring-2 ring-offset-2 ring-offset-background ring-current/40 shadow-lg" : "";
 
+  // Em camadas superiores (Operation/Performance/Enterprise), os recursos
+  // avulsos do Smart Monitor (horas N3 e atendentes no ITSM) são absorvidos
+  // pela camada superior — desabilitamos os sliders e zeramos os valores.
+  const monitorAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+  useEffect(() => {
+    if (!monitorAdvanced) return;
+    if ((state.horasN3MonitorManut || 0) !== 0) update("horasN3MonitorManut", 0);
+    if ((state.horasN3Monitor || 0) !== 0) update("horasN3Monitor", 0);
+    if ((state.qtdAtendentesMonitor || 0) !== 0) update("qtdAtendentesMonitor", 0);
+  }, [monitorAdvanced, state.horasN3MonitorManut, state.horasN3Monitor, state.qtdAtendentesMonitor]);
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -451,11 +462,11 @@ export default function SmartTiersPanel() {
                 <span className="font-semibold">{formatBRL(smN1Venda)}</span>
               </div>
             </div>
-            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${state.tierOperation ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
                   Horas Manutenção Monitoramento ({formatBRL(toSell(state.valorHoraN3))}/h)
-                  {state.tierOperation && " · desabilitado com Smart Operation"}
+                  {monitorAdvanced && " · absorvido pela camada superior"}
                 </Label>
                 <span className="text-xs font-semibold">
                   {formatNumber(state.horasN3MonitorManut)}h · {formatBRL(smN3ManutVenda)}
@@ -467,14 +478,14 @@ export default function SmartTiersPanel() {
                 min={state.horasN3MonitorManutMin}
                 max={state.horasN3MonitorManutMax}
                 step={1}
-                disabled={state.tierOperation}
+                disabled={monitorAdvanced}
               />
             </div>
-            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${state.tierOperation ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
                   Horas Acionamento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
-                  {state.tierOperation && " · desabilitado com Smart Operation"}
+                  {monitorAdvanced && " · absorvido pela camada superior"}
                 </Label>
                 <span className="text-xs font-semibold">
                   {formatNumber(state.horasN3Monitor)}h · {formatBRL(smN3Venda)}
@@ -486,13 +497,14 @@ export default function SmartTiersPanel() {
                 min={state.horasN3MonitorMin}
                 max={state.horasN3MonitorMax}
                 step={1}
-                disabled={state.tierOperation}
+                disabled={monitorAdvanced}
               />
             </div>
-            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
                   Atendentes no ITSM ({formatBRL(toSell(state.custoAtendenteMonitor))}/acesso)
+                  {monitorAdvanced && " · absorvido pela camada superior"}
                 </Label>
                 <span className="text-xs font-semibold">
                   {state.qtdAtendentesMonitor} · {formatBRL(smAtendentesVenda)}
@@ -504,6 +516,7 @@ export default function SmartTiersPanel() {
                 min={state.qtdAtendentesMonitorMin}
                 max={state.qtdAtendentesMonitorMax}
                 step={1}
+                disabled={monitorAdvanced}
               />
             </div>
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
