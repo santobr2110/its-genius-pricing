@@ -833,14 +833,55 @@ function N3HoursBox({
         </p>
       </div>
 
-      {modo === "operation" && (
-        <div className="rounded border bg-card px-3 py-2 text-xs">
-          <strong className={deficit ? "text-destructive" : "text-emerald-600"}>
-            {deficit ? `Deficit de ${formatNumber(Math.abs(previstas), 1)}h` : `${formatNumber(previstas, 1)}h restantes`}
-          </strong>
-          {" — "}{deficit ? "aumente as horas N3 ou reduza % do funil para N3." : "disponíveis para tratamento de incidentes complexos."}
-        </div>
-      )}
+      {modo === "operation" && (() => {
+        const horasLivreOp = Math.max(0, total - consumidas - horasRotinas);
+        const pctLivreOp = total > 0 ? (horasLivreOp / total) * 100 : 0;
+        const estourado = consumidas + horasRotinas > total;
+        return (
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-foreground/80">Divisão de uso das horas N3</p>
+            </div>
+            <div className="flex h-7 w-full rounded-full overflow-hidden shadow-inner border bg-muted">
+              {pctChamados > 0 && (
+                <div className="bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${Math.min(100, pctChamados)}%` }}>
+                  {pctChamados >= 10 && `Chamados ${pctChamados.toFixed(0)}%`}
+                </div>
+              )}
+              {pctRotinas > 0 && (
+                <div className="bg-gradient-to-r from-rose-400 to-rose-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${Math.min(100, pctRotinas)}%` }}>
+                  {pctRotinas >= 10 && `Rotinas ${pctRotinas.toFixed(0)}%`}
+                </div>
+              )}
+              {pctLivreOp > 0 && (
+                <div className="bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctLivreOp}%` }}>
+                  {pctLivreOp >= 8 && `Horas Técnicas ${pctLivreOp.toFixed(0)}%`}
+                </div>
+              )}
+            </div>
+            <p className="text-[10px] text-muted-foreground italic">
+              Horas Técnicas = Total contratado − Chamados N3 (funil) − Rotinas Operation
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
+                titulo="Chamados" subtitulo="Atendimento reativo N3"
+                desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
+              <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
+                titulo="Rotinas" subtitulo="Rotinas Operation"
+                desc="Horas consumidas pelas rotinas preventivas básicas, já cobradas dentro do pool de horas N3." />
+              <DistCard color="violet" pct={pctLivreOp} horas={horasLivreOp} valor={horasLivreOp * valorHora}
+                titulo="Horas Técnicas" subtitulo="Saldo disponível"
+                desc="Horas remanescentes para projetos, mudanças e demandas pontuais." alerta={estourado} />
+            </div>
+            {estourado && (
+              <div className="rounded-lg border-2 border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px]">
+                <strong className="text-destructive">⚠ Horas Técnicas zeradas:</strong> Chamados N3 + Rotinas Operation já consomem todas as horas contratadas. Aumente o pacote de horas.
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {modo === "performance" && distribuicao && (
         <div className="space-y-3 pt-1">
