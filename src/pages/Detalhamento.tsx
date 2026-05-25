@@ -20,6 +20,7 @@ import {
 } from "@/data/rotinas";
 import {
   ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
+  RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   type EscopoProposicao, type CamadaKey,
 } from "@/data/escopoProposicao";
 
@@ -130,6 +131,10 @@ export default function Detalhamento() {
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
   const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
+  const [restricoesGerais] = usePersistentState<string[]>(
+    RESTRICOES_GERAIS_STORAGE_KEY,
+    RESTRICOES_GERAIS_DEFAULT,
+  );
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
