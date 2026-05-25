@@ -167,6 +167,8 @@ export interface ITSMResults {
     custoN3Manut: number;
     custoAtendentes: number;
     qtdAtendentes: number;
+    custoProxys: number;
+    qtdProxys: number;
     total: number;
   };
   humanAttendanceActive: boolean;
