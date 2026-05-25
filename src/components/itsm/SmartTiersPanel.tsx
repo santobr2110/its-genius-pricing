@@ -246,6 +246,16 @@ export default function SmartTiersPanel() {
     [rotinas, state, results, fatorVenda],
   );
 
+  // Rotinas Performance consomem horas do pool N3 contratado (slider).
+  // Convertemos o custo em horas equivalentes e abatemos do "Horas Técnicas".
+  const horasRotinasN3 = state.valorHoraN3 > 0
+    ? (rotinasPerfPadrao.totals.custo + rotinasPerfComplexo.totals.custo) / state.valorHoraN3
+    : 0;
+  const pctRotinasN3 = horasTotaisN3 > 0 ? (horasRotinasN3 / horasTotaisN3) * 100 : 0;
+  const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasN3 - horasTam - horasOwner);
+  const pctLivreReal = horasTotaisN3 > 0 ? (horasLivre / horasTotaisN3) * 100 : 0;
+  const livreEstourado = horasChamadosN3 + horasRotinasN3 + horasTam + horasOwner > horasTotaisN3;
+
   // Rotinas de Field Service (Microinformática) — agregam Operation + Performance
   // num único bloco exibido dentro da composição de Field Service.
   const rotinasField = useMemo(() => {
