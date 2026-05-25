@@ -851,6 +851,11 @@ function N3HoursBox({
                 {pctChamados >= 10 && `Chamados ${pctChamados.toFixed(0)}%`}
               </div>
             )}
+            {pctRotinas > 0 && (
+              <div className="bg-gradient-to-r from-rose-400 to-rose-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${Math.min(100, pctRotinas)}%` }}>
+                {pctRotinas >= 10 && `Rotinas ${pctRotinas.toFixed(0)}%`}
+              </div>
+            )}
             {pctTam > 0 && (
               <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctTam}%` }}>
                 {pctTam >= 8 && `TAM ${pctTam}%`}
@@ -869,14 +874,17 @@ function N3HoursBox({
           </div>
 
           <p className="text-[10px] text-muted-foreground italic">
-            Horas Técnicas = Total contratado − Chamados N3 − Horas TAM − Horas Owner
+            Horas Técnicas = Total contratado − Chamados N3 − Rotinas Performance − Horas TAM − Horas Owner
           </p>
 
           {/* Cards detalhados */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
             <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
               titulo="Chamados" subtitulo="Atendimento reativo N3"
               desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
+            <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
+              titulo="Rotinas" subtitulo="Rotinas Performance"
+              desc="Horas consumidas pelas rotinas preventivas Padrão/Complexo, já cobradas dentro do pool de horas N3." />
             <DistCard color="emerald" pct={pctTam} horas={horasTam} valor={horasTam * valorHora}
               titulo="TAM" subtitulo="Technical Account Manager"
               desc="Acompanhamento técnico, governança do contrato e relacionamento com o cliente." />
@@ -890,7 +898,7 @@ function N3HoursBox({
 
           {livreNegativo && (
             <div className="rounded-lg border-2 border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px]">
-              <strong className="text-destructive">⚠ Horas Técnicas zeradas:</strong> a soma de Chamados + TAM + Owner já consome todas as horas N3 contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
+              <strong className="text-destructive">⚠ Horas Técnicas zeradas:</strong> a soma de Chamados + Rotinas + TAM + Owner já consome todas as horas N3 contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
             </div>
           )}
         </div>
