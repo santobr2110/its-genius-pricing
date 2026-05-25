@@ -796,9 +796,6 @@ export default function SmartTiersPanel() {
                     : "Serviço base (N1 + N2 + N3)",
                   value: toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)),
                 },
-                ...(rotinasOperation.totals.venda > 0
-                  ? [{ label: "Rotinas Operation", value: rotinasOperation.totals.venda }]
-                  : []),
                 ...(fsVenda > 0 ? [{ label: "Field Service", value: fsVenda }] : []),
               ]}
             />
