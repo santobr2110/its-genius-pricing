@@ -59,6 +59,11 @@ export interface ITSMState {
   horasN3OperationMax: number;
   horasN3PerformanceMin: number;
   horasN3PerformanceMax: number;
+  // Monitoramento — atendentes dedicados (Smart Monitor)
+  qtdAtendentesMonitor: number;
+  qtdAtendentesMonitorMin: number;
+  qtdAtendentesMonitorMax: number;
+  custoAtendenteMonitor: number;
   // Criticidade do ambiente (0..4) e escala de ajuste aplicada às taxas
   criticidadeNivel: number;
   criticidadeEscala: number[];
@@ -157,6 +162,8 @@ export interface ITSMResults {
     custoN3: number;
     horasN3Manut: number;
     custoN3Manut: number;
+    custoAtendentes: number;
+    qtdAtendentes: number;
     total: number;
   };
   humanAttendanceActive: boolean;
@@ -227,6 +234,10 @@ const DEFAULTS: ITSMState = {
   horasN3OperationMax: 30,
   horasN3PerformanceMin: 20,
   horasN3PerformanceMax: 40,
+  qtdAtendentesMonitor: 1,
+  qtdAtendentesMonitorMin: 1,
+  qtdAtendentesMonitorMax: 5,
+  custoAtendenteMonitor: 4000,
   criticidadeNivel: 2,
   criticidadeEscala: [-0.3, -0.15, 0, 0.15, 0.3],
   complexVirtualizacaoCluster: false,
@@ -392,7 +403,14 @@ export function useITSMCalculator() {
     const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas;
     // Considera chamados evitados pelo N0
     const smChamados = smChamadosBrutos * (1 - state.reducaoN0 / 100);
-    const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivos : 0;
+    // Smart Monitor: mínimo de 10 itens cobrados pelo valor unitário;
+    // a partir do 11º cada item adicional acrescenta o valor unitário.
+    const smAtivosBillable = Math.max(10, smAtivos);
+    const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivosBillable : 0;
+    // Custo de atendentes dedicados ao Smart Monitor
+    const smCustoAtendentes = monitorActive
+      ? Math.max(0, state.qtdAtendentesMonitor || 0) * Math.max(0, state.custoAtendenteMonitor || 0)
+      : 0;
     // Quando Smart Operation está ativo, o N1 atende todos os chamados
     // pelo funil normal — não há alocação extra do Smart Monitor.
     const smCustoN1Aloc = monitorActive && !state.tierOperation
@@ -452,7 +470,7 @@ export function useITSMCalculator() {
     }
     const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + custoEndpointTooling + custoFieldTotal;
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + custoEndpointTooling + custoFieldTotal;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
@@ -473,7 +491,9 @@ export function useITSMCalculator() {
       custoN3: smCustoN3,
       horasN3Manut: smHorasN3Manut,
       custoN3Manut: smCustoN3Manut,
-      total: smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut,
+      custoAtendentes: smCustoAtendentes,
+      qtdAtendentes: monitorActive ? (state.qtdAtendentesMonitor || 0) : 0,
+      total: smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes,
     };
 
     const fieldService = {

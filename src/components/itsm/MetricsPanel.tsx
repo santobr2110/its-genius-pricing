@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { ITSMState, ITSMResults, formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
-import { Gauge, Users, Server, Clock, Info, ExternalLink } from "lucide-react";
+import { Gauge, Users, Server, Clock, Info, ExternalLink, Activity } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
 
@@ -161,6 +161,47 @@ export default function MetricsPanel({ state, results, update }: Props) {
           </div>
           <MetricResult label="Horas/Mês (inventário)" value={`${formatNumber(state.horasN3Mensais)}h`} />
           <MetricResult label="Custo N3 Total" value={formatBRL(results.custoN3)} />
+        </CardContent>
+      </Card>
+
+      {/* Monitoramento — Smart Monitor */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
+            <Activity className="h-3.5 w-3.5 text-amber-600" />
+            Monitoramento
+          </CardTitle>
+          <p className="text-[10px] text-muted-foreground">Atendentes dedicados ao Smart Monitor</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <NumInput
+            label="Custo/Atendente"
+            value={state.custoAtendenteMonitor}
+            onChange={(v) => update("custoAtendenteMonitor", v)}
+            prefix="R$"
+            step={100}
+            tooltip="Custo mensal de 1 atendente dedicado ao monitoramento"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <NumInput
+              label="Mín. Atendentes"
+              value={state.qtdAtendentesMonitorMin}
+              onChange={(v) => update("qtdAtendentesMonitorMin", Math.max(0, Math.floor(v)))}
+              step={1}
+              tooltip="Mínimo do slider de atendentes na camada Smart Monitor"
+            />
+            <NumInput
+              label="Máx. Atendentes"
+              value={state.qtdAtendentesMonitorMax}
+              onChange={(v) => update("qtdAtendentesMonitorMax", Math.max(1, Math.floor(v)))}
+              step={1}
+              tooltip="Máximo do slider de atendentes na camada Smart Monitor"
+            />
+          </div>
+          <MetricResult
+            label="Custo Atendentes (atual)"
+            value={formatBRL((state.qtdAtendentesMonitor || 0) * (state.custoAtendenteMonitor || 0))}
+          />
         </CardContent>
       </Card>
     </div>

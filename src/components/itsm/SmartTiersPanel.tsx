@@ -320,6 +320,7 @@ export default function SmartTiersPanel() {
   const smN1Venda = toSell(sm.custoN1Alocado);
   const smN3Venda = toSell(sm.custoN3);
   const smN3ManutVenda = toSell(sm.custoN3Manut);
+  const smAtendentesVenda = toSell(sm.custoAtendentes);
   const smTotalVenda = toSell(sm.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
@@ -485,6 +486,23 @@ export default function SmartTiersPanel() {
                 max={state.horasN3MonitorMax}
                 step={1}
                 disabled={state.tierOperation}
+              />
+            </div>
+            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-muted-foreground">
+                  Atendentes dedicados ({formatBRL(toSell(state.custoAtendenteMonitor))}/atendente)
+                </Label>
+                <span className="text-xs font-semibold">
+                  {state.qtdAtendentesMonitor} · {formatBRL(smAtendentesVenda)}
+                </span>
+              </div>
+              <Slider
+                value={[Math.min(state.qtdAtendentesMonitorMax, Math.max(state.qtdAtendentesMonitorMin, state.qtdAtendentesMonitor || 0))]}
+                onValueChange={([v]) => update("qtdAtendentesMonitor", v)}
+                min={state.qtdAtendentesMonitorMin}
+                max={state.qtdAtendentesMonitorMax}
+                step={1}
               />
             </div>
             <div className="flex justify-between border-t pt-2">
