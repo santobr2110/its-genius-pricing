@@ -302,7 +302,7 @@ export default function TaxasDemanda() {
                 </p>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Custo por Atendente do Cliente (R$/mês)</Label>
+                <Label className="text-xs text-muted-foreground">Custo por Atendente no ITSM (R$/mês)</Label>
                 <Input
                   type="number"
                   step={100}
@@ -312,7 +312,7 @@ export default function TaxasDemanda() {
                   className="h-9"
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Custo mensal de 1 atendente dedicado ao Smart Monitor. Multiplicado pela quantidade do slider na camada.
+                  Custo mensal de 1 acesso de Atendente no ITSM. Multiplicado pela quantidade do slider na camada.
                 </p>
               </div>
               <div className="space-y-1">
@@ -336,7 +336,7 @@ export default function TaxasDemanda() {
                   />
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  Limites do slider "Custo por Atendente do Cliente" na camada Smart Monitor.
+                  Limites do slider "Atendentes no ITSM" na camada Smart Monitor.
                 </p>
               </div>
             </div>
