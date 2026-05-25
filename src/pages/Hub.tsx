@@ -1,71 +1,121 @@
 import { Link } from "react-router-dom";
-import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles } from "lucide-react";
+import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { GROUP_ACCESS_KEYS } from "@/lib/offerings";
+import {
+  GROUP_ACCESS_KEYS,
+  SMART_ITO_ACCESS_KEY,
+  PACOTE_HORAS_ACCESS_KEY,
+  BODYSHOP_ACCESS_KEY,
+} from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";
 
-const OFFERINGS = [
+type OfferingCard = {
+  id: string;
+  title: string;
+  description: string;
+  to: string;
+  icon: typeof Calculator;
+  available: boolean;
+  permissionKey: PermissionKey | null;
+};
+
+type GroupCard = {
+  id: keyof typeof GROUP_ACCESS_KEYS;
+  label: string;
+  description: string;
+  icon: typeof Package;
+  gradient: string;
+  glow: string;
+  accent: string;
+  ring: string;
+  offerings: OfferingCard[];
+};
+
+const GROUPS: GroupCard[] = [
   {
     id: "ito",
     label: "ITO",
-    title: "Smart ITO",
-    description: "Calculadora completa de precificação para operações de TI: equipes N1/N2/N3, field service, métricas e propostas.",
-    to: "/ito",
-    icon: Calculator,
-    available: true,
+    description: "Operações de TI: monitoramento, equipes N1/N2/N3, field service e gestão.",
+    icon: Package,
     gradient: "from-emerald-300 via-green-500 to-teal-600",
     glow: "shadow-[0_0_40px_-10px_rgba(52,211,153,0.6)]",
     accent: "text-emerald-400",
     ring: "group-hover:ring-emerald-400/50",
+    offerings: [
+      {
+        id: "smart-ito",
+        title: "Smart ITO",
+        description: "Calculadora completa de precificação para operações de TI.",
+        to: "/ito",
+        icon: Calculator,
+        available: true,
+        permissionKey: SMART_ITO_ACCESS_KEY as PermissionKey,
+      },
+      {
+        id: "pacote-horas",
+        title: "Pacote de Horas",
+        description: "Modelo de pacote de horas — em desenvolvimento.",
+        to: "/pacote-horas",
+        icon: Clock,
+        available: false,
+        permissionKey: PACOTE_HORAS_ACCESS_KEY as PermissionKey,
+      },
+      {
+        id: "bodyshop",
+        title: "Bodyshop",
+        description: "Alocação de profissionais — em desenvolvimento.",
+        to: "/bodyshop",
+        icon: Users,
+        available: false,
+        permissionKey: BODYSHOP_ACCESS_KEY as PermissionKey,
+      },
+    ],
   },
   {
     id: "datacenter",
     label: "Datacenter",
-    title: "Datacenter",
-    description: "Estrutura de precificação para serviços de datacenter — disponível em breve.",
-    to: "/datacenter",
+    description: "Estrutura de precificação para serviços de datacenter.",
     icon: Server,
-    available: false,
     gradient: "from-green-400 via-emerald-500 to-teal-600",
     glow: "shadow-[0_0_40px_-10px_rgba(16,185,129,0.6)]",
     accent: "text-green-400",
     ring: "group-hover:ring-green-400/50",
+    offerings: [],
   },
   {
     id: "cloud",
     label: "Cloud",
-    title: "Cloud",
-    description: "Estrutura de precificação para serviços de nuvem — disponível em breve.",
-    to: "/cloud",
+    description: "Estrutura de precificação para serviços de nuvem.",
     icon: Cloud,
-    available: false,
     gradient: "from-lime-300 via-green-400 to-emerald-500",
     glow: "shadow-[0_0_40px_-10px_rgba(132,204,22,0.6)]",
     accent: "text-lime-400",
     ring: "group-hover:ring-lime-400/50",
+    offerings: [],
   },
   {
     id: "observabilidade",
     label: "Observabilidade",
-    title: "Observabilidade",
-    description: "Estrutura de precificação para observabilidade e monitoração — disponível em breve.",
-    to: "/observabilidade",
+    description: "Estrutura de precificação para observabilidade e monitoração.",
     icon: Activity,
-    available: false,
     gradient: "from-teal-300 via-emerald-500 to-green-600",
     glow: "shadow-[0_0_40px_-10px_rgba(20,184,166,0.6)]",
     accent: "text-teal-400",
     ring: "group-hover:ring-teal-400/50",
+    offerings: [],
   },
 ];
 
 export default function Hub() {
   const { can } = useAuth();
-  const visible = OFFERINGS.filter((o) =>
-    can(GROUP_ACCESS_KEYS[o.id as keyof typeof GROUP_ACCESS_KEYS] as PermissionKey),
-  );
+  const visibleGroups = GROUPS
+    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey))
+    .map((g) => ({
+      ...g,
+      offerings: g.offerings.filter((o) => !o.permissionKey || can(o.permissionKey)),
+    }));
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#020f0a] text-slate-100">
@@ -115,7 +165,7 @@ export default function Hub() {
           </div>
           <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">
             <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-              Escolha uma oferta
+              Grupos e Ofertas
             </span>
             <br />
             <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-300 bg-clip-text text-transparent">
@@ -123,64 +173,79 @@ export default function Hub() {
             </span>
           </h1>
           <p className="mt-5 text-base sm:text-lg text-slate-400">
-            Acesse a calculadora de precificação correspondente à oferta que deseja dimensionar.
+            Cada grupo reúne as ofertas disponíveis para dimensionamento e precificação.
           </p>
         </div>
 
-        {/* Grid */}
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {(visible.length ? visible : OFFERINGS).map((o) => {
-            const Icon = o.icon;
-            const Card = (
-              <div
-                className={`group relative h-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-6 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05] ring-1 ring-transparent ${o.ring} ${o.available ? "" : "opacity-90"}`}
+        {/* Groups */}
+        <div className="mt-14 grid gap-6 lg:grid-cols-2">
+          {(visibleGroups.length ? visibleGroups : GROUPS).map((g) => {
+            const GIcon = g.icon;
+            return (
+              <section
+                key={g.id}
+                className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-6 backdrop-blur-xl"
               >
-                {/* Animated top accent line */}
-                <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${o.gradient} opacity-60`} />
+                <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${g.gradient} opacity-60`} />
 
-                {/* Icon badge */}
-                <div className="relative mb-5">
+                <div className="flex items-start gap-4">
                   <div
-                    className={`inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${o.gradient} ${o.glow} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
+                    className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${g.gradient} ${g.glow}`}
                   >
-                    <Icon className="h-7 w-7 text-white drop-shadow" strokeWidth={2.2} />
+                    <GIcon className="h-6 w-6 text-white drop-shadow" strokeWidth={2.2} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className={`text-[10px] font-bold uppercase tracking-[0.18em] ${g.accent}`}>
+                      Grupo
+                    </div>
+                    <h2 className="mt-1 text-xl font-semibold text-white">{g.label}</h2>
+                    <p className="mt-1 text-sm text-slate-400 leading-relaxed">{g.description}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-bold uppercase tracking-[0.18em] ${o.accent}`}>
-                    {o.label}
-                  </span>
-                  {!o.available && (
-                    <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-slate-400">
-                      Em breve
-                    </span>
+                <div className="mt-5 space-y-2">
+                  {g.offerings.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-5 text-center">
+                      <span className="text-xs uppercase tracking-wider text-slate-500">
+                        Nenhuma oferta disponível ainda
+                      </span>
+                    </div>
+                  ) : (
+                    g.offerings.map((o) => {
+                      const OIcon = o.icon;
+                      return (
+                        <Link
+                          key={o.id}
+                          to={o.to}
+                          className={`group flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] ${o.available ? "" : "opacity-80"}`}
+                        >
+                          <div className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${g.gradient} ${g.glow}`}>
+                            <OIcon className="h-5 w-5 text-white" strokeWidth={2.2} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-white truncate">{o.title}</span>
+                              {!o.available && (
+                                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-slate-400">
+                                  Em breve
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-400 truncate">{o.description}</p>
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+                        </Link>
+                      );
+                    })
                   )}
                 </div>
-                <h2 className="mt-2 text-xl font-semibold text-white">{o.title}</h2>
-                <p className="mt-2 text-sm text-slate-400 leading-relaxed">{o.description}</p>
-
-                <div className="mt-6 flex items-center gap-1.5 text-sm font-medium text-slate-300 transition-colors group-hover:text-white">
-                  {o.available ? "Abrir calculadora" : "Visualizar"}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </div>
-
-                {/* Bottom glow */}
-                <div
-                  className={`pointer-events-none absolute -bottom-16 left-1/2 h-32 w-32 -translate-x-1/2 rounded-full bg-gradient-to-br ${o.gradient} opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-40`}
-                />
-              </div>
-            );
-            return (
-              <Link key={o.id} to={o.to} className="block h-full">
-                {Card}
-              </Link>
+              </section>
             );
           })}
         </div>
 
         <div className="mt-12 text-center text-xs text-slate-500">
-          Selecione uma oferta acima · Você poderá alternar entre elas pelo seletor no topo
+          Selecione uma oferta dentro de um grupo · Você poderá alternar pelo seletor no topo
         </div>
       </main>
     </div>
