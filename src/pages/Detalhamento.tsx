@@ -524,8 +524,8 @@ export default function Detalhamento() {
                   <Wrench className="h-4 w-4" strokeWidth={2.5} />
                 </div>
                 <div className="flex-1 min-w-[160px]">
-                  <p className="text-sm font-extrabold tracking-tight">Field Service</p>
-                  <p className="text-[11px] text-muted-foreground italic">Suporte presencial — incluso no Smart Operation</p>
+                  <p className="text-sm font-extrabold tracking-tight">{escopo.fieldService.titulo}</p>
+                  <p className="text-[11px] text-muted-foreground italic">{escopo.fieldService.tagline}</p>
                 </div>
                 {valorFieldService > 0 && (
                   <div className="text-right shrink-0">
@@ -534,6 +534,19 @@ export default function Detalhamento() {
                   </div>
                 )}
               </div>
+              {escopo.fieldService.descricao && (
+                <p className="text-xs text-muted-foreground leading-relaxed">{escopo.fieldService.descricao}</p>
+              )}
+              {escopo.fieldService.incluidos.length > 0 && (
+                <>
+                  <SubTitle>O que está incluído</SubTitle>
+                  <ul className="space-y-1.5">
+                    {escopo.fieldService.incluidos.map((t, i) => (
+                      <Bullet key={i} color="amber">{t}</Bullet>
+                    ))}
+                  </ul>
+                </>
+              )}
               <SubTitle>Equipe presencial alocada</SubTitle>
               <div className="grid grid-cols-3 gap-2">
                 <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} sub={formatBRL(fs.custoN1F)} />
