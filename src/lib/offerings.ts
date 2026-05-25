@@ -56,6 +56,20 @@ export const GROUPS: GroupDef[] = [
           "/perfis-parametros",
         ],
       },
+      {
+        slug: "pacote-horas",
+        name: "Pacote de Horas",
+        status: "coming_soon",
+        routePrefix: "/pacote-horas",
+        routes: ["/pacote-horas"],
+      },
+      {
+        slug: "bodyshop",
+        name: "Bodyshop",
+        status: "coming_soon",
+        routePrefix: "/bodyshop",
+        routes: ["/bodyshop"],
+      },
     ],
   },
   { slug: "datacenter",     name: "Datacenter",     status: "coming_soon", route: "/datacenter",     offerings: [] },
@@ -113,3 +127,5 @@ export const GROUP_ACCESS_KEYS: Record<GroupSlug, string> = {
 };
 
 export const SMART_ITO_ACCESS_KEY = offeringAccessKey("ito", "smart-ito");
+export const PACOTE_HORAS_ACCESS_KEY = offeringAccessKey("ito", "pacote-horas");
+export const BODYSHOP_ACCESS_KEY = offeringAccessKey("ito", "bodyshop");

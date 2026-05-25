@@ -57,6 +57,8 @@ const App = () => (
               <Route path="/datacenter" element={<ProtectedRoute group="datacenter"><EmBreve /></ProtectedRoute>} />
               <Route path="/cloud" element={<ProtectedRoute group="cloud"><EmBreve /></ProtectedRoute>} />
               <Route path="/observabilidade" element={<ProtectedRoute group="observabilidade"><EmBreve /></ProtectedRoute>} />
+              <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
+              <Route path="/bodyshop" element={<ProtectedRoute group="ito" offering="bodyshop"><EmBreve /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -6,6 +6,8 @@ export type PermissionKey =
   | "group.observabilidade.access"
   // Acesso a Ofertas dentro dos Grupos
   | "offering.ito.smart-ito.access"
+  | "offering.ito.pacote-horas.access"
+  | "offering.ito.bodyshop.access"
   // Páginas e ações da oferta Smart ITO (ITO)
   | "page.home"
   | "page.detalhamento"
@@ -57,6 +59,8 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "group.cloud.access",           label: "Acessar Grupo Cloud",           group: "Grupos (Business Unit)" },
   { key: "group.observabilidade.access", label: "Acessar Grupo Observabilidade", group: "Grupos (Business Unit)" },
   { key: "offering.ito.smart-ito.access", label: "Acessar Oferta Smart ITO",     group: "Ofertas" },
+  { key: "offering.ito.pacote-horas.access", label: "Acessar Oferta Pacote de Horas", group: "Ofertas" },
+  { key: "offering.ito.bodyshop.access",     label: "Acessar Oferta Bodyshop",        group: "Ofertas" },
   { key: "page.home",              label: "Início / calculadora",              group: "ITO › Smart ITO › Páginas" },
   { key: "page.detalhamento",      label: "Proposição",                        group: "ITO › Smart ITO › Páginas" },
   { key: "page.equipe_n1",         label: "Equipe N1",                         group: "ITO › Smart ITO › Páginas" },
