@@ -265,7 +265,7 @@ export default function Detalhamento() {
         ...(sm.custoN3Manut > 0 ? [{ label: "Manutenção do monitoramento (N3)", value: toSell(sm.custoN3Manut) }] : []),
         ...(sm.custoN3 > 0 ? [{ label: "Acionamento N3 (horas opcionais)", value: toSell(sm.custoN3) }] : []),
         ...(sm.custoAtendentes > 0
-          ? [{ label: `Atendentes do cliente (${sm.qtdAtendentes}x)`, value: toSell(sm.custoAtendentes) }]
+          ? [{ label: `Atendentes no ITSM (${sm.qtdAtendentes}x)`, value: toSell(sm.custoAtendentes) }]
           : []),
         ...(sm.custoProxys > 0
           ? [{ label: `Proxys de monitoramento (${sm.qtdProxys}x)`, value: toSell(sm.custoProxys) }]
@@ -385,9 +385,9 @@ export default function Detalhamento() {
                 {sm.qtdAtendentes > 0 && (
                   <div className="rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Atendentes do cliente</div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Atendentes no ITSM</div>
                       <div className="text-lg font-bold leading-tight">{formatNumber(sm.qtdAtendentes)}</div>
-                      <div className="text-[11px] text-muted-foreground">profissionais dedicados</div>
+                      <div className="text-[11px] text-muted-foreground">acessos</div>
                     </div>
                     <div className="text-right">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
