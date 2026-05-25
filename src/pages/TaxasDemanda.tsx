@@ -288,6 +288,20 @@ export default function TaxasDemanda() {
                 </p>
               </div>
               <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Quantidade Máxima de Proxys (slider Smart Monitor)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={1}
+                  value={state.qtdProxysMonitorMax}
+                  onChange={(e) => update("qtdProxysMonitorMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Limite máximo do slider "Quantidade de Proxys" na camada Smart Monitor (mínimo fixo em 1).
+                </p>
+              </div>
+              <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Custo por Atendente do Cliente (R$/mês)</Label>
                 <Input
                   type="number"
