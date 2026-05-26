@@ -99,7 +99,7 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoExtra: 0,
     },
     {
-      nome: "Field Service",
+      nome: "Field Service de Microinformática",
       icon: Truck,
       chamadosBrutos: fieldService.bruto,
       chamadosN0: 0,

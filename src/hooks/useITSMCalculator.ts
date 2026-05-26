@@ -84,7 +84,7 @@ export interface ITSMState {
   tierOperationN3: boolean;
   tierPerformance: boolean;
   tierEnterprise: boolean;
-  // Field Service (sub-opção do Smart Operation)
+  // Field Service de Microinformática (sub-opção do Smart Operation)
   tierFieldOperation: boolean;
   percFieldN1F: number;
   percFieldN2F: number;
@@ -175,7 +175,7 @@ export interface ITSMResults {
     total: number;
   };
   humanAttendanceActive: boolean;
-  // Field Service
+  // Field Service de Microinformática
   fieldService: {
     active: boolean;
     volumeUsuariosEscalado: number;
@@ -350,7 +350,7 @@ export function useITSMCalculator() {
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
 
-    // Quando Field Service está ativo, os chamados de USUÁRIOS passam pelo N1
+    // Quando Field Service de Microinformática está ativo, os chamados de USUÁRIOS passam pelo N1
     // convencional (triagem) mas são escalados para a equipe Field nos níveis
     // N2/N3 — portanto não devem ser contabilizados em N2/N3 remoto.
     const fieldActiveCheck = state.tierOperation && state.tierFieldOperation;
@@ -451,7 +451,7 @@ export function useITSMCalculator() {
     // (transbordo) já paga o custo cheio do N1 remoto mais adiante.
     let custoFieldTriagemN1 = 0;
 
-    // === Field Service ===
+    // === Field Service de Microinformática ===
     // Demandas de usuários (já filtradas pelo N0) passam pelo N1 convencional
     // e, quando Field está ativo, são também escaladas para a equipe Field
     // distribuída entre N1F / N2F / N3F.

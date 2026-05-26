@@ -218,7 +218,7 @@ export default function RelatorioDemanda() {
     ...(gmudData.performance.totals.custo > 0
       ? [{ layer: "GMUDs — Performance (N2 + N3)", custo: gmudData.performance.totals.custo }]
       : []),
-    { layer: "Field Service (N1F + N2F + N3F + transbordo + triagem)", custo: results.fieldService.total },
+    { layer: "Field Service de Microinformática (N1F + N2F + N3F + transbordo + triagem)", custo: results.fieldService.total },
     { layer: "Proxies de monitoramento (informativo)", custo: custoProxies },
   ];
   const custoGmudTotal = gmudData.operation.totals.custo + gmudData.performance.totals.custo;
@@ -666,7 +666,7 @@ export default function RelatorioDemanda() {
             { label: "Smart Operation", on: state.tierOperation, icon: Server },
             { label: "Performance", on: state.tierPerformance, icon: Server },
             { label: "Enterprise", on: state.tierEnterprise, icon: Server },
-            { label: "Field Service", on: state.tierFieldOperation, icon: MapPin },
+            { label: "Field Service de Microinformática", on: state.tierFieldOperation, icon: MapPin },
           ].map(({ label, on, icon: Icon }) => (
             <div key={label} className={`flex items-center gap-2 px-3 py-2 rounded-md border text-xs ${on ? "bg-primary/10 border-primary/30 text-foreground" : "bg-muted/30 text-muted-foreground"}`}>
               <Icon className="h-3.5 w-3.5" /> {label}
