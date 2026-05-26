@@ -12,6 +12,9 @@ const KEYS = [
   "gestao-ti:rotinas",
   "gestao-ti:gmuds",
   "gestao-ti:smartPerf:n3Cortes",
+  "escopo:proposicao",
+  "escopo:restricoesGerais",
+  "escopo:itensAdicionais",
 ];
 
 export default function SaveDefaultsButton() {
