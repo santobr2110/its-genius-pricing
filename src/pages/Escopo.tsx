@@ -16,8 +16,9 @@ import {
   type CamadaKey, type EscopoCamada, type EscopoProposicao,
 } from "@/data/escopoProposicao";
 
-const linesToList = (s: string) =>
-  s.split("\n").map((l) => l.trim()).filter((l) => l.length > 0);
+// Mantém linhas vazias durante a edição para permitir adicionar novas linhas
+// (a filtragem só ocorre na renderização do relatório).
+const linesToList = (s: string) => s.split("\n");
 const listToLines = (xs: string[]) => xs.join("\n");
 
 export default function Escopo() {
