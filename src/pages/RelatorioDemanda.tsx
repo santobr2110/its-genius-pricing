@@ -560,7 +560,7 @@ export default function RelatorioDemanda() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Custo por camada de atendimento</CardTitle>
-            <p className="text-xs text-muted-foreground">Composição mensal do custo total da operação.</p>
+            <p className="text-xs text-muted-foreground">Composição mensal do custo total da operação (inclui GMUDs alocadas nas camadas Operation/Performance).</p>
           </CardHeader>
           <CardContent>
             <Table>
