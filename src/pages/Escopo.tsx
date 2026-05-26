@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ListChecks, RotateCcw } from "lucide-react";
+import { ListChecks, RotateCcw, Plus, Trash2 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   CAMADA_LABEL, CAMADA_ORDEM, ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY,
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
+  ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
   type CamadaKey, type EscopoCamada, type EscopoProposicao,
+  type ItemAdicional, type ItemAdicionalTipo,
 } from "@/data/escopoProposicao";
 
 // Mantém linhas vazias durante a edição para permitir adicionar novas linhas
@@ -32,6 +34,10 @@ export default function Escopo() {
     RESTRICOES_GERAIS_STORAGE_KEY,
     RESTRICOES_GERAIS_DEFAULT,
   );
+  const [itens, setItens] = usePersistentState<ItemAdicional[]>(
+    ITENS_ADICIONAIS_STORAGE_KEY,
+    ITENS_ADICIONAIS_DEFAULT,
+  );
 
   const updateCamada = (key: CamadaKey, patch: Partial<EscopoCamada>) => {
     setEscopo((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
@@ -39,6 +45,20 @@ export default function Escopo() {
 
   const resetCamada = (key: CamadaKey) => {
     setEscopo((prev) => ({ ...prev, [key]: ESCOPO_DEFAULT[key] }));
+  };
+
+  const updateItem = (id: string, patch: Partial<ItemAdicional>) => {
+    setItens((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
+  };
+  const removeItem = (id: string) => {
+    setItens((prev) => prev.filter((it) => it.id !== id));
+  };
+  const addItem = () => {
+    const id = `item-${Date.now()}`;
+    setItens((prev) => [
+      ...prev,
+      { id, descricao: "Novo item", unidade: "Unidade", tipo: "fixo", valorManual: 0, observacao: "" },
+    ]);
   };
 
   return (
