@@ -118,10 +118,10 @@ export default function Hub() {
     }));
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#020f0a] text-slate-100">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-emerald-50 via-white to-teal-50 text-slate-900 dark:bg-[#020f0a] dark:from-transparent dark:via-transparent dark:to-transparent dark:text-slate-100">
       {/* Background grid */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.15]"
+        className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.15]"
         style={{
           backgroundImage:
             "linear-gradient(to right, rgba(52,211,153,0.12) 1px, transparent 1px), linear-gradient(to bottom, rgba(52,211,153,0.12) 1px, transparent 1px)",
@@ -131,19 +131,19 @@ export default function Hub() {
         }}
       />
       {/* Aurora blobs */}
-      <div className="pointer-events-none absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-emerald-500/20 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 h-[520px] w-[520px] rounded-full bg-green-500/20 blur-[120px]" />
-      <div className="pointer-events-none absolute top-1/3 right-1/4 h-[320px] w-[320px] rounded-full bg-teal-500/15 blur-[120px]" />
+      <div className="pointer-events-none absolute -top-32 -left-32 h-[480px] w-[480px] rounded-full bg-emerald-300/30 blur-[120px] dark:bg-emerald-500/20" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 h-[520px] w-[520px] rounded-full bg-green-300/30 blur-[120px] dark:bg-green-500/20" />
+      <div className="pointer-events-none absolute top-1/3 right-1/4 h-[320px] w-[320px] rounded-full bg-teal-300/25 blur-[120px] dark:bg-teal-500/15" />
 
       {/* Header */}
-      <header className="relative z-10 border-b border-white/5 bg-white/[0.02] backdrop-blur-xl">
+      <header className="relative z-10 border-b border-slate-200/70 bg-white/60 backdrop-blur-xl dark:border-white/5 dark:bg-white/[0.02]">
         <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-3 px-6">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Sparkles className="h-5 w-5 text-emerald-300" />
+              <Sparkles className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
               <div className="absolute inset-0 blur-md bg-emerald-400/40 -z-10" />
             </div>
-            <span className="text-xs font-semibold tracking-[0.2em] text-slate-300">
+            <span className="text-xs font-semibold tracking-[0.2em] text-slate-600 dark:text-slate-300">
               BUSINESS UNIT · IT SOLUTIONS
             </span>
           </div>
@@ -157,22 +157,22 @@ export default function Hub() {
       {/* Hero */}
       <main className="relative z-10 mx-auto max-w-[1400px] px-6 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 backdrop-blur dark:border-white/10 dark:bg-white/5">
             <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-[10px] font-medium uppercase tracking-widest text-slate-300">
+            <span className="text-[10px] font-medium uppercase tracking-widest text-slate-600 dark:text-slate-300">
               Plataforma Comercial
             </span>
           </div>
           <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">
-            <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 bg-clip-text text-transparent dark:from-white dark:via-slate-200 dark:to-slate-400">
               Grupos de Ofertas
             </span>
             <br />
-            <span className="bg-gradient-to-r from-emerald-300 via-green-400 to-teal-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 bg-clip-text text-transparent dark:from-emerald-300 dark:via-green-400 dark:to-teal-300">
               IT Solutions
             </span>
           </h1>
-          <p className="mt-5 text-base sm:text-lg text-slate-400">
+          <p className="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-400">
             Cada grupo reúne as ofertas disponíveis para dimensionamento e precificação.
           </p>
         </div>
@@ -184,7 +184,7 @@ export default function Hub() {
             return (
               <section
                 key={g.id}
-                className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-6 backdrop-blur-xl"
+                className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white/80 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-gradient-to-b dark:from-white/[0.06] dark:to-white/[0.02]"
               >
                 <div className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${g.gradient} opacity-60`} />
 
@@ -198,15 +198,15 @@ export default function Hub() {
                     <div className={`text-[10px] font-bold uppercase tracking-[0.18em] ${g.accent}`}>
                       Grupo
                     </div>
-                    <h2 className="mt-1 text-xl font-semibold text-white">{g.label}</h2>
-                    <p className="mt-1 text-sm text-slate-400 leading-relaxed">{g.description}</p>
+                    <h2 className="mt-1 text-xl font-semibold text-slate-900 dark:text-white">{g.label}</h2>
+                    <p className="mt-1 text-sm text-slate-600 leading-relaxed dark:text-slate-400">{g.description}</p>
                   </div>
                 </div>
 
                 <div className="mt-5 space-y-2">
                   {g.offerings.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-5 text-center">
-                      <span className="text-xs uppercase tracking-wider text-slate-500">
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center dark:border-white/10 dark:bg-white/[0.02]">
+                      <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-500">
                         Nenhuma oferta disponível ainda
                       </span>
                     </div>
@@ -217,23 +217,23 @@ export default function Hub() {
                         <Link
                           key={o.id}
                           to={o.to}
-                          className={`group flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-all hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06] ${o.available ? "" : "opacity-80"}`}
+                          className={`group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20 dark:hover:bg-white/[0.06] ${o.available ? "" : "opacity-80"}`}
                         >
                           <div className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${g.gradient} ${g.glow}`}>
                             <OIcon className="h-5 w-5 text-white" strokeWidth={2.2} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold text-white truncate">{o.title}</span>
+                              <span className="text-sm font-semibold text-slate-900 truncate dark:text-white">{o.title}</span>
                               {!o.available && (
-                                <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-slate-400">
+                                <span className="rounded-full border border-slate-300 bg-slate-100 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-slate-600 dark:border-white/15 dark:bg-white/5 dark:text-slate-400">
                                   Em breve
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-slate-400 truncate">{o.description}</p>
+                            <p className="text-xs text-slate-600 truncate dark:text-slate-400">{o.description}</p>
                           </div>
-                          <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+                          <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-900 dark:group-hover:text-white" />
                         </Link>
                       );
                     })
@@ -244,7 +244,7 @@ export default function Hub() {
           })}
         </div>
 
-        <div className="mt-12 text-center text-xs text-slate-500">
+        <div className="mt-12 text-center text-xs text-slate-500 dark:text-slate-500">
           Selecione uma oferta dentro de um grupo · Você poderá alternar pelo seletor no topo
         </div>
       </main>
