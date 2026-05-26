@@ -21,13 +21,14 @@ import {
 import {
   ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
-  type EscopoProposicao, type CamadaKey,
+  ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
+  type EscopoProposicao, type CamadaKey, type ItemAdicional,
 } from "@/data/escopoProposicao";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
 } from "@/data/gmuds";
-import { GitBranch } from "lucide-react";
+import { GitBranch, PackagePlus } from "lucide-react";
 
 function normalizeOsRotina(r: Rotina): Rotina {
   const isOs = r.grupo.toLowerCase().includes("sistema operacional");
