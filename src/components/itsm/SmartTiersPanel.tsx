@@ -510,79 +510,107 @@ export default function SmartTiersPanel() {
                 <span className="font-semibold">{formatBRL(smN1Venda)}</span>
               </div>
             </div>
-            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
-              <div className="flex items-center justify-between">
-                <Label className="text-[11px] text-muted-foreground">
-                  Horas Manutenção Monitoramento ({formatBRL(toSell(state.valorHoraN3))}/h)
-                  {monitorAdvanced && " · absorvido pela camada superior"}
-                </Label>
-                <span className="text-xs font-semibold">
-                  {formatNumber(state.horasN3MonitorManut)}h · {formatBRL(smN3ManutVenda)}
-                </span>
+            {/* Grupo: Horas N3 */}
+            <div className="rounded-lg border border-amber-200/70 dark:border-amber-900/50 bg-amber-100/30 dark:bg-amber-950/10 p-2 space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                  Horas N3
+                </p>
+                {monitorAdvanced && (
+                  <span className="text-[10px] text-muted-foreground italic">
+                    absorvido pela camada superior
+                  </span>
+                )}
               </div>
-              <Slider
-                value={[Math.min(state.horasN3MonitorManutMax, Math.max(state.horasN3MonitorManutMin, state.horasN3MonitorManut || 0))]}
-                onValueChange={([v]) => update("horasN3MonitorManut", v)}
-                min={state.horasN3MonitorManutMin}
-                max={state.horasN3MonitorManutMax}
-                step={1}
-                disabled={monitorAdvanced}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Manutenção Monitoramento ({formatBRL(toSell(state.valorHoraN3))}/h)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {formatNumber(state.horasN3MonitorManut)}h · {formatBRL(smN3ManutVenda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.horasN3MonitorManutMax, Math.max(state.horasN3MonitorManutMin, state.horasN3MonitorManut || 0))]}
+                    onValueChange={([v]) => update("horasN3MonitorManut", v)}
+                    min={state.horasN3MonitorManutMin}
+                    max={state.horasN3MonitorManutMax}
+                    step={1}
+                    disabled={monitorAdvanced}
+                  />
+                </div>
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Acionamento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {formatNumber(state.horasN3Monitor)}h · {formatBRL(smN3Venda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.horasN3MonitorMax, Math.max(state.horasN3MonitorMin, state.horasN3Monitor || 0))]}
+                    onValueChange={([v]) => update("horasN3Monitor", v)}
+                    min={state.horasN3MonitorMin}
+                    max={state.horasN3MonitorMax}
+                    step={1}
+                    disabled={monitorAdvanced}
+                  />
+                </div>
+              </div>
             </div>
-            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
-              <div className="flex items-center justify-between">
-                <Label className="text-[11px] text-muted-foreground">
-                  Horas Acionamento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
-                  {monitorAdvanced && " · absorvido pela camada superior"}
-                </Label>
-                <span className="text-xs font-semibold">
-                  {formatNumber(state.horasN3Monitor)}h · {formatBRL(smN3Venda)}
-                </span>
+
+            {/* Grupo: Recursos */}
+            <div className="rounded-lg border border-amber-200/70 dark:border-amber-900/50 bg-amber-100/30 dark:bg-amber-950/10 p-2 space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+                  Recursos
+                </p>
+                {monitorAdvanced && (
+                  <span className="text-[10px] text-muted-foreground italic">
+                    atendentes absorvidos pela camada superior
+                  </span>
+                )}
               </div>
-              <Slider
-                value={[Math.min(state.horasN3MonitorMax, Math.max(state.horasN3MonitorMin, state.horasN3Monitor || 0))]}
-                onValueChange={([v]) => update("horasN3Monitor", v)}
-                min={state.horasN3MonitorMin}
-                max={state.horasN3MonitorMax}
-                step={1}
-                disabled={monitorAdvanced}
-              />
-            </div>
-            <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
-              <div className="flex items-center justify-between">
-                <Label className="text-[11px] text-muted-foreground">
-                  Atendentes no ITSM ({formatBRL(toSell(state.custoAtendenteMonitor))}/acesso)
-                  {monitorAdvanced && " · absorvido pela camada superior"}
-                </Label>
-                <span className="text-xs font-semibold">
-                  {state.qtdAtendentesMonitor} · {formatBRL(smAtendentesVenda)}
-                </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Atendentes no ITSM ({formatBRL(toSell(state.custoAtendenteMonitor))}/acesso)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {state.qtdAtendentesMonitor} · {formatBRL(smAtendentesVenda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.qtdAtendentesMonitorMax, Math.max(state.qtdAtendentesMonitorMin, state.qtdAtendentesMonitor || 0))]}
+                    onValueChange={([v]) => update("qtdAtendentesMonitor", v)}
+                    min={state.qtdAtendentesMonitorMin}
+                    max={state.qtdAtendentesMonitorMax}
+                    step={1}
+                    disabled={monitorAdvanced}
+                  />
+                </div>
+                <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Proxys ({formatBRL(toSell(state.valorProxyInicial))} inicial · {formatBRL(toSell(state.valorProxyAdicional))} adic.)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {sm.qtdProxys} · {formatBRL(smProxysVenda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.qtdProxysMonitorMax, Math.max(1, state.qtdProxysMonitor || 1))]}
+                    onValueChange={([v]) => update("qtdProxysMonitor", v)}
+                    min={1}
+                    max={Math.max(1, state.qtdProxysMonitorMax)}
+                    step={1}
+                  />
+                </div>
               </div>
-              <Slider
-                value={[Math.min(state.qtdAtendentesMonitorMax, Math.max(state.qtdAtendentesMonitorMin, state.qtdAtendentesMonitor || 0))]}
-                onValueChange={([v]) => update("qtdAtendentesMonitor", v)}
-                min={state.qtdAtendentesMonitorMin}
-                max={state.qtdAtendentesMonitorMax}
-                step={1}
-                disabled={monitorAdvanced}
-              />
-            </div>
-            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label className="text-[11px] text-muted-foreground">
-                  Quantidade de Proxys ({formatBRL(toSell(state.valorProxyInicial))} inicial · {formatBRL(toSell(state.valorProxyAdicional))} adicional)
-                </Label>
-                <span className="text-xs font-semibold">
-                  {sm.qtdProxys} · {formatBRL(smProxysVenda)}
-                </span>
-              </div>
-              <Slider
-                value={[Math.min(state.qtdProxysMonitorMax, Math.max(1, state.qtdProxysMonitor || 1))]}
-                onValueChange={([v]) => update("qtdProxysMonitor", v)}
-                min={1}
-                max={Math.max(1, state.qtdProxysMonitorMax)}
-                step={1}
-              />
             </div>
             {!state.tierOperation && (state.horasN3MonitorManut + state.horasN3Monitor > 0) && (() => {
               const hManut = Math.max(0, state.horasN3MonitorManut || 0);
