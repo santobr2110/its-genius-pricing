@@ -161,17 +161,17 @@ export default function RelatorioDemanda() {
     },
     {
       name: "N2 — Especialistas remotos",
-      origem: "Funil (N2)",
-      demanda: results.volumeN2,
+      origem: gmudData.totalChamadosN2 > 0 ? "Funil (N2) + GMUDs" : "Funil (N2)",
+      demanda: results.volumeN2 + gmudData.totalChamadosN2,
       capacidade: state.capacidadeChamadosN2,
-      custo: results.custoN2,
+      custo: results.custoN2 + gmudData.totalCustoN2,
     },
     {
       name: "N3 — Especialistas sêniores",
-      origem: "Funil (N3) + horas avulsas",
-      demanda: results.volumeN3,
+      origem: gmudData.totalChamadosN3 > 0 ? "Funil (N3) + horas avulsas + GMUDs" : "Funil (N3) + horas avulsas",
+      demanda: results.volumeN3 + gmudData.totalChamadosN3,
       capacidade: state.tempoMedioChamadoN3 > 0 ? state.horasN3Mensais / state.tempoMedioChamadoN3 : 0,
-      custo: results.custoN3,
+      custo: results.custoN3 + gmudData.totalCustoN3,
     },
   ];
 
@@ -212,10 +212,17 @@ export default function RelatorioDemanda() {
     { layer: "Atendimento N1 (funil)", custo: results.custoN1 },
     { layer: "Atendimento N2 (funil)", custo: results.custoN2 },
     { layer: "Atendimento N3 (funil + prevenção)", custo: results.custoN3 },
+    ...(gmudData.operation.totals.custo > 0
+      ? [{ layer: "GMUDs — Smart Operation (N2 + N3)", custo: gmudData.operation.totals.custo }]
+      : []),
+    ...(gmudData.performance.totals.custo > 0
+      ? [{ layer: "GMUDs — Performance (N2 + N3)", custo: gmudData.performance.totals.custo }]
+      : []),
     { layer: "Field Service (N1F + N2F + N3F + transbordo + triagem)", custo: results.fieldService.total },
     { layer: "Proxies de monitoramento (informativo)", custo: custoProxies },
   ];
-  const custoOperacaoTotal = results.custoTotalOperacao;
+  const custoGmudTotal = gmudData.operation.totals.custo + gmudData.performance.totals.custo;
+  const custoOperacaoTotal = results.custoTotalOperacao + custoGmudTotal;
 
   const origemRows = [
     { icon: Users, label: "Usuários (Service Desk)", bruto: usuariosBruto, humano: usuariosHumano, cac: rotinasPorAtivo.usuarios.cac, rotCount: rotinasPorAtivo.usuarios.count },
