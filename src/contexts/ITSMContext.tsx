@@ -4,6 +4,9 @@ import { useN1TeamState, N1TeamState, N1TeamResults } from "@/hooks/useN1TeamSta
 import { useN2TeamState, N2TeamState, N2TeamResults } from "@/hooks/useN2TeamState";
 import { useFieldTeamsState, FieldTeamsState, FieldTeamsResults, FieldLevel } from "@/hooks/useFieldTeamsState";
 import type { PricingPreset } from "@/hooks/usePricingPresets";
+import { SMART_ITO_NS } from "@/lib/offerings";
+import { notifyPersistentStateRestored } from "@/hooks/usePersistentState";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ITSMContextType {
   state: ITSMState;
@@ -113,6 +116,30 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     calc.setState(preset.calculator);
     n1.setTeamState(preset.n1Team);
     if (preset.n2Team) n2.setTeamState(preset.n2Team);
+    // Restaura também os parâmetros de Escopo (proposição, restrições gerais
+    // e itens adicionais ao contrato), quando presentes no preset.
+    const escopo = preset.escopo;
+    if (escopo && typeof window !== "undefined") {
+      const entries: Array<[string, unknown]> = [];
+      if (escopo.proposicao) entries.push(["escopo:proposicao", escopo.proposicao]);
+      if (escopo.restricoesGerais) entries.push(["escopo:restricoesGerais", escopo.restricoesGerais]);
+      if (escopo.itensAdicionais) entries.push(["escopo:itensAdicionais", escopo.itensAdicionais]);
+      for (const [rawKey, value] of entries) {
+        const key = SMART_ITO_NS + rawKey;
+        try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+        notifyPersistentStateRestored(key, value);
+      }
+      // Persiste em nuvem (user_app_state) para sincronizar entre dispositivos.
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user || entries.length === 0) return;
+        const rows = entries.map(([rawKey, value]) => ({
+          user_id: user.id,
+          key: SMART_ITO_NS + rawKey,
+          value: value as never,
+        }));
+        void supabase.from("user_app_state").upsert(rows, { onConflict: "user_id,key" });
+      });
+    }
   }, [calc.setState, n1.setTeamState, n2.setTeamState]);
 
   const value: ITSMContextType = {

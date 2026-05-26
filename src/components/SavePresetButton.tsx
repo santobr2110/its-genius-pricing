@@ -27,6 +27,22 @@ import { useITSMContext } from "@/contexts/ITSMContext";
 import { usePricingPresets, type PricingPreset } from "@/hooks/usePricingPresets";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { SMART_ITO_NS } from "@/lib/offerings";
+import {
+  ESCOPO_DEFAULT, RESTRICOES_GERAIS_DEFAULT, ITENS_ADICIONAIS_DEFAULT,
+  type EscopoProposicao, type ItemAdicional,
+} from "@/data/escopoProposicao";
+
+function readLs<T>(rawKey: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(SMART_ITO_NS + rawKey);
+    if (raw == null) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
 
 export default function SavePresetButton() {
   const navigate = useNavigate();
@@ -50,8 +66,13 @@ export default function SavePresetButton() {
       chamadosPorAtivo: totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0,
       chamadosPorUsuario: state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0,
     };
+    const escopo = {
+      proposicao: readLs<EscopoProposicao>("escopo:proposicao", ESCOPO_DEFAULT),
+      restricoesGerais: readLs<string[]>("escopo:restricoesGerais", RESTRICOES_GERAIS_DEFAULT),
+      itensAdicionais: readLs<ItemAdicional[]>("escopo:itensAdicionais", ITENS_ADICIONAIS_DEFAULT),
+    };
     try {
-      const preset = await save(name, state, n1Team, n2Team, volumes);
+      const preset = await save(name, state, n1Team, n2Team, volumes, escopo);
       toast.success(`Precificação "${preset.name}" salva.`);
       setName("");
       setOpen(false);
