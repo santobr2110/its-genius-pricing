@@ -11,7 +11,14 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { ROTINAS_DEFAULT, rotinaMultiplicador, type ComplexFlags, type Rotina } from "@/data/rotinas";
 import { useMemo } from "react";
-import { ListChecks } from "lucide-react";
+import { ListChecks, GitBranch } from "lucide-react";
+import {
+  GMUDS_DEFAULT,
+  bucketGmuds,
+  computeGmud,
+  type Gmud,
+  type GmudComputed,
+} from "@/data/gmuds";
 
 interface TeamRow {
   name: string;
@@ -35,6 +42,48 @@ export default function RelatorioDemanda() {
 
   // === Rotinas (CACs previstos por origem/ativo) ===
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  // === GMUDs (demanda extra para N2/N3) ===
+  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+  const gmudData = useMemo(() => {
+    const input = {
+      custoPorChamadoN2: results.custoPorChamadoN2,
+      tempoMedioChamadoN3: state.tempoMedioChamadoN3,
+      valorHoraN3: state.valorHoraN3,
+      percN2: state.percGmudN2 ?? 70,
+      percN3: state.percGmudN3 ?? 30,
+    };
+    const buckets = bucketGmuds(gmuds);
+    const tierActive = (oferta: "operation" | "performance") =>
+      oferta === "operation" ? state.tierOperation : state.tierPerformance;
+    const build = (lista: Gmud[], camada: "operation" | "performance") => {
+      if (!tierActive(camada)) return { items: [] as GmudComputed[], totals: { chamados: 0, chamadosN2: 0, chamadosN3: 0, horasN3: 0, custoN2: 0, custoN3: 0, custo: 0 }, camada };
+      const items = lista.map((g) => computeGmud(g, input));
+      const totals = items.reduce(
+        (acc, i) => {
+          acc.chamados += i.chamadosMes;
+          acc.chamadosN2 += i.chamadosN2;
+          acc.chamadosN3 += i.chamadosN3;
+          acc.horasN3 += i.horasN3;
+          acc.custoN2 += i.custoN2;
+          acc.custoN3 += i.custoN3;
+          acc.custo += i.custo;
+          return acc;
+        },
+        { chamados: 0, chamadosN2: 0, chamadosN3: 0, horasN3: 0, custoN2: 0, custoN3: 0, custo: 0 },
+      );
+      return { items, totals, camada };
+    };
+    const operation = build(buckets.operation, "operation");
+    const performance = build(buckets.performance, "performance");
+    const totalChamadosN2 = operation.totals.chamadosN2 + performance.totals.chamadosN2;
+    const totalChamadosN3 = operation.totals.chamadosN3 + performance.totals.chamadosN3;
+    const totalHorasN3 = operation.totals.horasN3 + performance.totals.horasN3;
+    const totalCustoN2 = operation.totals.custoN2 + performance.totals.custoN2;
+    const totalCustoN3 = operation.totals.custoN3 + performance.totals.custoN3;
+    return { operation, performance, totalChamadosN2, totalChamadosN3, totalHorasN3, totalCustoN2, totalCustoN3 };
+  }, [gmuds, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, state.tierOperation, state.tierPerformance]);
+  const gmudHasAny =
+    gmudData.operation.items.length > 0 || gmudData.performance.items.length > 0;
   const rotinasPorAtivo = useMemo(() => {
     const inv = {
       qtdUsuarios: state.qtdUsuarios,
