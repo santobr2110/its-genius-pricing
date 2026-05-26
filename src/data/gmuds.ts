@@ -76,3 +76,61 @@ export const GMUDS_DEFAULT: Gmud[] = [
   g("gmud-5", "Normal", "Implantação de nova aplicação ou serviço", "Alta", "Performance", "Bimestral"),
   g("gmud-6", "Emergencial", "Correção crítica de incidente em produção", "Alta", "Ambas", "Bimestral"),
 ];
+
+// =====================================================================
+// Distribuição da demanda de GMUDs entre N2 e N3 e cálculo de custo
+// =====================================================================
+
+export interface GmudCostInput {
+  custoPorChamadoN2: number;
+  tempoMedioChamadoN3: number;
+  valorHoraN3: number;
+  percN2: number;
+  percN3: number;
+}
+
+export interface GmudComputed {
+  id: string;
+  tipo: GmudTipo;
+  descricao: string;
+  frequencia: GmudFrequencia;
+  chamadosMes: number;
+  chamadosN2: number;
+  chamadosN3: number;
+  horasN3: number;
+  custoN2: number;
+  custoN3: number;
+  custo: number;
+}
+
+export function computeGmud(g: Gmud, input: GmudCostInput): GmudComputed {
+  const sum = (input.percN2 + input.percN3) || 100;
+  const pN2 = input.percN2 / sum;
+  const pN3 = input.percN3 / sum;
+  const chamadosN2 = g.chamadosMes * pN2;
+  const chamadosN3 = g.chamadosMes * pN3;
+  const horasN3 = chamadosN3 * input.tempoMedioChamadoN3;
+  const custoN2 = chamadosN2 * input.custoPorChamadoN2;
+  const custoN3 = horasN3 * input.valorHoraN3;
+  return {
+    id: g.id,
+    tipo: g.tipo,
+    descricao: g.descricao,
+    frequencia: g.frequencia,
+    chamadosMes: g.chamadosMes,
+    chamadosN2,
+    chamadosN3,
+    horasN3,
+    custoN2,
+    custoN3,
+    custo: custoN2 + custoN3,
+  };
+}
+
+/** "Ambas" entra no bucket Operation (camada mais baixa que paga a GMUD). */
+export function bucketGmuds(gmuds: Gmud[]) {
+  return {
+    operation: gmuds.filter((g) => g.oferta === "Operation" || g.oferta === "Ambas"),
+    performance: gmuds.filter((g) => g.oferta === "Performance"),
+  };
+}
