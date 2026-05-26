@@ -31,6 +31,7 @@ export type PermissionKey =
   | "page.taxas_demanda.write"
   | "page.field_service.write"
   | "page.gestao_ti.write"
+  | "page.escopo.write"
   | "pricing.edit"
   | "pricing.save_preset"
   | "pricing.delete_preset"
@@ -83,6 +84,7 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.gestao_ti.write",     label: "Editar Gestão de TI",              group: "ITO › Smart ITO › Páginas" },
   { key: "page.financeiro.write",    label: "Editar Financeiro",                group: "ITO › Smart ITO › Páginas" },
   { key: "page.taxas_demanda.write", label: "Editar Métricas e Parâmetros",     group: "ITO › Smart ITO › Páginas" },
+  { key: "page.escopo.write",        label: "Editar Escopo da Proposição",      group: "ITO › Smart ITO › Páginas" },
   { key: "pricing.edit",           label: "Editar parâmetros de precificação", group: "ITO › Smart ITO › Precificação" },
   { key: "pricing.save_preset",    label: "Salvar precificações",              group: "ITO › Smart ITO › Precificação" },
   { key: "pricing.delete_preset",  label: "Remover precificações salvas",      group: "ITO › Smart ITO › Precificação" },
