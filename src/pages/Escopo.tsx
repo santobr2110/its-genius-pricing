@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ListChecks, RotateCcw, Plus, Trash2 } from "lucide-react";
+import { ListChecks, Plus, Trash2 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,10 +41,6 @@ export default function Escopo() {
 
   const updateCamada = (key: CamadaKey, patch: Partial<EscopoCamada>) => {
     setEscopo((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
-  };
-
-  const resetCamada = (key: CamadaKey) => {
-    setEscopo((prev) => ({ ...prev, [key]: ESCOPO_DEFAULT[key] }));
   };
 
   const updateItem = (id: string, patch: Partial<ItemAdicional>) => {
