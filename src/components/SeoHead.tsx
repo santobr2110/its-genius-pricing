@@ -5,7 +5,7 @@ const BASE = "https://ito-genius-pricing.lovable.app";
 
 const ROUTE_META: Record<string, { title: string; description: string }> = {
   "/": {
-    title: "Smart ITO — Calculadora de Precificação ITSM",
+    title: "IT Solutions Pricing Portal - Ofertas IT Solutions",
     description:
       "Dimensione equipes N1/N2/N3 e Field Service, modele demanda mensal e calcule preços de operações ITSM com markup divisor.",
   },
