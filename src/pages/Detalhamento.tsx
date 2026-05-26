@@ -134,6 +134,7 @@ export default function Detalhamento() {
   };
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
   const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
   const [restricoesGerais] = usePersistentState<string[]>(
