@@ -144,3 +144,112 @@ export const RESTRICOES_GERAIS_DEFAULT: string[] = [
   "Valores apresentados são mensais e em Reais (BRL), reajustados anualmente pelo índice previsto em contrato.",
   "Aquisição de hardware, software, licenças e insumos não está inclusa, salvo menção expressa.",
 ];
+
+// ============================================================
+// Itens Adicionais ao Contrato
+// ============================================================
+
+/**
+ * Tipos suportados:
+ * - "monitorado-*": valor calculado automaticamente combinando o custo de
+ *   monitoramento + chamados previstos (incidentes ponderados no funil) + a
+ *   parcela proporcional de GMUDs/Rotinas por ativo, com markup de margem e
+ *   impostos aplicados.
+ * - "fixo": valor unitário fixo informado pelo usuário (ex.: proxy adicional,
+ *   acesso ao ITSM, hora N3 avulsa, TAM, Owner).
+ */
+export type ItemAdicionalTipo =
+  | "monitorado-servidor"
+  | "monitorado-rede"
+  | "monitorado-firewall"
+  | "monitorado-bd"
+  | "monitorado-sistema"
+  | "proxy"
+  | "itsm"
+  | "hora-n3"
+  | "tam"
+  | "owner"
+  | "fixo";
+
+export interface ItemAdicional {
+  id: string;
+  descricao: string;
+  unidade: string;
+  tipo: ItemAdicionalTipo;
+  /** Valor manual em R$. Quando informado (>0) sobrescreve o cálculo automático. */
+  valorManual?: number;
+  observacao?: string;
+}
+
+export const ITENS_ADICIONAIS_STORAGE_KEY = "escopo:itensAdicionais";
+
+const uid = (s: string) => s;
+
+export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
+  {
+    id: uid("servidor"),
+    descricao: "Servidor adicional",
+    unidade: "Servidor / mês",
+    tipo: "monitorado-servidor",
+    observacao: "Inclui monitoramento + chamados previstos (incidentes, rotinas e GMUDs) ponderados no funil de atendimento.",
+  },
+  {
+    id: uid("firewall"),
+    descricao: "Firewall adicional",
+    unidade: "Firewall / mês",
+    tipo: "monitorado-firewall",
+    observacao: "Considerado como ativo de rede crítico — mesma taxa de chamados de ativos de rede.",
+  },
+  {
+    id: uid("rede"),
+    descricao: "Ativo de Rede adicional",
+    unidade: "Ativo / mês",
+    tipo: "monitorado-rede",
+    observacao: "Switch, roteador, access point ou similar dentro do escopo monitorado.",
+  },
+  {
+    id: uid("bd"),
+    descricao: "Banco de Dados adicional",
+    unidade: "Instância / mês",
+    tipo: "monitorado-bd",
+    observacao: "Instância de banco de dados monitorada e suportada conforme escopo contratado.",
+  },
+  {
+    id: uid("proxy"),
+    descricao: "Proxy de monitoramento adicional",
+    unidade: "Proxy / mês",
+    tipo: "proxy",
+    observacao: "Adicional ao(s) proxy(s) inicial(is); valor unitário alinhado ao parâmetro de Proxy adicional do Smart Monitor.",
+  },
+  {
+    id: uid("itsm"),
+    descricao: "Acesso adicional ao ITSM",
+    unidade: "Usuário / mês",
+    tipo: "itsm",
+    valorManual: 150,
+    observacao: "Liberação de novo usuário no ITSM além dos perfis previstos no contrato.",
+  },
+  {
+    id: uid("hora-n3"),
+    descricao: "Hora técnica N3 avulsa",
+    unidade: "Hora",
+    tipo: "hora-n3",
+    observacao: "Hora N3 sob demanda, fora do volume mensal contratado. Cobrada conforme consumo aprovado.",
+  },
+  {
+    id: uid("tam"),
+    descricao: "TAM — Technical Account Manager",
+    unidade: "Mês",
+    tipo: "tam",
+    valorManual: 0,
+    observacao: "Profissional dedicado à governança técnica e relacionamento contínuo com o cliente.",
+  },
+  {
+    id: uid("owner"),
+    descricao: "Owner / Gestor de Contas dedicado",
+    unidade: "Mês",
+    tipo: "owner",
+    valorManual: 0,
+    observacao: "Gestor responsável pelo ciclo de vida do contrato e satisfação do cliente.",
+  },
+];
