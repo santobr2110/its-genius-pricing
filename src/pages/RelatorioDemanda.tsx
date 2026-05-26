@@ -11,7 +11,14 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { ROTINAS_DEFAULT, rotinaMultiplicador, type ComplexFlags, type Rotina } from "@/data/rotinas";
 import { useMemo } from "react";
-import { ListChecks } from "lucide-react";
+import { ListChecks, GitBranch } from "lucide-react";
+import {
+  GMUDS_DEFAULT,
+  bucketGmuds,
+  computeGmud,
+  type Gmud,
+  type GmudComputed,
+} from "@/data/gmuds";
 
 interface TeamRow {
   name: string;
@@ -35,6 +42,48 @@ export default function RelatorioDemanda() {
 
   // === Rotinas (CACs previstos por origem/ativo) ===
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  // === GMUDs (demanda extra para N2/N3) ===
+  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+  const gmudData = useMemo(() => {
+    const input = {
+      custoPorChamadoN2: results.custoPorChamadoN2,
+      tempoMedioChamadoN3: state.tempoMedioChamadoN3,
+      valorHoraN3: state.valorHoraN3,
+      percN2: state.percGmudN2 ?? 70,
+      percN3: state.percGmudN3 ?? 30,
+    };
+    const buckets = bucketGmuds(gmuds);
+    const tierActive = (oferta: "operation" | "performance") =>
+      oferta === "operation" ? state.tierOperation : state.tierPerformance;
+    const build = (lista: Gmud[], camada: "operation" | "performance") => {
+      if (!tierActive(camada)) return { items: [] as GmudComputed[], totals: { chamados: 0, chamadosN2: 0, chamadosN3: 0, horasN3: 0, custoN2: 0, custoN3: 0, custo: 0 }, camada };
+      const items = lista.map((g) => computeGmud(g, input));
+      const totals = items.reduce(
+        (acc, i) => {
+          acc.chamados += i.chamadosMes;
+          acc.chamadosN2 += i.chamadosN2;
+          acc.chamadosN3 += i.chamadosN3;
+          acc.horasN3 += i.horasN3;
+          acc.custoN2 += i.custoN2;
+          acc.custoN3 += i.custoN3;
+          acc.custo += i.custo;
+          return acc;
+        },
+        { chamados: 0, chamadosN2: 0, chamadosN3: 0, horasN3: 0, custoN2: 0, custoN3: 0, custo: 0 },
+      );
+      return { items, totals, camada };
+    };
+    const operation = build(buckets.operation, "operation");
+    const performance = build(buckets.performance, "performance");
+    const totalChamadosN2 = operation.totals.chamadosN2 + performance.totals.chamadosN2;
+    const totalChamadosN3 = operation.totals.chamadosN3 + performance.totals.chamadosN3;
+    const totalHorasN3 = operation.totals.horasN3 + performance.totals.horasN3;
+    const totalCustoN2 = operation.totals.custoN2 + performance.totals.custoN2;
+    const totalCustoN3 = operation.totals.custoN3 + performance.totals.custoN3;
+    return { operation, performance, totalChamadosN2, totalChamadosN3, totalHorasN3, totalCustoN2, totalCustoN3 };
+  }, [gmuds, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, state.tierOperation, state.tierPerformance]);
+  const gmudHasAny =
+    gmudData.operation.items.length > 0 || gmudData.performance.items.length > 0;
   const rotinasPorAtivo = useMemo(() => {
     const inv = {
       qtdUsuarios: state.qtdUsuarios,
@@ -112,17 +161,17 @@ export default function RelatorioDemanda() {
     },
     {
       name: "N2 — Especialistas remotos",
-      origem: "Funil (N2)",
-      demanda: results.volumeN2,
+      origem: gmudData.totalChamadosN2 > 0 ? "Funil (N2) + GMUDs" : "Funil (N2)",
+      demanda: results.volumeN2 + gmudData.totalChamadosN2,
       capacidade: state.capacidadeChamadosN2,
-      custo: results.custoN2,
+      custo: results.custoN2 + gmudData.totalCustoN2,
     },
     {
       name: "N3 — Especialistas sêniores",
-      origem: "Funil (N3) + horas avulsas",
-      demanda: results.volumeN3,
+      origem: gmudData.totalChamadosN3 > 0 ? "Funil (N3) + horas avulsas + GMUDs" : "Funil (N3) + horas avulsas",
+      demanda: results.volumeN3 + gmudData.totalChamadosN3,
       capacidade: state.tempoMedioChamadoN3 > 0 ? state.horasN3Mensais / state.tempoMedioChamadoN3 : 0,
-      custo: results.custoN3,
+      custo: results.custoN3 + gmudData.totalCustoN3,
     },
   ];
 
@@ -163,10 +212,17 @@ export default function RelatorioDemanda() {
     { layer: "Atendimento N1 (funil)", custo: results.custoN1 },
     { layer: "Atendimento N2 (funil)", custo: results.custoN2 },
     { layer: "Atendimento N3 (funil + prevenção)", custo: results.custoN3 },
+    ...(gmudData.operation.totals.custo > 0
+      ? [{ layer: "GMUDs — Smart Operation (N2 + N3)", custo: gmudData.operation.totals.custo }]
+      : []),
+    ...(gmudData.performance.totals.custo > 0
+      ? [{ layer: "GMUDs — Performance (N2 + N3)", custo: gmudData.performance.totals.custo }]
+      : []),
     { layer: "Field Service (N1F + N2F + N3F + transbordo + triagem)", custo: results.fieldService.total },
     { layer: "Proxies de monitoramento (informativo)", custo: custoProxies },
   ];
-  const custoOperacaoTotal = results.custoTotalOperacao;
+  const custoGmudTotal = gmudData.operation.totals.custo + gmudData.performance.totals.custo;
+  const custoOperacaoTotal = results.custoTotalOperacao + custoGmudTotal;
 
   const origemRows = [
     { icon: Users, label: "Usuários (Service Desk)", bruto: usuariosBruto, humano: usuariosHumano, cac: rotinasPorAtivo.usuarios.cac, rotCount: rotinasPorAtivo.usuarios.count },
@@ -500,11 +556,81 @@ export default function RelatorioDemanda() {
           </CardContent>
         </Card>
 
+        {/* GMUDs incluídas — demanda extra para N2/N3 */}
+        {gmudHasAny && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <GitBranch className="h-4 w-4 text-primary" />
+                GMUDs — demanda recorrente sobre N2 e N3
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Cada GMUD é distribuída entre N2 ({state.percGmudN2 ?? 70}%) e N3 ({state.percGmudN3 ?? 30}%). A parcela de N2 entra como chamados na alocação do time, e a de N3 consome horas (tempo médio × valor/hora) somadas ao bloco de N3.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(["operation", "performance"] as const).map((camada) => {
+                const bucket = gmudData[camada];
+                if (bucket.items.length === 0) return null;
+                const label = camada === "operation" ? "Smart Operation" : "Performance";
+                return (
+                  <div key={camada} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold">{label}</h4>
+                      <span className="text-xs text-muted-foreground">
+                        {bucket.items.length} GMUD{bucket.items.length === 1 ? "" : "s"} · {formatNumber(bucket.totals.chamados, 2)} ch/mês · {formatBRL(bucket.totals.custo)}
+                      </span>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Descritivo</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Frequência</TableHead>
+                          <TableHead className="text-right">Ch/mês</TableHead>
+                          <TableHead className="text-right">N2 (ch)</TableHead>
+                          <TableHead className="text-right">N3 (h)</TableHead>
+                          <TableHead className="text-right">Custo</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {bucket.items.map((g) => (
+                          <TableRow key={g.id}>
+                            <TableCell className="font-medium">{g.descricao}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-[10px] font-normal">{g.tipo}</Badge></TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{g.frequencia}</TableCell>
+                            <TableCell className="text-right">{formatNumber(g.chamadosMes, 2)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(g.chamadosN2, 2)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(g.horasN3, 2)}</TableCell>
+                            <TableCell className="text-right">{formatBRL(g.custo)}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="font-semibold bg-muted/30">
+                          <TableCell colSpan={3}>Subtotal {label}</TableCell>
+                          <TableCell className="text-right">{formatNumber(bucket.totals.chamados, 2)}</TableCell>
+                          <TableCell className="text-right">{formatNumber(bucket.totals.chamadosN2, 2)}</TableCell>
+                          <TableCell className="text-right">{formatNumber(bucket.totals.horasN3, 2)}</TableCell>
+                          <TableCell className="text-right">{formatBRL(bucket.totals.custo)}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                );
+              })}
+              <div className="text-xs text-muted-foreground border-t pt-2 flex flex-wrap gap-x-6 gap-y-1">
+                <span>Total N2: <span className="font-semibold text-foreground">{formatNumber(gmudData.totalChamadosN2, 2)} ch/mês</span></span>
+                <span>Total N3: <span className="font-semibold text-foreground">{formatNumber(gmudData.totalHorasN3, 2)} h/mês ({formatNumber(gmudData.totalChamadosN3, 2)} ch)</span></span>
+                <span>Custo total GMUDs: <span className="font-semibold text-foreground">{formatBRL(custoGmudTotal)}</span></span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Custos por camada */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Custo por camada de atendimento</CardTitle>
-            <p className="text-xs text-muted-foreground">Composição mensal do custo total da operação.</p>
+            <p className="text-xs text-muted-foreground">Composição mensal do custo total da operação (inclui GMUDs alocadas nas camadas Operation/Performance).</p>
           </CardHeader>
           <CardContent>
             <Table>
