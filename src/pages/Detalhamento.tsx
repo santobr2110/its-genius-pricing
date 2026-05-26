@@ -1006,6 +1006,56 @@ function RoutineList({
   );
 }
 
+function GmudReportTable({
+  items, totals, accent, toSell,
+}: {
+  items: GmudComputed[];
+  totals: { chamados: number; horasN3: number; custo: number };
+  accent: string;
+  toSell: (c: number) => number;
+}) {
+  const theme = TIER_THEMES[accent];
+  return (
+    <div className="rounded-xl border bg-background/80 backdrop-blur-sm overflow-hidden shadow-sm">
+      <table className="w-full text-[11.5px]">
+        <thead className={`bg-gradient-to-r ${theme?.bar ?? "from-primary to-primary"} text-white`}>
+          <tr>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px]">Descrição</th>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Tipo</th>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">Frequência</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Ch/mês</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Horas N3</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((g, idx) => (
+            <tr key={g.id} className={`border-t ${idx % 2 ? "bg-muted/30" : ""}`}>
+              <td className="px-3 py-2">
+                <GitBranch className={`inline h-3.5 w-3.5 mr-1.5 ${theme?.check ?? "text-primary"}`} strokeWidth={2.5} />
+                <span className="font-medium">{g.descricao}</span>
+              </td>
+              <td className="px-3 py-2 text-muted-foreground">{g.tipo}</td>
+              <td className="px-3 py-2 text-muted-foreground">{g.frequencia}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{g.chamadosMes.toFixed(2)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{g.horasN3.toFixed(2)}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-semibold">{formatBRL(toSell(g.custo))}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className="border-t bg-muted/40">
+            <td className="px-3 py-2 font-bold uppercase tracking-wider text-[10px]" colSpan={3}>Total</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.chamados.toFixed(2)}</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.horasN3.toFixed(2)}</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{formatBRL(toSell(totals.custo))}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
 function N3HoursBox({
   total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, distribuicao,
 }: {
