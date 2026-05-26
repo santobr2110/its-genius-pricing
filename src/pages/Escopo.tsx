@@ -97,16 +97,6 @@ export default function Escopo() {
                     </Badge>
                     <CardTitle className="text-base">{c.titulo}</CardTitle>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="gap-1.5 text-xs"
-                    onClick={() => resetCamada(key)}
-                    disabled={!canEdit}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" /> Restaurar padrão
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -185,16 +175,6 @@ export default function Escopo() {
                 </Badge>
                 <CardTitle className="text-base">Restrições Gerais</CardTitle>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="gap-1.5 text-xs"
-                onClick={() => setRestricoesGerais(RESTRICOES_GERAIS_DEFAULT)}
-                disabled={!canEdit}
-              >
-                <RotateCcw className="h-3.5 w-3.5" /> Restaurar padrão
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -235,16 +215,6 @@ export default function Escopo() {
                   disabled={!canEdit}
                 >
                   <Plus className="h-3.5 w-3.5" /> Novo item
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="gap-1.5 text-xs"
-                  onClick={() => setItens(ITENS_ADICIONAIS_DEFAULT)}
-                  disabled={!canEdit}
-                >
-                  <RotateCcw className="h-3.5 w-3.5" /> Restaurar padrão
                 </Button>
               </div>
             </div>
