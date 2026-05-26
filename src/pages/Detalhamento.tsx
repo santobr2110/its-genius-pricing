@@ -299,10 +299,10 @@ export default function Detalhamento() {
     ? toSell(fs.total) + toSell(custoRotinasField)
     : 0;
   const valorOperation = state.tierOperation
-    ? toSell(custoOperacaoBase) + valorFieldService
+    ? toSell(custoOperacaoBase) + valorFieldService + toSell(gmudOperationData.totals.custo)
     : 0;
   const valorPerformance = state.tierPerformance
-    ? toSell(results.custoN3)
+    ? toSell(results.custoN3) + toSell(gmudPerformanceData.totals.custo)
     : 0;
   const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
 
@@ -330,6 +330,9 @@ export default function Detalhamento() {
         ...(valorFieldService > 0
           ? [{ label: "Field Service", value: valorFieldService }]
           : []),
+        ...(gmudOperationData.totals.custo > 0
+          ? [{ label: "GMUDs (Operation)", value: toSell(gmudOperationData.totals.custo) }]
+          : []),
       ]
     : [];
   const valorPerformanceParts = state.tierPerformance
@@ -338,6 +341,9 @@ export default function Detalhamento() {
           label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`,
           value: toSell(results.custoN3),
         },
+        ...(gmudPerformanceData.totals.custo > 0
+          ? [{ label: "GMUDs (Performance)", value: toSell(gmudPerformanceData.totals.custo) }]
+          : []),
       ]
     : [];
   const valorFieldParts = state.tierFieldOperation
