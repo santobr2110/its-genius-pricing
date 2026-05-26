@@ -666,6 +666,7 @@ export default function GestaoTI() {
           </TabsContent>
 
           <TabsContent value="gmud" className="space-y-6 mt-0">
+            <GmudDistribuicaoPanel />
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="pb-2">
