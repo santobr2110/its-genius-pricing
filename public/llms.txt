@@ -1,6 +1,6 @@
 # Smart ITO
 
-> Calculadora de precificação e dimensionamento para operações de ITSM (Service Desk N1/N2/N3 e Field Service), com modelagem de demanda mensal, custos de equipe e markup divisor.
+> Calculadora de precificação e dimensionamento para operações de ITSM (Service Desk N1/N2/N3 e Field Service de Microinformática), com modelagem de demanda mensal, custos de equipe e markup divisor.
 
 ## Pages
 
@@ -9,7 +9,7 @@
 - [/equipe-n1](/equipe-n1): Dimensionamento e custo da equipe N1.
 - [/equipe-n2](/equipe-n2): Dimensionamento e custo da equipe N2.
 - [/equipe-n3](/equipe-n3): Dimensionamento e custo da equipe N3.
-- [/field-service](/field-service): Equipes de Field Service (N1/N2/N3).
+- [/field-service](/field-service): Equipes de Field Service de Microinformática (N1/N2/N3).
 - [/financeiro](/financeiro): Configurações financeiras (impostos, margens, encargos).
 - [/taxas-demanda](/taxas-demanda): Taxas e parâmetros de geração de demanda.
 - [/precificacoes](/precificacoes): Presets de precificação salvos.

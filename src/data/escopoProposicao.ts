@@ -33,7 +33,7 @@ export const CAMADA_ORDEM: CamadaKey[] = [
 export const CAMADA_LABEL: Record<CamadaKey, string> = {
   monitor: "Smart Monitor",
   operation: "Smart Operation",
-  fieldService: "Field Service",
+  fieldService: "Field Service de Microinformática",
   performance: "Smart Performance",
   enterprise: "Smart Enterprise",
 };
@@ -72,12 +72,12 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
     restricoes: [
       "Não inclui rotinas avançadas em ambientes complexos (HA, multi-site, 24x7, ERP)",
       "Horas N3 limitadas ao volume contratado mensalmente — não acumulam entre meses",
-      "Não inclui suporte presencial sem contratação do Field Service",
+      "Não inclui suporte presencial sem contratação do Field Service de Microinformática",
       "Atendimentos fora do horário comercial seguem regras específicas de plantão",
     ],
   },
   fieldService: {
-    titulo: "Field Service",
+    titulo: "Field Service de Microinformática",
     tagline: "Suporte presencial — incluso no Smart Operation",
     descricao:
       "Equipe presencial alocada para atendimento de microinformática e suporte em sites do cliente, complementando a operação remota do Smart Operation.",

@@ -165,7 +165,7 @@ export default function SmartTiersPanel() {
       .filter((r) => r.oferta === "Operation")
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
-      // Com infra sem service desk: exclui microinformática (vai para Field Service).
+      // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
@@ -277,8 +277,8 @@ export default function SmartTiersPanel() {
   const pctLivreOperation = horasTotaisN3 > 0 ? (horasLivreOperation / horasTotaisN3) * 100 : 0;
   const livreOperationEstourado = horasChamadosN3 + horasRotinasOperationN3 > horasTotaisN3;
 
-  // Rotinas de Field Service (Microinformática) — agregam Operation + Performance
-  // num único bloco exibido dentro da composição de Field Service.
+  // Rotinas de Field Service de Microinformática (Microinformática) — agregam Operation + Performance
+  // num único bloco exibido dentro da composição de Field Service de Microinformática.
   const rotinasField = useMemo(() => {
     // No cenário sem infra, microinformática já é listada como rotina de Operation/Performance.
     if (!state.tierFieldOperation || n3OptionalScenario) {
@@ -439,7 +439,7 @@ export default function SmartTiersPanel() {
                     if (t.id === "tierOperation" && next && !state.tierMonitor) {
                       update("tierMonitor", true as any);
                     }
-                    // Ao desativar Smart Operation, desativa Field Service automaticamente
+                    // Ao desativar Smart Operation, desativa Field Service de Microinformática automaticamente
                     if (t.id === "tierOperation" && !next && state.tierFieldOperation) {
                       update("tierFieldOperation", false as any);
                     }
@@ -817,7 +817,7 @@ export default function SmartTiersPanel() {
                 />
                 <MapPin className="h-3.5 w-3.5 text-orange-500 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold">Adicionar Field Service</p>
+                  <p className="text-xs font-semibold">Adicionar Field Service de Microinformática</p>
                   <p className="text-[11px] text-muted-foreground">
                     Atendimento presencial N1/N2/N3 — chamados de usuários passam pelo N1 convencional e são escalados para a equipe Field.
                   </p>
@@ -826,7 +826,7 @@ export default function SmartTiersPanel() {
               {state.tierFieldOperation && (
                 <div className="rounded-lg border border-orange-200 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-900 p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold">Composição — Field Service</p>
+                    <p className="text-xs font-semibold">Composição — Field Service de Microinformática</p>
                     <span className="text-[11px] text-muted-foreground">
                       {formatNumber(fs.volumeUsuariosEscalado, 1)} ch/mês escalados
                     </span>
@@ -960,7 +960,7 @@ export default function SmartTiersPanel() {
                     </div>
                   )}
                   <div className="flex justify-between border-t pt-2">
-                    <span className="text-xs font-semibold">Total Field Service (venda)</span>
+                    <span className="text-xs font-semibold">Total Field Service de Microinformática (venda)</span>
                     <span className="text-sm font-bold text-primary">{formatBRL(fsVenda)}</span>
                   </div>
                 </div>
@@ -984,7 +984,7 @@ export default function SmartTiersPanel() {
                     : "Serviço base (N1 + N2 + N3)",
                   value: toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)),
                 },
-                ...(fsVenda > 0 ? [{ label: "Field Service", value: fsVenda }] : []),
+                ...(fsVenda > 0 ? [{ label: "Field Service de Microinformática", value: fsVenda }] : []),
                 ...(gmudOperation.venda > 0 ? [{ label: "GMUDs (Operation)", value: gmudOperation.venda }] : []),
               ]}
             />

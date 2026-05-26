@@ -118,7 +118,7 @@ export default function PerfisParametros() {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Captura snapshot de {PARAM_KEYS.length} grupos: calculadora, equipes N1/N2 e Field Service, rotinas, GMUDs e cortes Smart Perf.
+              Captura snapshot de {PARAM_KEYS.length} grupos: calculadora, equipes N1/N2 e Field Service de Microinformática, rotinas, GMUDs e cortes Smart Perf.
             </p>
           </CardContent>
         </Card>
