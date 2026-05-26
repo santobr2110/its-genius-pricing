@@ -141,6 +141,49 @@ function EscalaRotinasPanel() {
   );
 }
 
+function GmudDistribuicaoPanel() {
+  const { state, update } = useITSMContext();
+  const total = (state.percGmudN2 || 0) + (state.percGmudN3 || 0);
+  const setLevel = (key: "percGmudN2" | "percGmudN3", value: number) => {
+    const v = Math.max(0, Math.min(100, Math.round(value)));
+    const other = key === "percGmudN2" ? "percGmudN3" : "percGmudN2";
+    update(key, v);
+    update(other, 100 - v);
+  };
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <p className="text-sm font-semibold">Distribuição dos chamados de GMUD</p>
+          <p className="text-[11px] text-muted-foreground">
+            Define como os chamados gerados pelas GMUDs são distribuídos entre N2 (custo por chamado) e N3 (horas técnicas = chamados × tempo médio de N3).
+          </p>
+        </div>
+        <Badge variant={total === 100 ? "secondary" : "destructive"}>Total {total}%</Badge>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {([
+          ["percGmudN2", "N2"],
+          ["percGmudN3", "N3"],
+        ] as const).map(([key, label]) => (
+          <div key={key} className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
+            <Label className="text-xs w-8">{label}</Label>
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              value={state[key]}
+              onChange={(e) => setLevel(key, parseInt(e.target.value) || 0)}
+              className="h-8 text-sm"
+            />
+            <span className="text-xs text-muted-foreground">%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function GestaoTI() {
   const { state: itsm, update: updateItsm } = useITSMContext();
   const inventario: InventarioCounts = {
