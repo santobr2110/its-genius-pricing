@@ -15,6 +15,14 @@ import {
   type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
+import {
+  GMUDS_DEFAULT,
+  bucketGmuds,
+  computeGmud,
+  type Gmud,
+  type GmudComputed,
+} from "@/data/gmuds";
+import { GitBranch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 // Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
@@ -87,6 +95,7 @@ export default function SmartTiersPanel() {
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   // Distribuição percentual das horas N3 entre as 3 funções (TAM / Owner / Livre).
   // Os dois "cortes" definem os limites: [0..corteTam] = TAM, [corteTam..corteOwner] = Owner, [corteOwner..100] = Livre.
   const [n3Cortes, setN3Cortes] = usePersistentState<[number, number]>(
