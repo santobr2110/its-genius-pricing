@@ -244,6 +244,39 @@ export default function Detalhamento() {
   const custoRotinasPerfComplexo = sumCusto(rotinasPerfComplexo);
   const custoRotinasField = sumCusto(rotinasField);
 
+  // === GMUDs por camada ===
+  const gmudInput = {
+    custoPorChamadoN2: results.custoPorChamadoN2,
+    tempoMedioChamadoN3: state.tempoMedioChamadoN3,
+    valorHoraN3: state.valorHoraN3,
+    percN2: state.percGmudN2 ?? 70,
+    percN3: state.percGmudN3 ?? 30,
+  };
+  const gmudBuckets = useMemo(() => bucketGmuds(gmuds), [gmuds]);
+  const buildGmudData = (lista: Gmud[]) => {
+    const items = lista.map((g) => computeGmud(g, gmudInput));
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.chamados += i.chamadosMes;
+        acc.horasN3 += i.horasN3;
+        acc.custo += i.custo;
+        return acc;
+      },
+      { chamados: 0, horasN3: 0, custo: 0 },
+    );
+    return { items, totals };
+  };
+  const gmudOperationData = useMemo(
+    () => buildGmudData(gmudBuckets.operation),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3],
+  );
+  const gmudPerformanceData = useMemo(
+    () => buildGmudData(gmudBuckets.performance),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3],
+  );
+
   // Rotinas Performance consomem horas do pool N3 contratado (slider).
   // O custo das rotinas é abatido das horas N3 (sem cobrar em separado).
   // Rotinas Operation seguem o mesmo princípio (absorvidas pelo pool N3 contratado).
