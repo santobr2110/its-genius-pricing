@@ -556,6 +556,76 @@ export default function RelatorioDemanda() {
           </CardContent>
         </Card>
 
+        {/* GMUDs incluídas — demanda extra para N2/N3 */}
+        {gmudHasAny && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <GitBranch className="h-4 w-4 text-primary" />
+                GMUDs — demanda recorrente sobre N2 e N3
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Cada GMUD é distribuída entre N2 ({state.percGmudN2 ?? 70}%) e N3 ({state.percGmudN3 ?? 30}%). A parcela de N2 entra como chamados na alocação do time, e a de N3 consome horas (tempo médio × valor/hora) somadas ao bloco de N3.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {(["operation", "performance"] as const).map((camada) => {
+                const bucket = gmudData[camada];
+                if (bucket.items.length === 0) return null;
+                const label = camada === "operation" ? "Smart Operation" : "Performance";
+                return (
+                  <div key={camada} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-semibold">{label}</h4>
+                      <span className="text-xs text-muted-foreground">
+                        {bucket.items.length} GMUD{bucket.items.length === 1 ? "" : "s"} · {formatNumber(bucket.totals.chamados, 2)} ch/mês · {formatBRL(bucket.totals.custo)}
+                      </span>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Descritivo</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Frequência</TableHead>
+                          <TableHead className="text-right">Ch/mês</TableHead>
+                          <TableHead className="text-right">N2 (ch)</TableHead>
+                          <TableHead className="text-right">N3 (h)</TableHead>
+                          <TableHead className="text-right">Custo</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {bucket.items.map((g) => (
+                          <TableRow key={g.id}>
+                            <TableCell className="font-medium">{g.descricao}</TableCell>
+                            <TableCell><Badge variant="outline" className="text-[10px] font-normal">{g.tipo}</Badge></TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{g.frequencia}</TableCell>
+                            <TableCell className="text-right">{formatNumber(g.chamadosMes, 2)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(g.chamadosN2, 2)}</TableCell>
+                            <TableCell className="text-right">{formatNumber(g.horasN3, 2)}</TableCell>
+                            <TableCell className="text-right">{formatBRL(g.custo)}</TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="font-semibold bg-muted/30">
+                          <TableCell colSpan={3}>Subtotal {label}</TableCell>
+                          <TableCell className="text-right">{formatNumber(bucket.totals.chamados, 2)}</TableCell>
+                          <TableCell className="text-right">{formatNumber(bucket.totals.chamadosN2, 2)}</TableCell>
+                          <TableCell className="text-right">{formatNumber(bucket.totals.horasN3, 2)}</TableCell>
+                          <TableCell className="text-right">{formatBRL(bucket.totals.custo)}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                );
+              })}
+              <div className="text-xs text-muted-foreground border-t pt-2 flex flex-wrap gap-x-6 gap-y-1">
+                <span>Total N2: <span className="font-semibold text-foreground">{formatNumber(gmudData.totalChamadosN2, 2)} ch/mês</span></span>
+                <span>Total N3: <span className="font-semibold text-foreground">{formatNumber(gmudData.totalHorasN3, 2)} h/mês ({formatNumber(gmudData.totalChamadosN3, 2)} ch)</span></span>
+                <span>Custo total GMUDs: <span className="font-semibold text-foreground">{formatBRL(custoGmudTotal)}</span></span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Custos por camada */}
         <Card>
           <CardHeader>
