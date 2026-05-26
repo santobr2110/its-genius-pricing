@@ -750,7 +750,6 @@ export default function Detalhamento() {
           </CardContent>
         </Card>
 
-        {/* RESTRIÇÕES DE ATUAÇÃO — bloco compacto por camada ativa */}
         {/* ITENS ADICIONAIS AO CONTRATO */}
         {(() => {
           if (!itensAdicionais || itensAdicionais.length === 0) return null;
