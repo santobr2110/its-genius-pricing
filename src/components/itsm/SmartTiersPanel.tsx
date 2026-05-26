@@ -1120,6 +1120,7 @@ export default function SmartTiersPanel() {
               total={smPerformanceVenda}
               parts={[
                 { label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`, value: toSell(results.custoN3) },
+                ...(gmudPerformance.venda > 0 ? [{ label: "GMUDs (Performance)", value: gmudPerformance.venda }] : []),
               ]}
             />
           </div>
