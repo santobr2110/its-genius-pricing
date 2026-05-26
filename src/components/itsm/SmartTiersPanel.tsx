@@ -977,6 +977,7 @@ export default function SmartTiersPanel() {
                   value: toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)),
                 },
                 ...(fsVenda > 0 ? [{ label: "Field Service", value: fsVenda }] : []),
+                ...(gmudOperation.venda > 0 ? [{ label: "GMUDs (Operation)", value: gmudOperation.venda }] : []),
               ]}
             />
           </div>
