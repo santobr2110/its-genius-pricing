@@ -16,6 +16,9 @@ const RAW_PARAM_KEYS = [
   "gestao-ti:rotinas",
   "gestao-ti:gmuds",
   "gestao-ti:smartPerf:n3Cortes",
+  "escopo:proposicao",
+  "escopo:restricoesGerais",
+  "escopo:itensAdicionais",
 ] as const;
 
 export const PARAM_KEYS = RAW_PARAM_KEYS.map((k) => SMART_ITO_NS + k);

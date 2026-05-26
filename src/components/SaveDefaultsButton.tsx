@@ -3,16 +3,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { PARAM_KEYS } from "@/hooks/useParameterProfiles";
 
-const KEYS = [
-  "itsm:calculator:v1",
-  "itsm:n1team:v1",
-  "itsm:n2team:v1",
-  "itsm:fieldteams:v1",
-  "gestao-ti:rotinas",
-  "gestao-ti:gmuds",
-  "gestao-ti:smartPerf:n3Cortes",
-];
+// Mesma lista (já namespeada por oferta) usada para salvar perfis de parâmetros.
+const KEYS = PARAM_KEYS;
 
 export default function SaveDefaultsButton() {
   const { can, user } = useAuth();

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ListChecks, RotateCcw, Plus, Trash2 } from "lucide-react";
+import { ListChecks, Plus, Trash2 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,10 +41,6 @@ export default function Escopo() {
 
   const updateCamada = (key: CamadaKey, patch: Partial<EscopoCamada>) => {
     setEscopo((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
-  };
-
-  const resetCamada = (key: CamadaKey) => {
-    setEscopo((prev) => ({ ...prev, [key]: ESCOPO_DEFAULT[key] }));
   };
 
   const updateItem = (id: string, patch: Partial<ItemAdicional>) => {
@@ -101,16 +97,6 @@ export default function Escopo() {
                     </Badge>
                     <CardTitle className="text-base">{c.titulo}</CardTitle>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    className="gap-1.5 text-xs"
-                    onClick={() => resetCamada(key)}
-                    disabled={!canEdit}
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" /> Restaurar padrão
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -189,16 +175,6 @@ export default function Escopo() {
                 </Badge>
                 <CardTitle className="text-base">Restrições Gerais</CardTitle>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="gap-1.5 text-xs"
-                onClick={() => setRestricoesGerais(RESTRICOES_GERAIS_DEFAULT)}
-                disabled={!canEdit}
-              >
-                <RotateCcw className="h-3.5 w-3.5" /> Restaurar padrão
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -239,16 +215,6 @@ export default function Escopo() {
                   disabled={!canEdit}
                 >
                   <Plus className="h-3.5 w-3.5" /> Novo item
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="gap-1.5 text-xs"
-                  onClick={() => setItens(ITENS_ADICIONAIS_DEFAULT)}
-                  disabled={!canEdit}
-                >
-                  <RotateCcw className="h-3.5 w-3.5" /> Restaurar padrão
                 </Button>
               </div>
             </div>
