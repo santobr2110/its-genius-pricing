@@ -966,6 +966,14 @@ export default function SmartTiersPanel() {
                 </div>
               )}
             </div>
+            <GmudTable
+              titulo="GMUDs vinculadas (Operation)"
+              vazio="Nenhuma GMUD cadastrada para Operation."
+              items={gmudOperation.items}
+              totals={gmudOperation.totals}
+              venda={gmudOperation.venda}
+              toSell={toSell}
+            />
             <CompositionFooter
               title="Total Smart Operation (venda)"
               total={smOperationVenda}
@@ -1115,6 +1123,14 @@ export default function SmartTiersPanel() {
             </div>
             )}
 
+            <GmudTable
+              titulo="GMUDs vinculadas (Performance)"
+              vazio="Nenhuma GMUD cadastrada para Performance."
+              items={gmudPerformance.items}
+              totals={gmudPerformance.totals}
+              venda={gmudPerformance.venda}
+              toSell={toSell}
+            />
             <CompositionFooter
               title="Total Smart Performance (venda)"
               total={smPerformanceVenda}
