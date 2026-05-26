@@ -660,6 +660,13 @@ export default function Detalhamento() {
             </>
           )}
 
+          {gmudPerformanceData.items.length > 0 && (
+            <>
+              <SubTitle className="mt-4">GMUDs incluídas — Performance ({gmudPerformanceData.items.length})</SubTitle>
+              <GmudReportTable items={gmudPerformanceData.items} totals={gmudPerformanceData.totals} accent="gold" toSell={toSell} />
+            </>
+          )}
+
           {state.tierPerformance && (!n3OptionalScenario || state.tierOperationN3) && state.horasN3Mensais > 0 && (
             <N3HoursBox
               total={state.horasN3Mensais}
