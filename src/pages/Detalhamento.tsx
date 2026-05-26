@@ -751,6 +751,125 @@ export default function Detalhamento() {
         </Card>
 
         {/* RESTRIÇÕES DE ATUAÇÃO — bloco compacto por camada ativa */}
+        {/* ITENS ADICIONAIS AO CONTRATO */}
+        {(() => {
+          if (!itensAdicionais || itensAdicionais.length === 0) return null;
+          const escala = state.criticidadeEscala ?? [];
+          const ajuste = escala[state.criticidadeNivel] ?? 0;
+          const adj = (t: number) => Math.max(0, t * (1 + ajuste));
+          const monitorActive = state.tierMonitor;
+          // Custo base por chamado (sem markup)
+          const cppN1 = results.custoPorChamadoN1;
+          const cppN2 = results.custoPorChamadoN2;
+          const cN3perChamado = state.valorHoraN3 * state.tempoMedioChamadoN3;
+          const computeMonitoradoUnit = (taxa: number): { custo: number; chamados: number } => {
+            const chamadosBrutos = adj(taxa);
+            const chamadosLiq = chamadosBrutos * (1 - state.reducaoN0 / 100);
+            const vN1 = chamadosLiq * (state.percN1 / 100);
+            const vN2 = chamadosLiq * (state.percN2 / 100);
+            const vN3 = chamadosLiq * (state.percN3 / 100);
+            const custoIncidentes = cppN1 * vN1 + cppN2 * vN2 + cN3perChamado * vN3;
+            const custoMonit = state.custoAtivoMonitorado;
+            // Parcela de N1 alocada ao Smart Monitor (quando Operation inativo)
+            const custoN1Aloc = monitorActive && !state.tierOperation
+              ? (state.percAlocacaoN1Monitor / 100) * cppN1 * chamadosLiq
+              : 0;
+            return { custo: custoIncidentes + custoMonit + custoN1Aloc, chamados: chamadosLiq };
+          };
+          const valorFinal = (custo: number) => custo * fatorVenda;
+
+          const computeItem = (it: ItemAdicional): { valor: number; detalhe?: string } => {
+            if (typeof it.valorManual === "number" && it.valorManual > 0) {
+              return { valor: it.valorManual };
+            }
+            switch (it.tipo) {
+              case "monitorado-servidor": {
+                const r = computeMonitoradoUnit(state.taxaServidor);
+                return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
+              }
+              case "monitorado-rede":
+              case "monitorado-firewall": {
+                const r = computeMonitoradoUnit(state.taxaRede);
+                return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
+              }
+              case "monitorado-bd": {
+                const r = computeMonitoradoUnit(state.taxaBancoDados);
+                return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
+              }
+              case "monitorado-sistema": {
+                const r = computeMonitoradoUnit(state.taxaSistemas);
+                return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
+              }
+              case "proxy":
+                return { valor: (state.valorProxyAdicional || 0) * fatorVenda };
+              case "hora-n3":
+                return { valor: valorHoraN3Venda };
+              case "itsm":
+              case "tam":
+              case "owner":
+              case "fixo":
+              default:
+                return { valor: it.valorManual ?? 0 };
+            }
+          };
+
+          return (
+            <Card className="border-primary/20">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <PackagePlus className="h-4 w-4 text-primary" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
+                    Itens adicionais ao contrato
+                  </p>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Itens cobrados como adicionais ao escopo contratado. Para ativos monitorados,
+                  o valor unitário considera o custo de monitoramento e os chamados previstos
+                  (incidentes ponderados no funil N1/N2/N3 do contrato), com markup de margem
+                  e impostos. Para os demais, valor unitário conforme contrato.
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b text-muted-foreground">
+                        <th className="text-left py-1.5 px-2 font-semibold">Item</th>
+                        <th className="text-left py-1.5 px-2 font-semibold">Unidade</th>
+                        <th className="text-right py-1.5 px-2 font-semibold">Valor unitário</th>
+                        <th className="text-left py-1.5 px-2 font-semibold">Observação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {itensAdicionais.map((it) => {
+                        const { valor, detalhe } = computeItem(it);
+                        return (
+                          <tr key={it.id} className="border-b border-muted-foreground/10 align-top">
+                            <td className="py-1.5 px-2 font-medium text-foreground">{it.descricao}</td>
+                            <td className="py-1.5 px-2 text-muted-foreground">{it.unidade}</td>
+                            <td className="py-1.5 px-2 text-right font-semibold tabular-nums">
+                              {formatBRL(valor)}
+                              {detalhe && (
+                                <div className="text-[10px] font-normal text-muted-foreground">{detalhe}</div>
+                              )}
+                            </td>
+                            <td className="py-1.5 px-2 text-muted-foreground leading-snug">
+                              {it.observacao}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[10px] text-muted-foreground italic">
+                  Valores mensais sugeridos. Itens marcados como “manual” usam o valor fixo
+                  cadastrado em Configurações › Escopo.
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
+        {/* RESTRIÇÕES DE ATUAÇÃO — bloco compacto por camada ativa */}
         {(() => {
           const ativos: CamadaKey[] = [];
           if (monitorVisible) ativos.push("monitor");
