@@ -15,6 +15,14 @@ import {
   type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
+import {
+  GMUDS_DEFAULT,
+  bucketGmuds,
+  computeGmud,
+  type Gmud,
+  type GmudComputed,
+} from "@/data/gmuds";
+import { GitBranch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 // Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
@@ -87,6 +95,7 @@ export default function SmartTiersPanel() {
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   // Distribuição percentual das horas N3 entre as 3 funções (TAM / Owner / Livre).
   // Os dois "cortes" definem os limites: [0..corteTam] = TAM, [corteTam..corteOwner] = Owner, [corteOwner..100] = Livre.
   const [n3Cortes, setN3Cortes] = usePersistentState<[number, number]>(
@@ -326,11 +335,50 @@ export default function SmartTiersPanel() {
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
   const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
+
+  // === GMUDs por camada ===
+  const gmudInput = {
+    custoPorChamadoN2: results.custoPorChamadoN2,
+    tempoMedioChamadoN3: state.tempoMedioChamadoN3,
+    valorHoraN3: state.valorHoraN3,
+    percN2: state.percGmudN2 ?? 70,
+    percN3: state.percGmudN3 ?? 30,
+  };
+  const gmudBuckets = useMemo(() => bucketGmuds(gmuds), [gmuds]);
+  const gmudOperation = useMemo(() => {
+    const items = gmudBuckets.operation.map((g) => computeGmud(g, gmudInput));
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.chamados += i.chamadosMes;
+        acc.horasN3 += i.horasN3;
+        acc.custo += i.custo;
+        return acc;
+      },
+      { chamados: 0, horasN3: 0, custo: 0 },
+    );
+    return { items, totals, venda: toSell(totals.custo) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
+  const gmudPerformance = useMemo(() => {
+    const items = gmudBuckets.performance.map((g) => computeGmud(g, gmudInput));
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.chamados += i.chamadosMes;
+        acc.horasN3 += i.horasN3;
+        acc.custo += i.custo;
+        return acc;
+      },
+      { chamados: 0, horasN3: 0, custo: 0 },
+    );
+    return { items, totals, venda: toSell(totals.custo) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
+
   const smOperationVenda = state.tierOperation
-    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda
+    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda + gmudOperation.venda
     : 0;
   const smPerformanceVenda = state.tierPerformance
-    ? toSell(results.custoN3)
+    ? toSell(results.custoN3) + gmudPerformance.venda
     : 0;
   const totalSelecionado =
     (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
@@ -918,6 +966,14 @@ export default function SmartTiersPanel() {
                 </div>
               )}
             </div>
+            <GmudTable
+              titulo="GMUDs vinculadas (Operation)"
+              vazio="Nenhuma GMUD cadastrada para Operation."
+              items={gmudOperation.items}
+              totals={gmudOperation.totals}
+              venda={gmudOperation.venda}
+              toSell={toSell}
+            />
             <CompositionFooter
               title="Total Smart Operation (venda)"
               total={smOperationVenda}
@@ -929,6 +985,7 @@ export default function SmartTiersPanel() {
                   value: toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)),
                 },
                 ...(fsVenda > 0 ? [{ label: "Field Service", value: fsVenda }] : []),
+                ...(gmudOperation.venda > 0 ? [{ label: "GMUDs (Operation)", value: gmudOperation.venda }] : []),
               ]}
             />
           </div>
@@ -1066,11 +1123,20 @@ export default function SmartTiersPanel() {
             </div>
             )}
 
+            <GmudTable
+              titulo="GMUDs vinculadas (Performance)"
+              vazio="Nenhuma GMUD cadastrada para Performance."
+              items={gmudPerformance.items}
+              totals={gmudPerformance.totals}
+              venda={gmudPerformance.venda}
+              toSell={toSell}
+            />
             <CompositionFooter
               title="Total Smart Performance (venda)"
               total={smPerformanceVenda}
               parts={[
                 { label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`, value: toSell(results.custoN3) },
+                ...(gmudPerformance.venda > 0 ? [{ label: "GMUDs (Performance)", value: gmudPerformance.venda }] : []),
               ]}
             />
           </div>
@@ -1128,6 +1194,71 @@ function CompositionFooter({
       <div className="flex justify-between pt-1 border-t border-dashed">
         <span className="text-xs font-semibold">{title}</span>
         <span className="text-sm font-bold text-primary tabular-nums">{formatBRL(total)}</span>
+      </div>
+    </div>
+  );
+}
+
+function GmudTable({
+  titulo,
+  vazio,
+  items,
+  totals,
+  venda,
+  toSell,
+}: {
+  titulo: string;
+  vazio: string;
+  items: GmudComputed[];
+  totals: { chamados: number; horasN3: number; custo: number };
+  venda: number;
+  toSell: (c: number) => number;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="rounded border bg-background p-2 space-y-1.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <GitBranch className="h-3.5 w-3.5 text-indigo-600" />
+          <p className="text-xs font-semibold">{titulo}</p>
+        </div>
+        <span className="text-[10px] text-muted-foreground">
+          {items.length} GMUD{items.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <div className="max-h-56 overflow-auto rounded border">
+        <table className="w-full text-[11px]">
+          <thead className="bg-muted sticky top-0">
+            <tr>
+              <th className="text-left px-2 py-1 font-medium">Descrição</th>
+              <th className="text-left px-2 py-1 font-medium w-20">Tipo</th>
+              <th className="text-left px-2 py-1 font-medium w-24">Frequência</th>
+              <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+              <th className="text-right px-2 py-1 font-medium w-16">Horas N3</th>
+              <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((g) => (
+              <tr key={g.id} className="border-t">
+                <td className="px-2 py-1">{g.descricao}</td>
+                <td className="px-2 py-1 text-[10px] text-muted-foreground">{g.tipo}</td>
+                <td className="px-2 py-1 text-[10px] text-muted-foreground">{g.frequencia}</td>
+                <td className="px-2 py-1 text-right tabular-nums">{g.chamadosMes.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right tabular-nums">{g.horasN3.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(toSell(g.custo))}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot className="bg-muted sticky bottom-0">
+            <tr>
+              <td className="px-2 py-1 font-semibold" colSpan={3}>Total</td>
+              <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.chamados.toFixed(2)}</td>
+              <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.horasN3.toFixed(2)}</td>
+              <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(venda)}</td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </div>
   );

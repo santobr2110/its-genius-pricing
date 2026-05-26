@@ -23,6 +23,11 @@ import {
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   type EscopoProposicao, type CamadaKey,
 } from "@/data/escopoProposicao";
+import {
+  GMUDS_DEFAULT, bucketGmuds, computeGmud,
+  type Gmud, type GmudComputed,
+} from "@/data/gmuds";
+import { GitBranch } from "lucide-react";
 
 function normalizeOsRotina(r: Rotina): Rotina {
   const isOs = r.grupo.toLowerCase().includes("sistema operacional");
@@ -129,6 +134,7 @@ export default function Detalhamento() {
   };
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
   const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
   const [restricoesGerais] = usePersistentState<string[]>(
@@ -238,6 +244,39 @@ export default function Detalhamento() {
   const custoRotinasPerfComplexo = sumCusto(rotinasPerfComplexo);
   const custoRotinasField = sumCusto(rotinasField);
 
+  // === GMUDs por camada ===
+  const gmudInput = {
+    custoPorChamadoN2: results.custoPorChamadoN2,
+    tempoMedioChamadoN3: state.tempoMedioChamadoN3,
+    valorHoraN3: state.valorHoraN3,
+    percN2: state.percGmudN2 ?? 70,
+    percN3: state.percGmudN3 ?? 30,
+  };
+  const gmudBuckets = useMemo(() => bucketGmuds(gmuds), [gmuds]);
+  const buildGmudData = (lista: Gmud[]) => {
+    const items = lista.map((g) => computeGmud(g, gmudInput));
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.chamados += i.chamadosMes;
+        acc.horasN3 += i.horasN3;
+        acc.custo += i.custo;
+        return acc;
+      },
+      { chamados: 0, horasN3: 0, custo: 0 },
+    );
+    return { items, totals };
+  };
+  const gmudOperationData = useMemo(
+    () => buildGmudData(gmudBuckets.operation),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3],
+  );
+  const gmudPerformanceData = useMemo(
+    () => buildGmudData(gmudBuckets.performance),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3],
+  );
+
   // Rotinas Performance consomem horas do pool N3 contratado (slider).
   // O custo das rotinas é abatido das horas N3 (sem cobrar em separado).
   // Rotinas Operation seguem o mesmo princípio (absorvidas pelo pool N3 contratado).
@@ -260,10 +299,10 @@ export default function Detalhamento() {
     ? toSell(fs.total) + toSell(custoRotinasField)
     : 0;
   const valorOperation = state.tierOperation
-    ? toSell(custoOperacaoBase) + valorFieldService
+    ? toSell(custoOperacaoBase) + valorFieldService + toSell(gmudOperationData.totals.custo)
     : 0;
   const valorPerformance = state.tierPerformance
-    ? toSell(results.custoN3)
+    ? toSell(results.custoN3) + toSell(gmudPerformanceData.totals.custo)
     : 0;
   const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
 
@@ -291,6 +330,9 @@ export default function Detalhamento() {
         ...(valorFieldService > 0
           ? [{ label: "Field Service", value: valorFieldService }]
           : []),
+        ...(gmudOperationData.totals.custo > 0
+          ? [{ label: "GMUDs (Operation)", value: toSell(gmudOperationData.totals.custo) }]
+          : []),
       ]
     : [];
   const valorPerformanceParts = state.tierPerformance
@@ -299,6 +341,9 @@ export default function Detalhamento() {
           label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`,
           value: toSell(results.custoN3),
         },
+        ...(gmudPerformanceData.totals.custo > 0
+          ? [{ label: "GMUDs (Performance)", value: toSell(gmudPerformanceData.totals.custo) }]
+          : []),
       ]
     : [];
   const valorFieldParts = state.tierFieldOperation
@@ -508,6 +553,13 @@ export default function Detalhamento() {
             </>
           )}
 
+          {gmudOperationData.items.length > 0 && (
+            <>
+              <SubTitle className="mt-4">GMUDs incluídas — Operation ({gmudOperationData.items.length})</SubTitle>
+              <GmudReportTable items={gmudOperationData.items} totals={gmudOperationData.totals} accent="silver" toSell={toSell} />
+            </>
+          )}
+
           {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && state.horasN3Mensais > 0 && (
             <N3HoursBox
               total={state.horasN3Mensais}
@@ -605,6 +657,13 @@ export default function Detalhamento() {
             <>
               <SubTitle className="mt-4">Rotinas Performance — Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
               <RoutineList items={rotinasPerfComplexo} accent="gold" complexo />
+            </>
+          )}
+
+          {gmudPerformanceData.items.length > 0 && (
+            <>
+              <SubTitle className="mt-4">GMUDs incluídas — Performance ({gmudPerformanceData.items.length})</SubTitle>
+              <GmudReportTable items={gmudPerformanceData.items} totals={gmudPerformanceData.totals} accent="gold" toSell={toSell} />
             </>
           )}
 
@@ -940,6 +999,56 @@ function RoutineList({
               Total previsto {complexo ? "(execuções/mês)" : "(chamados/mês)"}
             </td>
             <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totalDemanda.toFixed(1)}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  );
+}
+
+function GmudReportTable({
+  items, totals, accent, toSell,
+}: {
+  items: GmudComputed[];
+  totals: { chamados: number; horasN3: number; custo: number };
+  accent: string;
+  toSell: (c: number) => number;
+}) {
+  const theme = TIER_THEMES[accent];
+  return (
+    <div className="rounded-xl border bg-background/80 backdrop-blur-sm overflow-hidden shadow-sm">
+      <table className="w-full text-[11.5px]">
+        <thead className={`bg-gradient-to-r ${theme?.bar ?? "from-primary to-primary"} text-white`}>
+          <tr>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px]">Descrição</th>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Tipo</th>
+            <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">Frequência</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Ch/mês</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Horas N3</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((g, idx) => (
+            <tr key={g.id} className={`border-t ${idx % 2 ? "bg-muted/30" : ""}`}>
+              <td className="px-3 py-2">
+                <GitBranch className={`inline h-3.5 w-3.5 mr-1.5 ${theme?.check ?? "text-primary"}`} strokeWidth={2.5} />
+                <span className="font-medium">{g.descricao}</span>
+              </td>
+              <td className="px-3 py-2 text-muted-foreground">{g.tipo}</td>
+              <td className="px-3 py-2 text-muted-foreground">{g.frequencia}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{g.chamadosMes.toFixed(2)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{g.horasN3.toFixed(2)}</td>
+              <td className="px-3 py-2 text-right tabular-nums font-semibold">{formatBRL(toSell(g.custo))}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className="border-t bg-muted/40">
+            <td className="px-3 py-2 font-bold uppercase tracking-wider text-[10px]" colSpan={3}>Total</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.chamados.toFixed(2)}</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.horasN3.toFixed(2)}</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{formatBRL(toSell(totals.custo))}</td>
           </tr>
         </tfoot>
       </table>

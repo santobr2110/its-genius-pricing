@@ -119,6 +119,9 @@ export interface ITSMState {
   semVolumesAtuais: boolean;
   volumeChamadosAtivosManual: number;
   volumeChamadosUsuariosManual: number;
+  // Distribuição da demanda de GMUDs entre N2 e N3
+  percGmudN2: number;
+  percGmudN3: number;
 }
 
 export interface ITSMResults {
@@ -285,6 +288,8 @@ const DEFAULTS: ITSMState = {
   semVolumesAtuais: true,
   volumeChamadosAtivosManual: 0,
   volumeChamadosUsuariosManual: 0,
+  percGmudN2: 70,
+  percGmudN3: 30,
 };
 
 export function useITSMCalculator() {
