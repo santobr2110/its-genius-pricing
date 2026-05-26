@@ -335,11 +335,50 @@ export default function SmartTiersPanel() {
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
   const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
+
+  // === GMUDs por camada ===
+  const gmudInput = {
+    custoPorChamadoN2: results.custoPorChamadoN2,
+    tempoMedioChamadoN3: state.tempoMedioChamadoN3,
+    valorHoraN3: state.valorHoraN3,
+    percN2: state.percGmudN2 ?? 70,
+    percN3: state.percGmudN3 ?? 30,
+  };
+  const gmudBuckets = useMemo(() => bucketGmuds(gmuds), [gmuds]);
+  const gmudOperation = useMemo(() => {
+    const items = gmudBuckets.operation.map((g) => computeGmud(g, gmudInput));
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.chamados += i.chamadosMes;
+        acc.horasN3 += i.horasN3;
+        acc.custo += i.custo;
+        return acc;
+      },
+      { chamados: 0, horasN3: 0, custo: 0 },
+    );
+    return { items, totals, venda: toSell(totals.custo) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
+  const gmudPerformance = useMemo(() => {
+    const items = gmudBuckets.performance.map((g) => computeGmud(g, gmudInput));
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.chamados += i.chamadosMes;
+        acc.horasN3 += i.horasN3;
+        acc.custo += i.custo;
+        return acc;
+      },
+      { chamados: 0, horasN3: 0, custo: 0 },
+    );
+    return { items, totals, venda: toSell(totals.custo) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
+
   const smOperationVenda = state.tierOperation
-    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda
+    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda + gmudOperation.venda
     : 0;
   const smPerformanceVenda = state.tierPerformance
-    ? toSell(results.custoN3)
+    ? toSell(results.custoN3) + gmudPerformance.venda
     : 0;
   const totalSelecionado =
     (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
