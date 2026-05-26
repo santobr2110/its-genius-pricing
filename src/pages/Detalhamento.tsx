@@ -423,11 +423,11 @@ export default function Detalhamento() {
           {escopo.monitor.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.monitor.descricao}</p>
           )}
-          {escopo.monitor.incluidos.length > 0 && (
+          {escopo.monitor.incluidos.some((t) => t.trim()) && (
             <>
               <SubTitle>O que está incluído</SubTitle>
               <ul className="space-y-1.5">
-                {escopo.monitor.incluidos.map((t, i) => (
+                {escopo.monitor.incluidos.filter((t) => t.trim()).map((t, i) => (
                   <Bullet key={i} color="bronze">{t}</Bullet>
                 ))}
               </ul>
@@ -535,7 +535,7 @@ export default function Detalhamento() {
           )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            {escopo.operation.incluidos.map((t, i) => (
+            {escopo.operation.incluidos.filter((t) => t.trim()).map((t, i) => (
               <Bullet key={i} color="silver">{t}</Bullet>
             ))}
           </ul>
@@ -594,11 +594,11 @@ export default function Detalhamento() {
               {escopo.fieldService.descricao && (
                 <p className="text-xs text-muted-foreground leading-relaxed">{escopo.fieldService.descricao}</p>
               )}
-              {escopo.fieldService.incluidos.length > 0 && (
+              {escopo.fieldService.incluidos.some((t) => t.trim()) && (
                 <>
                   <SubTitle>O que está incluído</SubTitle>
                   <ul className="space-y-1.5">
-                    {escopo.fieldService.incluidos.map((t, i) => (
+                    {escopo.fieldService.incluidos.filter((t) => t.trim()).map((t, i) => (
                       <Bullet key={i} color="amber">{t}</Bullet>
                     ))}
                   </ul>
@@ -641,7 +641,7 @@ export default function Detalhamento() {
           )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            {escopo.performance.incluidos.map((t, i) => (
+            {escopo.performance.incluidos.filter((t) => t.trim()).map((t, i) => (
               <Bullet key={i} color="gold">{t}</Bullet>
             ))}
           </ul>
@@ -692,7 +692,7 @@ export default function Detalhamento() {
           )}
           <SubTitle>O que está incluído</SubTitle>
           <ul className="space-y-1.5">
-            {escopo.enterprise.incluidos.map((t, i) => (
+            {escopo.enterprise.incluidos.filter((t) => t.trim()).map((t, i) => (
               <Bullet key={i} color="diamond">{t}</Bullet>
             ))}
           </ul>
@@ -754,7 +754,7 @@ export default function Detalhamento() {
           if (state.tierPerformance) ativos.push("performance");
           if (state.tierEnterprise) ativos.push("enterprise");
           const blocos = ativos
-            .map((k) => ({ k, items: escopo[k]?.restricoes ?? [] }))
+            .map((k) => ({ k, items: (escopo[k]?.restricoes ?? []).filter((r) => r.trim()) }))
             .filter((b) => b.items.length > 0);
           if (blocos.length === 0) return null;
           const gerais = restricoesGerais.filter((r) => r.trim().length > 0);
