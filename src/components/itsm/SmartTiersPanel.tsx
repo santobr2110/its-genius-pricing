@@ -1199,6 +1199,71 @@ function CompositionFooter({
   );
 }
 
+function GmudTable({
+  titulo,
+  vazio,
+  items,
+  totals,
+  venda,
+  toSell,
+}: {
+  titulo: string;
+  vazio: string;
+  items: GmudComputed[];
+  totals: { chamados: number; horasN3: number; custo: number };
+  venda: number;
+  toSell: (c: number) => number;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="rounded border bg-background p-2 space-y-1.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <GitBranch className="h-3.5 w-3.5 text-indigo-600" />
+          <p className="text-xs font-semibold">{titulo}</p>
+        </div>
+        <span className="text-[10px] text-muted-foreground">
+          {items.length} GMUD{items.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <div className="max-h-56 overflow-auto rounded border">
+        <table className="w-full text-[11px]">
+          <thead className="bg-muted sticky top-0">
+            <tr>
+              <th className="text-left px-2 py-1 font-medium">Descrição</th>
+              <th className="text-left px-2 py-1 font-medium w-20">Tipo</th>
+              <th className="text-left px-2 py-1 font-medium w-24">Frequência</th>
+              <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+              <th className="text-right px-2 py-1 font-medium w-16">Horas N3</th>
+              <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((g) => (
+              <tr key={g.id} className="border-t">
+                <td className="px-2 py-1">{g.descricao}</td>
+                <td className="px-2 py-1 text-[10px] text-muted-foreground">{g.tipo}</td>
+                <td className="px-2 py-1 text-[10px] text-muted-foreground">{g.frequencia}</td>
+                <td className="px-2 py-1 text-right tabular-nums">{g.chamadosMes.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right tabular-nums">{g.horasN3.toFixed(2)}</td>
+                <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(toSell(g.custo))}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot className="bg-muted sticky bottom-0">
+            <tr>
+              <td className="px-2 py-1 font-semibold" colSpan={3}>Total</td>
+              <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.chamados.toFixed(2)}</td>
+              <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.horasN3.toFixed(2)}</td>
+              <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(venda)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function PerformanceBlock({
   titulo,
   vazio,
