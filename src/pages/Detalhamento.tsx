@@ -23,6 +23,11 @@ import {
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   type EscopoProposicao, type CamadaKey,
 } from "@/data/escopoProposicao";
+import {
+  GMUDS_DEFAULT, bucketGmuds, computeGmud,
+  type Gmud, type GmudComputed,
+} from "@/data/gmuds";
+import { GitBranch } from "lucide-react";
 
 function normalizeOsRotina(r: Rotina): Rotina {
   const isOs = r.grupo.toLowerCase().includes("sistema operacional");
