@@ -142,6 +142,10 @@ export default function Detalhamento() {
     RESTRICOES_GERAIS_STORAGE_KEY,
     RESTRICOES_GERAIS_DEFAULT,
   );
+  const [itensAdicionais] = usePersistentState<ItemAdicional[]>(
+    ITENS_ADICIONAIS_STORAGE_KEY,
+    ITENS_ADICIONAIS_DEFAULT,
+  );
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
