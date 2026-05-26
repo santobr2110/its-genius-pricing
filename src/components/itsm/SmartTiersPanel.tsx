@@ -518,7 +518,7 @@ export default function SmartTiersPanel() {
                 </p>
                 {monitorAdvanced && (
                   <span className="text-[10px] text-muted-foreground italic">
-                    absorvido pela camada superior
+                    desativado pela oferta Operation
                   </span>
                 )}
               </div>
@@ -570,7 +570,7 @@ export default function SmartTiersPanel() {
                 </p>
                 {monitorAdvanced && (
                   <span className="text-[10px] text-muted-foreground italic">
-                    atendentes absorvidos pela camada superior
+                    desativado pela oferta Operation
                   </span>
                 )}
               </div>
