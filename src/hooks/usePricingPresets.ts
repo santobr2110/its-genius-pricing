@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ITSMState } from "./useITSMCalculator";
 import type { N1TeamState } from "./useN1TeamState";
 import type { N2TeamState } from "./useN2TeamState";
+import type {
+  EscopoProposicao,
+  ItemAdicional,
+} from "@/data/escopoProposicao";
 
 // Oferta atual a qual estes presets pertencem.
 // (Smart ITO é a única oferta com calculadora completa hoje.)
@@ -16,6 +20,12 @@ export interface PresetVolumes {
   chamadosPorUsuario: number;
 }
 
+export interface PresetEscopo {
+  proposicao?: EscopoProposicao;
+  restricoesGerais?: string[];
+  itensAdicionais?: ItemAdicional[];
+}
+
 export interface PricingPreset {
   id: string;
   name: string;
@@ -25,6 +35,7 @@ export interface PricingPreset {
   n1Team: N1TeamState;
   n2Team?: N2TeamState;
   volumes?: PresetVolumes;
+  escopo?: PresetEscopo;
 }
 
 interface DbRow {
@@ -35,6 +46,7 @@ interface DbRow {
     n1Team: N1TeamState;
     n2Team?: N2TeamState;
     volumes?: PresetVolumes;
+    escopo?: PresetEscopo;
   };
   created_at: string;
   updated_at: string;
@@ -50,6 +62,7 @@ function fromRow(r: DbRow): PricingPreset {
     n1Team: r.payload.n1Team,
     n2Team: r.payload.n2Team,
     volumes: r.payload.volumes,
+    escopo: r.payload.escopo,
   };
 }
 
@@ -85,11 +98,12 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       n1Team: N1TeamState,
       n2Team?: N2TeamState,
       volumes?: PresetVolumes,
+      escopo?: PresetEscopo,
     ): Promise<PricingPreset> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Faça login para salvar precificações.");
       const finalName = name.trim() || `Precificação ${new Date().toLocaleString("pt-BR")}`;
-      const payload = { calculator, n1Team, n2Team, volumes };
+      const payload = { calculator, n1Team, n2Team, volumes, escopo };
       const { data, error } = await supabase
         .from("pricing_presets")
         .insert({
@@ -116,8 +130,9 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       n1Team: N1TeamState,
       n2Team?: N2TeamState,
       volumes?: PresetVolumes,
+      escopo?: PresetEscopo,
     ) => {
-      const payload = { calculator, n1Team, n2Team, volumes };
+      const payload = { calculator, n1Team, n2Team, volumes, escopo };
       const { error } = await supabase
         .from("pricing_presets")
         .update({ payload: payload as unknown as never })
