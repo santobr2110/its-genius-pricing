@@ -485,8 +485,17 @@ export function useITSMCalculator() {
     const monitorBilling = monitorActive && !monitorAdvanced;
     const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
     const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas;
-    // Considera chamados evitados pelo N0
-    const smChamados = smChamadosBrutos * (1 - state.reducaoN0 / 100);
+    // Considera chamados evitados pelo N0 (modo inventário).
+    const smChamadosInv = smChamadosBrutos * (1 - state.reducaoN0 / 100);
+    // Fonte de demanda efetiva para Monitor/Flow.
+    // Operation/Performance/Enterprise forçam o modo inventário.
+    const forceInventory = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+    const effectiveDemandSource: "inventario" | "manual" =
+      forceInventory ? "inventario" : (state.demandSource ?? "inventario");
+    const manualVolume =
+      Math.max(0, state.volumeChamadosAtivosManual || 0) +
+      Math.max(0, state.volumeChamadosUsuariosManual || 0);
+    const smChamados = effectiveDemandSource === "manual" ? manualVolume : smChamadosInv;
     // Smart Monitor: mínimo de 10 itens cobrados pelo valor unitário;
     // a partir do 11º cada item adicional acrescenta o valor unitário.
     const smAtivosBillable = Math.max(10, smAtivos);
