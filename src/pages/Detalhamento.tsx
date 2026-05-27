@@ -5,10 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
-  Medal, Award, Trophy, Gem, Workflow,
+  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -24,6 +30,12 @@ import {
   ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
   type EscopoProposicao, type CamadaKey, type ItemAdicional,
 } from "@/data/escopoProposicao";
+import {
+  exportarApresentacao,
+  type ApresentacaoPayload,
+  type CamadaSlideData,
+  type ItemAdicionalSlide,
+} from "@/lib/exportarApresentacao";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
@@ -390,6 +402,109 @@ export default function Detalhamento() {
   const horasAtendN3 = results.horasAtendimentoN3;
   const horasPrev = Math.max(0, horasTotaisN3 - horasAtendN3);
 
+  // ============================================================
+  // Exportação de Apresentação (.pptx)
+  // Monta payload com camadas ativas, composições e itens adicionais
+  // ============================================================
+  const handleExportPresentation = async () => {
+    const camadas: CamadaSlideData[] = [];
+    const pushCamada = (
+      key: CamadaKey,
+      valor: number,
+      composicao: { label: string; value: number }[],
+    ) => {
+      const esc = escopo[key];
+      camadas.push({
+        key,
+        titulo: esc.titulo,
+        tagline: esc.tagline,
+        descricao: esc.descricao,
+        incluidos: esc.incluidos,
+        restricoes: esc.restricoes,
+        valor,
+        composicao,
+      });
+    };
+    if (monitorVisible) pushCamada("monitor", valorMonitor, valorMonitorParts);
+    if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts);
+    if (state.tierOperation) pushCamada("operation", valorOperation, valorOperationParts);
+    if (state.tierFieldOperation)
+      pushCamada("fieldService", valorFieldService, valorFieldParts);
+    if (state.tierPerformance)
+      pushCamada("performance", valorPerformance, valorPerformanceParts);
+    if (state.tierEnterprise)
+      pushCamada("enterprise", 0, []);
+
+    // Itens adicionais (replicando regra de visibilidade do bloco visual)
+    const escala = state.criticidadeEscala ?? [];
+    const ajuste = escala[state.criticidadeNivel] ?? 0;
+    const adj = (t: number) => Math.max(0, t * (1 + ajuste));
+    const cppN1 = results.custoPorChamadoN1;
+    const cppN2 = results.custoPorChamadoN2;
+    const cN3perChamado = state.valorHoraN3 * state.tempoMedioChamadoN3;
+    const computeMonitoradoUnit = (taxa: number) => {
+      const chamadosBrutos = adj(taxa);
+      const chamadosLiq = chamadosBrutos * (1 - state.reducaoN0 / 100);
+      const vN1 = chamadosLiq * (state.percN1 / 100);
+      const vN2 = chamadosLiq * (state.percN2 / 100);
+      const vN3 = chamadosLiq * (state.percN3 / 100);
+      const custoIncidentes = cppN1 * vN1 + cppN2 * vN2 + cN3perChamado * vN3;
+      const custoMonit = state.custoAtivoMonitorado;
+      const custoN1Aloc = state.tierMonitor && !state.tierOperation
+        ? (state.percAlocacaoN1Monitor / 100) * cppN1 * chamadosLiq
+        : 0;
+      return (custoIncidentes + custoMonit + custoN1Aloc) * fatorVenda;
+    };
+    const isItemVisible = (it: ItemAdicional): boolean => {
+      switch (it.tipo) {
+        case "monitorado-servidor": return monitorVisible && (state.qtdServidores || 0) > 0;
+        case "monitorado-rede":
+        case "monitorado-firewall": return monitorVisible && (state.qtdAtivosRede || 0) > 0;
+        case "monitorado-bd": return monitorVisible && (state.qtdBancosDados || 0) > 0;
+        case "monitorado-sistema": return monitorVisible && (state.qtdSistemas || 0) > 0;
+        case "proxy": return monitorVisible || flowVisible;
+        case "itsm": return flowVisible;
+        case "hora-n3": return state.tierOperation || state.tierPerformance;
+        case "tam":
+        case "owner": return state.tierEnterprise;
+        case "fixo":
+        default: return true;
+      }
+    };
+    const computeItemValor = (it: ItemAdicional): number => {
+      if (typeof it.valorManual === "number" && it.valorManual > 0) return it.valorManual;
+      switch (it.tipo) {
+        case "monitorado-servidor": return computeMonitoradoUnit(state.taxaServidor);
+        case "monitorado-rede":
+        case "monitorado-firewall": return computeMonitoradoUnit(state.taxaRede);
+        case "monitorado-bd": return computeMonitoradoUnit(state.taxaBancoDados);
+        case "monitorado-sistema": return computeMonitoradoUnit(state.taxaSistemas);
+        case "proxy": return (state.valorProxyAdicional || 0) * fatorVenda;
+        case "hora-n3": return valorHoraN3Venda;
+        default: return it.valorManual ?? 0;
+      }
+    };
+    const itensSlide: ItemAdicionalSlide[] = itensAdicionais
+      .filter(isItemVisible)
+      .map((it) => ({
+        descricao: it.descricao,
+        unidade: it.unidade,
+        valor: computeItemValor(it),
+        observacao: it.observacao,
+      }));
+
+    const payload: ApresentacaoPayload = {
+      ofertaNome: dominantOffer?.name ?? "Proposição de Smart ITO",
+      ofertaTagline: dominantOffer?.tagline ?? "Detalhamento da proposta",
+      componentes: componentNames,
+      camadas,
+      itensAdicionais: itensSlide,
+      restricoesGerais,
+      investimentoTotal: investimentoTotal,
+    };
+    await exportarApresentacao(payload);
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -402,10 +517,25 @@ export default function Detalhamento() {
             </h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={handleExportPDF} className="gap-1.5">
-              <FileDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Exportar PDF</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-1.5">
+                  <FileDown className="h-4 w-4" />
+                  <span className="hidden sm:inline">Exportar</span>
+                  <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleExportPDF} className="gap-2">
+                  <FileDown className="h-4 w-4" />
+                  Exportar PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPresentation} className="gap-2">
+                  <Presentation className="h-4 w-4" />
+                  Exportar Apresentação
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <SortableNav current="detalhamento" />
           </div>
         </div>
