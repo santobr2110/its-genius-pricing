@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trophy, Gem } from "lucide-react";
+import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trophy, Gem, Workflow } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
@@ -81,6 +81,7 @@ const TIERS: {
   selectedClass?: string;
 }[] = [
   { id: "tierMonitor",     label: "Smart Monitor",     icon: Activity,   desc: "Monitoramento de ativos (Servidores, Rede, Firewall), direcionamento de chamados e atendimento N3 Opcional. ",                  available: true,  alias: "Bronze",  aliasIcon: Medal,  aliasClass: "bg-gradient-to-r from-amber-600 to-orange-700 text-white",  selectedClass: "border-amber-400 bg-amber-50/70 dark:bg-amber-950/30 dark:border-amber-800" },
+  { id: "tierFlow",        label: "Smart Flow",        icon: Workflow,   desc: "Monitoramento integrado ao ITSM, acesso ao atendente do cliente para operação técnica, horas de automação e N3 opcionais.", available: true, alias: "Steel",   aliasIcon: Workflow, aliasClass: "bg-gradient-to-r from-sky-600 to-cyan-700 text-white",       selectedClass: "border-sky-400 bg-sky-50/70 dark:bg-sky-950/30 dark:border-sky-800" },
     { id: "tierOperation",   label: "Smart Operation",   icon: Zap,        desc: "Gestão de TI com N1/N2 e N3 em horas - rotinas preventivas básicas. Aqui podemos aplicar field remoto ou presencial",             available: true,  alias: "Silver",  aliasIcon: Award,  aliasClass: "bg-gradient-to-r from-slate-400 to-zinc-500 text-white",     selectedClass: "border-slate-400 bg-slate-100/80 dark:bg-slate-800/40 dark:border-slate-600" },
    { id: "tierPerformance", label: "Smart Performance", icon: Gauge,      desc: "Rotinas preventivas e de complexidade · exige Smart Monitor + Operation", available: true, alias: "Gold",    aliasIcon: Trophy, aliasClass: "bg-gradient-to-r from-yellow-500 to-amber-600 text-yellow-950",  selectedClass: "border-yellow-400 bg-yellow-50/70 dark:bg-yellow-950/30 dark:border-yellow-800" },
   { id: "tierEnterprise",  label: "Smart Enterprise",  icon: Building2,  desc: "Em breve",                                                                available: false, alias: "Diamond", aliasIcon: Gem,    aliasClass: "bg-gradient-to-r from-cyan-400 to-sky-600 text-white" },
