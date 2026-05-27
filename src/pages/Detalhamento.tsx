@@ -1011,6 +1011,7 @@ export default function Detalhamento() {
         {(() => {
           const ativos: CamadaKey[] = [];
           if (monitorVisible) ativos.push("monitor");
+          if (flowVisible) ativos.push("flow");
           if (state.tierOperation) ativos.push("operation");
           if (state.tierFieldOperation) ativos.push("fieldService");
           if (state.tierPerformance) ativos.push("performance");
