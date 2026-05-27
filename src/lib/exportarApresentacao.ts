@@ -11,6 +11,11 @@ export interface CamadaSlideData {
   restricoes: string[];
   valor: number;
   composicao: { label: string; value: number }[];
+  metricas?: { label: string; value: string }[];
+  recursos?: RecursoSlideItem[];
+  horasN3?: HorasN3Slide;
+  rotinasGrupos?: RotinaGrupoSlide[];
+  field?: FieldSlideData;
 }
 
 export interface ItemAdicionalSlide {
@@ -18,6 +23,53 @@ export interface ItemAdicionalSlide {
   unidade: string;
   valor: number;
   observacao?: string;
+}
+
+export interface RecursoSlideItem {
+  label: string;
+  qtd: number;
+  detalhe?: string;
+  valor: number;
+}
+
+export interface HorasN3Bloco {
+  titulo: string;
+  horas: number;
+  valor: number;
+  descricao?: string;
+}
+
+export interface HorasN3Slide {
+  total: number;
+  valorHora: number;
+  modo: "operation" | "performance" | "monitor" | "flow";
+  blocos: HorasN3Bloco[];
+}
+
+export interface RotinaSlideItem {
+  rotina: string;
+  grupo: string;
+  frequencia: string;
+  demanda: number;
+  custo: number;
+}
+
+export interface RotinaGrupoSlide {
+  titulo: string;
+  items: RotinaSlideItem[];
+}
+
+export interface FieldProfissionalSlide {
+  nivel: string;
+  qtd: number;
+  valor: number;
+}
+
+export interface FieldSlideData {
+  profissionais: FieldProfissionalSlide[];
+  equipamentos: number;
+  chamadosEscalados: number;
+  overflowVolume?: number;
 }
 
 export interface ApresentacaoPayload {
