@@ -7,6 +7,7 @@ import type { PricingPreset } from "@/hooks/usePricingPresets";
 import { SMART_ITO_NS } from "@/lib/offerings";
 import { notifyPersistentStateRestored } from "@/hooks/usePersistentState";
 import { supabase } from "@/integrations/supabase/client";
+import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 
 interface ITSMContextType {
   state: ITSMState;
@@ -113,6 +114,13 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   }, [field.results.n3f.custoTotalEquipe, field.state.n3f.capacidadeChamadosTotal, field.results.n3f.custoUmProfissional, calc.state.custoEquipeFieldN3, calc.state.capacidadeFieldN3, calc.state.custoUmFieldN3, calc.setState]);
 
   const loadPreset = useCallback((preset: PricingPreset) => {
+    // Se o preset trouxer o snapshot completo de parâmetros (presets novos),
+    // restaura tudo (equipes Field, rotinas, GMUDs, cortes Smart Perf, escopo)
+    // via mesmo mecanismo dos Perfis de Parâmetros.
+    if (preset.allParams && Object.keys(preset.allParams).length > 0) {
+      void applyParamsPayload(preset.allParams);
+      return;
+    }
     calc.setState(preset.calculator);
     n1.setTeamState(preset.n1Team);
     if (preset.n2Team) n2.setTeamState(preset.n2Team);

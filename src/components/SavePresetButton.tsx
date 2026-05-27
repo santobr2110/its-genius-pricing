@@ -25,6 +25,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { usePricingPresets, type PricingPreset } from "@/hooks/usePricingPresets";
+import { snapshotCurrentParams } from "@/hooks/useParameterProfiles";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { SMART_ITO_NS } from "@/lib/offerings";
@@ -72,7 +74,11 @@ export default function SavePresetButton() {
       itensAdicionais: readLs<ItemAdicional[]>("escopo:itensAdicionais", ITENS_ADICIONAIS_DEFAULT),
     };
     try {
-      const preset = await save(name, state, n1Team, n2Team, volumes, escopo);
+      // Snapshot completo de todos os parâmetros persistidos (equivalente
+      // ao Perfil de Parâmetros) para que a restauração seja 100% fiel.
+      const { data: { user } } = await supabase.auth.getUser();
+      const allParams = user ? await snapshotCurrentParams(user.id) : undefined;
+      const preset = await save(name, state, n1Team, n2Team, volumes, escopo, allParams);
       toast.success(`Precificação "${preset.name}" salva.`);
       setName("");
       setOpen(false);

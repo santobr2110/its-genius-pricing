@@ -7,6 +7,7 @@ import type {
   EscopoProposicao,
   ItemAdicional,
 } from "@/data/escopoProposicao";
+import type { ParamPayload } from "./useParameterProfiles";
 
 // Oferta atual a qual estes presets pertencem.
 // (Smart ITO é a única oferta com calculadora completa hoje.)
@@ -36,6 +37,12 @@ export interface PricingPreset {
   n2Team?: N2TeamState;
   volumes?: PresetVolumes;
   escopo?: PresetEscopo;
+  /**
+   * Snapshot completo dos parâmetros persistidos (mesma cobertura dos
+   * Perfis de Parâmetros): equipes N1/N2/Field, rotinas, GMUDs, cortes
+   * Smart Perf e escopo. Garante restauração 100% fiel.
+   */
+  allParams?: ParamPayload;
 }
 
 interface DbRow {
@@ -47,6 +54,7 @@ interface DbRow {
     n2Team?: N2TeamState;
     volumes?: PresetVolumes;
     escopo?: PresetEscopo;
+    allParams?: ParamPayload;
   };
   created_at: string;
   updated_at: string;
@@ -63,6 +71,7 @@ function fromRow(r: DbRow): PricingPreset {
     n2Team: r.payload.n2Team,
     volumes: r.payload.volumes,
     escopo: r.payload.escopo,
+    allParams: r.payload.allParams,
   };
 }
 
@@ -99,11 +108,12 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       n2Team?: N2TeamState,
       volumes?: PresetVolumes,
       escopo?: PresetEscopo,
+      allParams?: ParamPayload,
     ): Promise<PricingPreset> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Faça login para salvar precificações.");
       const finalName = name.trim() || `Precificação ${new Date().toLocaleString("pt-BR")}`;
-      const payload = { calculator, n1Team, n2Team, volumes, escopo };
+      const payload = { calculator, n1Team, n2Team, volumes, escopo, allParams };
       const { data, error } = await supabase
         .from("pricing_presets")
         .insert({
@@ -131,8 +141,9 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       n2Team?: N2TeamState,
       volumes?: PresetVolumes,
       escopo?: PresetEscopo,
+      allParams?: ParamPayload,
     ) => {
-      const payload = { calculator, n1Team, n2Team, volumes, escopo };
+      const payload = { calculator, n1Team, n2Team, volumes, escopo, allParams };
       const { error } = await supabase
         .from("pricing_presets")
         .update({ payload: payload as unknown as never })
