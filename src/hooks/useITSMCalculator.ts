@@ -80,10 +80,28 @@ export interface ITSMState {
   complexOperacao24x7: boolean;
   complexErpMercado: boolean;
   tierMonitor: boolean;
+  tierFlow: boolean;
   tierOperation: boolean;
   tierOperationN3: boolean;
   tierPerformance: boolean;
   tierEnterprise: boolean;
+  // Smart Flow — clone independente do Smart Monitor
+  custoAtivoFlow: number;
+  percAlocacaoN1Flow: number;
+  valorProxyInicialFlow: number;
+  valorProxyAdicionalFlow: number;
+  qtdProxysFlow: number;
+  qtdProxysFlowMax: number;
+  horasN3Flow: number;
+  horasN3FlowMin: number;
+  horasN3FlowMax: number;
+  horasN3FlowManut: number;
+  horasN3FlowManutMin: number;
+  horasN3FlowManutMax: number;
+  qtdAtendentesFlow: number;
+  qtdAtendentesFlowMin: number;
+  qtdAtendentesFlowMax: number;
+  custoAtendenteFlow: number;
   // Field Service de Microinformática (sub-opção do Smart Operation)
   tierFieldOperation: boolean;
   percFieldN1F: number;
@@ -160,6 +178,21 @@ export interface ITSMResults {
   precoVendaMensal: number;
   // Smart Monitor
   smartMonitor: {
+    ativos: number;
+    chamadosAtivos: number;
+    custoMonitoramento: number;
+    custoN1Alocado: number;
+    horasN3: number;
+    custoN3: number;
+    horasN3Manut: number;
+    custoN3Manut: number;
+    custoAtendentes: number;
+    qtdAtendentes: number;
+    custoProxys: number;
+    qtdProxys: number;
+    total: number;
+  };
+  smartFlow: {
     ativos: number;
     chamadosAtivos: number;
     custoMonitoramento: number;
