@@ -343,6 +343,8 @@ const DEFAULTS: ITSMState = {
   volumeChamadosUsuariosManual: 0,
   percGmudN2: 70,
   percGmudN3: 30,
+  itsmFlowList: ["ServiceNow", "Jira Service Management", "Zendesk", "Freshservice", "GLPI", "BMC Helix"],
+  itsmFlowSelected: "",
 };
 
 export function useITSMCalculator() {
