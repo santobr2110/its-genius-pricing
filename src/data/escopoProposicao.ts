@@ -10,7 +10,7 @@
  * sob a chave `escopo:proposicao`.
  */
 
-export type CamadaKey = "monitor" | "operation" | "performance" | "enterprise" | "fieldService";
+export type CamadaKey = "monitor" | "flow" | "operation" | "performance" | "enterprise" | "fieldService";
 
 export interface EscopoCamada {
   titulo: string;
@@ -24,6 +24,7 @@ export type EscopoProposicao = Record<CamadaKey, EscopoCamada>;
 
 export const CAMADA_ORDEM: CamadaKey[] = [
   "monitor",
+  "flow",
   "operation",
   "fieldService",
   "performance",
@@ -32,6 +33,7 @@ export const CAMADA_ORDEM: CamadaKey[] = [
 
 export const CAMADA_LABEL: Record<CamadaKey, string> = {
   monitor: "Smart Monitor",
+  flow: "Smart Flow",
   operation: "Smart Operation",
   fieldService: "Field Service de Microinformática",
   performance: "Smart Performance",
@@ -55,6 +57,25 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
       "Não cobre ativos fora do inventário declarado",
       "Não inclui atendimento ao usuário final",
       "Customizações de monitoramento contam como Manutenção de Monitoramento (horas N3)",
+    ],
+  },
+  flow: {
+    titulo: "Smart Flow",
+    tagline: "Monitoramento integrado ao ITSM e atendentes dedicados",
+    descricao:
+      "Camada de integração entre o monitoramento e o ITSM do cliente, com atendentes dedicados para triagem e roteamento técnico, horas de automação e horas N3 opcionais para tratamento de eventos.",
+    incluidos: [
+      "Monitoramento integrado ao ITSM do cliente",
+      "Acesso de atendentes dedicados no ITSM para operação técnica",
+      "Horas de automação para tratamento e ajuste contínuo de eventos",
+      "Horas N3 opcionais para acionamento técnico sob demanda",
+      "Proxys de coleta dedicados à camada Flow",
+    ],
+    restricoes: [
+      "Não inclui Service Desk humano N1/N2 reativo (oferta Smart Operation)",
+      "Horas N3 e atendentes são absorvidos pela camada Smart Operation quando contratada",
+      "Automações fora do catálogo demandam estudo técnico prévio",
+      "Cobertura limitada aos ativos do inventário declarado",
     ],
   },
   operation: {

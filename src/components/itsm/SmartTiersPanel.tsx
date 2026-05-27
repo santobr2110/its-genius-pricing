@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trophy, Gem } from "lucide-react";
+import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trophy, Gem, Workflow } from "lucide-react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
@@ -81,6 +81,7 @@ const TIERS: {
   selectedClass?: string;
 }[] = [
   { id: "tierMonitor",     label: "Smart Monitor",     icon: Activity,   desc: "Monitoramento de ativos (Servidores, Rede, Firewall), direcionamento de chamados e atendimento N3 Opcional. ",                  available: true,  alias: "Bronze",  aliasIcon: Medal,  aliasClass: "bg-gradient-to-r from-amber-600 to-orange-700 text-white",  selectedClass: "border-amber-400 bg-amber-50/70 dark:bg-amber-950/30 dark:border-amber-800" },
+  { id: "tierFlow",        label: "Smart Flow",        icon: Workflow,   desc: "Monitoramento integrado ao ITSM, acesso ao atendente do cliente para operação técnica, horas de automação e N3 opcionais.", available: true, alias: "Steel",   aliasIcon: Workflow, aliasClass: "bg-gradient-to-r from-sky-600 to-cyan-700 text-white",       selectedClass: "border-sky-400 bg-sky-50/70 dark:bg-sky-950/30 dark:border-sky-800" },
     { id: "tierOperation",   label: "Smart Operation",   icon: Zap,        desc: "Gestão de TI com N1/N2 e N3 em horas - rotinas preventivas básicas. Aqui podemos aplicar field remoto ou presencial",             available: true,  alias: "Silver",  aliasIcon: Award,  aliasClass: "bg-gradient-to-r from-slate-400 to-zinc-500 text-white",     selectedClass: "border-slate-400 bg-slate-100/80 dark:bg-slate-800/40 dark:border-slate-600" },
    { id: "tierPerformance", label: "Smart Performance", icon: Gauge,      desc: "Rotinas preventivas e de complexidade · exige Smart Monitor + Operation", available: true, alias: "Gold",    aliasIcon: Trophy, aliasClass: "bg-gradient-to-r from-yellow-500 to-amber-600 text-yellow-950",  selectedClass: "border-yellow-400 bg-yellow-50/70 dark:bg-yellow-950/30 dark:border-yellow-800" },
   { id: "tierEnterprise",  label: "Smart Enterprise",  icon: Building2,  desc: "Em breve",                                                                available: false, alias: "Diamond", aliasIcon: Gem,    aliasClass: "bg-gradient-to-r from-cyan-400 to-sky-600 text-white" },
@@ -89,6 +90,7 @@ const TIERS: {
 export default function SmartTiersPanel() {
   const { results, state, update } = useITSMContext();
   const sm = results.smartMonitor;
+  const sfl = results.smartFlow;
   const fatorMargem = (100 - state.margemLucro) / 100;
   const fatorImposto = (100 - state.impostosTaxas) / 100;
   const fatorVenda = fatorMargem > 0 && fatorImposto > 0 ? fatorMargem * fatorImposto : 0;
@@ -332,6 +334,14 @@ export default function SmartTiersPanel() {
   const smAtendentesVenda = toSell(sm.custoAtendentes);
   const smProxysVenda = toSell(sm.custoProxys);
   const smTotalVenda = toSell(sm.total);
+  // Smart Flow — venda
+  const sflMonitVenda = toSell(sfl.custoMonitoramento);
+  const sflN1Venda = toSell(sfl.custoN1Alocado);
+  const sflN3Venda = toSell(sfl.custoN3);
+  const sflN3ManutVenda = toSell(sfl.custoN3Manut);
+  const sflAtendentesVenda = toSell(sfl.custoAtendentes);
+  const sflProxysVenda = toSell(sfl.custoProxys);
+  const sflTotalVenda = toSell(sfl.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
   const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
@@ -381,13 +391,14 @@ export default function SmartTiersPanel() {
     ? toSell(results.custoN3) + gmudPerformance.venda
     : 0;
   const totalSelecionado =
-    (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
+    (state.tierMonitor ? smTotalVenda : 0) + (state.tierFlow ? sflTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
 
   // Camada mais alta ativa = dominante visual nos quadros de composição
   const dominantTier =
     state.tierEnterprise ? "tierEnterprise"
     : state.tierPerformance ? "tierPerformance"
     : state.tierOperation ? "tierOperation"
+    : state.tierFlow ? "tierFlow"
     : state.tierMonitor ? "tierMonitor"
     : null;
   const dominantRing = (id: string) =>
@@ -396,13 +407,19 @@ export default function SmartTiersPanel() {
   // Em camadas superiores (Operation/Performance/Enterprise), os recursos
   // avulsos do Smart Monitor (horas N3 e atendentes no ITSM) são absorvidos
   // pela camada superior — desabilitamos os sliders e zeramos os valores.
-  const monitorAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+  const monitorAdvanced = state.tierFlow || state.tierOperation || state.tierPerformance || state.tierEnterprise;
+  const flowAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
   useEffect(() => {
     if (!monitorAdvanced) return;
     if ((state.horasN3MonitorManut || 0) !== 0) update("horasN3MonitorManut", 0);
     if ((state.horasN3Monitor || 0) !== 0) update("horasN3Monitor", 0);
-    if ((state.qtdAtendentesMonitor || 0) !== 0) update("qtdAtendentesMonitor", 0);
-  }, [monitorAdvanced, state.horasN3MonitorManut, state.horasN3Monitor, state.qtdAtendentesMonitor]);
+  }, [monitorAdvanced, state.horasN3MonitorManut, state.horasN3Monitor]);
+  useEffect(() => {
+    if (!flowAdvanced) return;
+    if ((state.horasN3FlowManut || 0) !== 0) update("horasN3FlowManut", 0);
+    if ((state.horasN3Flow || 0) !== 0) update("horasN3Flow", 0);
+    if ((state.qtdAtendentesFlow || 0) !== 0) update("qtdAtendentesFlow", 0);
+  }, [flowAdvanced, state.horasN3FlowManut, state.horasN3Flow, state.qtdAtendentesFlow]);
 
   return (
     <Card>
@@ -416,10 +433,10 @@ export default function SmartTiersPanel() {
             const Icon = t.icon;
             const isSel = !!state[t.id];
             // Bloqueios de dependência:
-            // - Smart Monitor é obrigatório quando Operation OU Performance estiver ativo
+            // - Smart Monitor é obrigatório quando Flow/Operation/Performance estiver ativo
             // - Smart Operation é obrigatório quando Performance estiver ativo
             const locked =
-              (t.id === "tierMonitor" && (state.tierOperation || state.tierPerformance)) ||
+              (t.id === "tierMonitor" && (state.tierFlow || state.tierOperation || state.tierPerformance)) ||
               (t.id === "tierOperation" && state.tierPerformance);
             return (
               <label
@@ -435,6 +452,10 @@ export default function SmartTiersPanel() {
                     if (!t.available || locked) return;
                     const next = !isSel;
                     update(t.id, next as any);
+                    // Smart Flow exige Smart Monitor ativo
+                    if (t.id === "tierFlow" && next && !state.tierMonitor) {
+                      update("tierMonitor", true as any);
+                    }
                     // Smart Operation exige Smart Monitor ativo
                     if (t.id === "tierOperation" && next && !state.tierMonitor) {
                       update("tierMonitor", true as any);
@@ -568,31 +589,8 @@ export default function SmartTiersPanel() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                   Recursos
                 </p>
-                {monitorAdvanced && (
-                  <span className="text-[10px] text-muted-foreground italic">
-                    desativado pela oferta Operation
-                  </span>
-                )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-[11px] text-muted-foreground">
-                      Atendentes no ITSM ({formatBRL(toSell(state.custoAtendenteMonitor))}/acesso)
-                    </Label>
-                    <span className="text-xs font-semibold">
-                      {state.qtdAtendentesMonitor} · {formatBRL(smAtendentesVenda)}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[Math.min(state.qtdAtendentesMonitorMax, Math.max(state.qtdAtendentesMonitorMin, state.qtdAtendentesMonitor || 0))]}
-                    onValueChange={([v]) => update("qtdAtendentesMonitor", v)}
-                    min={state.qtdAtendentesMonitorMin}
-                    max={state.qtdAtendentesMonitorMax}
-                    step={1}
-                    disabled={monitorAdvanced}
-                  />
-                </div>
+              <div className="grid grid-cols-1 gap-2">
                 <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
@@ -655,6 +653,141 @@ export default function SmartTiersPanel() {
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Monitor (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smTotalVenda)}</span>
+            </div>
+          </div>
+        )}
+
+        {state.tierFlow && (
+          <div className={`rounded-lg border border-sky-400 bg-sky-50/60 dark:bg-sky-950/20 dark:border-sky-800 p-4 space-y-3 ${dominantRing("tierFlow")}`}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-foreground inline-flex items-center gap-2">
+                Composição — Smart Flow
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-sky-600 to-cyan-700 text-white px-2 py-0.5 shadow-sm">
+                  <span className="text-[9px] font-extrabold uppercase tracking-[0.18em]">Steel</span>
+                </span>
+              </p>
+              <span className="text-[11px] text-muted-foreground">
+                {formatNumber(sfl.ativos)} ativos · {formatNumber(sfl.chamadosAtivos, 1)} ch/mês
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                <span className="text-muted-foreground">Monitoramento integrado ao ITSM</span>
+                <span className="font-semibold">{formatBRL(sflMonitVenda)}</span>
+              </div>
+              <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+                <span className="text-muted-foreground">
+                  {state.tierOperation
+                    ? "Alocação N1 (incluída no Smart Operation)"
+                    : `Alocação N1 (${state.percAlocacaoN1Flow}%)`}
+                </span>
+                <span className="font-semibold">{formatBRL(sflN1Venda)}</span>
+              </div>
+            </div>
+            {/* Grupo: Horas N3 do Flow (automação + N3 opcional) */}
+            <div className="rounded-lg border border-sky-200/70 dark:border-sky-900/50 bg-sky-100/30 dark:bg-sky-950/10 p-2 space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">
+                  Horas N3 / Automação
+                </p>
+                {flowAdvanced && (
+                  <span className="text-[10px] text-muted-foreground italic">
+                    desativado pela oferta Operation
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Automação / Manutenção ({formatBRL(toSell(state.valorHoraN3))}/h)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {formatNumber(state.horasN3FlowManut)}h · {formatBRL(sflN3ManutVenda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.horasN3FlowManutMax, Math.max(state.horasN3FlowManutMin, state.horasN3FlowManut || 0))]}
+                    onValueChange={([v]) => update("horasN3FlowManut", v)}
+                    min={state.horasN3FlowManutMin}
+                    max={state.horasN3FlowManutMax}
+                    step={1}
+                    disabled={flowAdvanced}
+                  />
+                </div>
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Acionamento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {formatNumber(state.horasN3Flow)}h · {formatBRL(sflN3Venda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.horasN3FlowMax, Math.max(state.horasN3FlowMin, state.horasN3Flow || 0))]}
+                    onValueChange={([v]) => update("horasN3Flow", v)}
+                    min={state.horasN3FlowMin}
+                    max={state.horasN3FlowMax}
+                    step={1}
+                    disabled={flowAdvanced}
+                  />
+                </div>
+              </div>
+            </div>
+            {/* Grupo: Recursos do Flow (Atendentes ITSM + Proxys) */}
+            <div className="rounded-lg border border-sky-200/70 dark:border-sky-900/50 bg-sky-100/30 dark:bg-sky-950/10 p-2 space-y-2">
+              <div className="flex items-center justify-between px-1">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">
+                  Recursos
+                </p>
+                {flowAdvanced && (
+                  <span className="text-[10px] text-muted-foreground italic">
+                    atendentes desativados pela oferta Operation
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Atendentes no ITSM ({formatBRL(toSell(state.custoAtendenteFlow))}/acesso)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {state.qtdAtendentesFlow} · {formatBRL(sflAtendentesVenda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.qtdAtendentesFlowMax, Math.max(state.qtdAtendentesFlowMin, state.qtdAtendentesFlow || 0))]}
+                    onValueChange={([v]) => update("qtdAtendentesFlow", v)}
+                    min={state.qtdAtendentesFlowMin}
+                    max={state.qtdAtendentesFlowMax}
+                    step={1}
+                    disabled={flowAdvanced}
+                  />
+                </div>
+                <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Proxys ({formatBRL(toSell(state.valorProxyInicialFlow))} inicial · {formatBRL(toSell(state.valorProxyAdicionalFlow))} adic.)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {sfl.qtdProxys} · {formatBRL(sflProxysVenda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.qtdProxysFlowMax, Math.max(1, state.qtdProxysFlow || 1))]}
+                    onValueChange={([v]) => update("qtdProxysFlow", v)}
+                    min={1}
+                    max={Math.max(1, state.qtdProxysFlowMax)}
+                    step={1}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-between border-t pt-2">
+              <span className="text-xs font-semibold">Total Smart Flow (venda)</span>
+              <span className="text-sm font-bold text-primary">{formatBRL(sflTotalVenda)}</span>
             </div>
           </div>
         )}
@@ -1178,6 +1311,12 @@ export default function SmartTiersPanel() {
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Smart Monitor</span>
               <span className="font-semibold tabular-nums">{formatBRL(smTotalVenda)}</span>
+            </div>
+          )}
+          {state.tierFlow && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Smart Flow</span>
+              <span className="font-semibold tabular-nums">{formatBRL(sflTotalVenda)}</span>
             </div>
           )}
           {state.tierOperation && (
