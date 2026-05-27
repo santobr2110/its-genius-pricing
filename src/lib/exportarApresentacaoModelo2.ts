@@ -963,7 +963,7 @@ export async function exportarApresentacaoModelo2(data: ApresentacaoPayload) {
   pptx.title = data.ofertaNome;
   pptx.company = "Selbetti";
 
-  const bgData = await fetchAsBase64(bgUrl);
+  const bgData = "";
 
   const totalSlides =
     1 /* capa */ +
