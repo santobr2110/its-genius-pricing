@@ -467,7 +467,7 @@ export default function Detalhamento() {
               <div className="text-sm font-semibold text-foreground">{state.itsmFlowSelected}</div>
             </div>
           )}
-          {(() => {
+          {!flowVisible && (() => {
             const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
             const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
             const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
