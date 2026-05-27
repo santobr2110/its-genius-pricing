@@ -196,270 +196,207 @@ export default function TaxasDemanda() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Monitoramento</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Parâmetros usados para compor o custo da camada Smart Monitor.
+              Parâmetros que compõem o custo das camadas de monitoramento (Smart Monitor, Smart Flow e Smart Operation) e definem os limites dos sliders na tela "Camadas de Oferta".
             </p>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Monitor (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={state.custoAtivoMonitorado}
-                  onChange={(e) => update("custoAtivoMonitorado", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Aplicado sobre Servidores + Rede + Firewall.
-                </p>
+          <CardContent className="space-y-5">
+            {/* === Smart Monitor === */}
+            <div className="rounded-lg border border-amber-500/40 bg-amber-50/30 dark:bg-amber-950/20 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-600" />
+                <h4 className="text-sm font-bold text-foreground">Smart Monitor</h4>
+                <span className="text-[10px] text-muted-foreground">monitoramento de infraestrutura</span>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Monitor</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  max={100}
-                  value={state.percAlocacaoN1Monitor}
-                  onChange={(e) => update("percAlocacaoN1Monitor", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Operation (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={state.custoAtivoOperacao}
-                  onChange={(e) => update("custoAtivoOperacao", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Aplicado sobre Servidores + Rede + Firewall na camada Smart Operation.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Operation</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  max={100}
-                  value={state.percAlocacaoN1Operation}
-                  onChange={(e) => update("percAlocacaoN1Operation", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Valor Proxy Inicial (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={state.valorProxyInicial}
-                  onChange={(e) => update("valorProxyInicial", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Custo fixo do primeiro proxy de monitoramento.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Valor Proxy Adicional (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={state.valorProxyAdicional}
-                  onChange={(e) => update("valorProxyAdicional", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Custo de cada proxy adicional além do inicial.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Quantidade Máxima de Proxys (slider Smart Monitor)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={1}
-                  value={state.qtdProxysMonitorMax}
-                  onChange={(e) => update("qtdProxysMonitorMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Limite máximo do slider "Quantidade de Proxys" na camada Smart Monitor (mínimo fixo em 1).
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Custo por Atendente no ITSM (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={100}
-                  min={0}
-                  value={state.custoAtendenteMonitor}
-                  onChange={(e) => update("custoAtendenteMonitor", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Custo mensal de 1 acesso de Atendente no ITSM. Multiplicado pela quantidade do slider na camada.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Atendentes — Mínimo / Máximo (slider Smart Monitor)</Label>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Monitor (R$/mês)</Label>
                   <Input
                     type="number"
                     step={1}
                     min={0}
-                    value={state.qtdAtendentesMonitorMin}
-                    onChange={(e) => update("qtdAtendentesMonitorMin", Math.max(0, Math.floor(parseFloat(e.target.value) || 0)))}
+                    value={state.custoAtivoMonitorado}
+                    onChange={(e) => update("custoAtivoMonitorado", parseFloat(e.target.value) || 0)}
                     className="h-9"
                   />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>custoAtivoMonitorado</code> · multiplica os ativos de Servidores + Rede + Firewall na composição do Smart Monitor.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Monitor</Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    max={100}
+                    value={state.percAlocacaoN1Monitor}
+                    onChange={(e) => update("percAlocacaoN1Monitor", parseFloat(e.target.value) || 0)}
+                    className="h-9"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>percAlocacaoN1Monitor</code> · % × custo por chamado N1 × chamados de Servidores+Rede+Firewall (parcela de N1 alocada quando Operation está inativo).
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Valor Proxy Inicial — Smart Monitor (R$/mês)</Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    value={state.valorProxyInicial}
+                    onChange={(e) => update("valorProxyInicial", parseFloat(e.target.value) || 0)}
+                    className="h-9"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>valorProxyInicial</code> · custo fixo do 1º proxy do slider "Quantidade de Proxys" na camada Smart Monitor.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Valor Proxy Adicional — Smart Monitor (R$/mês)</Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    value={state.valorProxyAdicional}
+                    onChange={(e) => update("valorProxyAdicional", parseFloat(e.target.value) || 0)}
+                    className="h-9"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>valorProxyAdicional</code> · cobrado por cada proxy além do 1º no slider "Quantidade de Proxys" do Smart Monitor.
+                  </p>
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <Label className="text-xs text-muted-foreground">Quantidade Máxima de Proxys — Smart Monitor</Label>
                   <Input
                     type="number"
                     step={1}
                     min={1}
-                    value={state.qtdAtendentesMonitorMax}
-                    onChange={(e) => update("qtdAtendentesMonitorMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
+                    value={state.qtdProxysMonitorMax}
+                    onChange={(e) => update("qtdProxysMonitorMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
                     className="h-9"
                   />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>qtdProxysMonitorMax</code> · limite máximo do slider "Quantidade de Proxys" da camada Smart Monitor (mínimo fixo em 1).
+                  </p>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Limites do slider "Atendentes no ITSM" na camada Smart Monitor.
-                </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Smart Flow</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Parâmetros usados para compor o custo da camada Smart Flow (monitoramento integrado ao ITSM).
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Flow (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={state.custoAtivoFlow}
-                  onChange={(e) => update("custoAtivoFlow", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Aplicado sobre Servidores + Rede + Firewall integrados ao ITSM.
-                </p>
+            {/* === Smart Flow === */}
+            <div className="rounded-lg border border-sky-500/40 bg-sky-50/30 dark:bg-sky-950/20 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-sky-500 to-cyan-600" />
+                <h4 className="text-sm font-bold text-foreground">Smart Flow</h4>
+                <span className="text-[10px] text-muted-foreground">monitoramento integrado ao ITSM</span>
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Flow</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  max={100}
-                  value={state.percAlocacaoN1Flow}
-                  onChange={(e) => update("percAlocacaoN1Flow", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Valor Proxy Inicial — Flow (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={state.valorProxyInicialFlow}
-                  onChange={(e) => update("valorProxyInicialFlow", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Custo fixo do primeiro proxy dedicado à camada Flow.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Valor Proxy Adicional — Flow (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={state.valorProxyAdicionalFlow}
-                  onChange={(e) => update("valorProxyAdicionalFlow", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Custo de cada proxy Flow adicional além do inicial.
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Quantidade Máxima de Proxys (slider Smart Flow)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={1}
-                  value={state.qtdProxysFlowMax}
-                  onChange={(e) => update("qtdProxysFlowMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Limite máximo do slider "Quantidade de Proxys" na camada Smart Flow (mínimo fixo em 1).
-                </p>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Custo por Atendente no ITSM — Flow (R$/mês)</Label>
-                <Input
-                  type="number"
-                  step={100}
-                  min={0}
-                  value={state.custoAtendenteFlow}
-                  onChange={(e) => update("custoAtendenteFlow", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Custo mensal de 1 acesso de Atendente no ITSM da camada Flow.
-                </p>
-              </div>
-              <div className="space-y-1 md:col-span-2">
-                <Label className="text-xs text-muted-foreground">Atendentes — Mínimo / Máximo (slider Smart Flow)</Label>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Flow (R$/mês)</Label>
                   <Input
                     type="number"
                     step={1}
                     min={0}
-                    value={state.qtdAtendentesFlowMin}
-                    onChange={(e) => update("qtdAtendentesFlowMin", Math.max(0, Math.floor(parseFloat(e.target.value) || 0)))}
+                    value={state.custoAtivoFlow}
+                    onChange={(e) => update("custoAtivoFlow", parseFloat(e.target.value) || 0)}
                     className="h-9"
                   />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>custoAtivoFlow</code> · multiplica os ativos integrados ao ITSM na composição do Smart Flow.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Flow</Label>
                   <Input
                     type="number"
                     step={1}
-                    min={1}
-                    value={state.qtdAtendentesFlowMax}
-                    onChange={(e) => update("qtdAtendentesFlowMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
+                    min={0}
+                    max={100}
+                    value={state.percAlocacaoN1Flow}
+                    onChange={(e) => update("percAlocacaoN1Flow", parseFloat(e.target.value) || 0)}
                     className="h-9"
                   />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>percAlocacaoN1Flow</code> · % × custo por chamado N1 × chamados de Servidores+Rede+Firewall (parcela de N1 alocada quando Operation está inativo).
+                  </p>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Limites do slider "Atendentes no ITSM" na camada Smart Flow.
-                </p>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Custo por Atendente no ITSM — Smart Flow (R$/mês)</Label>
+                  <Input
+                    type="number"
+                    step={100}
+                    min={0}
+                    value={state.custoAtendenteFlow}
+                    onChange={(e) => update("custoAtendenteFlow", parseFloat(e.target.value) || 0)}
+                    className="h-9"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>custoAtendenteFlow</code> · custo mensal de 1 acesso, multiplicado pela quantidade do slider "Atendentes no ITSM" do Smart Flow.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Atendentes — Mínimo / Máximo — Smart Flow</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="number"
+                      step={1}
+                      min={0}
+                      value={state.qtdAtendentesFlowMin}
+                      onChange={(e) => update("qtdAtendentesFlowMin", Math.max(0, Math.floor(parseFloat(e.target.value) || 0)))}
+                      className="h-9"
+                    />
+                    <Input
+                      type="number"
+                      step={1}
+                      min={1}
+                      value={state.qtdAtendentesFlowMax}
+                      onChange={(e) => update("qtdAtendentesFlowMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
+                      className="h-9"
+                    />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Variáveis <code>qtdAtendentesFlowMin</code> / <code>qtdAtendentesFlowMax</code> · limites do slider "Atendentes no ITSM" da camada Smart Flow.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* === Smart Operation === */}
+            <div className="rounded-lg border border-slate-400/40 bg-slate-50/40 dark:bg-slate-900/30 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-slate-400 to-zinc-500" />
+                <h4 className="text-sm font-bold text-foreground">Smart Operation</h4>
+                <span className="text-[10px] text-muted-foreground">Service Desk humano com monitoramento incluso</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Operation (R$/mês)</Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    value={state.custoAtivoOperacao}
+                    onChange={(e) => update("custoAtivoOperacao", parseFloat(e.target.value) || 0)}
+                    className="h-9"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>custoAtivoOperacao</code> · multiplica os ativos de Servidores + Rede + Firewall na composição do Smart Operation.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Operation</Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    max={100}
+                    value={state.percAlocacaoN1Operation}
+                    onChange={(e) => update("percAlocacaoN1Operation", parseFloat(e.target.value) || 0)}
+                    className="h-9"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>percAlocacaoN1Operation</code> · % × custo por chamado N1 × chamados de Servidores+Rede+Firewall absorvidos pelo Smart Operation.
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
