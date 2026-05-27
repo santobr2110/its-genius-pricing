@@ -90,6 +90,27 @@ export default function Detalhamento() {
     (state.qtdBancosDados || 0) + (state.qtdSistemas || 0) > 0;
   const monitorVisible = state.tierMonitor && hasInfraInventory;
   const flowVisible = state.tierFlow;
+  // Quando Monitor e Flow estão ativos simultaneamente, apresentamos as
+  // duas camadas como um bloco único — somando descrições/itens (sem
+  // duplicações) e preservando os recursos, inventário e valores do Flow
+  // como mandatórios.
+  const unifiedMonitorFlow = monitorVisible && flowVisible;
+  const dedupLines = (lines: string[]): string[] => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const s of lines) {
+      const k = (s || "").trim().toLowerCase().replace(/\s+/g, " ");
+      if (!k || seen.has(k)) continue;
+      seen.add(k);
+      out.push(s.trim());
+    }
+    return out;
+  };
+  const mergeDescricoes = (...descs: string[]): string => {
+    const sentences = descs
+      .flatMap((d) => (d || "").split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean));
+    return dedupLines(sentences).join(" ");
+  };
 
   // Camada mais alta ativa = dominante visual
   const dominantColor =
@@ -111,8 +132,12 @@ export default function Detalhamento() {
   };
   const dominantOffer = dominantColor ? DOMINANT_OFFER[dominantColor] : null;
   const componentNames: string[] = [];
-  if (monitorVisible) componentNames.push("Monitor");
-  if (flowVisible) componentNames.push("Flow");
+  if (unifiedMonitorFlow) {
+    componentNames.push("Monitor + Flow");
+  } else {
+    if (monitorVisible) componentNames.push("Monitor");
+    if (flowVisible) componentNames.push("Flow");
+  }
   if (state.tierOperation) componentNames.push("Operation" + (state.tierFieldOperation ? " + Field Service de Microinformática" : ""));
   if (state.tierPerformance) componentNames.push("Performance");
   if (state.tierEnterprise) componentNames.push("Enterprise");
@@ -172,6 +197,18 @@ export default function Detalhamento() {
     ITENS_ADICIONAIS_STORAGE_KEY,
     ITENS_ADICIONAIS_DEFAULT,
   );
+
+  // Escopo unificado Monitor + Flow (usado quando ambas as camadas estão ativas).
+  const escopoFlowDisplay = unifiedMonitorFlow
+    ? {
+        titulo: "Smart Monitor + Flow",
+        tagline:
+          "Monitoramento da infraestrutura integrado ao ITSM com atendentes dedicados",
+        descricao: mergeDescricoes(escopo.monitor.descricao, escopo.flow.descricao),
+        incluidos: dedupLines([...escopo.monitor.incluidos, ...escopo.flow.incluidos]),
+        restricoes: dedupLines([...escopo.monitor.restricoes, ...escopo.flow.restricoes]),
+      }
+    : escopo.flow;
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
@@ -586,8 +623,32 @@ export default function Detalhamento() {
       return { rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined, horasN3 };
     };
 
-    if (monitorVisible) pushCamada("monitor", valorMonitor, valorMonitorParts, monitorExtras());
-    if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts, flowExtras());
+    if (unifiedMonitorFlow) {
+      // Camada unificada Monitor + Flow: une descrições/itens (sem duplicar),
+      // mantém recursos do Flow como mandatórios e soma valores e composição.
+      const mExtras = monitorExtras();
+      const fExtras = flowExtras();
+      const recursos = [...(fExtras.recursos ?? []), ...(mExtras.recursos ?? [])];
+      const metricas = fExtras.metricas; // Flow é mandatório
+      // Horas N3: prioriza Flow; se Monitor tiver horas, mescla.
+      const horasN3 = fExtras.horasN3 ?? mExtras.horasN3;
+      camadas.push({
+        key: "flow",
+        titulo: escopoFlowDisplay.titulo,
+        tagline: escopoFlowDisplay.tagline,
+        descricao: escopoFlowDisplay.descricao,
+        incluidos: escopoFlowDisplay.incluidos,
+        restricoes: escopoFlowDisplay.restricoes,
+        valor: valorMonitor + valorFlow,
+        composicao: [...valorMonitorParts, ...valorFlowParts],
+        metricas,
+        recursos,
+        horasN3,
+      });
+    } else {
+      if (monitorVisible) pushCamada("monitor", valorMonitor, valorMonitorParts, monitorExtras());
+      if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts, flowExtras());
+    }
     if (state.tierOperation) pushCamada("operation", valorOperation, valorOperationParts, operationExtras());
     if (state.tierFieldOperation)
       pushCamada("fieldService", valorFieldService, valorFieldParts);
@@ -744,7 +805,7 @@ export default function Detalhamento() {
         </section>
 
         {/* SMART MONITOR */}
-        {monitorVisible && (
+        {monitorVisible && !unifiedMonitorFlow && (
         <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
           title={escopo.monitor.titulo} tagline={escopo.monitor.tagline}
@@ -888,18 +949,29 @@ export default function Detalhamento() {
         {flowVisible && (
         <TierBlock active={flowVisible} color="steel" icon={Workflow} tierIndex={2}
           dominant={dominantColor === "steel"}
-          title={escopo.flow.titulo} tagline={escopo.flow.tagline}
-          valor={valorFlow}>
-          {escopo.flow.descricao && (
-            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.flow.descricao}</p>
+          title={escopoFlowDisplay.titulo} tagline={escopoFlowDisplay.tagline}
+          valor={unifiedMonitorFlow ? valorMonitor + valorFlow : valorFlow}>
+          {escopoFlowDisplay.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopoFlowDisplay.descricao}</p>
           )}
-          {escopo.flow.incluidos.some((t) => t.trim()) && (
+          {escopoFlowDisplay.incluidos.some((t) => t.trim()) && (
             <>
               <SubTitle>O que está incluído</SubTitle>
               <ul className="space-y-1.5">
-                {escopo.flow.incluidos.filter((t) => t.trim()).map((t, i) => (
+                {escopoFlowDisplay.incluidos.filter((t) => t.trim()).map((t, i) => (
                   <Bullet key={i} color="steel">{t}</Bullet>
                 ))}
+              </ul>
+            </>
+          )}
+          {unifiedMonitorFlow && (
+            <>
+              <SubTitle>Componentes monitorados</SubTitle>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
+                <Comp icon={Network} label="Ativos de Rede" qtd={state.qtdAtivosRede} ativo />
+                <Comp icon={Database} label="Bancos de Dados" qtd={state.qtdBancosDados} ativo />
+                <Comp icon={Shield} label="Firewall / Sistemas" qtd={state.qtdSistemas} ativo />
               </ul>
             </>
           )}
@@ -1006,7 +1078,12 @@ export default function Detalhamento() {
             );
           })()}
 
-          <CompositionBox title="Composição do valor mensal" total={valorFlow} parts={valorFlowParts} color="steel" />
+          <CompositionBox
+            title="Composição do valor mensal"
+            total={unifiedMonitorFlow ? valorMonitor + valorFlow : valorFlow}
+            parts={unifiedMonitorFlow ? [...valorMonitorParts, ...valorFlowParts] : valorFlowParts}
+            color="steel"
+          />
         </TierBlock>
         )}
 
@@ -1204,6 +1281,13 @@ export default function Detalhamento() {
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                 Componentes da oferta{dominantOffer ? ` ${dominantOffer.name}` : ""}
               </p>
+              {unifiedMonitorFlow ? (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Monitor + Flow</span>
+                  <span className="font-semibold tabular-nums">{formatBRL(valorMonitor + valorFlow)}</span>
+                </div>
+              ) : (
+                <>
               {monitorVisible && (
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Monitor</span>
@@ -1215,6 +1299,8 @@ export default function Detalhamento() {
                   <span className="text-muted-foreground">Flow</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorFlow)}</span>
                 </div>
+              )}
+                </>
               )}
               {state.tierOperation && (
                 <div className="flex justify-between text-xs">
