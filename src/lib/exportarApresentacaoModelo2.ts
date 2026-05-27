@@ -1,9 +1,9 @@
 import pptxgen from "pptxgenjs";
 import { formatBRL } from "@/hooks/useITSMCalculator";
-import bgUrl from "@/assets/selbetti-bg.png";
 import type {
   ApresentacaoPayload,
   CamadaSlideData,
+  RotinaGrupoSlide,
 } from "./exportarApresentacao";
 
 /**
@@ -14,65 +14,50 @@ import type {
  */
 
 const C = {
-  black: "030806",
-  bgSoft: "0A140F",
+  // Fundo verde escuro (alto contraste com texto claro)
+  black: "062818",
+  bgSoft: "0B3624",
   green: "10B981",
   greenDeep: "0E7C4F",
-  greenSoft: "1FAE6E",
+  greenSoft: "34D399",
   orange: "F97316",
   orangeDeep: "EA580C",
   white: "FFFFFF",
-  text: "F5F5F5",
-  textMuted: "9AA8A0",
-  textDim: "5B6E62",
-  cardBorder: "164D38",
-  cardFill: "081411",
-  topLine: "0FD18A",
+  text: "F8FAF7",
+  textMuted: "C7D8CD",
+  textDim: "8AA697",
+  cardBorder: "1F6E4A",
+  cardFill: "0C2E1F",
+  topLine: "34D399",
 };
 
 const FONT = "Calibri";
 
 /* ---------- helpers de fundo ---------- */
 
-async function fetchAsBase64(url: string): Promise<string> {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-function baseBackground(slide: pptxgen.Slide, bgData: string) {
+function baseBackground(slide: pptxgen.Slide, _bgData: string) {
+  // Fundo verde escuro sólido + glows discretos (sem imagem) para melhor contraste.
   slide.background = { color: C.black };
-  // Imagem de fundo (glow verde radial vindo do canto superior esquerdo)
-  slide.addImage({
-    data: bgData,
-    x: 0,
-    y: 0,
-    w: 13.333,
-    h: 7.5,
-    transparency: 0,
-  });
-  // Reforço de escurecimento no canto inferior direito
   slide.addShape("rect", {
-    x: 0,
-    y: 0,
-    w: 13.333,
-    h: 7.5,
-    fill: { color: C.black, transparency: 55 },
-    line: { color: C.black, width: 0 },
+    x: 0, y: 0, w: 13.333, h: 7.5,
+    fill: { color: C.black }, line: { color: C.black, width: 0 },
   });
-  // Linha fina de topo (assinatura Selbetti)
+  // Glow verde sup. esquerdo
+  slide.addShape("ellipse", {
+    x: -2.5, y: -2.5, w: 7, h: 7,
+    fill: { color: C.greenDeep, transparency: 80 },
+    line: { color: C.greenDeep, width: 0 },
+  });
+  // Glow verde inf. direito
+  slide.addShape("ellipse", {
+    x: 9, y: 4, w: 6.5, h: 6.5,
+    fill: { color: C.green, transparency: 88 },
+    line: { color: C.green, width: 0 },
+  });
+  // Linha fina de topo
   slide.addShape("rect", {
-    x: 0,
-    y: 0.04,
-    w: 13.333,
-    h: 0.025,
-    fill: { color: C.topLine },
-    line: { color: C.topLine, width: 0 },
+    x: 0, y: 0.04, w: 13.333, h: 0.025,
+    fill: { color: C.topLine }, line: { color: C.topLine, width: 0 },
   });
 }
 
@@ -697,6 +682,254 @@ function slideComposicao(
   addPageFooter(slide, page, total, data.ofertaNome);
 }
 
+function camadaTemDetalhe(cam: CamadaSlideData): boolean {
+  return !!(
+    (cam.metricas && cam.metricas.length) ||
+    (cam.recursos && cam.recursos.length) ||
+    (cam.horasN3 && cam.horasN3.blocos.length) ||
+    cam.field
+  );
+}
+
+function formatNumber(value: number, digits = 0): string {
+  return value.toLocaleString("pt-BR", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+}
+
+function slideCamadaDetalhe(
+  pptx: pptxgen,
+  data: ApresentacaoPayload,
+  cam: CamadaSlideData,
+  bgData: string,
+  page: number,
+  total: number,
+) {
+  const slide = pptx.addSlide();
+  baseBackground(slide, bgData);
+  addLogo(slide);
+  addKickerTag(slide, cam.titulo);
+
+  slide.addText("Recursos dimensionados e operação", {
+    x: 0.55, y: 1.2, w: 12, h: 0.6,
+    fontFace: FONT, fontSize: 26, bold: true, color: C.white,
+  });
+
+  let y = 1.95;
+
+  // Métricas (chips)
+  if (cam.metricas && cam.metricas.length) {
+    const totalW = 12.3;
+    const gap = 0.15;
+    const cols = cam.metricas.length;
+    const cardW = (totalW - gap * (cols - 1)) / cols;
+    cam.metricas.forEach((m, i) => {
+      const x = 0.55 + i * (cardW + gap);
+      slide.addShape("roundRect", {
+        x, y, w: cardW, h: 0.85, rectRadius: 0.12,
+        fill: { color: C.cardFill }, line: { color: C.cardBorder, width: 1.25 },
+      });
+      slide.addText(m.label.toUpperCase(), {
+        x: x + 0.18, y: y + 0.08, w: cardW - 0.36, h: 0.3,
+        fontFace: FONT, fontSize: 9, bold: true, color: C.greenSoft, charSpacing: 3,
+      });
+      slide.addText(m.value, {
+        x: x + 0.18, y: y + 0.36, w: cardW - 0.36, h: 0.5,
+        fontFace: FONT, fontSize: 18, bold: true, color: C.white,
+      });
+    });
+    y += 1.05;
+  }
+
+  // Recursos
+  if (cam.recursos && cam.recursos.length) {
+    slide.addText("RECURSOS DIMENSIONADOS", {
+      x: 0.55, y, w: 12, h: 0.3, fontFace: FONT, fontSize: 10, bold: true,
+      color: C.greenSoft, charSpacing: 3,
+    });
+    y += 0.34;
+    cam.recursos.slice(0, 4).forEach((r, i) => {
+      const cardW = 6.0;
+      const x = 0.55 + (i % 2) * (cardW + 0.3);
+      const yy = y + Math.floor(i / 2) * 0.65;
+      slide.addShape("roundRect", {
+        x, y: yy, w: cardW, h: 0.55, rectRadius: 0.1,
+        fill: { color: C.cardFill }, line: { color: C.cardBorder, width: 1 },
+      });
+      slide.addText(`${r.label} · ${r.qtd}${r.detalhe ? `  (${r.detalhe})` : ""}`, {
+        x: x + 0.2, y: yy + 0.06, w: cardW - 2.1, h: 0.45,
+        fontFace: FONT, fontSize: 12, bold: true, color: C.text, valign: "middle",
+      });
+      slide.addText(formatBRL(r.valor) + "/mês", {
+        x: x + cardW - 2.05, y: yy + 0.06, w: 1.9, h: 0.45,
+        fontFace: FONT, fontSize: 12, bold: true, color: C.greenSoft,
+        align: "right", valign: "middle",
+      });
+    });
+    y += Math.ceil(cam.recursos.length / 2) * 0.65 + 0.15;
+  }
+
+  // Horas N3
+  if (cam.horasN3 && cam.horasN3.blocos.length) {
+    const h = cam.horasN3;
+    slide.addText(
+      `HORAS N3 · ${formatNumber(h.total)}h/mês × ${formatBRL(h.valorHora)}/h = ${formatBRL(h.total * h.valorHora)}`,
+      {
+        x: 0.55, y, w: 12.3, h: 0.32, fontFace: FONT, fontSize: 10, bold: true,
+        color: C.greenSoft, charSpacing: 3,
+      },
+    );
+    y += 0.36;
+    const blocos = h.blocos;
+    const cols = blocos.length;
+    const totalW = 12.3;
+    const gap = 0.18;
+    const cardW = (totalW - gap * (cols - 1)) / cols;
+    blocos.forEach((b, i) => {
+      const x = 0.55 + i * (cardW + gap);
+      slide.addShape("roundRect", {
+        x, y, w: cardW, h: 1.7, rectRadius: 0.12,
+        fill: { color: C.cardFill }, line: { color: C.green, width: 1.25 },
+      });
+      slide.addText(b.titulo.toUpperCase(), {
+        x: x + 0.18, y: y + 0.12, w: cardW - 0.36, h: 0.32,
+        fontFace: FONT, fontSize: 10, bold: true, color: C.greenSoft, charSpacing: 3,
+      });
+      slide.addText(`${formatNumber(b.horas, 1)}h`, {
+        x: x + 0.18, y: y + 0.44, w: cardW - 0.36, h: 0.55,
+        fontFace: FONT, fontSize: 28, bold: true, color: C.white,
+      });
+      slide.addText(formatBRL(b.valor) + "/mês", {
+        x: x + 0.18, y: y + 1.0, w: cardW - 0.36, h: 0.3,
+        fontFace: FONT, fontSize: 12, bold: true, color: C.orange,
+      });
+      if (b.descricao) {
+        slide.addText(b.descricao, {
+          x: x + 0.18, y: y + 1.3, w: cardW - 0.36, h: 0.38,
+          fontFace: FONT, fontSize: 9, color: C.textMuted, italic: true,
+        });
+      }
+    });
+    y += 1.8;
+  }
+
+  // Field
+  if (cam.field) {
+    const fld = cam.field;
+    slide.addText("EQUIPE FIELD SERVICE DE MICROINFORMÁTICA", {
+      x: 0.55, y, w: 12.3, h: 0.32, fontFace: FONT, fontSize: 10, bold: true,
+      color: C.orange, charSpacing: 3,
+    });
+    y += 0.36;
+    const profs = fld.profissionais;
+    const cardW = 12.3 / Math.max(1, profs.length) - 0.15;
+    profs.forEach((p, i) => {
+      const x = 0.55 + i * (cardW + 0.15);
+      slide.addShape("roundRect", {
+        x, y, w: cardW, h: 0.85, rectRadius: 0.12,
+        fill: { color: C.cardFill }, line: { color: C.orange, width: 1.25 },
+      });
+      slide.addText(p.nivel, {
+        x: x + 0.2, y: y + 0.08, w: cardW - 0.4, h: 0.32,
+        fontFace: FONT, fontSize: 12, bold: true, color: C.orange, charSpacing: 3,
+      });
+      slide.addText(`${p.qtd} prof.`, {
+        x: x + 0.2, y: y + 0.36, w: cardW - 0.4, h: 0.3,
+        fontFace: FONT, fontSize: 16, bold: true, color: C.white,
+      });
+      slide.addText(formatBRL(p.valor) + "/mês", {
+        x: x + 0.2, y: y + 0.6, w: cardW - 0.4, h: 0.24,
+        fontFace: FONT, fontSize: 10, color: C.greenSoft,
+      });
+    });
+    y += 0.95;
+    const info: string[] = [];
+    info.push(`Equipamentos cobertos: ${formatNumber(fld.equipamentos)}`);
+    info.push(`Chamados escalados ao Field: ${formatNumber(fld.chamadosEscalados, 1)}/mês`);
+    if (fld.overflowVolume && fld.overflowVolume > 0)
+      info.push(`Transbordo remoto: ${formatNumber(fld.overflowVolume, 1)} ch/mês via N1 remoto + N2F`);
+    slide.addText(info.join("   ·   "), {
+      x: 0.55, y, w: 12.3, h: 0.32, fontFace: FONT, fontSize: 10,
+      color: C.textMuted, italic: true,
+    });
+  }
+
+  addPageFooter(slide, page, total, data.ofertaNome);
+}
+
+function slideRotinasGrupoM2(
+  pptx: pptxgen,
+  data: ApresentacaoPayload,
+  cam: CamadaSlideData,
+  grupo: RotinaGrupoSlide,
+  bgData: string,
+  page: number,
+  total: number,
+) {
+  const slide = pptx.addSlide();
+  baseBackground(slide, bgData);
+  addLogo(slide);
+  addKickerTag(slide, cam.titulo);
+
+  slide.addText(grupo.titulo, {
+    x: 0.55, y: 1.2, w: 12, h: 0.6,
+    fontFace: FONT, fontSize: 26, bold: true, color: C.white,
+  });
+
+  const headerStyle = {
+    fill: { color: C.bgSoft }, color: C.greenSoft, bold: true,
+    fontSize: 10, fontFace: FONT,
+  } as const;
+  const rowStyle = { color: C.text, fontSize: 10, fontFace: FONT } as const;
+
+  const rows: pptxgen.TableRow[] = [
+    [
+      { text: "Grupo", options: headerStyle },
+      { text: "Rotina", options: headerStyle },
+      { text: "Frequência", options: headerStyle },
+      { text: "Demanda/mês", options: { ...headerStyle, align: "right" } },
+      { text: "Custo mensal", options: { ...headerStyle, align: "right" } },
+    ],
+  ];
+  let somaCusto = 0;
+  let somaDemanda = 0;
+  grupo.items.forEach((r) => {
+    somaCusto += r.custo;
+    somaDemanda += r.demanda;
+    rows.push([
+      { text: r.grupo, options: { ...rowStyle, color: C.textMuted } },
+      { text: r.rotina, options: { ...rowStyle, bold: true } },
+      { text: r.frequencia, options: { ...rowStyle, color: C.textMuted } },
+      { text: r.demanda.toFixed(1), options: { ...rowStyle, align: "right" } },
+      { text: formatBRL(r.custo), options: { ...rowStyle, align: "right", color: C.greenSoft, bold: true } },
+    ]);
+  });
+  rows.push([
+    { text: "TOTAL", options: { ...headerStyle, color: C.white } },
+    { text: "", options: headerStyle },
+    { text: "", options: headerStyle },
+    { text: somaDemanda.toFixed(1), options: { ...headerStyle, align: "right" } },
+    { text: formatBRL(somaCusto), options: { ...headerStyle, color: C.orange, align: "right" } },
+  ]);
+
+  slide.addTable(rows, {
+    x: 0.55, y: 1.95, w: 12.3, colW: [2.4, 5.0, 1.7, 1.6, 1.6],
+    border: { type: "solid", pt: 0.5, color: C.cardBorder },
+    rowH: 0.32, fontSize: 10, fontFace: FONT,
+  });
+
+  slide.addText(
+    "Rotinas absorvidas pelo pool de horas N3 contratado (não geram cobrança separada).",
+    {
+      x: 0.55, y: 6.7, w: 12.3, h: 0.3, fontFace: FONT, fontSize: 10,
+      color: C.textMuted, italic: true,
+    },
+  );
+
+  addPageFooter(slide, page, total, data.ofertaNome);
+}
+
 function slideItensAdicionais(
   pptx: pptxgen,
   data: ApresentacaoPayload,
@@ -978,13 +1211,19 @@ export async function exportarApresentacaoModelo2(data: ApresentacaoPayload) {
   pptx.title = data.ofertaNome;
   pptx.company = "Selbetti";
 
-  const bgData = await fetchAsBase64(bgUrl);
+  const bgData = "";
 
+  let extraSlides = 0;
+  data.camadas.forEach((c) => {
+    if (camadaTemDetalhe(c)) extraSlides += 1;
+    if (c.rotinasGrupos) extraSlides += c.rotinasGrupos.length;
+  });
   const totalSlides =
     1 /* capa */ +
     1 /* divisor "Nossas Ofertas" */ +
     (data.camadas.length > 0 ? 1 : 0) /* visão geral */ +
     data.camadas.length /* uma por camada */ +
+    extraSlides +
     (data.camadas.length > 0 ? 1 : 0) /* composição */ +
     (data.itensAdicionais.length > 0 ? 1 : 0) +
     (data.restricoesGerais.length > 0 ? 1 : 0) +
@@ -1001,6 +1240,16 @@ export async function exportarApresentacaoModelo2(data: ApresentacaoPayload) {
     data.camadas.forEach((cam) => {
       slideCamada(pptx, data, cam, bgData, page, totalSlides);
       page++;
+      if (camadaTemDetalhe(cam)) {
+        slideCamadaDetalhe(pptx, data, cam, bgData, page, totalSlides);
+        page++;
+      }
+      if (cam.rotinasGrupos) {
+        cam.rotinasGrupos.forEach((g) => {
+          slideRotinasGrupoM2(pptx, data, cam, g, bgData, page, totalSlides);
+          page++;
+        });
+      }
     });
     slideComposicao(pptx, data, bgData, page, totalSlides);
     page++;
