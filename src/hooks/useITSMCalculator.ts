@@ -467,6 +467,10 @@ export function useITSMCalculator() {
     const monitorAdvanced = state.tierFlow || state.tierOperation || state.tierPerformance || state.tierEnterprise;
     const flowActive = state.tierFlow;
     const flowAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+    // Regra de sobreposição: quando uma camada superior (Flow/Op/Perf/Ent) está
+    // ativa, TODOS os custos do Smart Monitor são zerados — ele só cobra quando
+    // opera sozinho.
+    const monitorBilling = monitorActive && !monitorAdvanced;
     const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
     const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas;
     // Considera chamados evitados pelo N0
@@ -474,36 +478,47 @@ export function useITSMCalculator() {
     // Smart Monitor: mínimo de 10 itens cobrados pelo valor unitário;
     // a partir do 11º cada item adicional acrescenta o valor unitário.
     const smAtivosBillable = Math.max(10, smAtivos);
-    const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivosBillable : 0;
+    const smCustoMonit = monitorBilling ? state.custoAtivoMonitorado * smAtivosBillable : 0;
     // Atendentes no ITSM migrou para Smart Flow — Smart Monitor não cobra mais.
     const smCustoAtendentes = 0;
     // Custo de proxys: 1 = inicial; n>1 = inicial + adicional*(n-1)
-    const qtdProxys = monitorActive ? Math.max(1, Math.floor(state.qtdProxysMonitor || 1)) : 0;
-    const smCustoProxys = monitorActive
+    const qtdProxys = monitorBilling ? Math.max(1, Math.floor(state.qtdProxysMonitor || 1)) : 0;
+    const smCustoProxys = monitorBilling
       ? Math.max(0, state.valorProxyInicial || 0) +
         Math.max(0, qtdProxys - 1) * Math.max(0, state.valorProxyAdicional || 0)
       : 0;
-    // Quando Smart Operation está ativo, o N1 atende todos os chamados
-    // pelo funil normal — não há alocação extra do Smart Monitor.
-    const smCustoN1Aloc = monitorActive && !state.tierOperation
+    // Smart Monitor só cobra alocação de N1 quando opera sozinho.
+    const smCustoN1Aloc = monitorBilling
       ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
       : 0;
     // N3 opcional dentro do Smart Monitor (horas mensais avulsas) — desabilitado em camadas superiores
-    const smHorasN3 = monitorActive && !monitorAdvanced ? Math.max(0, state.horasN3Monitor || 0) : 0;
+    const smHorasN3 = monitorBilling ? Math.max(0, state.horasN3Monitor || 0) : 0;
     const smCustoN3 = smHorasN3 * state.valorHoraN3;
-    const smHorasN3Manut = monitorActive && !monitorAdvanced ? Math.max(0, state.horasN3MonitorManut || 0) : 0;
+    const smHorasN3Manut = monitorBilling ? Math.max(0, state.horasN3MonitorManut || 0) : 0;
     const smCustoN3Manut = smHorasN3Manut * state.valorHoraN3;
 
     // === Smart Flow (clone independente do Smart Monitor) ===
     const flAtivosBillable = Math.max(10, smAtivos);
-    const flCustoMonit = flowActive ? Math.max(0, state.custoAtivoFlow || 0) * flAtivosBillable : 0;
+    // Quando Smart Operation está ativo, o custo de monitoramento integrado do
+    // Smart Flow passa a usar a variável "Custo por ativo — Smart Operation".
+    const flCustoAtivoUnit = state.tierOperation
+      ? Math.max(0, state.custoAtivoOperacao || 0)
+      : Math.max(0, state.custoAtivoFlow || 0);
+    const flCustoMonit = flowActive ? flCustoAtivoUnit * flAtivosBillable : 0;
     const flCustoAtendentes = flowActive && !flowAdvanced
       ? Math.max(0, state.qtdAtendentesFlow || 0) * Math.max(0, state.custoAtendenteFlow || 0)
       : 0;
     const flQtdProxys = flowActive ? Math.max(1, Math.floor(state.qtdProxysFlow || 1)) : 0;
+    // Quando Operation está ativo, os proxys do Flow usam os mesmos valores
+    // unitários do Smart Monitor para o cálculo.
+    const flProxyIni = state.tierOperation
+      ? Math.max(0, state.valorProxyInicial || 0)
+      : Math.max(0, state.valorProxyInicialFlow || 0);
+    const flProxyAdd = state.tierOperation
+      ? Math.max(0, state.valorProxyAdicional || 0)
+      : Math.max(0, state.valorProxyAdicionalFlow || 0);
     const flCustoProxys = flowActive
-      ? Math.max(0, state.valorProxyInicialFlow || 0) +
-        Math.max(0, flQtdProxys - 1) * Math.max(0, state.valorProxyAdicionalFlow || 0)
+      ? flProxyIni + Math.max(0, flQtdProxys - 1) * flProxyAdd
       : 0;
     const flCustoN1Aloc = flowActive && !state.tierOperation
       ? (Math.max(0, state.percAlocacaoN1Flow || 0) / 100) * custoPorChamadoN1 * smChamados

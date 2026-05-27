@@ -518,14 +518,14 @@ export default function SmartTiersPanel() {
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+              <div className={`flex justify-between rounded border px-2 py-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                 <span className="text-muted-foreground">Monitoramento por ativo</span>
                 <span className="font-semibold">{formatBRL(smMonitVenda)}</span>
               </div>
-              <div className="flex justify-between rounded border bg-background px-2 py-1.5">
+              <div className={`flex justify-between rounded border px-2 py-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                 <span className="text-muted-foreground">
-                  {state.tierOperation
-                    ? "Alocação N1 (incluída no Smart Operation)"
+                  {monitorAdvanced
+                    ? "Alocação N1 (absorvida pela camada superior)"
                     : `Alocação N1 (${state.percAlocacaoN1Monitor}%)`}
                 </span>
                 <span className="font-semibold">{formatBRL(smN1Venda)}</span>
@@ -539,7 +539,7 @@ export default function SmartTiersPanel() {
                 </p>
                 {monitorAdvanced && (
                   <span className="text-[10px] text-muted-foreground italic">
-                    desativado pela oferta Operation
+                    desativado pela camada superior
                   </span>
                 )}
               </div>
@@ -589,9 +589,14 @@ export default function SmartTiersPanel() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                   Recursos
                 </p>
+                {monitorAdvanced && (
+                  <span className="text-[10px] text-muted-foreground italic">
+                    desativado pela camada superior
+                  </span>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-2">
-                <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
                       Proxys ({formatBRL(toSell(state.valorProxyInicial))} inicial · {formatBRL(toSell(state.valorProxyAdicional))} adic.)
@@ -606,6 +611,7 @@ export default function SmartTiersPanel() {
                     min={1}
                     max={Math.max(1, state.qtdProxysMonitorMax)}
                     step={1}
+                    disabled={monitorAdvanced}
                   />
                 </div>
               </div>
@@ -672,7 +678,14 @@ export default function SmartTiersPanel() {
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                <span className="text-muted-foreground">Monitoramento integrado ao ITSM</span>
+                <span className="text-muted-foreground">
+                  Monitoramento integrado ao ITSM
+                  {state.tierOperation && (
+                    <span className="ml-1 italic text-[10px]">
+                      (custo/ativo do Smart Operation)
+                    </span>
+                  )}
+                </span>
                 <span className="font-semibold">{formatBRL(sflMonitVenda)}</span>
               </div>
               <div className="flex justify-between rounded border bg-background px-2 py-1.5">
@@ -769,7 +782,7 @@ export default function SmartTiersPanel() {
                 <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
-                      Proxys ({formatBRL(toSell(state.valorProxyInicialFlow))} inicial · {formatBRL(toSell(state.valorProxyAdicionalFlow))} adic.)
+                      Proxys ({formatBRL(toSell(state.tierOperation ? state.valorProxyInicial : state.valorProxyInicialFlow))} inicial · {formatBRL(toSell(state.tierOperation ? state.valorProxyAdicional : state.valorProxyAdicionalFlow))} adic.{state.tierOperation ? " · valores do Smart Monitor" : ""})
                     </Label>
                     <span className="text-xs font-semibold">
                       {sfl.qtdProxys} · {formatBRL(sflProxysVenda)}
