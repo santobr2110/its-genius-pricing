@@ -8,7 +8,7 @@ import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
-  Medal, Award, Trophy, Gem,
+  Medal, Award, Trophy, Gem, Workflow,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -39,6 +39,8 @@ function normalizeOsRotina(r: Rotina): Rotina {
 const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon: string; bar: string; badge: string; check: string; glow: string; valueGrad: string; blob1: string; blob2: string }> = {
   // Bronze — Smart Monitor
   bronze:  { ring: "border-amber-500/70 dark:border-amber-700/70",   bg: "from-amber-100/80 via-card to-orange-100/40 dark:from-amber-950/60 dark:via-card dark:to-orange-950/30", chip: "bg-gradient-to-r from-amber-600/25 to-orange-700/25 text-amber-800 dark:text-amber-200",  icon: "bg-gradient-to-br from-amber-500 via-orange-600 to-amber-800 text-white",   bar: "from-amber-400 via-orange-500 to-amber-700",  badge: "bg-gradient-to-r from-amber-600 to-orange-700",  check: "text-amber-700 dark:text-amber-300", glow: "shadow-amber-700/30", valueGrad: "from-amber-700 to-orange-700 dark:from-amber-300 dark:to-orange-300", blob1: "bg-amber-500/30", blob2: "bg-orange-600/20" },
+  // Steel — Smart Flow
+  steel:   { ring: "border-sky-500/70 dark:border-sky-600/70",       bg: "from-sky-100/80 via-card to-cyan-100/40 dark:from-sky-950/60 dark:via-card dark:to-cyan-950/30",          chip: "bg-gradient-to-r from-sky-600/25 to-cyan-700/25 text-sky-800 dark:text-sky-200",          icon: "bg-gradient-to-br from-sky-500 via-cyan-600 to-sky-800 text-white",         bar: "from-sky-400 via-cyan-500 to-sky-700",        badge: "bg-gradient-to-r from-sky-600 to-cyan-700",       check: "text-sky-700 dark:text-sky-300",     glow: "shadow-sky-700/30",   valueGrad: "from-sky-700 to-cyan-700 dark:from-sky-300 dark:to-cyan-300",         blob1: "bg-sky-500/30",   blob2: "bg-cyan-600/20" },
   // Silver — Smart Operation
   silver:  { ring: "border-slate-400/70 dark:border-slate-500/70",   bg: "from-slate-100/90 via-card to-zinc-100/50 dark:from-slate-800/60 dark:via-card dark:to-zinc-900/40",     chip: "bg-gradient-to-r from-slate-400/25 to-zinc-500/25 text-slate-700 dark:text-slate-200",    icon: "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-600 text-slate-900",  bar: "from-slate-300 via-zinc-300 to-slate-500",   badge: "bg-gradient-to-r from-slate-500 to-zinc-600",     check: "text-slate-600 dark:text-slate-300", glow: "shadow-slate-500/30", valueGrad: "from-slate-600 to-zinc-700 dark:from-slate-200 dark:to-zinc-200",     blob1: "bg-slate-400/30", blob2: "bg-zinc-400/20" },
   // Gold — Smart Performance
@@ -51,6 +53,7 @@ const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon
 
 const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
   bronze:  { name: "Bronze",  icon: Medal  },
+  steel:   { name: "Steel",   icon: Workflow },
   silver:  { name: "Silver",  icon: Award  },
   gold:    { name: "Gold",    icon: Trophy },
   diamond: { name: "Diamond", icon: Gem    },
@@ -59,6 +62,7 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 export default function Detalhamento() {
   const { state, results } = useITSMContext();
   const sm = results.smartMonitor;
+  const sf = results.smartFlow;
   const fs = results.fieldService;
 
   // Quando não há ativos de Cloud/Datacenter no inventário, o Smart Monitor
@@ -67,12 +71,14 @@ export default function Detalhamento() {
     (state.qtdServidores || 0) + (state.qtdAtivosRede || 0) +
     (state.qtdBancosDados || 0) + (state.qtdSistemas || 0) > 0;
   const monitorVisible = state.tierMonitor && hasInfraInventory;
+  const flowVisible = state.tierFlow;
 
   // Camada mais alta ativa = dominante visual
   const dominantColor =
     state.tierEnterprise ? "diamond"
     : state.tierPerformance ? "gold"
     : state.tierOperation ? "silver"
+    : flowVisible ? "steel"
     : monitorVisible ? "bronze"
     : null;
 
@@ -80,6 +86,7 @@ export default function Detalhamento() {
   // As demais camadas são apresentadas como componentes desta oferta.
   const DOMINANT_OFFER: Record<string, { name: string; tagline: string }> = {
     bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento da infraestrutura" },
+    steel:   { name: "ITO Smart Flow",        tagline: "Monitoramento integrado ao ITSM com atendentes dedicados" },
     silver:  { name: "ITO Smart Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
     gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
     diamond: { name: "ITO Smart Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
@@ -87,6 +94,7 @@ export default function Detalhamento() {
   const dominantOffer = dominantColor ? DOMINANT_OFFER[dominantColor] : null;
   const componentNames: string[] = [];
   if (monitorVisible) componentNames.push("Monitor");
+  if (flowVisible) componentNames.push("Flow");
   if (state.tierOperation) componentNames.push("Operation" + (state.tierFieldOperation ? " + Field Service de Microinformática" : ""));
   if (state.tierPerformance) componentNames.push("Performance");
   if (state.tierEnterprise) componentNames.push("Enterprise");
