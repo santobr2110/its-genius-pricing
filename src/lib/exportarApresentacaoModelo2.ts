@@ -1,9 +1,9 @@
 import pptxgen from "pptxgenjs";
 import { formatBRL } from "@/hooks/useITSMCalculator";
-import bgUrl from "@/assets/selbetti-bg.png";
 import type {
   ApresentacaoPayload,
   CamadaSlideData,
+  RotinaGrupoSlide,
 } from "./exportarApresentacao";
 
 /**
@@ -14,65 +14,50 @@ import type {
  */
 
 const C = {
-  black: "030806",
-  bgSoft: "0A140F",
+  // Fundo verde escuro (alto contraste com texto claro)
+  black: "062818",
+  bgSoft: "0B3624",
   green: "10B981",
   greenDeep: "0E7C4F",
-  greenSoft: "1FAE6E",
+  greenSoft: "34D399",
   orange: "F97316",
   orangeDeep: "EA580C",
   white: "FFFFFF",
-  text: "F5F5F5",
-  textMuted: "9AA8A0",
-  textDim: "5B6E62",
-  cardBorder: "164D38",
-  cardFill: "081411",
-  topLine: "0FD18A",
+  text: "F8FAF7",
+  textMuted: "C7D8CD",
+  textDim: "8AA697",
+  cardBorder: "1F6E4A",
+  cardFill: "0C2E1F",
+  topLine: "34D399",
 };
 
 const FONT = "Calibri";
 
 /* ---------- helpers de fundo ---------- */
 
-async function fetchAsBase64(url: string): Promise<string> {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-function baseBackground(slide: pptxgen.Slide, bgData: string) {
+function baseBackground(slide: pptxgen.Slide, _bgData: string) {
+  // Fundo verde escuro sólido + glows discretos (sem imagem) para melhor contraste.
   slide.background = { color: C.black };
-  // Imagem de fundo (glow verde radial vindo do canto superior esquerdo)
-  slide.addImage({
-    data: bgData,
-    x: 0,
-    y: 0,
-    w: 13.333,
-    h: 7.5,
-    transparency: 0,
-  });
-  // Reforço de escurecimento no canto inferior direito
   slide.addShape("rect", {
-    x: 0,
-    y: 0,
-    w: 13.333,
-    h: 7.5,
-    fill: { color: C.black, transparency: 55 },
-    line: { color: C.black, width: 0 },
+    x: 0, y: 0, w: 13.333, h: 7.5,
+    fill: { color: C.black }, line: { color: C.black, width: 0 },
   });
-  // Linha fina de topo (assinatura Selbetti)
+  // Glow verde sup. esquerdo
+  slide.addShape("ellipse", {
+    x: -2.5, y: -2.5, w: 7, h: 7,
+    fill: { color: C.greenDeep, transparency: 80 },
+    line: { color: C.greenDeep, width: 0 },
+  });
+  // Glow verde inf. direito
+  slide.addShape("ellipse", {
+    x: 9, y: 4, w: 6.5, h: 6.5,
+    fill: { color: C.green, transparency: 88 },
+    line: { color: C.green, width: 0 },
+  });
+  // Linha fina de topo
   slide.addShape("rect", {
-    x: 0,
-    y: 0.04,
-    w: 13.333,
-    h: 0.025,
-    fill: { color: C.topLine },
-    line: { color: C.topLine, width: 0 },
+    x: 0, y: 0.04, w: 13.333, h: 0.025,
+    fill: { color: C.topLine }, line: { color: C.topLine, width: 0 },
   });
 }
 
