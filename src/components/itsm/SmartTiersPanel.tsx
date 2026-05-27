@@ -678,7 +678,14 @@ export default function SmartTiersPanel() {
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                <span className="text-muted-foreground">Monitoramento integrado ao ITSM</span>
+                <span className="text-muted-foreground">
+                  Monitoramento integrado ao ITSM
+                  {state.tierOperation && (
+                    <span className="ml-1 italic text-[10px]">
+                      (custo/ativo do Smart Operation)
+                    </span>
+                  )}
+                </span>
                 <span className="font-semibold">{formatBRL(sflMonitVenda)}</span>
               </div>
               <div className="flex justify-between rounded border bg-background px-2 py-1.5">
@@ -775,7 +782,7 @@ export default function SmartTiersPanel() {
                 <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
-                      Proxys ({formatBRL(toSell(state.valorProxyInicialFlow))} inicial · {formatBRL(toSell(state.valorProxyAdicionalFlow))} adic.)
+                      Proxys ({formatBRL(toSell(state.tierOperation ? state.valorProxyInicial : state.valorProxyInicialFlow))} inicial · {formatBRL(toSell(state.tierOperation ? state.valorProxyAdicional : state.valorProxyAdicionalFlow))} adic.{state.tierOperation ? " · valores do Smart Monitor" : ""})
                     </Label>
                     <span className="text-xs font-semibold">
                       {sfl.qtdProxys} · {formatBRL(sflProxysVenda)}
