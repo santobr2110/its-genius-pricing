@@ -461,10 +461,12 @@ export function useITSMCalculator() {
     // Smart Monitor: custo de monitoramento por ativo entra no custo total da operação.
     // (A parcela de N1 alocada ao Smart Monitor já está incluída em custoN1.)
     const monitorActive = state.tierMonitor;
-    // Em ofertas superiores (Operation/Performance/Enterprise), atendentes no
-    // ITSM e horas N3 avulsas do Smart Monitor são absorvidos pela camada
-    // superior — não devem ser cobrados nem editáveis no Smart Monitor.
-    const monitorAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+    // Em ofertas superiores (Flow/Operation/Performance/Enterprise), horas N3
+    // avulsas do Smart Monitor são absorvidos pela camada superior — não devem
+    // ser cobrados nem editáveis no Smart Monitor.
+    const monitorAdvanced = state.tierFlow || state.tierOperation || state.tierPerformance || state.tierEnterprise;
+    const flowActive = state.tierFlow;
+    const flowAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
     const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
     const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas;
     // Considera chamados evitados pelo N0
@@ -473,10 +475,8 @@ export function useITSMCalculator() {
     // a partir do 11º cada item adicional acrescenta o valor unitário.
     const smAtivosBillable = Math.max(10, smAtivos);
     const smCustoMonit = monitorActive ? state.custoAtivoMonitorado * smAtivosBillable : 0;
-    // Custo de Atendentes no ITSM (Smart Monitor) — desabilitado em camadas superiores
-    const smCustoAtendentes = monitorActive && !monitorAdvanced
-      ? Math.max(0, state.qtdAtendentesMonitor || 0) * Math.max(0, state.custoAtendenteMonitor || 0)
-      : 0;
+    // Atendentes no ITSM migrou para Smart Flow — Smart Monitor não cobra mais.
+    const smCustoAtendentes = 0;
     // Custo de proxys: 1 = inicial; n>1 = inicial + adicional*(n-1)
     const qtdProxys = monitorActive ? Math.max(1, Math.floor(state.qtdProxysMonitor || 1)) : 0;
     const smCustoProxys = monitorActive
@@ -493,6 +493,25 @@ export function useITSMCalculator() {
     const smCustoN3 = smHorasN3 * state.valorHoraN3;
     const smHorasN3Manut = monitorActive && !monitorAdvanced ? Math.max(0, state.horasN3MonitorManut || 0) : 0;
     const smCustoN3Manut = smHorasN3Manut * state.valorHoraN3;
+
+    // === Smart Flow (clone independente do Smart Monitor) ===
+    const flAtivosBillable = Math.max(10, smAtivos);
+    const flCustoMonit = flowActive ? Math.max(0, state.custoAtivoFlow || 0) * flAtivosBillable : 0;
+    const flCustoAtendentes = flowActive && !flowAdvanced
+      ? Math.max(0, state.qtdAtendentesFlow || 0) * Math.max(0, state.custoAtendenteFlow || 0)
+      : 0;
+    const flQtdProxys = flowActive ? Math.max(1, Math.floor(state.qtdProxysFlow || 1)) : 0;
+    const flCustoProxys = flowActive
+      ? Math.max(0, state.valorProxyInicialFlow || 0) +
+        Math.max(0, flQtdProxys - 1) * Math.max(0, state.valorProxyAdicionalFlow || 0)
+      : 0;
+    const flCustoN1Aloc = flowActive && !state.tierOperation
+      ? (Math.max(0, state.percAlocacaoN1Flow || 0) / 100) * custoPorChamadoN1 * smChamados
+      : 0;
+    const flHorasN3 = flowActive && !flowAdvanced ? Math.max(0, state.horasN3Flow || 0) : 0;
+    const flCustoN3 = flHorasN3 * state.valorHoraN3;
+    const flHorasN3Manut = flowActive && !flowAdvanced ? Math.max(0, state.horasN3FlowManut || 0) : 0;
+    const flCustoN3Manut = flHorasN3Manut * state.valorHoraN3;
 
     const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
 
@@ -542,7 +561,10 @@ export function useITSMCalculator() {
     }
     const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 + smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys + custoEndpointTooling + custoFieldTotal;
+    const custoTotalOperacao = custoN1 + custoN2 + custoN3 +
+      smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys +
+      flCustoMonit + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys +
+      custoEndpointTooling + custoFieldTotal;
     // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
     // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
     const fatorMargem = (100 - state.margemLucro) / 100;
@@ -564,10 +586,26 @@ export function useITSMCalculator() {
       horasN3Manut: smHorasN3Manut,
       custoN3Manut: smCustoN3Manut,
       custoAtendentes: smCustoAtendentes,
-      qtdAtendentes: monitorActive && !monitorAdvanced ? (state.qtdAtendentesMonitor || 0) : 0,
+      qtdAtendentes: 0,
       custoProxys: smCustoProxys,
       qtdProxys,
       total: smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys,
+    };
+
+    const smartFlow = {
+      ativos: smAtivos,
+      chamadosAtivos: smChamados,
+      custoMonitoramento: flCustoMonit,
+      custoN1Alocado: flCustoN1Aloc,
+      horasN3: flHorasN3,
+      custoN3: flCustoN3,
+      horasN3Manut: flHorasN3Manut,
+      custoN3Manut: flCustoN3Manut,
+      custoAtendentes: flCustoAtendentes,
+      qtdAtendentes: flowActive && !flowAdvanced ? (state.qtdAtendentesFlow || 0) : 0,
+      custoProxys: flCustoProxys,
+      qtdProxys: flQtdProxys,
+      total: flCustoMonit + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys,
     };
 
     const fieldService = {
@@ -619,6 +657,7 @@ export function useITSMCalculator() {
       valorImpostos,
       precoVendaMensal,
       smartMonitor,
+      smartFlow,
       humanAttendanceActive,
       fieldService,
     };
