@@ -8,7 +8,7 @@ import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
-  Medal, Award, Trophy, Gem,
+  Medal, Award, Trophy, Gem, Workflow,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -39,6 +39,8 @@ function normalizeOsRotina(r: Rotina): Rotina {
 const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon: string; bar: string; badge: string; check: string; glow: string; valueGrad: string; blob1: string; blob2: string }> = {
   // Bronze — Smart Monitor
   bronze:  { ring: "border-amber-500/70 dark:border-amber-700/70",   bg: "from-amber-100/80 via-card to-orange-100/40 dark:from-amber-950/60 dark:via-card dark:to-orange-950/30", chip: "bg-gradient-to-r from-amber-600/25 to-orange-700/25 text-amber-800 dark:text-amber-200",  icon: "bg-gradient-to-br from-amber-500 via-orange-600 to-amber-800 text-white",   bar: "from-amber-400 via-orange-500 to-amber-700",  badge: "bg-gradient-to-r from-amber-600 to-orange-700",  check: "text-amber-700 dark:text-amber-300", glow: "shadow-amber-700/30", valueGrad: "from-amber-700 to-orange-700 dark:from-amber-300 dark:to-orange-300", blob1: "bg-amber-500/30", blob2: "bg-orange-600/20" },
+  // Steel — Smart Flow
+  steel:   { ring: "border-sky-500/70 dark:border-sky-600/70",       bg: "from-sky-100/80 via-card to-cyan-100/40 dark:from-sky-950/60 dark:via-card dark:to-cyan-950/30",          chip: "bg-gradient-to-r from-sky-600/25 to-cyan-700/25 text-sky-800 dark:text-sky-200",          icon: "bg-gradient-to-br from-sky-500 via-cyan-600 to-sky-800 text-white",         bar: "from-sky-400 via-cyan-500 to-sky-700",        badge: "bg-gradient-to-r from-sky-600 to-cyan-700",       check: "text-sky-700 dark:text-sky-300",     glow: "shadow-sky-700/30",   valueGrad: "from-sky-700 to-cyan-700 dark:from-sky-300 dark:to-cyan-300",         blob1: "bg-sky-500/30",   blob2: "bg-cyan-600/20" },
   // Silver — Smart Operation
   silver:  { ring: "border-slate-400/70 dark:border-slate-500/70",   bg: "from-slate-100/90 via-card to-zinc-100/50 dark:from-slate-800/60 dark:via-card dark:to-zinc-900/40",     chip: "bg-gradient-to-r from-slate-400/25 to-zinc-500/25 text-slate-700 dark:text-slate-200",    icon: "bg-gradient-to-br from-slate-300 via-slate-400 to-slate-600 text-slate-900",  bar: "from-slate-300 via-zinc-300 to-slate-500",   badge: "bg-gradient-to-r from-slate-500 to-zinc-600",     check: "text-slate-600 dark:text-slate-300", glow: "shadow-slate-500/30", valueGrad: "from-slate-600 to-zinc-700 dark:from-slate-200 dark:to-zinc-200",     blob1: "bg-slate-400/30", blob2: "bg-zinc-400/20" },
   // Gold — Smart Performance
@@ -51,6 +53,7 @@ const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon
 
 const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
   bronze:  { name: "Bronze",  icon: Medal  },
+  steel:   { name: "Steel",   icon: Workflow },
   silver:  { name: "Silver",  icon: Award  },
   gold:    { name: "Gold",    icon: Trophy },
   diamond: { name: "Diamond", icon: Gem    },
@@ -59,6 +62,7 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 export default function Detalhamento() {
   const { state, results } = useITSMContext();
   const sm = results.smartMonitor;
+  const sf = results.smartFlow;
   const fs = results.fieldService;
 
   // Quando não há ativos de Cloud/Datacenter no inventário, o Smart Monitor
@@ -67,12 +71,14 @@ export default function Detalhamento() {
     (state.qtdServidores || 0) + (state.qtdAtivosRede || 0) +
     (state.qtdBancosDados || 0) + (state.qtdSistemas || 0) > 0;
   const monitorVisible = state.tierMonitor && hasInfraInventory;
+  const flowVisible = state.tierFlow;
 
   // Camada mais alta ativa = dominante visual
   const dominantColor =
     state.tierEnterprise ? "diamond"
     : state.tierPerformance ? "gold"
     : state.tierOperation ? "silver"
+    : flowVisible ? "steel"
     : monitorVisible ? "bronze"
     : null;
 
@@ -80,6 +86,7 @@ export default function Detalhamento() {
   // As demais camadas são apresentadas como componentes desta oferta.
   const DOMINANT_OFFER: Record<string, { name: string; tagline: string }> = {
     bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento da infraestrutura" },
+    steel:   { name: "ITO Smart Flow",        tagline: "Monitoramento integrado ao ITSM com atendentes dedicados" },
     silver:  { name: "ITO Smart Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
     gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
     diamond: { name: "ITO Smart Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
@@ -87,6 +94,7 @@ export default function Detalhamento() {
   const dominantOffer = dominantColor ? DOMINANT_OFFER[dominantColor] : null;
   const componentNames: string[] = [];
   if (monitorVisible) componentNames.push("Monitor");
+  if (flowVisible) componentNames.push("Flow");
   if (state.tierOperation) componentNames.push("Operation" + (state.tierFieldOperation ? " + Field Service de Microinformática" : ""));
   if (state.tierPerformance) componentNames.push("Performance");
   if (state.tierEnterprise) componentNames.push("Enterprise");
@@ -298,6 +306,7 @@ export default function Detalhamento() {
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
   const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
+  const valorFlow = flowVisible ? toSell(sf.total) : 0;
   const custoOperacaoBase =
     results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
   const valorFieldService = state.tierFieldOperation
@@ -309,7 +318,7 @@ export default function Detalhamento() {
   const valorPerformance = state.tierPerformance
     ? toSell(results.custoN3) + toSell(gmudPerformanceData.totals.custo)
     : 0;
-  const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
+  const investimentoTotal = valorMonitor + valorFlow + valorOperation + valorPerformance;
 
   // Subtotais decompostos para exibir a composição do valor de cada camada
   const valorMonitorParts = monitorVisible
@@ -323,6 +332,20 @@ export default function Detalhamento() {
           : []),
         ...(sm.custoProxys > 0
           ? [{ label: `Proxys de monitoramento (${sm.qtdProxys}x)`, value: toSell(sm.custoProxys) }]
+          : []),
+      ]
+    : [];
+  const valorFlowParts = flowVisible
+    ? [
+        { label: "Monitoramento integrado ao ITSM", value: toSell(sf.custoMonitoramento) },
+        ...(sf.custoN1Alocado > 0 ? [{ label: "N1 alocado (triagem)", value: toSell(sf.custoN1Alocado) }] : []),
+        ...(sf.custoN3Manut > 0 ? [{ label: "Horas de automação (N3)", value: toSell(sf.custoN3Manut) }] : []),
+        ...(sf.custoN3 > 0 ? [{ label: "Acionamento N3 (horas opcionais)", value: toSell(sf.custoN3) }] : []),
+        ...(sf.custoAtendentes > 0
+          ? [{ label: `Atendentes no ITSM (${sf.qtdAtendentes}x)`, value: toSell(sf.custoAtendentes) }]
+          : []),
+        ...(sf.custoProxys > 0
+          ? [{ label: `Proxys da camada Flow (${sf.qtdProxys}x)`, value: toSell(sf.custoProxys) }]
           : []),
       ]
     : [];
@@ -530,8 +553,114 @@ export default function Detalhamento() {
         </TierBlock>
         )}
 
+        {/* SMART FLOW */}
+        {flowVisible && (
+        <TierBlock active={flowVisible} color="steel" icon={Workflow} tierIndex={2}
+          dominant={dominantColor === "steel"}
+          title={escopo.flow.titulo} tagline={escopo.flow.tagline}
+          valor={valorFlow}>
+          {escopo.flow.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.flow.descricao}</p>
+          )}
+          {escopo.flow.incluidos.some((t) => t.trim()) && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopo.flow.incluidos.filter((t) => t.trim()).map((t, i) => (
+                  <Bullet key={i} color="steel">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+            <Stat label="Ativos integrados" value={formatNumber(sf.ativos)} />
+            <Stat label="Chamados de monitoramento" value={`${formatNumber(sf.chamadosAtivos, 1)}/mês`} />
+            <Stat label="Alocação N1 sobre Flow" value={`${state.percAlocacaoN1Flow}%`} />
+          </div>
+
+          {(sf.qtdAtendentes > 0 || sf.qtdProxys > 0) && (
+            <div className="mt-4">
+              <SubTitle>Recursos dimensionados</SubTitle>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {sf.qtdAtendentes > 0 && (
+                  <div className="rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Atendentes no ITSM</div>
+                      <div className="text-lg font-bold leading-tight">{formatNumber(sf.qtdAtendentes)}</div>
+                      <div className="text-[11px] text-muted-foreground">acessos</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
+                      <div className="text-base font-bold text-primary">{formatBRL(toSell(sf.custoAtendentes))}</div>
+                    </div>
+                  </div>
+                )}
+                {sf.qtdProxys > 0 && (
+                  <div className="rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Proxys da camada Flow</div>
+                      <div className="text-lg font-bold leading-tight">{formatNumber(sf.qtdProxys)}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {sf.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sf.qtdProxys - 1} adicional${sf.qtdProxys - 1 > 1 ? "is" : ""}`}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
+                      <div className="text-base font-bold text-primary">{formatBRL(toSell(sf.custoProxys))}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!state.tierOperation && (sf.horasN3Manut > 0 || sf.horasN3 > 0) && (() => {
+            const hManut = Math.max(0, sf.horasN3Manut || 0);
+            const hAcion = Math.max(0, sf.horasN3 || 0);
+            const hTotal = hManut + hAcion;
+            const pctManut = hTotal > 0 ? (hManut / hTotal) * 100 : 0;
+            const pctAcion = hTotal > 0 ? (hAcion / hTotal) * 100 : 0;
+            return (
+              <div className="mt-4">
+                <SubTitle>Consumo das horas N3</SubTitle>
+                <div className="rounded border bg-background/70 p-3 text-xs space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">Total contratado</span>
+                    <span className="font-semibold">
+                      {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
+                    </span>
+                  </div>
+                  <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
+                    {pctManut > 0 && (
+                      <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctManut}%` }} />
+                    )}
+                    {pctAcion > 0 && (
+                      <div className="bg-gradient-to-r from-cyan-400 to-cyan-600" style={{ width: `${pctAcion}%` }} />
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
+                      <div className="text-muted-foreground text-[10px]">Automação · {pctManut.toFixed(0)}%</div>
+                      <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sf.custoN3Manut * fatorVenda)}</div>
+                      <div className="text-[10px] text-muted-foreground">Tratamento contínuo e automações de eventos.</div>
+                    </div>
+                    <div className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-1.5">
+                      <div className="text-muted-foreground text-[10px]">Acionamento N3 · {pctAcion.toFixed(0)}%</div>
+                      <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sf.custoN3 * fatorVenda)}</div>
+                      <div className="text-[10px] text-muted-foreground">Horas técnicas sob demanda.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          <CompositionBox title="Composição do valor mensal" total={valorFlow} parts={valorFlowParts} color="steel" />
+        </TierBlock>
+        )}
+
         {/* SMART OPERATION */}
-        <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
+        <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={3}
           dominant={dominantColor === "silver"}
           title={escopo.operation.titulo} tagline={escopo.operation.tagline}
           valor={valorOperation}>
@@ -728,6 +857,12 @@ export default function Detalhamento() {
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Monitor</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorMonitor)}</span>
+                </div>
+              )}
+              {flowVisible && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Flow</span>
+                  <span className="font-semibold tabular-nums">{formatBRL(valorFlow)}</span>
                 </div>
               )}
               {state.tierOperation && (
