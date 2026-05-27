@@ -485,7 +485,6 @@ export default function SmartTiersPanel() {
                   <p className="text-sm font-semibold">{t.label}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {t.desc}
-                     {locked && t.id === "tierMonitor" && (state.tierPerformance ? "" : " · obrigatório com Smart Operation")}
                     {locked && t.id === "tierOperation" && " · obrigatório com Smart Performance"}
                   </p>
                 </div>
