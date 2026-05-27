@@ -777,7 +777,7 @@ export default function Detalhamento() {
         </section>
 
         {/* SMART MONITOR */}
-        {monitorVisible && (
+        {monitorVisible && !unifiedMonitorFlow && (
         <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
           dominant={dominantColor === "bronze"}
           title={escopo.monitor.titulo} tagline={escopo.monitor.tagline}
