@@ -859,6 +859,12 @@ export default function Detalhamento() {
                   <span className="font-semibold tabular-nums">{formatBRL(valorMonitor)}</span>
                 </div>
               )}
+              {flowVisible && (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Flow</span>
+                  <span className="font-semibold tabular-nums">{formatBRL(valorFlow)}</span>
+                </div>
+              )}
               {state.tierOperation && (
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Operation{state.tierFieldOperation ? " (com Field Service de Microinformática)" : ""}</span>
