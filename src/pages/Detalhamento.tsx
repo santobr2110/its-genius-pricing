@@ -35,6 +35,11 @@ import {
   type ApresentacaoPayload,
   type CamadaSlideData,
   type ItemAdicionalSlide,
+  type RotinaGrupoSlide,
+  type RotinaSlideItem,
+  type RecursoSlideItem,
+  type HorasN3Slide,
+  type FieldSlideData,
 } from "@/lib/exportarApresentacao";
 import { exportarApresentacaoModelo2 } from "@/lib/exportarApresentacaoModelo2";
 import {
@@ -413,6 +418,9 @@ export default function Detalhamento() {
       key: CamadaKey,
       valor: number,
       composicao: { label: string; value: number }[],
+      extras: Partial<Pick<CamadaSlideData,
+        "metricas" | "recursos" | "horasN3" | "rotinasGrupos" | "field"
+      >> = {},
     ) => {
       const esc = escopo[key];
       camadas.push({
@@ -424,15 +432,167 @@ export default function Detalhamento() {
         restricoes: esc.restricoes,
         valor,
         composicao,
+        ...extras,
       });
     };
-    if (monitorVisible) pushCamada("monitor", valorMonitor, valorMonitorParts);
-    if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts);
-    if (state.tierOperation) pushCamada("operation", valorOperation, valorOperationParts);
+    // Helpers para construir extras por camada
+    const rotinaToSlide = (r: { rotina: string; grupo: string; freq: string; demanda: number; custo: number }): RotinaSlideItem => ({
+      rotina: r.rotina,
+      grupo: r.grupo,
+      frequencia: r.freq,
+      demanda: r.demanda,
+      custo: r.custo * fatorVenda,
+    });
+
+    const monitorExtras = () => {
+      const metricas = [
+        { label: "Total de ativos", value: formatNumber(sm.ativos) },
+        { label: "Ch. monitoramento", value: `${formatNumber(sm.chamadosAtivos, 1)}/mês` },
+        { label: "Alocação N1", value: `${state.percAlocacaoN1Monitor}%` },
+      ];
+      const recursos: RecursoSlideItem[] = [];
+      if (sm.qtdAtendentes > 0)
+        recursos.push({ label: "Atendentes no ITSM", qtd: sm.qtdAtendentes, detalhe: "acessos", valor: toSell(sm.custoAtendentes) });
+      if (sm.qtdProxys > 0)
+        recursos.push({ label: "Proxys de monitoramento", qtd: sm.qtdProxys, detalhe: sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adic.`, valor: toSell(sm.custoProxys) });
+      let horasN3: HorasN3Slide | undefined;
+      if (!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0)) {
+        const hManut = state.horasN3MonitorManut || 0;
+        const hAcion = state.horasN3Monitor || 0;
+        horasN3 = {
+          total: hManut + hAcion,
+          valorHora: valorHoraN3Venda,
+          modo: "monitor",
+          blocos: [
+            { titulo: "Manutenção do monitoramento", horas: hManut, valor: toSell(sm.custoN3Manut), descricao: "Ajustes e tunings da plataforma de monitoramento." },
+            { titulo: "Acionamento N3", horas: hAcion, valor: toSell(sm.custoN3), descricao: "Horas para tratamento de incidentes detectados." },
+          ].filter((b) => b.horas > 0),
+        };
+      }
+      return { metricas, recursos, horasN3 };
+    };
+
+    const flowExtras = () => {
+      const metricas = [
+        { label: "Ativos integrados", value: formatNumber(sf.ativos) },
+        { label: "Ch. monitoramento", value: `${formatNumber(sf.chamadosAtivos, 1)}/mês` },
+        { label: "Alocação N1 Flow", value: `${state.percAlocacaoN1Flow}%` },
+      ];
+      const recursos: RecursoSlideItem[] = [];
+      if (sf.qtdAtendentes > 0)
+        recursos.push({ label: "Atendentes no ITSM", qtd: sf.qtdAtendentes, detalhe: "acessos", valor: toSell(sf.custoAtendentes) });
+      if (sf.qtdProxys > 0)
+        recursos.push({ label: "Proxys da camada Flow", qtd: sf.qtdProxys, detalhe: sf.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sf.qtdProxys - 1} adic.`, valor: toSell(sf.custoProxys) });
+      let horasN3: HorasN3Slide | undefined;
+      if (!state.tierOperation && (sf.horasN3Manut > 0 || sf.horasN3 > 0)) {
+        const hManut = sf.horasN3Manut || 0;
+        const hAcion = sf.horasN3 || 0;
+        horasN3 = {
+          total: hManut + hAcion,
+          valorHora: valorHoraN3Venda,
+          modo: "flow",
+          blocos: [
+            { titulo: "Automação (N3)", horas: hManut, valor: toSell(sf.custoN3Manut), descricao: "Tratamento contínuo e automações de eventos." },
+            { titulo: "Acionamento N3", horas: hAcion, valor: toSell(sf.custoN3), descricao: "Horas técnicas sob demanda." },
+          ].filter((b) => b.horas > 0),
+        };
+      }
+      return { metricas, recursos, horasN3 };
+    };
+
+    const operationExtras = () => {
+      const metricas = [
+        { label: "Volume N1", value: `${formatNumber(results.volumeN1, 1)} ch/mês` },
+        { label: "Volume N2", value: `${formatNumber(results.volumeN2, 1)} ch/mês` },
+        { label: "Custo/ch N1", value: formatBRL(results.custoPorChamadoN1) },
+      ];
+      const rotinasGrupos: RotinaGrupoSlide[] = [];
+      if (rotinasOp.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas preventivas básicas (${rotinasOp.length})`,
+          items: rotinasOp.map(rotinaToSlide),
+        });
+      }
+      let horasN3: HorasN3Slide | undefined;
+      if ((!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && state.horasN3Mensais > 0) {
+        const total = state.horasN3Mensais;
+        const horasLivreOp = Math.max(0, total - horasAtendN3 - horasRotinasOpN3);
+        horasN3 = {
+          total,
+          valorHora: valorHoraN3Venda,
+          modo: "operation",
+          blocos: [
+            { titulo: "Chamados N3", horas: horasAtendN3, valor: horasAtendN3 * valorHoraN3Venda, descricao: "Atendimento reativo de incidentes complexos." },
+            { titulo: "Rotinas Operation", horas: horasRotinasOpN3, valor: horasRotinasOpN3 * valorHoraN3Venda, descricao: "Rotinas preventivas absorvidas no pool N3." },
+            { titulo: "Horas técnicas", horas: horasLivreOp, valor: horasLivreOp * valorHoraN3Venda, descricao: "Saldo livre para projetos e demandas pontuais." },
+          ].filter((b) => b.horas > 0),
+        };
+      }
+      let field: FieldSlideData | undefined;
+      if (state.tierFieldOperation) {
+        field = {
+          profissionais: [
+            { nivel: "N1F", qtd: state.fieldDirectQtdN1, valor: toSell(fs.custoN1F) },
+            { nivel: "N2F", qtd: state.fieldDirectQtdN2, valor: toSell(fs.custoN2F) },
+            { nivel: "N3F", qtd: state.fieldDirectQtdN3, valor: toSell(fs.custoN3F) },
+          ],
+          equipamentos: state.qtdEquipamentos || 0,
+          chamadosEscalados: fs.volumeUsuariosEscalado,
+          overflowVolume: fs.overflowAtivo ? fs.volumeTransbordoN1Remoto : undefined,
+        };
+        if (rotinasField.length > 0) {
+          rotinasGrupos.push({
+            titulo: `Rotinas Field — Microinformática (${rotinasField.length})`,
+            items: rotinasField.map(rotinaToSlide),
+          });
+        }
+      }
+      return { metricas, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined, horasN3, field };
+    };
+
+    const performanceExtras = () => {
+      const rotinasGrupos: RotinaGrupoSlide[] = [];
+      if (rotinasPerfPadrao.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas Performance — Ambiente Padrão (${rotinasPerfPadrao.length})`,
+          items: rotinasPerfPadrao.map(rotinaToSlide),
+        });
+      }
+      if (algumComplexAtivo && rotinasPerfComplexo.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas Performance — Ambiente Complexo (${rotinasPerfComplexo.length})`,
+          items: rotinasPerfComplexo.map(rotinaToSlide),
+        });
+      }
+      let horasN3: HorasN3Slide | undefined;
+      if ((!n3OptionalScenario || state.tierOperationN3) && state.horasN3Mensais > 0) {
+        const total = state.horasN3Mensais;
+        const horasTam = (total * pctTam) / 100;
+        const horasOwner = (total * pctOwner) / 100;
+        const horasLivre = Math.max(0, total - horasAtendN3 - horasRotinasN3 - horasTam - horasOwner);
+        horasN3 = {
+          total,
+          valorHora: valorHoraN3Venda,
+          modo: "performance",
+          blocos: [
+            { titulo: "Chamados N3", horas: horasAtendN3, valor: horasAtendN3 * valorHoraN3Venda, descricao: "Atendimento reativo N3." },
+            { titulo: "Rotinas", horas: horasRotinasN3, valor: horasRotinasN3 * valorHoraN3Venda, descricao: "Rotinas Performance/Operation absorvidas." },
+            { titulo: "TAM", horas: horasTam, valor: horasTam * valorHoraN3Venda, descricao: "Acompanhamento técnico e governança." },
+            { titulo: "Owner", horas: horasOwner, valor: horasOwner * valorHoraN3Venda, descricao: "Especialista dedicado às rotinas e melhorias." },
+            { titulo: "Horas técnicas", horas: horasLivre, valor: horasLivre * valorHoraN3Venda, descricao: "Saldo para projetos e demandas pontuais." },
+          ].filter((b) => b.horas > 0),
+        };
+      }
+      return { rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined, horasN3 };
+    };
+
+    if (monitorVisible) pushCamada("monitor", valorMonitor, valorMonitorParts, monitorExtras());
+    if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts, flowExtras());
+    if (state.tierOperation) pushCamada("operation", valorOperation, valorOperationParts, operationExtras());
     if (state.tierFieldOperation)
       pushCamada("fieldService", valorFieldService, valorFieldParts);
     if (state.tierPerformance)
-      pushCamada("performance", valorPerformance, valorPerformanceParts);
+      pushCamada("performance", valorPerformance, valorPerformanceParts, performanceExtras());
     if (state.tierEnterprise)
       pushCamada("enterprise", 0, []);
 
