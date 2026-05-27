@@ -334,6 +334,14 @@ export default function SmartTiersPanel() {
   const smAtendentesVenda = toSell(sm.custoAtendentes);
   const smProxysVenda = toSell(sm.custoProxys);
   const smTotalVenda = toSell(sm.total);
+  // Smart Flow — venda
+  const sflMonitVenda = toSell(sfl.custoMonitoramento);
+  const sflN1Venda = toSell(sfl.custoN1Alocado);
+  const sflN3Venda = toSell(sfl.custoN3);
+  const sflN3ManutVenda = toSell(sfl.custoN3Manut);
+  const sflAtendentesVenda = toSell(sfl.custoAtendentes);
+  const sflProxysVenda = toSell(sfl.custoProxys);
+  const sflTotalVenda = toSell(sfl.total);
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
   const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
