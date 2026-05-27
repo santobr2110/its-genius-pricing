@@ -407,7 +407,7 @@ export default function Detalhamento() {
   // Exportação de Apresentação (.pptx)
   // Monta payload com camadas ativas, composições e itens adicionais
   // ============================================================
-  const handleExportPresentation = async () => {
+  const buildApresentacaoPayload = (): ApresentacaoPayload => {
     const camadas: CamadaSlideData[] = [];
     const pushCamada = (
       key: CamadaKey,
@@ -503,12 +503,13 @@ export default function Detalhamento() {
       restricoesGerais,
       investimentoTotal: investimentoTotal,
     };
-    await exportarApresentacao(payload);
+    return payload;
   };
-
+  const handleExportPresentation = async () => {
+    await exportarApresentacao(buildApresentacaoPayload());
+  };
   const handleExportPresentationModelo2 = async () => {
-    // Reutiliza o mesmo payload do Modelo 1
-    await handleExportPresentationInternal(exportarApresentacaoModelo2);
+    await exportarApresentacaoModelo2(buildApresentacaoPayload());
   };
 
   return (
