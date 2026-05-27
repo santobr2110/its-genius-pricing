@@ -306,6 +306,7 @@ export default function Detalhamento() {
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
   const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
+  const valorFlow = flowVisible ? toSell(sf.total) : 0;
   const custoOperacaoBase =
     results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
   const valorFieldService = state.tierFieldOperation
@@ -317,7 +318,7 @@ export default function Detalhamento() {
   const valorPerformance = state.tierPerformance
     ? toSell(results.custoN3) + toSell(gmudPerformanceData.totals.custo)
     : 0;
-  const investimentoTotal = valorMonitor + valorOperation + valorPerformance;
+  const investimentoTotal = valorMonitor + valorFlow + valorOperation + valorPerformance;
 
   // Subtotais decompostos para exibir a composição do valor de cada camada
   const valorMonitorParts = monitorVisible
@@ -331,6 +332,20 @@ export default function Detalhamento() {
           : []),
         ...(sm.custoProxys > 0
           ? [{ label: `Proxys de monitoramento (${sm.qtdProxys}x)`, value: toSell(sm.custoProxys) }]
+          : []),
+      ]
+    : [];
+  const valorFlowParts = flowVisible
+    ? [
+        { label: "Monitoramento integrado ao ITSM", value: toSell(sf.custoMonitoramento) },
+        ...(sf.custoN1Alocado > 0 ? [{ label: "N1 alocado (triagem)", value: toSell(sf.custoN1Alocado) }] : []),
+        ...(sf.custoN3Manut > 0 ? [{ label: "Horas de automação (N3)", value: toSell(sf.custoN3Manut) }] : []),
+        ...(sf.custoN3 > 0 ? [{ label: "Acionamento N3 (horas opcionais)", value: toSell(sf.custoN3) }] : []),
+        ...(sf.custoAtendentes > 0
+          ? [{ label: `Atendentes no ITSM (${sf.qtdAtendentes}x)`, value: toSell(sf.custoAtendentes) }]
+          : []),
+        ...(sf.custoProxys > 0
+          ? [{ label: `Proxys da camada Flow (${sf.qtdProxys}x)`, value: toSell(sf.custoProxys) }]
           : []),
       ]
     : [];
