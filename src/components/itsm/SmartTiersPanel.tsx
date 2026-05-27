@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trophy, Gem, Workflow } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
