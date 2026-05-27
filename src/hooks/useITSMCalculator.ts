@@ -351,6 +351,7 @@ const DEFAULTS: ITSMState = {
   percGmudN3: 30,
   itsmFlowList: ["ServiceNow", "Jira Service Management", "Zendesk", "Freshservice", "GLPI", "BMC Helix"],
   itsmFlowSelected: "",
+  demandSource: "inventario",
 };
 
 export function useITSMCalculator() {
