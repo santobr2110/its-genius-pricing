@@ -140,6 +140,9 @@ export interface ITSMState {
   // Distribuição da demanda de GMUDs entre N2 e N3
   percGmudN2: number;
   percGmudN3: number;
+  // Smart Flow — lista de ITSMs disponíveis para integração e seleção atual
+  itsmFlowList: string[];
+  itsmFlowSelected: string;
 }
 
 export interface ITSMResults {
