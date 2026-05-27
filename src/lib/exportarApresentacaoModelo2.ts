@@ -1213,11 +1213,17 @@ export async function exportarApresentacaoModelo2(data: ApresentacaoPayload) {
 
   const bgData = "";
 
+  let extraSlides = 0;
+  data.camadas.forEach((c) => {
+    if (camadaTemDetalhe(c)) extraSlides += 1;
+    if (c.rotinasGrupos) extraSlides += c.rotinasGrupos.length;
+  });
   const totalSlides =
     1 /* capa */ +
     1 /* divisor "Nossas Ofertas" */ +
     (data.camadas.length > 0 ? 1 : 0) /* visão geral */ +
     data.camadas.length /* uma por camada */ +
+    extraSlides +
     (data.camadas.length > 0 ? 1 : 0) /* composição */ +
     (data.itensAdicionais.length > 0 ? 1 : 0) +
     (data.restricoesGerais.length > 0 ? 1 : 0) +
@@ -1234,6 +1240,16 @@ export async function exportarApresentacaoModelo2(data: ApresentacaoPayload) {
     data.camadas.forEach((cam) => {
       slideCamada(pptx, data, cam, bgData, page, totalSlides);
       page++;
+      if (camadaTemDetalhe(cam)) {
+        slideCamadaDetalhe(pptx, data, cam, bgData, page, totalSlides);
+        page++;
+      }
+      if (cam.rotinasGrupos) {
+        cam.rotinasGrupos.forEach((g) => {
+          slideRotinasGrupoM2(pptx, data, cam, g, bgData, page, totalSlides);
+          page++;
+        });
+      }
     });
     slideComposicao(pptx, data, bgData, page, totalSlides);
     page++;
