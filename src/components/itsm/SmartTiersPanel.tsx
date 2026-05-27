@@ -90,6 +90,7 @@ const TIERS: {
 export default function SmartTiersPanel() {
   const { results, state, update } = useITSMContext();
   const sm = results.smartMonitor;
+  const sfl = results.smartFlow;
   const fatorMargem = (100 - state.margemLucro) / 100;
   const fatorImposto = (100 - state.impostosTaxas) / 100;
   const fatorVenda = fatorMargem > 0 && fatorImposto > 0 ? fatorMargem * fatorImposto : 0;
