@@ -942,6 +942,38 @@ export default function Detalhamento() {
           const ajuste = escala[state.criticidadeNivel] ?? 0;
           const adj = (t: number) => Math.max(0, t * (1 + ajuste));
           const monitorActive = state.tierMonitor;
+          // Visibilidade por item: coerente com camadas ativas e inventário.
+          const isItemVisible = (it: ItemAdicional): boolean => {
+            switch (it.tipo) {
+              case "monitorado-servidor":
+                return monitorVisible && (state.qtdServidores || 0) > 0;
+              case "monitorado-rede":
+              case "monitorado-firewall":
+                return monitorVisible && (state.qtdAtivosRede || 0) > 0;
+              case "monitorado-bd":
+                return monitorVisible && (state.qtdBancosDados || 0) > 0;
+              case "monitorado-sistema":
+                return monitorVisible && (state.qtdSistemas || 0) > 0;
+              case "proxy":
+                // Proxy adicional faz sentido quando há coleta (Monitor ou Flow)
+                return monitorVisible || flowVisible;
+              case "itsm":
+                // Acesso ao ITSM é exclusivo do Smart Flow
+                return flowVisible;
+              case "hora-n3":
+                // Horas N3 avulsas só com Operation ou Performance ativos
+                return state.tierOperation || state.tierPerformance;
+              case "tam":
+              case "owner":
+                // Governança executiva — depende do Smart Enterprise
+                return state.tierEnterprise;
+              case "fixo":
+              default:
+                return true;
+            }
+          };
+          const itensVisiveis = itensAdicionais.filter(isItemVisible);
+          if (itensVisiveis.length === 0) return null;
           // Custo base por chamado (sem markup)
           const cppN1 = results.custoPorChamadoN1;
           const cppN2 = results.custoPorChamadoN2;
@@ -1023,7 +1055,7 @@ export default function Detalhamento() {
                       </tr>
                     </thead>
                     <tbody>
-                      {itensAdicionais.map((it) => {
+                       {itensVisiveis.map((it) => {
                         const { valor, detalhe } = computeItem(it);
                         return (
                           <tr key={it.id} className="border-b border-muted-foreground/10 align-top">
