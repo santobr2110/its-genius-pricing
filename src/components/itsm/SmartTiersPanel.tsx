@@ -1313,6 +1313,12 @@ export default function SmartTiersPanel() {
               <span className="font-semibold tabular-nums">{formatBRL(smTotalVenda)}</span>
             </div>
           )}
+          {state.tierFlow && (
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Smart Flow</span>
+              <span className="font-semibold tabular-nums">{formatBRL(sflTotalVenda)}</span>
+            </div>
+          )}
           {state.tierOperation && (
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Smart Operation</span>
