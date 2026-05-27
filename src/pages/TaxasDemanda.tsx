@@ -345,6 +345,128 @@ export default function TaxasDemanda() {
 
         <Card>
           <CardHeader className="pb-3">
+            <CardTitle className="text-base">Smart Flow</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Parâmetros usados para compor o custo da camada Smart Flow (monitoramento integrado ao ITSM).
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Flow (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={state.custoAtivoFlow}
+                  onChange={(e) => update("custoAtivoFlow", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Aplicado sobre Servidores + Rede + Firewall integrados ao ITSM.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Flow</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  max={100}
+                  value={state.percAlocacaoN1Flow}
+                  onChange={(e) => update("percAlocacaoN1Flow", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  % × custo por chamado N1 × chamados de Servidores+Rede+Firewall.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valor Proxy Inicial — Flow (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={state.valorProxyInicialFlow}
+                  onChange={(e) => update("valorProxyInicialFlow", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Custo fixo do primeiro proxy dedicado à camada Flow.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valor Proxy Adicional — Flow (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={state.valorProxyAdicionalFlow}
+                  onChange={(e) => update("valorProxyAdicionalFlow", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Custo de cada proxy Flow adicional além do inicial.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Quantidade Máxima de Proxys (slider Smart Flow)</Label>
+                <Input
+                  type="number"
+                  step={1}
+                  min={1}
+                  value={state.qtdProxysFlowMax}
+                  onChange={(e) => update("qtdProxysFlowMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Limite máximo do slider "Quantidade de Proxys" na camada Smart Flow (mínimo fixo em 1).
+                </p>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Custo por Atendente no ITSM — Flow (R$/mês)</Label>
+                <Input
+                  type="number"
+                  step={100}
+                  min={0}
+                  value={state.custoAtendenteFlow}
+                  onChange={(e) => update("custoAtendenteFlow", parseFloat(e.target.value) || 0)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Custo mensal de 1 acesso de Atendente no ITSM da camada Flow.
+                </p>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <Label className="text-xs text-muted-foreground">Atendentes — Mínimo / Máximo (slider Smart Flow)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    value={state.qtdAtendentesFlowMin}
+                    onChange={(e) => update("qtdAtendentesFlowMin", Math.max(0, Math.floor(parseFloat(e.target.value) || 0)))}
+                    className="h-9"
+                  />
+                  <Input
+                    type="number"
+                    step={1}
+                    min={1}
+                    value={state.qtdAtendentesFlowMax}
+                    onChange={(e) => update("qtdAtendentesFlowMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
+                    className="h-9"
+                  />
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Limites do slider "Atendentes no ITSM" na camada Smart Flow.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
             <CardTitle className="text-base">Service Desk</CardTitle>
             <p className="text-xs text-muted-foreground">
               Parâmetros de ferramentas usadas pelo Service Desk.
@@ -409,6 +531,8 @@ export default function TaxasDemanda() {
             {([
               { label: "Smart Monitor — Manutenção Monitoramento", minKey: "horasN3MonitorManutMin", maxKey: "horasN3MonitorManutMax" },
               { label: "Smart Monitor — Acionamento N3", minKey: "horasN3MonitorMin", maxKey: "horasN3MonitorMax" },
+              { label: "Smart Flow — Horas de Automação", minKey: "horasN3FlowManutMin", maxKey: "horasN3FlowManutMax" },
+              { label: "Smart Flow — Acionamento N3", minKey: "horasN3FlowMin", maxKey: "horasN3FlowMax" },
               { label: "Smart Operation", minKey: "horasN3OperationMin", maxKey: "horasN3OperationMax" },
               { label: "Smart Performance", minKey: "horasN3PerformanceMin", maxKey: "horasN3PerformanceMax" },
             ] as const).map((row) => (
