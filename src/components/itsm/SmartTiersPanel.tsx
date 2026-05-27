@@ -764,6 +764,40 @@ export default function SmartTiersPanel() {
                 <span className="font-semibold">{formatBRL(sflN1Venda)}</span>
               </div>
             </div>
+            {!flowAdvanced && (
+              <div className="rounded border bg-background px-2 py-2 space-y-1.5">
+                <Label className="text-[11px] text-muted-foreground font-semibold">
+                  Fonte da demanda de chamados
+                </Label>
+                <RadioGroup
+                  value={state.demandSource ?? "inventario"}
+                  onValueChange={(v) => update("demandSource", v as ITSMState["demandSource"])}
+                  className="gap-1.5"
+                >
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <RadioGroupItem value="inventario" id="ds-flow-inv" className="mt-0.5" />
+                    <span className="text-[11px] leading-tight">
+                      <span className="font-semibold">Calculada pelo inventário</span>
+                      <span className="text-muted-foreground"> — usa taxas × quantidades cadastradas.</span>
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <RadioGroupItem value="manual" id="ds-flow-manual" className="mt-0.5" />
+                    <span className="text-[11px] leading-tight">
+                      <span className="font-semibold">Volume informado</span>
+                      <span className="text-muted-foreground">
+                        {" "}— soma dos chamados atuais (ativos + usuários) informados, multiplicada pelo custo unitário.
+                      </span>
+                    </span>
+                  </label>
+                </RadioGroup>
+                {(state.demandSource === "manual") && (
+                  <p className="text-[10px] text-muted-foreground">
+                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0))} ch/mês.
+                  </p>
+                )}
+              </div>
+            )}
             {/* Grupo: Horas N3 do Flow (automação + N3 opcional) */}
             <div className="rounded-lg border border-sky-200/70 dark:border-sky-900/50 bg-sky-100/30 dark:bg-sky-950/10 p-2 space-y-2">
               <div className="flex items-center justify-between px-1">
