@@ -461,6 +461,8 @@ export default function Detalhamento() {
               </ul>
             </>
           )}
+          {!flowVisible && (
+          <>
           <SubTitle>Componentes monitorados</SubTitle>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
@@ -550,6 +552,8 @@ export default function Detalhamento() {
             );
           })()}
           <CompositionBox title="Composição do valor mensal" total={valorMonitor} parts={valorMonitorParts} color="bronze" />
+          </>
+          )}
         </TierBlock>
         )}
 
