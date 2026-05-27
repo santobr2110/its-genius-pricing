@@ -433,10 +433,10 @@ export default function SmartTiersPanel() {
             const Icon = t.icon;
             const isSel = !!state[t.id];
             // Bloqueios de dependência:
-            // - Smart Monitor é obrigatório quando Operation OU Performance estiver ativo
+            // - Smart Monitor é obrigatório quando Flow/Operation/Performance estiver ativo
             // - Smart Operation é obrigatório quando Performance estiver ativo
             const locked =
-              (t.id === "tierMonitor" && (state.tierOperation || state.tierPerformance)) ||
+              (t.id === "tierMonitor" && (state.tierFlow || state.tierOperation || state.tierPerformance)) ||
               (t.id === "tierOperation" && state.tierPerformance);
             return (
               <label
@@ -452,6 +452,10 @@ export default function SmartTiersPanel() {
                     if (!t.available || locked) return;
                     const next = !isSel;
                     update(t.id, next as any);
+                    // Smart Flow exige Smart Monitor ativo
+                    if (t.id === "tierFlow" && next && !state.tierMonitor) {
+                      update("tierMonitor", true as any);
+                    }
                     // Smart Operation exige Smart Monitor ativo
                     if (t.id === "tierOperation" && next && !state.tierMonitor) {
                       update("tierMonitor", true as any);
