@@ -52,7 +52,7 @@ function fromRow(r: DbRow): ParameterProfile {
 }
 
 /** Lê o valor atual de cada chave do usuário (nuvem → localStorage). */
-async function snapshotCurrent(userId: string): Promise<ParamPayload> {
+export async function snapshotCurrentParams(userId: string): Promise<ParamPayload> {
   const out: ParamPayload = {};
   const { data } = await supabase
     .from("user_app_state")
@@ -71,6 +71,26 @@ async function snapshotCurrent(userId: string): Promise<ParamPayload> {
     }
   }
   return out;
+}
+
+/** Aplica um payload de parâmetros: nuvem + localStorage + notifica hooks. */
+export async function applyParamsPayload(payload: ParamPayload): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  const entries = Object.entries(payload);
+  if (user && entries.length) {
+    const rows = entries.map(([key, value]) => ({
+      user_id: user.id,
+      key,
+      value: value as unknown as never,
+    }));
+    await supabase.from("user_app_state").upsert(rows, { onConflict: "user_id,key" });
+  }
+  if (typeof window !== "undefined") {
+    for (const [key, value] of entries) {
+      try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+      notifyPersistentStateRestored(key, value);
+    }
+  }
 }
 
 export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean } = {}) {
@@ -102,7 +122,7 @@ export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean }
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Faça login para salvar perfis.");
     const finalName = name.trim() || `Perfil ${new Date().toLocaleString("pt-BR")}`;
-    const payload = await snapshotCurrent(user.id);
+    const payload = await snapshotCurrentParams(user.id);
     const { data, error } = await supabase
       .from("parameter_profiles")
       .insert({
@@ -123,7 +143,7 @@ export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean }
   const overwrite = useCallback(async (id: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Faça login.");
-    const payload = await snapshotCurrent(user.id);
+    const payload = await snapshotCurrentParams(user.id);
     const { error } = await supabase
       .from("parameter_profiles")
       .update({ payload: payload as unknown as never })
@@ -146,25 +166,7 @@ export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean }
 
   /** Aplica um perfil: grava em user_app_state + localStorage e notifica os hooks ativos. */
   const apply = useCallback(async (profile: ParameterProfile) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Faça login.");
-    const rows = Object.entries(profile.payload).map(([key, value]) => ({
-      user_id: user.id,
-      key,
-      value: value as unknown as never,
-    }));
-    if (rows.length) {
-      const { error } = await supabase
-        .from("user_app_state")
-        .upsert(rows, { onConflict: "user_id,key" });
-      if (error) throw new Error(error.message);
-    }
-    if (typeof window !== "undefined") {
-      for (const [key, value] of Object.entries(profile.payload)) {
-        try { window.localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
-        notifyPersistentStateRestored(key, value);
-      }
-    }
+    await applyParamsPayload(profile.payload);
   }, []);
 
   return { profiles, loading, save, overwrite, rename, remove, apply, refresh };
