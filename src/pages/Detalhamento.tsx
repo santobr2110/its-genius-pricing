@@ -132,8 +132,12 @@ export default function Detalhamento() {
   };
   const dominantOffer = dominantColor ? DOMINANT_OFFER[dominantColor] : null;
   const componentNames: string[] = [];
-  if (monitorVisible) componentNames.push("Monitor");
-  if (flowVisible) componentNames.push("Flow");
+  if (unifiedMonitorFlow) {
+    componentNames.push("Monitor + Flow");
+  } else {
+    if (monitorVisible) componentNames.push("Monitor");
+    if (flowVisible) componentNames.push("Flow");
+  }
   if (state.tierOperation) componentNames.push("Operation" + (state.tierFieldOperation ? " + Field Service de Microinformática" : ""));
   if (state.tierPerformance) componentNames.push("Performance");
   if (state.tierEnterprise) componentNames.push("Enterprise");
