@@ -921,18 +921,29 @@ export default function Detalhamento() {
         {flowVisible && (
         <TierBlock active={flowVisible} color="steel" icon={Workflow} tierIndex={2}
           dominant={dominantColor === "steel"}
-          title={escopo.flow.titulo} tagline={escopo.flow.tagline}
-          valor={valorFlow}>
-          {escopo.flow.descricao && (
-            <p className="text-xs text-muted-foreground leading-relaxed">{escopo.flow.descricao}</p>
+          title={escopoFlowDisplay.titulo} tagline={escopoFlowDisplay.tagline}
+          valor={unifiedMonitorFlow ? valorMonitor + valorFlow : valorFlow}>
+          {escopoFlowDisplay.descricao && (
+            <p className="text-xs text-muted-foreground leading-relaxed">{escopoFlowDisplay.descricao}</p>
           )}
-          {escopo.flow.incluidos.some((t) => t.trim()) && (
+          {escopoFlowDisplay.incluidos.some((t) => t.trim()) && (
             <>
               <SubTitle>O que está incluído</SubTitle>
               <ul className="space-y-1.5">
-                {escopo.flow.incluidos.filter((t) => t.trim()).map((t, i) => (
+                {escopoFlowDisplay.incluidos.filter((t) => t.trim()).map((t, i) => (
                   <Bullet key={i} color="steel">{t}</Bullet>
                 ))}
+              </ul>
+            </>
+          )}
+          {unifiedMonitorFlow && (
+            <>
+              <SubTitle>Componentes monitorados</SubTitle>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
+                <Comp icon={Network} label="Ativos de Rede" qtd={state.qtdAtivosRede} ativo />
+                <Comp icon={Database} label="Bancos de Dados" qtd={state.qtdBancosDados} ativo />
+                <Comp icon={Shield} label="Firewall / Sistemas" qtd={state.qtdSistemas} ativo />
               </ul>
             </>
           )}
@@ -1039,7 +1050,12 @@ export default function Detalhamento() {
             );
           })()}
 
-          <CompositionBox title="Composição do valor mensal" total={valorFlow} parts={valorFlowParts} color="steel" />
+          <CompositionBox
+            title="Composição do valor mensal"
+            total={unifiedMonitorFlow ? valorMonitor + valorFlow : valorFlow}
+            parts={unifiedMonitorFlow ? [...valorMonitorParts, ...valorFlowParts] : valorFlowParts}
+            color="steel"
+          />
         </TierBlock>
         )}
 
