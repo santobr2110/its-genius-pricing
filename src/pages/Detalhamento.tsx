@@ -619,8 +619,32 @@ export default function Detalhamento() {
       return { rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined, horasN3 };
     };
 
-    if (monitorVisible) pushCamada("monitor", valorMonitor, valorMonitorParts, monitorExtras());
-    if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts, flowExtras());
+    if (unifiedMonitorFlow) {
+      // Camada unificada Monitor + Flow: une descrições/itens (sem duplicar),
+      // mantém recursos do Flow como mandatórios e soma valores e composição.
+      const mExtras = monitorExtras();
+      const fExtras = flowExtras();
+      const recursos = [...(fExtras.recursos ?? []), ...(mExtras.recursos ?? [])];
+      const metricas = fExtras.metricas; // Flow é mandatório
+      // Horas N3: prioriza Flow; se Monitor tiver horas, mescla.
+      const horasN3 = fExtras.horasN3 ?? mExtras.horasN3;
+      camadas.push({
+        key: "flow",
+        titulo: escopoFlowDisplay.titulo,
+        tagline: escopoFlowDisplay.tagline,
+        descricao: escopoFlowDisplay.descricao,
+        incluidos: escopoFlowDisplay.incluidos,
+        restricoes: escopoFlowDisplay.restricoes,
+        valor: valorMonitor + valorFlow,
+        composicao: [...valorMonitorParts, ...valorFlowParts],
+        metricas,
+        recursos,
+        horasN3,
+      });
+    } else {
+      if (monitorVisible) pushCamada("monitor", valorMonitor, valorMonitorParts, monitorExtras());
+      if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts, flowExtras());
+    }
     if (state.tierOperation) pushCamada("operation", valorOperation, valorOperationParts, operationExtras());
     if (state.tierFieldOperation)
       pushCamada("fieldService", valorFieldService, valorFieldParts);
