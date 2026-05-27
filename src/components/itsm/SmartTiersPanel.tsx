@@ -391,13 +391,14 @@ export default function SmartTiersPanel() {
     ? toSell(results.custoN3) + gmudPerformance.venda
     : 0;
   const totalSelecionado =
-    (state.tierMonitor ? smTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
+    (state.tierMonitor ? smTotalVenda : 0) + (state.tierFlow ? sflTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
 
   // Camada mais alta ativa = dominante visual nos quadros de composição
   const dominantTier =
     state.tierEnterprise ? "tierEnterprise"
     : state.tierPerformance ? "tierPerformance"
     : state.tierOperation ? "tierOperation"
+    : state.tierFlow ? "tierFlow"
     : state.tierMonitor ? "tierMonitor"
     : null;
   const dominantRing = (id: string) =>
@@ -406,13 +407,19 @@ export default function SmartTiersPanel() {
   // Em camadas superiores (Operation/Performance/Enterprise), os recursos
   // avulsos do Smart Monitor (horas N3 e atendentes no ITSM) são absorvidos
   // pela camada superior — desabilitamos os sliders e zeramos os valores.
-  const monitorAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+  const monitorAdvanced = state.tierFlow || state.tierOperation || state.tierPerformance || state.tierEnterprise;
+  const flowAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
   useEffect(() => {
     if (!monitorAdvanced) return;
     if ((state.horasN3MonitorManut || 0) !== 0) update("horasN3MonitorManut", 0);
     if ((state.horasN3Monitor || 0) !== 0) update("horasN3Monitor", 0);
-    if ((state.qtdAtendentesMonitor || 0) !== 0) update("qtdAtendentesMonitor", 0);
-  }, [monitorAdvanced, state.horasN3MonitorManut, state.horasN3Monitor, state.qtdAtendentesMonitor]);
+  }, [monitorAdvanced, state.horasN3MonitorManut, state.horasN3Monitor]);
+  useEffect(() => {
+    if (!flowAdvanced) return;
+    if ((state.horasN3FlowManut || 0) !== 0) update("horasN3FlowManut", 0);
+    if ((state.horasN3Flow || 0) !== 0) update("horasN3Flow", 0);
+    if ((state.qtdAtendentesFlow || 0) !== 0) update("qtdAtendentesFlow", 0);
+  }, [flowAdvanced, state.horasN3FlowManut, state.horasN3Flow, state.qtdAtendentesFlow]);
 
   return (
     <Card>
