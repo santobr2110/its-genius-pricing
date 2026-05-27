@@ -5,10 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
-  Medal, Award, Trophy, Gem, Workflow,
+  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -24,6 +30,12 @@ import {
   ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
   type EscopoProposicao, type CamadaKey, type ItemAdicional,
 } from "@/data/escopoProposicao";
+import {
+  exportarApresentacao,
+  type ApresentacaoPayload,
+  type CamadaSlideData,
+  type ItemAdicionalSlide,
+} from "@/lib/exportarApresentacao";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
@@ -402,10 +414,25 @@ export default function Detalhamento() {
             </h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={handleExportPDF} className="gap-1.5">
-              <FileDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Exportar PDF</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-1.5">
+                  <FileDown className="h-4 w-4" />
+                  <span className="hidden sm:inline">Exportar</span>
+                  <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleExportPDF} className="gap-2">
+                  <FileDown className="h-4 w-4" />
+                  Exportar PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPresentation} className="gap-2">
+                  <Presentation className="h-4 w-4" />
+                  Exportar Apresentação
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <SortableNav current="detalhamento" />
           </div>
         </div>
