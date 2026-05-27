@@ -1057,10 +1057,16 @@ export async function exportarApresentacao(data: ApresentacaoPayload) {
   pptx.title = data.ofertaNome;
   pptx.company = "Smart ITO";
 
+  let extraSlides = 0;
+  data.camadas.forEach((c) => {
+    if (camadaTemDetalhe(c)) extraSlides += 1;
+    if (c.rotinasGrupos) extraSlides += c.rotinasGrupos.length;
+  });
   const totalSlides =
     1 /* capa */ +
     (data.camadas.length > 0 ? 1 : 0) /* visão geral */ +
     data.camadas.length /* uma por camada */ +
+    extraSlides +
     (data.camadas.length > 0 ? 1 : 0) /* composição */ +
     (data.itensAdicionais.length > 0 ? 1 : 0) +
     (data.restricoesGerais.length > 0 ? 1 : 0) +
@@ -1076,6 +1082,16 @@ export async function exportarApresentacao(data: ApresentacaoPayload) {
     data.camadas.forEach((cam) => {
       slideCamada(pptx, data, cam, page, totalSlides);
       page++;
+      if (camadaTemDetalhe(cam)) {
+        slideCamadaDetalhe(pptx, data, cam, page, totalSlides);
+        page++;
+      }
+      if (cam.rotinasGrupos) {
+        cam.rotinasGrupos.forEach((g) => {
+          slideRotinasGrupo(pptx, data, cam, g, page, totalSlides);
+          page++;
+        });
+      }
     });
     slideComposicao(pptx, data, page, totalSlides);
     page++;
