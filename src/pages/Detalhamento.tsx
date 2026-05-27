@@ -193,6 +193,18 @@ export default function Detalhamento() {
     ITENS_ADICIONAIS_STORAGE_KEY,
     ITENS_ADICIONAIS_DEFAULT,
   );
+
+  // Escopo unificado Monitor + Flow (usado quando ambas as camadas estão ativas).
+  const escopoFlowDisplay = unifiedMonitorFlow
+    ? {
+        titulo: "Smart Monitor + Flow",
+        tagline:
+          "Monitoramento da infraestrutura integrado ao ITSM com atendentes dedicados",
+        descricao: mergeDescricoes(escopo.monitor.descricao, escopo.flow.descricao),
+        incluidos: dedupLines([...escopo.monitor.incluidos, ...escopo.flow.incluidos]),
+        restricoes: dedupLines([...escopo.monitor.restricoes, ...escopo.flow.restricoes]),
+      }
+    : escopo.flow;
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
