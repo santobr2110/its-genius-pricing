@@ -143,6 +143,12 @@ export interface ITSMState {
   // Smart Flow — lista de ITSMs disponíveis para integração e seleção atual
   itsmFlowList: string[];
   itsmFlowSelected: string;
+  // Fonte da demanda usada nos cálculos do Smart Monitor e Smart Flow.
+  // "inventario" = calculada a partir do inventário (taxas × quantidades)
+  // "manual"     = somatório de chamados atuais informados (ativos + usuários)
+  // Quando Operation/Performance/Enterprise estão ativos, esta opção é
+  // ignorada e o cálculo sempre usa o inventário.
+  demandSource: "inventario" | "manual";
 }
 
 export interface ITSMResults {
