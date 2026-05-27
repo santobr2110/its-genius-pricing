@@ -143,6 +143,12 @@ export interface ITSMState {
   // Smart Flow — lista de ITSMs disponíveis para integração e seleção atual
   itsmFlowList: string[];
   itsmFlowSelected: string;
+  // Fonte da demanda usada nos cálculos do Smart Monitor e Smart Flow.
+  // "inventario" = calculada a partir do inventário (taxas × quantidades)
+  // "manual"     = somatório de chamados atuais informados (ativos + usuários)
+  // Quando Operation/Performance/Enterprise estão ativos, esta opção é
+  // ignorada e o cálculo sempre usa o inventário.
+  demandSource: "inventario" | "manual";
 }
 
 export interface ITSMResults {
@@ -345,6 +351,7 @@ const DEFAULTS: ITSMState = {
   percGmudN3: 30,
   itsmFlowList: ["ServiceNow", "Jira Service Management", "Zendesk", "Freshservice", "GLPI", "BMC Helix"],
   itsmFlowSelected: "",
+  demandSource: "inventario",
 };
 
 export function useITSMCalculator() {
@@ -478,8 +485,17 @@ export function useITSMCalculator() {
     const monitorBilling = monitorActive && !monitorAdvanced;
     const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
     const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas;
-    // Considera chamados evitados pelo N0
-    const smChamados = smChamadosBrutos * (1 - state.reducaoN0 / 100);
+    // Considera chamados evitados pelo N0 (modo inventário).
+    const smChamadosInv = smChamadosBrutos * (1 - state.reducaoN0 / 100);
+    // Fonte de demanda efetiva para Monitor/Flow.
+    // Operation/Performance/Enterprise forçam o modo inventário.
+    const forceInventory = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+    const effectiveDemandSource: "inventario" | "manual" =
+      forceInventory ? "inventario" : (state.demandSource ?? "inventario");
+    const manualVolume =
+      Math.max(0, state.volumeChamadosAtivosManual || 0) +
+      Math.max(0, state.volumeChamadosUsuariosManual || 0);
+    const smChamados = effectiveDemandSource === "manual" ? manualVolume : smChamadosInv;
     // Smart Monitor: mínimo de 10 itens cobrados pelo valor unitário;
     // a partir do 11º cada item adicional acrescenta o valor unitário.
     const smAtivosBillable = Math.max(10, smAtivos);
