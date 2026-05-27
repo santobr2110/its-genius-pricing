@@ -461,6 +461,12 @@ export default function Detalhamento() {
               </ul>
             </>
           )}
+          {!state.tierOperation && !state.tierPerformance && !state.tierEnterprise && state.itsmFlowSelected && (
+            <div className="mt-3 rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">ITSM integrado</div>
+              <div className="text-sm font-semibold text-foreground">{state.itsmFlowSelected}</div>
+            </div>
+          )}
           {!flowVisible && (
           <>
           <SubTitle>Componentes monitorados</SubTitle>
