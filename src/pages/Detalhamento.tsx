@@ -660,7 +660,7 @@ export default function Detalhamento() {
         )}
 
         {/* SMART OPERATION */}
-        <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={2}
+        <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={3}
           dominant={dominantColor === "silver"}
           title={escopo.operation.titulo} tagline={escopo.operation.tagline}
           valor={valorOperation}>
