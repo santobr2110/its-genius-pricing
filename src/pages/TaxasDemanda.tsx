@@ -279,6 +279,27 @@ export default function TaxasDemanda() {
                     Variável <code>qtdProxysMonitorMax</code> · limite máximo do slider "Quantidade de Proxys" da camada Smart Monitor (mínimo fixo em 1).
                   </p>
                 </div>
+                <div className="space-y-1 md:col-span-2">
+                  <Label className="text-xs text-muted-foreground">Lista de ITSMs disponíveis para integração — Smart Monitor</Label>
+                  <textarea
+                    rows={4}
+                    value={(state.itsmFlowList ?? []).join("\n")}
+                    onChange={(e) =>
+                      update(
+                        "itsmFlowList",
+                        e.target.value
+                          .split("\n")
+                          .map((s) => s.trim())
+                          .filter((s) => s.length > 0),
+                      )
+                    }
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    placeholder="Um ITSM por linha (ex.: ServiceNow)"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>itsmFlowList</code> · alimenta o dropdown "ITSM a ser integrado" exibido na composição do Smart Monitor. Um ITSM por linha.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -355,27 +376,6 @@ export default function TaxasDemanda() {
                   </div>
                   <p className="text-[11px] text-muted-foreground">
                     Variáveis <code>qtdAtendentesFlowMin</code> / <code>qtdAtendentesFlowMax</code> · limites do slider "Atendentes no ITSM" da camada Smart Flow.
-                  </p>
-                </div>
-                <div className="space-y-1 md:col-span-2">
-                  <Label className="text-xs text-muted-foreground">Lista de ITSMs disponíveis para integração — Smart Flow</Label>
-                  <textarea
-                    rows={4}
-                    value={(state.itsmFlowList ?? []).join("\n")}
-                    onChange={(e) =>
-                      update(
-                        "itsmFlowList",
-                        e.target.value
-                          .split("\n")
-                          .map((s) => s.trim())
-                          .filter((s) => s.length > 0),
-                      )
-                    }
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    placeholder="Um ITSM por linha (ex.: ServiceNow)"
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    Variável <code>itsmFlowList</code> · alimenta o dropdown "ITSM a ser integrado" exibido na composição do Smart Flow. Um ITSM por linha.
                   </p>
                 </div>
               </div>
