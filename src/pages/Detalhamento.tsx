@@ -201,7 +201,7 @@ export default function Detalhamento() {
   // Escopo unificado Monitor + Flow (usado quando ambas as camadas estão ativas).
   const escopoFlowDisplay = unifiedMonitorFlow
     ? {
-        titulo: "Smart Monitor + Flow",
+        titulo: "Monitor + Flow",
         tagline:
           "Monitoramento da infraestrutura integrado ao ITSM com atendentes dedicados",
         descricao: mergeDescricoes(escopo.monitor.descricao, escopo.flow.descricao),
