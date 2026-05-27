@@ -90,6 +90,27 @@ export default function Detalhamento() {
     (state.qtdBancosDados || 0) + (state.qtdSistemas || 0) > 0;
   const monitorVisible = state.tierMonitor && hasInfraInventory;
   const flowVisible = state.tierFlow;
+  // Quando Monitor e Flow estão ativos simultaneamente, apresentamos as
+  // duas camadas como um bloco único — somando descrições/itens (sem
+  // duplicações) e preservando os recursos, inventário e valores do Flow
+  // como mandatórios.
+  const unifiedMonitorFlow = monitorVisible && flowVisible;
+  const dedupLines = (lines: string[]): string[] => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const s of lines) {
+      const k = (s || "").trim().toLowerCase().replace(/\s+/g, " ");
+      if (!k || seen.has(k)) continue;
+      seen.add(k);
+      out.push(s.trim());
+    }
+    return out;
+  };
+  const mergeDescricoes = (...descs: string[]): string => {
+    const sentences = descs
+      .flatMap((d) => (d || "").split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean));
+    return dedupLines(sentences).join(" ");
+  };
 
   // Camada mais alta ativa = dominante visual
   const dominantColor =
