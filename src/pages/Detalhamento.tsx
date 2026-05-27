@@ -36,6 +36,7 @@ import {
   type CamadaSlideData,
   type ItemAdicionalSlide,
 } from "@/lib/exportarApresentacao";
+import { exportarApresentacaoModelo2 } from "@/lib/exportarApresentacaoModelo2";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
@@ -406,7 +407,7 @@ export default function Detalhamento() {
   // Exportação de Apresentação (.pptx)
   // Monta payload com camadas ativas, composições e itens adicionais
   // ============================================================
-  const handleExportPresentation = async () => {
+  const buildApresentacaoPayload = (): ApresentacaoPayload => {
     const camadas: CamadaSlideData[] = [];
     const pushCamada = (
       key: CamadaKey,
@@ -502,7 +503,13 @@ export default function Detalhamento() {
       restricoesGerais,
       investimentoTotal: investimentoTotal,
     };
-    await exportarApresentacao(payload);
+    return payload;
+  };
+  const handleExportPresentation = async () => {
+    await exportarApresentacao(buildApresentacaoPayload());
+  };
+  const handleExportPresentationModelo2 = async () => {
+    await exportarApresentacaoModelo2(buildApresentacaoPayload());
   };
 
   return (
@@ -532,7 +539,11 @@ export default function Detalhamento() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleExportPresentation} className="gap-2">
                   <Presentation className="h-4 w-4" />
-                  Exportar Apresentação
+                  Apresentação · Modelo 1
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportPresentationModelo2} className="gap-2">
+                  <Presentation className="h-4 w-4" />
+                  Apresentação · Modelo 2 (Selbetti)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
