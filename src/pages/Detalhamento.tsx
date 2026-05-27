@@ -467,6 +467,26 @@ export default function Detalhamento() {
               <div className="text-sm font-semibold text-foreground">{state.itsmFlowSelected}</div>
             </div>
           )}
+          {(() => {
+            const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+            const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
+            const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
+            return (
+              <div className="mt-3 rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Estimativa de demanda</div>
+                <div className="text-right">
+                  <div className="text-sm font-semibold text-foreground">
+                    {src === "manual" ? "Volume informado" : "Calculada pelo inventário"}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {src === "manual"
+                      ? `${formatNumber(manualTotal)} ch/mês (ativos + usuários) × custo unitário`
+                      : "Taxas × quantidades cadastradas"}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
           {!flowVisible && (
           <>
           <SubTitle>Componentes monitorados</SubTitle>
@@ -587,6 +607,26 @@ export default function Detalhamento() {
             <Stat label="Chamados de monitoramento" value={`${formatNumber(sf.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre Flow" value={`${state.percAlocacaoN1Flow}%`} />
           </div>
+          {(() => {
+            const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
+            const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
+            const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
+            return (
+              <div className="mt-3 rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Estimativa de demanda</div>
+                <div className="text-right">
+                  <div className="text-sm font-semibold text-foreground">
+                    {src === "manual" ? "Volume informado" : "Calculada pelo inventário"}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {src === "manual"
+                      ? `${formatNumber(manualTotal)} ch/mês (ativos + usuários) × custo unitário`
+                      : "Taxas × quantidades cadastradas"}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {(sf.qtdAtendentes > 0 || sf.qtdProxys > 0) && (
             <div className="mt-4">
