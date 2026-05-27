@@ -36,6 +36,7 @@ import {
   type CamadaSlideData,
   type ItemAdicionalSlide,
 } from "@/lib/exportarApresentacao";
+import { exportarApresentacaoModelo2 } from "@/lib/exportarApresentacaoModelo2";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
@@ -503,6 +504,11 @@ export default function Detalhamento() {
       investimentoTotal: investimentoTotal,
     };
     await exportarApresentacao(payload);
+  };
+
+  const handleExportPresentationModelo2 = async () => {
+    // Reutiliza o mesmo payload do Modelo 1
+    await handleExportPresentationInternal(exportarApresentacaoModelo2);
   };
 
   return (
