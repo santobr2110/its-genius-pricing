@@ -702,31 +702,6 @@ export default function SmartTiersPanel() {
                 <span className="font-semibold">{formatBRL(sflN1Venda)}</span>
               </div>
             </div>
-            <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <Label className="text-[11px] text-muted-foreground whitespace-nowrap">
-                  ITSM a ser integrado
-                </Label>
-                <Select
-                  value={state.itsmFlowSelected || ""}
-                  onValueChange={(v) => update("itsmFlowSelected", v)}
-                >
-                  <SelectTrigger className="h-7 text-xs w-[220px]">
-                    <SelectValue placeholder="Selecione um ITSM" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(state.itsmFlowList ?? []).map((itsm) => (
-                      <SelectItem key={itsm} value={itsm} className="text-xs">
-                        {itsm}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <p className="text-[10px] text-muted-foreground italic">
-                Lista configurada em Métricas e Parâmetros → Smart Flow.
-              </p>
-            </div>
             {/* Grupo: Horas N3 do Flow (automação + N3 opcional) */}
             <div className="rounded-lg border border-sky-200/70 dark:border-sky-900/50 bg-sky-100/30 dark:bg-sky-950/10 p-2 space-y-2">
               <div className="flex items-center justify-between px-1">
