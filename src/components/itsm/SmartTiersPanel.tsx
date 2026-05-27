@@ -433,10 +433,11 @@ export default function SmartTiersPanel() {
             const Icon = t.icon;
             const isSel = !!state[t.id];
             // Bloqueios de dependência:
-            // - Smart Monitor é obrigatório quando Flow/Operation/Performance estiver ativo
-            // - Smart Operation é obrigatório quando Performance estiver ativo
+            // Cadeia de dependência: Monitor ← Flow ← Operation ← Performance
+            // Uma camada fica bloqueada quando qualquer camada superior estiver ativa.
             const locked =
               (t.id === "tierMonitor" && (state.tierFlow || state.tierOperation || state.tierPerformance)) ||
+              (t.id === "tierFlow" && (state.tierOperation || state.tierPerformance)) ||
               (t.id === "tierOperation" && state.tierPerformance);
             return (
               <label
@@ -456,17 +457,19 @@ export default function SmartTiersPanel() {
                     if (t.id === "tierFlow" && next && !state.tierMonitor) {
                       update("tierMonitor", true as any);
                     }
-                    // Smart Operation exige Smart Monitor ativo
-                    if (t.id === "tierOperation" && next && !state.tierMonitor) {
-                      update("tierMonitor", true as any);
+                    // Smart Operation exige Smart Monitor + Smart Flow ativos
+                    if (t.id === "tierOperation" && next) {
+                      if (!state.tierMonitor) update("tierMonitor", true as any);
+                      if (!state.tierFlow) update("tierFlow", true as any);
                     }
                     // Ao desativar Smart Operation, desativa Field Service de Microinformática automaticamente
                     if (t.id === "tierOperation" && !next && state.tierFieldOperation) {
                       update("tierFieldOperation", false as any);
                     }
-                    // Smart Performance exige Smart Monitor + Operation ativos
+                    // Smart Performance exige Smart Monitor + Flow + Operation ativos
                     if (t.id === "tierPerformance" && next) {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
+                      if (!state.tierFlow) update("tierFlow", true as any);
                       if (!state.tierOperation) update("tierOperation", true as any);
                       // Faixa de horas N3 conforme limites de Performance
                       if ((state.horasN3Mensais || 0) < state.horasN3PerformanceMin) update("horasN3Mensais", state.horasN3PerformanceMin as any);
@@ -485,6 +488,8 @@ export default function SmartTiersPanel() {
                   <p className="text-sm font-semibold">{t.label}</p>
                   <p className="text-[11px] text-muted-foreground">
                     {t.desc}
+                    {locked && t.id === "tierMonitor" && " · obrigatório com Smart Flow"}
+                    {locked && t.id === "tierFlow" && " · obrigatório com Smart Operation"}
                     {locked && t.id === "tierOperation" && " · obrigatório com Smart Performance"}
                   </p>
                 </div>
