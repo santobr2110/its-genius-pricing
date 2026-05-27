@@ -1253,6 +1253,13 @@ export default function Detalhamento() {
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                 Componentes da oferta{dominantOffer ? ` ${dominantOffer.name}` : ""}
               </p>
+              {unifiedMonitorFlow ? (
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Monitor + Flow</span>
+                  <span className="font-semibold tabular-nums">{formatBRL(valorMonitor + valorFlow)}</span>
+                </div>
+              ) : (
+                <>
               {monitorVisible && (
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Monitor</span>
@@ -1264,6 +1271,8 @@ export default function Detalhamento() {
                   <span className="text-muted-foreground">Flow</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorFlow)}</span>
                 </div>
+              )}
+                </>
               )}
               {state.tierOperation && (
                 <div className="flex justify-between text-xs">
