@@ -521,14 +521,14 @@ export default function Detalhamento() {
         "metricas" | "recursos" | "horasN3" | "rotinasGrupos" | "field"
       >> = {},
     ) => {
-      const esc = escopo[key];
+      const esc = escopoFiltered[key];
       camadas.push({
         key,
         titulo: esc.titulo,
         tagline: esc.tagline,
         descricao: esc.descricao,
         incluidos: esc.incluidos,
-        restricoes: esc.restricoes,
+        restricoes: escopo[key].restricoes,
         valor,
         composicao,
         ...extras,
