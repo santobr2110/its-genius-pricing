@@ -886,7 +886,7 @@ export default function SmartTiersPanel() {
                 <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
-                      Proxys ({formatBRL(toSell(state.tierOperation ? state.valorProxyInicial : state.valorProxyInicialFlow))} inicial · {formatBRL(toSell(state.tierOperation ? state.valorProxyAdicional : state.valorProxyAdicionalFlow))} adic.{state.tierOperation ? " · valores do Smart Monitor" : ""})
+                      Proxys ({formatBRL(toSell(state.valorProxyInicial))} inicial · {formatBRL(toSell(state.valorProxyAdicional))} adic. · valores do Smart Monitor)
                     </Label>
                     <span className="text-xs font-semibold">
                       {sfl.qtdProxys} · {formatBRL(sflProxysVenda)}
