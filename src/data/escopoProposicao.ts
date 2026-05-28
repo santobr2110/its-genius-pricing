@@ -56,24 +56,24 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
       "Não inclui resolução de incidentes — apenas detecção e notificação",
       "Não cobre ativos fora do inventário declarado",
       "Não inclui atendimento ao usuário final",
-      "Customizações de monitoramento contam como Automação / Manutenção (horas N3)",
+      "Customizações de monitoramento contam como Automação / Manutenção (horas N3 / Automação)",
     ],
   },
   flow: {
     titulo: "Smart Flow",
     tagline: "Monitoramento integrado ao ITSM e atendentes dedicados",
     descricao:
-      "Camada de integração entre o monitoramento e o ITSM do cliente, com atendentes dedicados para triagem e roteamento técnico, horas de automação e horas N3 opcionais para tratamento de eventos.",
+      "Camada de integração entre o monitoramento e o ITSM do cliente, com atendentes dedicados para triagem e roteamento técnico, horas de automação e horas N3 / Automação opcionais para tratamento de eventos.",
     incluidos: [
       "Monitoramento integrado ao ITSM do cliente",
       "Acesso de atendentes dedicados no ITSM para operação técnica",
       "Horas de automação para tratamento e ajuste contínuo de eventos",
-      "Horas N3 opcionais para acionamento técnico sob demanda",
+      "Horas N3 / Automação opcionais para acionamento técnico sob demanda",
       "Proxys de coleta dedicados à camada Flow",
     ],
     restricoes: [
       "Não inclui Service Desk humano N1/N2 reativo (oferta Smart Operation)",
-      "Horas N3 e atendentes são absorvidos pela camada Smart Operation quando contratada",
+      "Horas N3 / Automação e atendentes são absorvidos pela camada Smart Operation quando contratada",
       "Automações fora do catálogo demandam estudo técnico prévio",
       "Cobertura limitada aos ativos do inventário declarado",
     ],
@@ -92,7 +92,7 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
     ],
     restricoes: [
       "Não inclui rotinas avançadas em ambientes complexos (HA, multi-site, 24x7, ERP)",
-      "Horas N3 limitadas ao volume contratado mensalmente — não acumulam entre meses",
+      "Horas N3 / Automação limitadas ao volume contratado mensalmente — não acumulam entre meses",
       "Não inclui suporte presencial sem contratação do Field Service de Microinformática",
       "Atendimentos fora do horário comercial seguem regras específicas de plantão",
     ],
@@ -117,17 +117,17 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
   },
   performance: {
     titulo: "Smart Performance",
-    tagline: "Rotinas preventivas avançadas e horas técnicas N3",
+    tagline: "Rotinas preventivas avançadas e horas técnicas N3 / Automação",
     descricao:
-      "Operação avançada com rotinas preventivas executadas pelo N3, cobertura de ambientes complexos e horas técnicas N3 dedicadas ao cliente.",
+      "Operação avançada com rotinas preventivas executadas pelo N3, cobertura de ambientes complexos e horas técnicas N3 / Automação dedicadas ao cliente.",
     incluidos: [
       "Rotinas preventivas avançadas executadas pelo N3",
       "Cobertura de ambientes complexos (HA, multi-site, 24x7, ERP)",
       "Otimização contínua de performance e capacidade",
-      "Horas técnicas N3 dedicadas ao cliente",
+      "Horas técnicas N3 / Automação dedicadas ao cliente",
     ],
     restricoes: [
-      "Horas N3 dedicadas não são acumulativas entre meses",
+      "Horas N3 / Automação dedicadas não são acumulativas entre meses",
       "Mudanças estruturais fora do escopo previsto demandam projeto específico",
       "Rotinas em ambientes complexos requerem janela de manutenção acordada",
       "Cobertura condicionada ao inventário e às flags de complexidade declaradas",
@@ -177,7 +177,7 @@ export const RESTRICOES_GERAIS_DEFAULT: string[] = [
  *   parcela proporcional de GMUDs/Rotinas por ativo, com markup de margem e
  *   impostos aplicados.
  * - "fixo": valor unitário fixo informado pelo usuário (ex.: proxy adicional,
- *   acesso ao ITSM, hora N3 avulsa, TAM, Owner).
+ *   acesso ao ITSM, hora N3 / Automação avulsa, TAM, Owner).
  */
 export type ItemAdicionalTipo =
   | "monitorado-servidor"
@@ -252,10 +252,10 @@ export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
   },
   {
     id: uid("hora-n3"),
-    descricao: "Hora técnica N3 avulsa",
+    descricao: "Hora técnica N3 / Automação avulsa",
     unidade: "Hora",
     tipo: "hora-n3",
-    observacao: "Hora N3 sob demanda, fora do volume mensal contratado. Cobrada conforme consumo aprovado.",
+    observacao: "Hora N3 / Automação sob demanda, fora do volume mensal contratado. Cobrada conforme consumo aprovado.",
   },
   {
     id: uid("tam"),

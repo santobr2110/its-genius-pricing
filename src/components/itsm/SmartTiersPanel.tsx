@@ -100,7 +100,7 @@ export default function SmartTiersPanel() {
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
-  // Distribuição percentual das horas N3 entre as 3 funções (TAM / Owner / Livre).
+  // Distribuição percentual das horas N3 / Automação entre as 3 funções (TAM / Owner / Livre).
   // Os dois "cortes" definem os limites: [0..corteTam] = TAM, [corteTam..corteOwner] = Owner, [corteOwner..100] = Livre.
   const [n3Cortes, setN3Cortes] = usePersistentState<[number, number]>(
     "gestao-ti:smartPerf:n3Cortes",
@@ -407,7 +407,7 @@ export default function SmartTiersPanel() {
     dominantTier === id ? "ring-2 ring-offset-2 ring-offset-background ring-current/40 shadow-lg" : "";
 
   // Em camadas superiores (Operation/Performance/Enterprise), os recursos
-  // avulsos do Smart Monitor (horas N3 e atendentes no ITSM) são absorvidos
+  // avulsos do Smart Monitor (horas N3 / Automação e atendentes no ITSM) são absorvidos
   // pela camada superior — desabilitamos os sliders e zeramos os valores.
   const monitorAdvanced = state.tierFlow || state.tierOperation || state.tierPerformance || state.tierEnterprise;
   const flowAdvanced = state.tierOperation || state.tierPerformance || state.tierEnterprise;
@@ -473,7 +473,7 @@ export default function SmartTiersPanel() {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
                       if (!state.tierFlow) update("tierFlow", true as any);
                       if (!state.tierOperation) update("tierOperation", true as any);
-                      // Faixa de horas N3 conforme limites de Performance
+                      // Faixa de horas N3 / Automação conforme limites de Performance
                       if ((state.horasN3Mensais || 0) < state.horasN3PerformanceMin) update("horasN3Mensais", state.horasN3PerformanceMin as any);
                       if ((state.horasN3Mensais || 0) > state.horasN3PerformanceMax) update("horasN3Mensais", state.horasN3PerformanceMax as any);
                     }
@@ -601,11 +601,11 @@ export default function SmartTiersPanel() {
                 )}
               </div>
             )}
-            {/* Grupo: Horas N3 */}
+            {/* Grupo: Horas N3 / Automação */}
             <div className="rounded-lg border border-amber-200/70 dark:border-amber-900/50 bg-amber-100/30 dark:bg-amber-950/10 p-2 space-y-2">
               <div className="flex items-center justify-between px-1">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
-                  Horas N3
+                  Horas N3 / Automação
                 </p>
                 {monitorAdvanced && (
                   <span className="text-[10px] text-muted-foreground italic">
@@ -696,7 +696,7 @@ export default function SmartTiersPanel() {
                 <div className="rounded border bg-background px-2 py-2 space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <Label className="text-[11px] text-muted-foreground font-semibold">
-                      Consumo das horas N3 — Smart Monitor
+                      Consumo das horas N3 / Automação — Smart Monitor
                     </Label>
                     <span className="text-[10px] text-muted-foreground">
                       Total: {formatNumber(hTotal)}h · {formatBRL(toSell(hTotal * state.valorHoraN3))}
@@ -801,11 +801,11 @@ export default function SmartTiersPanel() {
                 )}
               </div>
             )}
-            {/* Grupo: Horas N3 do Flow (automação + N3 opcional) */}
+            {/* Grupo: Horas N3 / Automação do Flow (automação + N3 opcional) */}
             <div className="rounded-lg border border-sky-200/70 dark:border-sky-900/50 bg-sky-100/30 dark:bg-sky-950/10 p-2 space-y-2">
               <div className="flex items-center justify-between px-1">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">
-                  Horas N3 / Automação
+                  Horas N3 / Automação / Automação
                 </p>
                 {flowAdvanced && (
                   <span className="text-[10px] text-muted-foreground italic">
@@ -1045,7 +1045,7 @@ export default function SmartTiersPanel() {
               <div className="pt-2 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <Label className="text-[11px] text-muted-foreground font-semibold">
-                    Distribuição das horas N3 contratadas
+                    Distribuição das horas N3 / Automação contratadas
                   </Label>
                   <span className="text-[10px] text-muted-foreground">Horas Técnicas recalculadas automaticamente</span>
                 </div>
@@ -1322,11 +1322,11 @@ export default function SmartTiersPanel() {
                 step={1}
               />
 
-              {/* Distribuição das horas N3 entre TAM / Owner / Livre */}
+              {/* Distribuição das horas N3 / Automação entre TAM / Owner / Livre */}
               <div className="pt-2 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <Label className="text-[11px] text-muted-foreground font-semibold">
-                    Distribuição das horas N3
+                    Distribuição das horas N3 / Automação
                   </Label>
                   <span className="text-[10px] text-muted-foreground">Horas Técnicas recalculadas automaticamente</span>
                 </div>
@@ -1518,7 +1518,7 @@ function GmudTable({
               <th className="text-left px-2 py-1 font-medium w-20">Tipo</th>
               <th className="text-left px-2 py-1 font-medium w-24">Frequência</th>
               <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
-              <th className="text-right px-2 py-1 font-medium w-16">Horas N3</th>
+              <th className="text-right px-2 py-1 font-medium w-16">Horas N3 / Automação</th>
               <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
             </tr>
           </thead>
@@ -1575,7 +1575,7 @@ function PerformanceBlock({
         </div>
         {isComplex && hourRateSell !== undefined && (
           <span className="text-[10px] text-muted-foreground">
-            valor/hora N3: {formatBRL(hourRateSell)}
+            valor/hora N3 / Automação: {formatBRL(hourRateSell)}
           </span>
         )}
       </div>
