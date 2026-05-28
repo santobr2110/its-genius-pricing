@@ -380,7 +380,7 @@ export default function Detalhamento() {
     ? [
         { label: "Monitoramento de ativos", value: toSell(sm.custoMonitoramento) },
         { label: "N1 alocado (triagem)", value: toSell(sm.custoN1Alocado) },
-        ...(sm.custoN3Manut > 0 ? [{ label: "Manutenção do monitoramento (N3)", value: toSell(sm.custoN3Manut) }] : []),
+        ...(sm.custoN3Manut > 0 ? [{ label: "Automação / Manutenção (N3)", value: toSell(sm.custoN3Manut) }] : []),
         ...(sm.custoN3 > 0 ? [{ label: "Acionamento N3 (horas opcionais)", value: toSell(sm.custoN3) }] : []),
         ...(sm.custoAtendentes > 0
           ? [{ label: `Atendentes no ITSM (${sm.qtdAtendentes}x)`, value: toSell(sm.custoAtendentes) }]
@@ -501,7 +501,7 @@ export default function Detalhamento() {
           valorHora: valorHoraN3Venda,
           modo: "monitor",
           blocos: [
-            { titulo: "Manutenção do monitoramento", horas: hManut, valor: toSell(sm.custoN3Manut), descricao: "Ajustes e tunings da plataforma de monitoramento." },
+            { titulo: "Automação / Manutenção", horas: hManut, valor: toSell(sm.custoN3Manut), descricao: "Ajustes, automações e tunings da plataforma de monitoramento." },
             { titulo: "Acionamento N3", horas: hAcion, valor: toSell(sm.custoN3), descricao: "Horas para tratamento de incidentes detectados." },
           ].filter((b) => b.horas > 0),
         };
@@ -925,7 +925,7 @@ export default function Detalhamento() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
-                    <div className="text-muted-foreground text-[10px]">Manut. de Monitoramento · {pctManut.toFixed(0)}%</div>
+                    <div className="text-muted-foreground text-[10px]">Automação / Manutenção · {pctManut.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sm.custoN3Manut * fatorVenda)}</div>
                     <div className="text-[10px] text-muted-foreground">Ajustes e tunings do monitoramento.</div>
                   </div>
