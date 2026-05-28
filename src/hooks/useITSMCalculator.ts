@@ -530,14 +530,9 @@ export function useITSMCalculator() {
       ? Math.max(0, state.qtdAtendentesFlow || 0) * Math.max(0, state.custoAtendenteFlow || 0)
       : 0;
     const flQtdProxys = flowActive ? Math.max(1, Math.floor(state.qtdProxysFlow || 1)) : 0;
-    // Quando Operation está ativo, os proxys do Flow usam os mesmos valores
-    // unitários do Smart Monitor para o cálculo.
-    const flProxyIni = state.tierOperation
-      ? Math.max(0, state.valorProxyInicial || 0)
-      : Math.max(0, state.valorProxyInicialFlow || 0);
-    const flProxyAdd = state.tierOperation
-      ? Math.max(0, state.valorProxyAdicional || 0)
-      : Math.max(0, state.valorProxyAdicionalFlow || 0);
+    // Os proxys do Flow sempre usam os mesmos valores unitários do Smart Monitor.
+    const flProxyIni = Math.max(0, state.valorProxyInicial || 0);
+    const flProxyAdd = Math.max(0, state.valorProxyAdicional || 0);
     const flCustoProxys = flowActive
       ? flProxyIni + Math.max(0, flQtdProxys - 1) * flProxyAdd
       : 0;
