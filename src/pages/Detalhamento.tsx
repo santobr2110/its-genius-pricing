@@ -28,7 +28,7 @@ import {
   ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
-  type EscopoProposicao, type CamadaKey, type ItemAdicional,
+  type EscopoProposicao, type EscopoCamada, type CamadaKey, type ItemAdicional,
 } from "@/data/escopoProposicao";
 import {
   exportarApresentacao,
@@ -198,17 +198,6 @@ export default function Detalhamento() {
     ITENS_ADICIONAIS_DEFAULT,
   );
 
-  // Escopo unificado Monitor + Flow (usado quando ambas as camadas estão ativas).
-  const escopoFlowDisplay = unifiedMonitorFlow
-    ? {
-        titulo: "Monitor + Flow",
-        tagline:
-          "Monitoramento da infraestrutura integrado ao ITSM com atendentes dedicados",
-        descricao: mergeDescricoes(escopo.monitor.descricao, escopo.flow.descricao),
-        incluidos: dedupLines([...escopo.monitor.incluidos, ...escopo.flow.incluidos]),
-        restricoes: dedupLines([...escopo.monitor.restricoes, ...escopo.flow.restricoes]),
-      }
-    : escopo.flow;
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
@@ -358,6 +347,79 @@ export default function Detalhamento() {
   // tanto as rotinas de Performance quanto as de Operation.
   const horasRotinasN3 = horasRotinasOpN3 + horasRotinasPerfN3;
 
+  // ============================================================
+  // Filtra itens descritivos ("O que está incluído") suprimindo
+  // automaticamente recursos que estão desabilitados na camada
+  // (atendentes=0, proxys=0, horas N3=0, rotinas vazias etc.).
+  // ============================================================
+  const incluidosFlags = {
+    monitorProxys: (sm.qtdProxys || 0) > 0,
+    flowAtendentes: (sf.qtdAtendentes || 0) > 0,
+    flowProxys: (state.qtdProxysFlow || 0) > 0 || (sf.qtdProxys || 0) > 0,
+    flowHorasAutomacao: (state.horasN3FlowManut || 0) > 0 || (sf.custoN3Manut || 0) > 0,
+    flowHorasN3Opcional: (state.horasN3Flow || 0) > 0 || (sf.custoN3 || 0) > 0,
+    opRotinas: custoRotinasOp > 0,
+    opN3: (!n3OptionalScenario || state.tierOperationN3) && (state.horasN3Mensais || 0) > 0,
+    perfRotinas: (custoRotinasPerfPadrao + custoRotinasPerfComplexo) > 0,
+    perfHorasN3: (state.horasN3Mensais || 0) > 0,
+    perfComplexo: algumComplexAtivo,
+    fieldRotinas: custoRotinasField > 0,
+  };
+  const incluidoRules: Record<CamadaKey, Array<{ test: RegExp; keep: boolean }>> = {
+    monitor: [
+      { test: /prox/i, keep: incluidosFlags.monitorProxys },
+    ],
+    flow: [
+      { test: /atendent/i, keep: incluidosFlags.flowAtendentes },
+      { test: /prox/i, keep: incluidosFlags.flowProxys },
+      { test: /hora.*automa|automa.*evento|horas?\s*de\s*automa/i, keep: incluidosFlags.flowHorasAutomacao },
+      { test: /acionamento|opcional/i, keep: incluidosFlags.flowHorasN3Opcional },
+    ],
+    operation: [
+      { test: /rotina/i, keep: incluidosFlags.opRotinas },
+      { test: /n3\s+contratad|atendimento\s+n3/i, keep: incluidosFlags.opN3 },
+    ],
+    performance: [
+      { test: /rotina/i, keep: incluidosFlags.perfRotinas },
+      { test: /ambientes?\s+complex|HA,\s*multi-?site|complex/i, keep: incluidosFlags.perfComplexo },
+      { test: /hora.*n3|n3.*dedicad|hora.*automa/i, keep: incluidosFlags.perfHorasN3 },
+    ],
+    fieldService: [
+      { test: /rotina/i, keep: incluidosFlags.fieldRotinas },
+    ],
+    enterprise: [],
+  };
+  const filterIncluidos = (key: CamadaKey, items: string[]) =>
+    items.filter((t) => {
+      const txt = (t || "").trim();
+      if (!txt) return false;
+      for (const r of incluidoRules[key]) {
+        if (!r.keep && r.test.test(txt)) return false;
+      }
+      return true;
+    });
+  const escopoFiltered: Record<CamadaKey, EscopoCamada> = {
+    monitor: { ...escopo.monitor, incluidos: filterIncluidos("monitor", escopo.monitor.incluidos) },
+    flow: { ...escopo.flow, incluidos: filterIncluidos("flow", escopo.flow.incluidos) },
+    operation: { ...escopo.operation, incluidos: filterIncluidos("operation", escopo.operation.incluidos) },
+    fieldService: { ...escopo.fieldService, incluidos: filterIncluidos("fieldService", escopo.fieldService.incluidos) },
+    performance: { ...escopo.performance, incluidos: filterIncluidos("performance", escopo.performance.incluidos) },
+    enterprise: { ...escopo.enterprise, incluidos: escopo.enterprise.incluidos.filter((t) => (t || "").trim()) },
+  };
+
+  // Escopo unificado Monitor + Flow (usado quando ambas as camadas estão ativas).
+  // Já consome as listas FILTRADAS de cada camada antes de mesclar/deduplicar.
+  const escopoFlowDisplay: EscopoCamada = unifiedMonitorFlow
+    ? {
+        titulo: "Monitor + Flow",
+        tagline:
+          "Monitoramento da infraestrutura integrado ao ITSM com atendentes dedicados",
+        descricao: mergeDescricoes(escopo.monitor.descricao, escopo.flow.descricao),
+        incluidos: dedupLines([...escopoFiltered.monitor.incluidos, ...escopoFiltered.flow.incluidos]),
+        restricoes: dedupLines([...escopo.monitor.restricoes, ...escopo.flow.restricoes]),
+      }
+    : escopoFiltered.flow;
+
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
   const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
@@ -459,14 +521,14 @@ export default function Detalhamento() {
         "metricas" | "recursos" | "horasN3" | "rotinasGrupos" | "field"
       >> = {},
     ) => {
-      const esc = escopo[key];
+      const esc = escopoFiltered[key];
       camadas.push({
         key,
         titulo: esc.titulo,
         tagline: esc.tagline,
         descricao: esc.descricao,
         incluidos: esc.incluidos,
-        restricoes: esc.restricoes,
+        restricoes: escopo[key].restricoes,
         valor,
         composicao,
         ...extras,
@@ -813,11 +875,11 @@ export default function Detalhamento() {
           {escopo.monitor.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.monitor.descricao}</p>
           )}
-          {escopo.monitor.incluidos.some((t) => t.trim()) && (
+          {escopoFiltered.monitor.incluidos.length > 0 && (
             <>
               <SubTitle>O que está incluído</SubTitle>
               <ul className="space-y-1.5">
-                {escopo.monitor.incluidos.filter((t) => t.trim()).map((t, i) => (
+                {escopoFiltered.monitor.incluidos.map((t, i) => (
                   <Bullet key={i} color="bronze">{t}</Bullet>
                 ))}
               </ul>
@@ -954,11 +1016,11 @@ export default function Detalhamento() {
           {escopoFlowDisplay.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopoFlowDisplay.descricao}</p>
           )}
-          {escopoFlowDisplay.incluidos.some((t) => t.trim()) && (
+          {escopoFlowDisplay.incluidos.length > 0 && (
             <>
               <SubTitle>O que está incluído</SubTitle>
               <ul className="space-y-1.5">
-                {escopoFlowDisplay.incluidos.filter((t) => t.trim()).map((t, i) => (
+                {escopoFlowDisplay.incluidos.map((t, i) => (
                   <Bullet key={i} color="steel">{t}</Bullet>
                 ))}
               </ul>
@@ -1095,12 +1157,16 @@ export default function Detalhamento() {
           {escopo.operation.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.operation.descricao}</p>
           )}
-          <SubTitle>O que está incluído</SubTitle>
-          <ul className="space-y-1.5">
-            {escopo.operation.incluidos.filter((t) => t.trim()).map((t, i) => (
-              <Bullet key={i} color="silver">{t}</Bullet>
-            ))}
-          </ul>
+          {escopoFiltered.operation.incluidos.length > 0 && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopoFiltered.operation.incluidos.map((t, i) => (
+                  <Bullet key={i} color="silver">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <Stat label="Volume N1" value={`${formatNumber(results.volumeN1, 1)} ch/mês`} />
@@ -1156,11 +1222,11 @@ export default function Detalhamento() {
               {escopo.fieldService.descricao && (
                 <p className="text-xs text-muted-foreground leading-relaxed">{escopo.fieldService.descricao}</p>
               )}
-              {escopo.fieldService.incluidos.some((t) => t.trim()) && (
+              {escopoFiltered.fieldService.incluidos.length > 0 && (
                 <>
                   <SubTitle>O que está incluído</SubTitle>
                   <ul className="space-y-1.5">
-                    {escopo.fieldService.incluidos.filter((t) => t.trim()).map((t, i) => (
+                    {escopoFiltered.fieldService.incluidos.map((t, i) => (
                       <Bullet key={i} color="amber">{t}</Bullet>
                     ))}
                   </ul>
@@ -1201,12 +1267,16 @@ export default function Detalhamento() {
           {escopo.performance.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.performance.descricao}</p>
           )}
-          <SubTitle>O que está incluído</SubTitle>
-          <ul className="space-y-1.5">
-            {escopo.performance.incluidos.filter((t) => t.trim()).map((t, i) => (
-              <Bullet key={i} color="gold">{t}</Bullet>
-            ))}
-          </ul>
+          {escopoFiltered.performance.incluidos.length > 0 && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopoFiltered.performance.incluidos.map((t, i) => (
+                  <Bullet key={i} color="gold">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
 
           {rotinasPerfPadrao.length > 0 && (
             <>
@@ -1252,12 +1322,16 @@ export default function Detalhamento() {
           {escopo.enterprise.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.enterprise.descricao}</p>
           )}
-          <SubTitle>O que está incluído</SubTitle>
-          <ul className="space-y-1.5">
-            {escopo.enterprise.incluidos.filter((t) => t.trim()).map((t, i) => (
-              <Bullet key={i} color="diamond">{t}</Bullet>
-            ))}
-          </ul>
+          {escopoFiltered.enterprise.incluidos.length > 0 && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopoFiltered.enterprise.incluidos.map((t, i) => (
+                  <Bullet key={i} color="diamond">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
         </TierBlock>
 
         {/* INVESTIMENTO */}
