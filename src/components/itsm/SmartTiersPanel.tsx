@@ -551,7 +551,10 @@ export default function SmartTiersPanel() {
                       <SelectValue placeholder="Selecione um ITSM" />
                     </SelectTrigger>
                     <SelectContent>
-                      {(state.itsmFlowList ?? []).map((itsm) => (
+                      {(state.itsmFlowList ?? [])
+                        .map((s) => s.trim())
+                        .filter((s) => s.length > 0)
+                        .map((itsm) => (
                         <SelectItem key={itsm} value={itsm} className="text-xs">
                           {itsm}
                         </SelectItem>
