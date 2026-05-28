@@ -875,11 +875,11 @@ export default function Detalhamento() {
           {escopo.monitor.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.monitor.descricao}</p>
           )}
-          {escopo.monitor.incluidos.some((t) => t.trim()) && (
+          {escopoFiltered.monitor.incluidos.length > 0 && (
             <>
               <SubTitle>O que está incluído</SubTitle>
               <ul className="space-y-1.5">
-                {escopo.monitor.incluidos.filter((t) => t.trim()).map((t, i) => (
+                {escopoFiltered.monitor.incluidos.map((t, i) => (
                   <Bullet key={i} color="bronze">{t}</Bullet>
                 ))}
               </ul>
@@ -1016,11 +1016,11 @@ export default function Detalhamento() {
           {escopoFlowDisplay.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopoFlowDisplay.descricao}</p>
           )}
-          {escopoFlowDisplay.incluidos.some((t) => t.trim()) && (
+          {escopoFlowDisplay.incluidos.length > 0 && (
             <>
               <SubTitle>O que está incluído</SubTitle>
               <ul className="space-y-1.5">
-                {escopoFlowDisplay.incluidos.filter((t) => t.trim()).map((t, i) => (
+                {escopoFlowDisplay.incluidos.map((t, i) => (
                   <Bullet key={i} color="steel">{t}</Bullet>
                 ))}
               </ul>
@@ -1157,12 +1157,16 @@ export default function Detalhamento() {
           {escopo.operation.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.operation.descricao}</p>
           )}
-          <SubTitle>O que está incluído</SubTitle>
-          <ul className="space-y-1.5">
-            {escopo.operation.incluidos.filter((t) => t.trim()).map((t, i) => (
-              <Bullet key={i} color="silver">{t}</Bullet>
-            ))}
-          </ul>
+          {escopoFiltered.operation.incluidos.length > 0 && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopoFiltered.operation.incluidos.map((t, i) => (
+                  <Bullet key={i} color="silver">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <Stat label="Volume N1" value={`${formatNumber(results.volumeN1, 1)} ch/mês`} />
@@ -1218,11 +1222,11 @@ export default function Detalhamento() {
               {escopo.fieldService.descricao && (
                 <p className="text-xs text-muted-foreground leading-relaxed">{escopo.fieldService.descricao}</p>
               )}
-              {escopo.fieldService.incluidos.some((t) => t.trim()) && (
+              {escopoFiltered.fieldService.incluidos.length > 0 && (
                 <>
                   <SubTitle>O que está incluído</SubTitle>
                   <ul className="space-y-1.5">
-                    {escopo.fieldService.incluidos.filter((t) => t.trim()).map((t, i) => (
+                    {escopoFiltered.fieldService.incluidos.map((t, i) => (
                       <Bullet key={i} color="amber">{t}</Bullet>
                     ))}
                   </ul>
@@ -1263,12 +1267,16 @@ export default function Detalhamento() {
           {escopo.performance.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.performance.descricao}</p>
           )}
-          <SubTitle>O que está incluído</SubTitle>
-          <ul className="space-y-1.5">
-            {escopo.performance.incluidos.filter((t) => t.trim()).map((t, i) => (
-              <Bullet key={i} color="gold">{t}</Bullet>
-            ))}
-          </ul>
+          {escopoFiltered.performance.incluidos.length > 0 && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopoFiltered.performance.incluidos.map((t, i) => (
+                  <Bullet key={i} color="gold">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
 
           {rotinasPerfPadrao.length > 0 && (
             <>
@@ -1314,12 +1322,16 @@ export default function Detalhamento() {
           {escopo.enterprise.descricao && (
             <p className="text-xs text-muted-foreground leading-relaxed">{escopo.enterprise.descricao}</p>
           )}
-          <SubTitle>O que está incluído</SubTitle>
-          <ul className="space-y-1.5">
-            {escopo.enterprise.incluidos.filter((t) => t.trim()).map((t, i) => (
-              <Bullet key={i} color="diamond">{t}</Bullet>
-            ))}
-          </ul>
+          {escopoFiltered.enterprise.incluidos.length > 0 && (
+            <>
+              <SubTitle>O que está incluído</SubTitle>
+              <ul className="space-y-1.5">
+                {escopoFiltered.enterprise.incluidos.map((t, i) => (
+                  <Bullet key={i} color="diamond">{t}</Bullet>
+                ))}
+              </ul>
+            </>
+          )}
         </TierBlock>
 
         {/* INVESTIMENTO */}
