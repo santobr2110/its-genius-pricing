@@ -287,10 +287,7 @@ export default function TaxasDemanda() {
                     onChange={(e) =>
                       update(
                         "itsmFlowList",
-                        e.target.value
-                          .split("\n")
-                          .map((s) => s.trim())
-                          .filter((s) => s.length > 0),
+                        e.target.value.split("\n"),
                       )
                     }
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
