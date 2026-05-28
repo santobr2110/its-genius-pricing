@@ -198,17 +198,6 @@ export default function Detalhamento() {
     ITENS_ADICIONAIS_DEFAULT,
   );
 
-  // Escopo unificado Monitor + Flow (usado quando ambas as camadas estão ativas).
-  const escopoFlowDisplay = unifiedMonitorFlow
-    ? {
-        titulo: "Monitor + Flow",
-        tagline:
-          "Monitoramento da infraestrutura integrado ao ITSM com atendentes dedicados",
-        descricao: mergeDescricoes(escopo.monitor.descricao, escopo.flow.descricao),
-        incluidos: dedupLines([...escopo.monitor.incluidos, ...escopo.flow.incluidos]),
-        restricoes: dedupLines([...escopo.monitor.restricoes, ...escopo.flow.restricoes]),
-      }
-    : escopo.flow;
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
@@ -357,6 +346,79 @@ export default function Detalhamento() {
   // Quando Performance está ativo, o pool N3 fica em Performance e absorve
   // tanto as rotinas de Performance quanto as de Operation.
   const horasRotinasN3 = horasRotinasOpN3 + horasRotinasPerfN3;
+
+  // ============================================================
+  // Filtra itens descritivos ("O que está incluído") suprimindo
+  // automaticamente recursos que estão desabilitados na camada
+  // (atendentes=0, proxys=0, horas N3=0, rotinas vazias etc.).
+  // ============================================================
+  const incluidosFlags = {
+    monitorProxys: (sm.qtdProxys || 0) > 0,
+    flowAtendentes: (sf.qtdAtendentes || 0) > 0,
+    flowProxys: (state.qtdProxysFlow || 0) > 0 || (sf.qtdProxys || 0) > 0,
+    flowHorasAutomacao: (state.horasN3FlowManut || 0) > 0 || (sf.custoN3Manut || 0) > 0,
+    flowHorasN3Opcional: (state.horasN3Flow || 0) > 0 || (sf.custoN3 || 0) > 0,
+    opRotinas: custoRotinasOp > 0,
+    opN3: (!n3OptionalScenario || state.tierOperationN3) && (state.horasN3Mensais || 0) > 0,
+    perfRotinas: (custoRotinasPerfPadrao + custoRotinasPerfComplexo) > 0,
+    perfHorasN3: (state.horasN3Mensais || 0) > 0,
+    perfComplexo: algumComplexAtivo,
+    fieldRotinas: custoRotinasField > 0,
+  };
+  const incluidoRules: Record<CamadaKey, Array<{ test: RegExp; keep: boolean }>> = {
+    monitor: [
+      { test: /prox/i, keep: incluidosFlags.monitorProxys },
+    ],
+    flow: [
+      { test: /atendent/i, keep: incluidosFlags.flowAtendentes },
+      { test: /prox/i, keep: incluidosFlags.flowProxys },
+      { test: /hora.*automa|automa.*evento|horas?\s*de\s*automa/i, keep: incluidosFlags.flowHorasAutomacao },
+      { test: /acionamento|opcional/i, keep: incluidosFlags.flowHorasN3Opcional },
+    ],
+    operation: [
+      { test: /rotina/i, keep: incluidosFlags.opRotinas },
+      { test: /n3\s+contratad|atendimento\s+n3/i, keep: incluidosFlags.opN3 },
+    ],
+    performance: [
+      { test: /rotina/i, keep: incluidosFlags.perfRotinas },
+      { test: /ambientes?\s+complex|HA,\s*multi-?site|complex/i, keep: incluidosFlags.perfComplexo },
+      { test: /hora.*n3|n3.*dedicad|hora.*automa/i, keep: incluidosFlags.perfHorasN3 },
+    ],
+    fieldService: [
+      { test: /rotina/i, keep: incluidosFlags.fieldRotinas },
+    ],
+    enterprise: [],
+  };
+  const filterIncluidos = (key: CamadaKey, items: string[]) =>
+    items.filter((t) => {
+      const txt = (t || "").trim();
+      if (!txt) return false;
+      for (const r of incluidoRules[key]) {
+        if (!r.keep && r.test.test(txt)) return false;
+      }
+      return true;
+    });
+  const escopoFiltered: Record<CamadaKey, EscopoCamada> = {
+    monitor: { ...escopo.monitor, incluidos: filterIncluidos("monitor", escopo.monitor.incluidos) },
+    flow: { ...escopo.flow, incluidos: filterIncluidos("flow", escopo.flow.incluidos) },
+    operation: { ...escopo.operation, incluidos: filterIncluidos("operation", escopo.operation.incluidos) },
+    fieldService: { ...escopo.fieldService, incluidos: filterIncluidos("fieldService", escopo.fieldService.incluidos) },
+    performance: { ...escopo.performance, incluidos: filterIncluidos("performance", escopo.performance.incluidos) },
+    enterprise: { ...escopo.enterprise, incluidos: escopo.enterprise.incluidos.filter((t) => (t || "").trim()) },
+  };
+
+  // Escopo unificado Monitor + Flow (usado quando ambas as camadas estão ativas).
+  // Já consome as listas FILTRADAS de cada camada antes de mesclar/deduplicar.
+  const escopoFlowDisplay: EscopoCamada = unifiedMonitorFlow
+    ? {
+        titulo: "Monitor + Flow",
+        tagline:
+          "Monitoramento da infraestrutura integrado ao ITSM com atendentes dedicados",
+        descricao: mergeDescricoes(escopo.monitor.descricao, escopo.flow.descricao),
+        incluidos: dedupLines([...escopoFiltered.monitor.incluidos, ...escopoFiltered.flow.incluidos]),
+        restricoes: dedupLines([...escopo.monitor.restricoes, ...escopo.flow.restricoes]),
+      }
+    : escopoFiltered.flow;
 
   // Valores de venda por camada (alinhados ao painel principal)
   const toSell = (c: number) => c * fatorVenda;
