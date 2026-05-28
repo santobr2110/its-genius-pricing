@@ -28,7 +28,7 @@ import {
   ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
-  type EscopoProposicao, type CamadaKey, type ItemAdicional,
+  type EscopoProposicao, type EscopoCamada, type CamadaKey, type ItemAdicional,
 } from "@/data/escopoProposicao";
 import {
   exportarApresentacao,
