@@ -693,7 +693,7 @@ function slideCamadaDetalhe(
     y += Math.ceil(cam.recursos.length / 2) * 0.55 + 0.1;
   }
 
-  // Horas N3
+  // Horas N3 / Automação
   if (cam.horasN3 && cam.horasN3.blocos.length) {
     const h = cam.horasN3;
     slide.addText(
@@ -836,7 +836,7 @@ function slideRotinasGrupo(
   });
 
   slide.addText(
-    "Rotinas absorvidas pelo pool de horas N3 contratado (não geram cobrança separada).",
+    "Rotinas absorvidas pelo pool de horas N3 / Automação contratado (não geram cobrança separada).",
     {
       x: 0.5, y: 5.0, w: 9, h: 0.25, fontFace: FONT_BODY, fontSize: 9,
       color: C.textMuted, italic: true,
