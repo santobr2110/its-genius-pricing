@@ -805,7 +805,7 @@ export default function SmartTiersPanel() {
             <div className="rounded-lg border border-sky-200/70 dark:border-sky-900/50 bg-sky-100/30 dark:bg-sky-950/10 p-2 space-y-2">
               <div className="flex items-center justify-between px-1">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">
-                  Horas N3 / Automação / Automação
+                  Horas N3 / Automação
                 </p>
                 {flowAdvanced && (
                   <span className="text-[10px] text-muted-foreground italic">
