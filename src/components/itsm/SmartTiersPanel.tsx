@@ -617,7 +617,7 @@ export default function SmartTiersPanel() {
                 <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
-                      Manutenção Monitoramento ({formatBRL(toSell(state.valorHoraN3))}/h)
+                      Automação / Manutenção ({formatBRL(toSell(state.valorHoraN3))}/h)
                     </Label>
                     <span className="text-xs font-semibold">
                       {formatNumber(state.horasN3MonitorManut)}h · {formatBRL(smN3ManutVenda)}
@@ -712,7 +712,7 @@ export default function SmartTiersPanel() {
                   </div>
                   <div className="grid grid-cols-2 gap-1 text-[11px]">
                     <div className="rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-1">
-                      <div className="text-muted-foreground">Manut. de Monitoramento · {pctManut.toFixed(0)}%</div>
+                      <div className="text-muted-foreground">Automação / Manutenção · {pctManut.toFixed(0)}%</div>
                       <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(smN3ManutVenda)}</div>
                     </div>
                     <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">

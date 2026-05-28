@@ -56,7 +56,7 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
       "Não inclui resolução de incidentes — apenas detecção e notificação",
       "Não cobre ativos fora do inventário declarado",
       "Não inclui atendimento ao usuário final",
-      "Customizações de monitoramento contam como Manutenção de Monitoramento (horas N3)",
+      "Customizações de monitoramento contam como Automação / Manutenção (horas N3)",
     ],
   },
   flow: {
