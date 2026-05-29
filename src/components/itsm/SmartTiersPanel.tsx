@@ -857,6 +857,14 @@ export default function SmartTiersPanel() {
                 </div>
               );
             })()}
+            {dominantTierKey === "Monitor" && rotinasGerenciais.items.length > 0 && (
+              <LayerRoutineTable
+                titulo="Rotinas Gerenciais Selbetti"
+                items={rotinasGerenciais.items}
+                totals={rotinasGerenciais.totals}
+                descricao="Precificadas em separado — não consomem as horas selecionadas pelos sliders."
+              />
+            )}
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Monitor (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smTotalVenda)}</span>
@@ -1065,6 +1073,14 @@ export default function SmartTiersPanel() {
                 titulo="Rotinas Técnicas Preventivas — Smart Flow"
                 items={rotinasFlow.items}
                 totals={rotinasFlow.totals}
+              />
+            )}
+            {dominantTierKey === "Flow" && rotinasGerenciais.items.length > 0 && (
+              <LayerRoutineTable
+                titulo="Rotinas Gerenciais Selbetti"
+                items={rotinasGerenciais.items}
+                totals={rotinasGerenciais.totals}
+                descricao="Precificadas em separado — não consomem as horas selecionadas pelos sliders."
               />
             )}
             <div className="flex justify-between border-t pt-2">
