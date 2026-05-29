@@ -8,7 +8,6 @@ import UserMenu from "@/components/auth/UserMenu";
 import Can from "@/components/auth/Can";
 import ParametrosMenu from "@/components/ParametrosMenu";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import ActivePresetBanner from "@/components/ActivePresetBanner";
 
 const Index = () => {
   const { state, update, updateFunnel, results } = useITSMContext();
@@ -34,7 +33,6 @@ const Index = () => {
             <UserMenu />
           </div>
         </div>
-        <ActivePresetBanner />
       </header>
 
       <main className="mx-auto max-w-[1400px] p-4">
