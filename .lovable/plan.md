@@ -1,129 +1,68 @@
-# Reestruturação: Grupos, Ofertas e Permissionamento Hierárquico
+## Objetivo
 
-Objetivo: organizar todo o sistema em três níveis — **Grupo** (ITO, Datacenter, Cloud, Observabilidade) → **Oferta** (ex.: Smart ITO) → **Página/Recurso** — com dados isolados por oferta e permissões granulares em cada nível. **Sem alterar nenhuma regra de cálculo do Smart ITO.**
+Permitir que o usuário abra **várias precificações salvas em abas diferentes**, cada uma com seu estado isolado (clientes, equipes, financeiro, escopo). Edições vão direto para a precificação aberta naquela aba, sem cruzar com outras abas/precificações.
 
----
+## Modelo conceitual
 
-## 1. Modelo conceitual
+Cada aba assume um de dois modos:
 
-```
-Business Unit: IT Solutions
-└── Grupo: ITO
-    └── Oferta: Smart ITO
-        ├── Página: Início (calculadora)
-        ├── Página: Proposição / Detalhamento
-        ├── Página: Equipes N1/N2/N3
-        ├── Página: Financeiro
-        ├── Página: Métricas e Parâmetros
-        ├── Página: Precificações salvas
-        ├── Página: Field Service
-        ├── Página: Gestão de TI
-        ├── Página: Relatório de Demanda
-        └── Recursos: editar preços, salvar preset, exportar PDF, salvar defaults...
-└── Grupo: Datacenter (vazio)
-└── Grupo: Cloud (vazio)
-└── Grupo: Observabilidade (vazio)
-```
+| Modo | Como | Storage local | Storage cloud |
+|------|------|--------------|---------------|
+| **Rascunho** (atual) | Sem `?preset=` na URL | `localStorage["ito.smart-ito.<key>"]` | `user_app_state` |
+| **Precificação ativa** | URL `?preset=<id>` | `sessionStorage["ito.smart-ito.preset.<id>.<key>"]` (por aba) | `pricing_presets.payload` (debounced) |
 
-Cada oferta tem **seu próprio escopo de dados** (presets, perfis de parâmetros, estado persistido). Hoje tudo está em chaves globais — passaremos a usar chaves namespaceadas por oferta.
+Trocar de aba/precificação **não interfere** em outras abas porque:
+- `sessionStorage` é por aba (não compartilhado como `localStorage`).
+- Cada preset escreve em seu próprio registro de `pricing_presets`.
 
----
+## Componentes
 
-## 2. Isolamento de dados (frontend + backend)
+### 1. `src/lib/activePreset.ts` (novo)
+Resolve a precificação ativa a partir de `?preset=<id>` na URL e mantém em `sessionStorage`. Exporta:
+- `getActivePresetId()`
+- `getStorageNamespace()` → `ito.smart-ito.` ou `ito.smart-ito.preset.<id>.`
+- Listener para mudanças (custom event).
 
-### 2.1 Convenção de namespace
-Todo dado passa a ser identificado por `groupSlug` + `offeringSlug`:
-- `ito/smart-ito/...` para o Smart ITO atual
-- Futuras ofertas usarão seu próprio namespace
+### 2. `src/hooks/usePersistentState.ts` (alterar)
+Quando há preset ativo:
+- Usa `sessionStorage` no lugar de `localStorage`.
+- Prefixa todas as chaves com `preset.<id>.`.
+- **Não** lê/escreve em `user_app_state` (cloud sync ocorre via payload do preset).
+- Hidrata o valor inicial a partir do payload do preset injetado pelo provider.
 
-### 2.2 Persistência local (`localStorage` / `usePersistentState`)
-- Prefixar todas as chaves com `ito.smart-ito.` (ex.: `itsm-state` → `ito.smart-ito.itsm-state`).
-- Adicionar **migração one-shot** que copia chaves antigas para o novo namespace na primeira carga (sem perder dados de usuários atuais).
+### 3. `src/hooks/useActivePresetSession.ts` (novo)
+Hook que roda dentro do `ITSMProvider`:
+- Na entrada da aba com `?preset=<id>`: carrega o preset, popula sessionStorage com cada fatia do payload (calculator, n1Team, n2Team, allParams, escopo), dispara `notifyPersistentStateRestored` para todos hooks já montados re-hidratarem.
+- Observa mudanças em `sessionStorage` (via custom event disparado pelo próprio `usePersistentState`).
+- Debounce 800 ms: serializa o snapshot atual e chama `pricing_presets.update({ payload })`.
+- Expõe status: `{ activeId, name, savedAt, saving }`.
 
-### 2.3 Persistência no banco (tabelas existentes)
-Acrescentar colunas `group_slug text` e `offering_slug text` (com default `'ito'` / `'smart-ito'`) em:
-- `pricing_presets`
-- `parameter_profiles`
-- `user_app_state`
-- `app_defaults`
+### 4. `src/components/ActivePresetBanner.tsx` (novo)
+Banner sticky no topo das páginas Smart ITO quando há preset ativo:
+- "Editando: **Nome da precificação** · salvo há Xs"
+- Botões: "Salvar como novo", "Fechar precificação" (volta ao rascunho na MESMA aba — remove `?preset=`).
 
-E ajustar índices únicos por `(user_id, offering_slug, key/name)`. Hooks (`usePricingPresets`, `useParameterProfiles`, etc.) passam a filtrar e gravar sempre com o offering ativo.
+### 5. `src/pages/Precificacoes.tsx` (alterar)
+- Botão "Carregar" continua funcionando na aba atual (modo rascunho).
+- Adicionar botão **"Abrir em nova aba"** (ícone `ExternalLink`) que abre `/ito?preset=<id>` em `target="_blank"`.
 
-### 2.4 Contexto de Oferta ativa
-Novo `OfferingContext` (`src/contexts/OfferingContext.tsx`) determina grupo/oferta correntes a partir da rota (`/ito/*` → ITO/Smart ITO) e expõe `{ groupSlug, offeringSlug }` para hooks de persistência. `ITSMContext` continua existindo, apenas consome esse namespace.
+### 6. `src/contexts/ITSMContext.tsx` (alterar)
+- Monta `useActivePresetSession` e expõe seu status no contexto.
+- `loadPreset` na aba atual continua sobrescrevendo o workspace (modo rascunho); quando há preset ativo, `loadPreset` é desabilitado (já estamos editando um).
 
----
+## Detalhes técnicos
 
-## 3. Permissionamento hierárquico
+**Por que `sessionStorage` no modo ativo?** Garante que duas abas do mesmo usuário com presets diferentes não compartilhem cache local — `localStorage` é compartilhado entre abas e provocaria flicker/colisão.
 
-### 3.1 Novas tabelas
-```
-groups        (id, slug, name, order)
-offerings     (id, group_id, slug, name, order, status)  -- status: active | coming_soon
-permissions   (key, group_slug, offering_slug, scope, label)
-              -- scope: 'group' | 'offering' | 'page' | 'action'
-```
-As permissões existentes (`page.home`, `pricing.edit`, etc.) serão **migradas** para chaves namespaceadas:
-- `page.home` → `ito.smart-ito.page.home`
-- `pricing.edit` → `ito.smart-ito.pricing.edit`
-- etc.
+**Conflito de escrita simultânea no mesmo preset:** se o usuário abrir o MESMO preset em duas abas, vale last-write-wins (mesmo comportamento que hoje no rascunho). Aceitável e raro.
 
-Novas chaves de nível superior:
-- `group.ito.access`, `group.datacenter.access`, `group.cloud.access`, `group.observabilidade.access`
-- `offering.ito.smart-ito.access`
+**Migração:** zero — presets existentes continuam funcionando; o modo "Carregar" tradicional fica intacto.
 
-Regra de avaliação (em `has_permission`): acesso a uma página exige **acesso ao grupo E à oferta E à página**. Admin continua bypass total.
+**Auto-save:** debounce 800 ms; usa `pricing_presets.update({ payload, updated_at: now() })` direto; falha silenciosa com toast de erro se a conexão cair.
 
-### 3.2 Seed
-Migration popula `groups` e `offerings` com os 4 grupos e a oferta Smart ITO; replica as `role_permissions` atuais para as novas chaves namespaceadas, preservando os acessos já concedidos.
+**Indicador de estado:** "salvando…" → "salvo agora" → "salvo há Xs" no banner.
 
-### 3.3 Camada de código
-- `src/lib/permissions.ts`: passa a expor `PermissionKey` namespeada + helpers (`groupAccessKey(slug)`, `offeringAccessKey(group,offering)`, `pageKey(group,offering,page)`).
-- `AuthContext.can(key)`: inalterado na API, mas usa as novas chaves.
-- `ProtectedRoute`: para rotas do Smart ITO passa a verificar o trio (grupo+oferta+página) via um único helper `canPage('ito','smart-ito','home')`.
-- `Hub` esconde cards de grupos sem `group.<slug>.access`; `BUMenu` filtra ofertas pelo acesso.
-
-### 3.4 Tela de Admin
-`src/pages/Admin.tsx` / `PerfisParametros` ganham um seletor **Grupo → Oferta** e exibem as permissões agrupadas em três blocos: **Grupo**, **Oferta**, **Páginas/Ações da oferta**. Estrutura preparada para futuras ofertas aparecerem automaticamente assim que registradas.
-
----
-
-## 4. Compatibilidade e segurança
-
-- **Sem mudanças em cálculos**: nenhum arquivo em `src/hooks/useITSMCalculator.ts`, `src/lib/buildAreas.ts`, painéis e componentes de cálculo será alterado em lógica — apenas a camada de persistência/leitura.
-- Migração SQL idempotente, com defaults e backfill para não quebrar dados existentes.
-- RLS mantida; políticas continuam por `user_id`, com filtro adicional implícito por offering nas queries do frontend.
-
----
-
-## 5. Detalhamento técnico (arquivos)
-
-**Novos**
-- `src/contexts/OfferingContext.tsx`
-- `src/lib/offerings.ts` (catálogo estático de grupos/ofertas + helpers de chaves)
-- Migration SQL: tabelas `groups`, `offerings`; colunas `offering_slug`/`group_slug`; backfill; novas permission keys.
-
-**Editados**
-- `src/lib/permissions.ts` — novas chaves namespaceadas + helpers
-- `src/App.tsx` — envolver com `OfferingProvider`
-- `src/components/auth/ProtectedRoute.tsx` — aceitar `{ group, offering, page }`
-- `src/hooks/usePersistentState.ts`, `usePricingPresets.ts`, `useParameterProfiles.ts` — prefixar por offering + migração one-shot
-- `src/pages/Hub.tsx`, `src/components/BUMenu.tsx` — filtrar por acesso
-- `src/pages/Admin.tsx`, `src/pages/PerfisParametros.tsx` — UI hierárquica de permissões
-
-**Intocados (regras de cálculo)**
-- `src/hooks/useITSMCalculator.ts`, `useN1TeamState.ts`, `useN2TeamState.ts`, `useFieldTeamsState.ts`
-- `src/contexts/ITSMContext.tsx` (apenas namespace de persistência muda, lógica não)
-- Todos os componentes em `src/components/itsm/*`
-- `src/lib/buildAreas.ts`
-
----
-
-## 6. Entrega em ordem
-
-1. Migration SQL (tabelas, colunas, seed, backfill de permissões).
-2. `OfferingContext` + `lib/offerings.ts` + permissões namespaceadas.
-3. Refator dos hooks de persistência (com migração one-shot de chaves).
-4. Atualização de `ProtectedRoute`, `Hub`, `BUMenu`.
-5. UI de Admin/Perfis hierárquica.
-6. Verificação: build limpo, Smart ITO segue calculando idêntico, dados antigos visíveis.
+## Escopo fora deste plano
+- Lista visual de "abas abertas" globalmente (cada navegador gerencia).
+- Trava/lock pessimista entre abas do mesmo preset.
+- Histórico de versões da precificação.
