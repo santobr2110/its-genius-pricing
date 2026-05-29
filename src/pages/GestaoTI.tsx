@@ -319,7 +319,8 @@ export default function GestaoTI() {
           ? data.complexFlag
           : undefined,
       horasExecucao:
-        data.oferta === "Performance" && data.complexidade === "Complexo"
+        (data.oferta === "Performance" && data.complexidade === "Complexo") ||
+        data.oferta === "Todos"
           ? data.horasExecucao ?? 4
           : undefined,
     };
@@ -914,6 +915,8 @@ function RotinaGroupCards({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-3">
         {rotinas.map((r) => {
           const isComplexPerf = r.oferta === "Performance" && r.complexidade === "Complexo";
+          const isTodos = r.oferta === "Todos";
+          const showHoras = isComplexPerf || isTodos;
           const mult = rotinaMultiplicador(r, inventario, complexFlags);
           const demanda = r.chamadosMes * mult;
           const semDemanda = mult === 0;
@@ -1073,14 +1076,14 @@ function RotinaGroupCards({
                   <p className="text-[10px] text-muted-foreground">CAC</p>
                   <p className="text-sm font-semibold tabular-nums">{r.cac.toFixed(2)}</p>
                 </div>
-                {isComplexPerf && (
+                {showHoras && (
                   <div>
                     <Label className="text-[10px] text-muted-foreground">Horas/exec</Label>
                     <Input
                       type="number"
                       min={0}
                       step={0.5}
-                      value={r.horasExecucao ?? 4}
+                      value={r.horasExecucao ?? (isTodos ? 1 : 4)}
                       onChange={(e) =>
                         onUpdate(r.id, { horasExecucao: parseFloat(e.target.value) || 0 })
                       }
@@ -1177,6 +1180,8 @@ function NovaRotinaDialog({
 
   const isPerf = oferta === "Performance";
   const isComplexo = isPerf && complexidade === "Complexo";
+  const isTodos = oferta === "Todos";
+  const showHoras = isComplexo || isTodos;
   const grupoFinal = grupoMode === "novo" ? novoGrupo : grupo;
   const podeSalvar = grupoFinal.trim().length > 0 && rotina.trim().length > 0;
 
@@ -1207,7 +1212,7 @@ function NovaRotinaDialog({
       complexFlag: isComplexo ? complexFlag : undefined,
       automacao,
       frequencia,
-      horasExecucao: isComplexo ? horasExecucao : undefined,
+      horasExecucao: showHoras ? horasExecucao : undefined,
     });
     reset();
     setOpen(false);
@@ -1373,9 +1378,13 @@ function NovaRotinaDialog({
             </div>
           </div>
 
-          {isComplexo && (
+          {showHoras && (
             <div className="space-y-1">
-              <Label className="text-xs">Horas por execução (custo via valor/hora N3)</Label>
+              <Label className="text-xs">
+                {isTodos
+                  ? "Horas por execução (consumidas das horas da camada)"
+                  : "Horas por execução (custo via valor/hora N3)"}
+              </Label>
               <Input
                 type="number"
                 min={0}
