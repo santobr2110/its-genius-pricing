@@ -164,9 +164,21 @@ export default function SmartTiersPanel() {
     wRotN2 * results.custoPorChamadoN2 +
     wRotN3 * custoChN3Mix;
 
+  // Última camada ativa (ordem Monitor → Flow → Operation → Performance → Enterprise).
+  // Rotinas com oferta "Todos" devem ser exibidas/consumidas apenas pela camada dominante.
+  const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise" | null =
+    state.tierEnterprise ? "Enterprise"
+    : state.tierPerformance ? "Performance"
+    : state.tierOperation ? "Operation"
+    : state.tierFlow ? "Flow"
+    : state.tierMonitor ? "Monitor"
+    : null;
+  const includeTodosIn = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") =>
+    dominantTierKey === camada;
+
   const rotinasOperation = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Operation" || r.oferta === "Todos")
+      .filter((r) => r.oferta === "Operation" || (r.oferta === "Todos" && includeTodosIn("Operation")))
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
       // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
@@ -212,8 +224,8 @@ export default function SmartTiersPanel() {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
       .filter((r) => {
-        // "Todos" entram no sub-quadro Padrão (não têm complexidade).
-        if (r.oferta === "Todos") return complexidade === "Padrão";
+        // "Todos" entram no sub-quadro Padrão, apenas quando Performance é a camada dominante.
+        if (r.oferta === "Todos") return complexidade === "Padrão" && includeTodosIn("Performance");
         return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
       })
       .filter((r) =>
@@ -272,7 +284,7 @@ export default function SmartTiersPanel() {
   // (Monitor / Flow / Enterprise) — inclui também as rotinas "Todos".
   const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
     const items = rotinas
-      .filter((r) => r.oferta === camada || r.oferta === "Todos")
+      .filter((r) => r.oferta === camada || (r.oferta === "Todos" && includeTodosIn(camada)))
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -702,7 +714,7 @@ export default function SmartTiersPanel() {
                       <div className="space-y-1 pt-1">
                         <div className="flex items-center justify-between text-[10px]">
                           <span className="text-muted-foreground">
-                            Consumido por rotinas Monitor + Todos ({rotinasMonitor.items.length})
+                            Consumido por rotinas Monitor{includeTodosIn("Monitor") ? " + Todos" : ""} ({rotinasMonitor.items.length})
                           </span>
                           <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
                             {formatNumber(used, 1)}h / {formatNumber(purchased)}h
@@ -775,6 +787,13 @@ export default function SmartTiersPanel() {
                 </div>
               </div>
             </div>
+            {rotinasMonitor.items.length > 0 && (
+              <LayerRoutineTable
+                titulo={`Rotinas vinculadas (Monitor${includeTodosIn("Monitor") ? " + Todos" : ""})`}
+                items={rotinasMonitor.items}
+                totals={rotinasMonitor.totals}
+              />
+            )}
             {!state.tierOperation && (state.horasN3MonitorManut + state.horasN3Monitor > 0) && (() => {
               const hManut = Math.max(0, state.horasN3MonitorManut || 0);
               const hAcion = Math.max(0, state.horasN3Monitor || 0);
@@ -929,7 +948,7 @@ export default function SmartTiersPanel() {
                       <div className="space-y-1 pt-1">
                         <div className="flex items-center justify-between text-[10px]">
                           <span className="text-muted-foreground">
-                            Consumido por rotinas Flow + Todos ({rotinasFlow.items.length})
+                            Consumido por rotinas Flow{includeTodosIn("Flow") ? " + Todos" : ""} ({rotinasFlow.items.length})
                           </span>
                           <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
                             {formatNumber(used, 1)}h / {formatNumber(purchased)}h
@@ -1018,6 +1037,13 @@ export default function SmartTiersPanel() {
                 </div>
               </div>
             </div>
+            {rotinasFlow.items.length > 0 && (
+              <LayerRoutineTable
+                titulo={`Rotinas vinculadas (Flow${includeTodosIn("Flow") ? " + Todos" : ""})`}
+                items={rotinasFlow.items}
+                totals={rotinasFlow.totals}
+              />
+            )}
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Flow (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(sflTotalVenda)}</span>
@@ -1065,7 +1091,7 @@ export default function SmartTiersPanel() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <ListChecks className="h-3.5 w-3.5 text-emerald-600" />
-                    <p className="text-xs font-semibold">Rotinas vinculadas (Operation)</p>
+                    <p className="text-xs font-semibold">Rotinas vinculadas (Operation{includeTodosIn("Operation") ? " + Todos" : ""})</p>
                   </div>
                   <span className="text-[10px] text-muted-foreground">
                     custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
@@ -1599,6 +1625,62 @@ function CompositionFooter({
       <div className="flex justify-between pt-1 border-t border-dashed">
         <span className="text-xs font-semibold">{title}</span>
         <span className="text-sm font-bold text-primary tabular-nums">{formatBRL(total)}</span>
+      </div>
+    </div>
+  );
+}
+
+function LayerRoutineTable({
+  titulo,
+  items,
+  totals,
+}: {
+  titulo: string;
+  items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; custo: number; venda: number }[];
+  totals: { demanda: number; custo: number; venda: number };
+}) {
+  return (
+    <div className="rounded border bg-background p-2 space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <ListChecks className="h-3.5 w-3.5 text-emerald-600" />
+        <p className="text-xs font-semibold">{titulo}</p>
+        <span className="text-[10px] text-muted-foreground ml-auto">{items.length} item(ns)</span>
+      </div>
+      <div className="max-h-56 overflow-auto rounded border">
+        <table className="w-full text-[11px]">
+          <thead className="bg-muted sticky top-0">
+            <tr>
+              <th className="text-left px-2 py-1 font-medium">Rotina</th>
+              <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+              <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
+              <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((i) => (
+              <tr key={i.id} className="border-t">
+                <td className="px-2 py-1">
+                  <span className="text-muted-foreground">{i.grupo} · </span>
+                  {i.rotina}
+                  {i.automacao && (
+                    <span className="ml-1 text-[9px] text-primary">[auto]</span>
+                  )}
+                </td>
+                <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
+                <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
+                <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot className="bg-muted sticky bottom-0">
+            <tr>
+              <td className="px-2 py-1 font-semibold">Total</td>
+              <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.demanda.toFixed(1)}</td>
+              <td className="px-2 py-1 text-right font-semibold tabular-nums">{formatBRL(totals.custo)}</td>
+              <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(totals.venda)}</td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </div>
   );
