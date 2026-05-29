@@ -966,7 +966,7 @@ function RotinaGroupCards({
                     </SelectTrigger>
                     <SelectContent>
                       {OFERTAS.map((o) => (
-                        <SelectItem key={o} value={o}>{o}</SelectItem>
+                        <SelectItem key={o} value={o}>{OFERTA_LABELS[o]}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1259,7 +1259,7 @@ function NovaRotinaDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {OFERTAS.map((o) => (
-                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                    <SelectItem key={o} value={o}>{OFERTA_LABELS[o]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -1398,7 +1398,7 @@ function NovaRotinaDialog({
             <div className="space-y-1">
               <Label className="text-xs">
                 {isTodos
-                  ? "Horas por execução (consumidas das horas da camada)"
+                  ? "Horas por execução (cobradas em separado — NÃO consomem horas dos sliders)"
                   : "Horas por execução (custo via valor/hora N3)"}
               </Label>
               <Input
