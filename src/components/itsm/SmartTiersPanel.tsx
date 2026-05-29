@@ -787,6 +787,13 @@ export default function SmartTiersPanel() {
                 </div>
               </div>
             </div>
+            {rotinasMonitor.items.length > 0 && (
+              <LayerRoutineTable
+                titulo={`Rotinas vinculadas (Monitor${includeTodosIn("Monitor") ? " + Todos" : ""})`}
+                items={rotinasMonitor.items}
+                totals={rotinasMonitor.totals}
+              />
+            )}
             {!state.tierOperation && (state.horasN3MonitorManut + state.horasN3Monitor > 0) && (() => {
               const hManut = Math.max(0, state.horasN3MonitorManut || 0);
               const hAcion = Math.max(0, state.horasN3Monitor || 0);
