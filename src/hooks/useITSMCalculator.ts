@@ -38,6 +38,14 @@ export interface ITSMState {
   // Financeiro
   margemLucro: number;
   impostosTaxas: number;
+  // Composição do preço de venda (markup divisor por componente)
+  pisPerc: number;
+  cofinsPerc: number;
+  issPerc: number;
+  comissaoPerc: number;
+  irpjCsllPerc: number;
+  encFinancPerc: number;
+  lucroPerc: number;
   // Camadas de oferta
   percAlocacaoN1Monitor: number;
   custoAtivoMonitorado: number;
@@ -185,6 +193,23 @@ export interface ITSMResults {
   valorMargem: number;
   valorImpostos: number;
   precoVendaMensal: number;
+  // Composição detalhada do preço de venda
+  composicaoPreco: {
+    custo: number;
+    pis: number;
+    cofins: number;
+    iss: number;
+    comissao: number;
+    irpjCsll: number;
+    encFinanc: number;
+    lucro: number;
+    precoVenda: number;
+    totalEncargosPerc: number; // soma dos 7 percentuais
+    custoPerc: number;          // 100 - totalEncargosPerc
+    receitaLiquida: number;     // PV - (PIS+COFINS+ISS)
+    margemContribuicao: number; // PV - custo - (PIS+COFINS+ISS+Comissão)
+    resultadoOperacional: number; // = lucro pretendido em R$
+  };
   // Smart Monitor
   smartMonitor: {
     ativos: number;
@@ -268,6 +293,13 @@ const DEFAULTS: ITSMState = {
   tempoMedioChamadoN3: 2,
   margemLucro: 45,
   impostosTaxas: 5.65,
+  pisPerc: 0.65,
+  cofinsPerc: 3,
+  issPerc: 5,
+  comissaoPerc: 3,
+  irpjCsllPerc: 2.28,
+  encFinancPerc: 1,
+  lucroPerc: 20,
   percAlocacaoN1Monitor: 30,
   custoAtivoMonitorado: 50,
   custoFerramentaEndpoint: 25,
@@ -596,16 +628,48 @@ export function useITSMCalculator() {
       smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys +
       flCustoMonit + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys +
       custoEndpointTooling + custoFieldTotal;
-    // Markup divisor: custo deve ser (100 - margem)% do preço pré-imposto
-    // Ex: margem 45% → custo = 55% do preço pré-imposto → preço = custo / 0,55
-    const fatorMargem = (100 - state.margemLucro) / 100;
-    const precoPreImposto = fatorMargem > 0 ? custoTotalOperacao / fatorMargem : 0;
-    const valorMargem = precoPreImposto - custoTotalOperacao;
-    // Impostos por fora: cliente paga sobre o preço final
-    // preco_final * (1 - imposto%) = preco_pre_imposto → preco_final = preco_pre_imposto / (1 - imposto%)
-    const fatorImposto = (100 - state.impostosTaxas) / 100;
-    const precoVendaMensal = fatorImposto > 0 ? precoPreImposto / fatorImposto : 0;
-    const valorImpostos = precoVendaMensal - precoPreImposto;
+    // ===== Composição do preço de venda (Markup Divisor único) =====
+    // PV = Custo / (1 - Σ% / 100), onde Σ% = PIS+COFINS+ISS+Comissão+IRPJ/CSLL+Enc.Financ.+Lucro
+    // Cada componente em R$ = PV × (% do componente / 100).
+    const pisPerc = Math.max(0, state.pisPerc || 0);
+    const cofinsPerc = Math.max(0, state.cofinsPerc || 0);
+    const issPerc = Math.max(0, state.issPerc || 0);
+    const comissaoPerc = Math.max(0, state.comissaoPerc || 0);
+    const irpjCsllPerc = Math.max(0, state.irpjCsllPerc || 0);
+    const encFinancPerc = Math.max(0, state.encFinancPerc || 0);
+    const lucroPerc = Math.max(0, state.lucroPerc || 0);
+    const totalEncargosPerc = pisPerc + cofinsPerc + issPerc + comissaoPerc + irpjCsllPerc + encFinancPerc + lucroPerc;
+    const custoPerc = 100 - totalEncargosPerc;
+    const fatorDivisor = custoPerc > 0 ? custoPerc / 100 : 0;
+    const precoVendaMensal = fatorDivisor > 0 ? custoTotalOperacao / fatorDivisor : 0;
+    const valorPis = precoVendaMensal * pisPerc / 100;
+    const valorCofins = precoVendaMensal * cofinsPerc / 100;
+    const valorIss = precoVendaMensal * issPerc / 100;
+    const valorComissao = precoVendaMensal * comissaoPerc / 100;
+    const valorIrpjCsll = precoVendaMensal * irpjCsllPerc / 100;
+    const valorEncFinanc = precoVendaMensal * encFinancPerc / 100;
+    const valorLucro = precoVendaMensal * lucroPerc / 100;
+    const valorImpostos = valorPis + valorCofins + valorIss + valorIrpjCsll + valorEncFinanc;
+    const valorMargem = valorLucro;
+    const precoPreImposto = precoVendaMensal - (valorPis + valorCofins + valorIss);
+    const receitaLiquida = precoPreImposto;
+    const margemContribuicao = precoVendaMensal - custoTotalOperacao - (valorPis + valorCofins + valorIss + valorComissao);
+    const composicaoPreco = {
+      custo: custoTotalOperacao,
+      pis: valorPis,
+      cofins: valorCofins,
+      iss: valorIss,
+      comissao: valorComissao,
+      irpjCsll: valorIrpjCsll,
+      encFinanc: valorEncFinanc,
+      lucro: valorLucro,
+      precoVenda: precoVendaMensal,
+      totalEncargosPerc,
+      custoPerc,
+      receitaLiquida,
+      margemContribuicao,
+      resultadoOperacional: valorLucro,
+    };
 
     const smartMonitor = {
       ativos: smAtivos,
@@ -691,6 +755,7 @@ export function useITSMCalculator() {
       smartFlow,
       humanAttendanceActive,
       fieldService,
+      composicaoPreco,
     };
   }, [state]);
 
@@ -703,4 +768,28 @@ export function formatBRL(value: number): string {
 
 export function formatNumber(value: number, decimals = 0): string {
   return value.toLocaleString("pt-BR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+/**
+ * Soma dos percentuais que compõem o preço de venda (markup divisor).
+ */
+export function getTotalEncargosPerc(state: ITSMState): number {
+  return (
+    (state.pisPerc || 0) +
+    (state.cofinsPerc || 0) +
+    (state.issPerc || 0) +
+    (state.comissaoPerc || 0) +
+    (state.irpjCsllPerc || 0) +
+    (state.encFinancPerc || 0) +
+    (state.lucroPerc || 0)
+  );
+}
+
+/**
+ * Fator divisor para converter custo em preço de venda:
+ * preço = custo / fatorDivisor.
+ */
+export function getFatorDivisor(state: ITSMState): number {
+  const restante = 100 - getTotalEncargosPerc(state);
+  return restante > 0 ? restante / 100 : 0;
 }

@@ -93,9 +93,11 @@ export default function SmartTiersPanel() {
   const { results, state, update } = useITSMContext();
   const sm = results.smartMonitor;
   const sfl = results.smartFlow;
-  const fatorMargem = (100 - state.margemLucro) / 100;
-  const fatorImposto = (100 - state.impostosTaxas) / 100;
-  const fatorVenda = fatorMargem > 0 && fatorImposto > 0 ? fatorMargem * fatorImposto : 0;
+  const totalEncargosPerc =
+    (state.pisPerc || 0) + (state.cofinsPerc || 0) + (state.issPerc || 0) +
+    (state.comissaoPerc || 0) + (state.irpjCsllPerc || 0) + (state.encFinancPerc || 0) +
+    (state.lucroPerc || 0);
+  const fatorVenda = totalEncargosPerc < 100 ? (100 - totalEncargosPerc) / 100 : 0;
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
