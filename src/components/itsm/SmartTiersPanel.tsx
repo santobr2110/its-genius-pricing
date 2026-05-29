@@ -1450,14 +1450,14 @@ export default function SmartTiersPanel() {
             </div>
 
             <PerformanceBlock
-              titulo="Rotinas Performance · Ambiente Padrão"
+              titulo="Rotinas Técnicas Preventivas — Smart Performance · Ambiente Padrão"
               vazio="Nenhuma rotina padrão com demanda ativa no inventário."
               data={rotinasPerfPadrao}
             />
 
             {algumComplexAtivo ? (
               <PerformanceBlock
-                titulo="Rotinas Performance · Ambiente Complexo"
+                titulo="Rotinas Técnicas Preventivas — Smart Performance · Ambiente Complexo"
                 vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
                 data={rotinasPerfComplexo}
                 hourRate={state.valorHoraN3}
