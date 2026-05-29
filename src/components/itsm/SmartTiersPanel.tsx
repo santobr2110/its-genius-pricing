@@ -1623,6 +1623,62 @@ function CompositionFooter({
   );
 }
 
+function LayerRoutineTable({
+  titulo,
+  items,
+  totals,
+}: {
+  titulo: string;
+  items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; custo: number; venda: number }[];
+  totals: { demanda: number; custo: number; venda: number };
+}) {
+  return (
+    <div className="rounded border bg-background p-2 space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <ListChecks className="h-3.5 w-3.5 text-emerald-600" />
+        <p className="text-xs font-semibold">{titulo}</p>
+        <span className="text-[10px] text-muted-foreground ml-auto">{items.length} item(ns)</span>
+      </div>
+      <div className="max-h-56 overflow-auto rounded border">
+        <table className="w-full text-[11px]">
+          <thead className="bg-muted sticky top-0">
+            <tr>
+              <th className="text-left px-2 py-1 font-medium">Rotina</th>
+              <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
+              <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
+              <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((i) => (
+              <tr key={i.id} className="border-t">
+                <td className="px-2 py-1">
+                  <span className="text-muted-foreground">{i.grupo} · </span>
+                  {i.rotina}
+                  {i.automacao && (
+                    <span className="ml-1 text-[9px] text-primary">[auto]</span>
+                  )}
+                </td>
+                <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
+                <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
+                <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot className="bg-muted sticky bottom-0">
+            <tr>
+              <td className="px-2 py-1 font-semibold">Total</td>
+              <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.demanda.toFixed(1)}</td>
+              <td className="px-2 py-1 text-right font-semibold tabular-nums">{formatBRL(totals.custo)}</td>
+              <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(totals.venda)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function GmudTable({
   titulo,
   vazio,
