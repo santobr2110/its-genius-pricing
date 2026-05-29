@@ -432,7 +432,7 @@ export default function SmartTiersPanel() {
   const smN3ManutVenda = toSell(sm.custoN3Manut);
   const smAtendentesVenda = toSell(sm.custoAtendentes);
   const smProxysVenda = toSell(sm.custoProxys);
-  const smTotalVenda = toSell(sm.total);
+  const smTotalVenda = toSell(sm.total) + gerenciaisVendaIn("Monitor");
   // Smart Flow — venda
   const sflMonitVenda = toSell(sfl.custoMonitoramento);
   const sflN1Venda = toSell(sfl.custoN1Alocado);
@@ -440,7 +440,7 @@ export default function SmartTiersPanel() {
   const sflN3ManutVenda = toSell(sfl.custoN3Manut);
   const sflAtendentesVenda = toSell(sfl.custoAtendentes);
   const sflProxysVenda = toSell(sfl.custoProxys);
-  const sflTotalVenda = toSell(sfl.total);
+  const sflTotalVenda = toSell(sfl.total) + gerenciaisVendaIn("Flow");
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
   const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
@@ -484,10 +484,10 @@ export default function SmartTiersPanel() {
   }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
 
   const smOperationVenda = state.tierOperation
-    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda + gmudOperation.venda
+    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda + gmudOperation.venda + gerenciaisVendaIn("Operation")
     : 0;
   const smPerformanceVenda = state.tierPerformance
-    ? toSell(results.custoN3) + gmudPerformance.venda
+    ? toSell(results.custoN3) + gmudPerformance.venda + gerenciaisVendaIn("Performance")
     : 0;
   const totalSelecionado =
     (state.tierMonitor ? smTotalVenda : 0) + (state.tierFlow ? sflTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
