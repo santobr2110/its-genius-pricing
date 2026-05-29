@@ -1050,11 +1050,20 @@ export default function Detalhamento() {
           )}
           {rotinasMonitor.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Smart Monitor ({rotinasMonitor.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Monitor ({rotinasMonitor.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Consumidas pelas horas de Automação / Manutenção do Smart Monitor.
               </p>
               <RoutineList items={rotinasMonitor} accent="bronze" />
+            </>
+          )}
+          {dominantTierKey === "Monitor" && rotinasGerenciais.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+              </p>
+              <RoutineList items={rotinasGerenciais} accent="bronze" />
             </>
           )}
         </TierBlock>
@@ -1201,11 +1210,20 @@ export default function Detalhamento() {
           />
           {rotinasFlow.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Smart Flow ({rotinasFlow.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Flow ({rotinasFlow.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Consumidas pelas horas de Automação / Manutenção do Smart Flow.
               </p>
               <RoutineList items={rotinasFlow} accent="steel" />
+            </>
+          )}
+          {dominantTierKey === "Flow" && rotinasGerenciais.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+              </p>
+              <RoutineList items={rotinasGerenciais} accent="steel" />
             </>
           )}
         </TierBlock>
@@ -1238,8 +1256,17 @@ export default function Detalhamento() {
 
           {rotinasOp.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas preventivas básicas ({rotinasOp.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Operation ({rotinasOp.length})</SubTitle>
               <RoutineList items={rotinasOp} accent="silver" />
+            </>
+          )}
+          {dominantTierKey === "Operation" && rotinasGerenciais.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+              </p>
+              <RoutineList items={rotinasGerenciais} accent="silver" />
             </>
           )}
 
@@ -1342,15 +1369,24 @@ export default function Detalhamento() {
 
           {rotinasPerfPadrao.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Performance — Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Performance · Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
               <RoutineList items={rotinasPerfPadrao} accent="gold" />
             </>
           )}
 
           {algumComplexAtivo && rotinasPerfComplexo.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Performance — Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Performance · Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
               <RoutineList items={rotinasPerfComplexo} accent="gold" complexo />
+            </>
+          )}
+          {dominantTierKey === "Performance" && rotinasGerenciais.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+              </p>
+              <RoutineList items={rotinasGerenciais} accent="gold" />
             </>
           )}
 
