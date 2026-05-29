@@ -915,6 +915,8 @@ function RotinaGroupCards({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-3">
         {rotinas.map((r) => {
           const isComplexPerf = r.oferta === "Performance" && r.complexidade === "Complexo";
+          const isTodos = r.oferta === "Todos";
+          const showHoras = isComplexPerf || isTodos;
           const mult = rotinaMultiplicador(r, inventario, complexFlags);
           const demanda = r.chamadosMes * mult;
           const semDemanda = mult === 0;
@@ -1074,14 +1076,14 @@ function RotinaGroupCards({
                   <p className="text-[10px] text-muted-foreground">CAC</p>
                   <p className="text-sm font-semibold tabular-nums">{r.cac.toFixed(2)}</p>
                 </div>
-                {isComplexPerf && (
+                {showHoras && (
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Horas/exec</Label>
+                    <Label className="text-[10px] text-muted-foreground">Horas/mês</Label>
                     <Input
                       type="number"
                       min={0}
                       step={0.5}
-                      value={r.horasExecucao ?? 4}
+                      value={r.horasExecucao ?? (isTodos ? 1 : 4)}
                       onChange={(e) =>
                         onUpdate(r.id, { horasExecucao: parseFloat(e.target.value) || 0 })
                       }
