@@ -737,7 +737,7 @@ export default function SmartTiersPanel() {
                       <div className="space-y-1 pt-1">
                         <div className="flex items-center justify-between text-[10px]">
                           <span className="text-muted-foreground">
-                            Consumido por rotinas Monitor{includeTodosIn("Monitor") ? " + Todos" : ""} ({rotinasMonitor.items.length})
+                            Consumido por Rotinas Técnicas Preventivas — Smart Monitor ({rotinasMonitor.items.length})
                           </span>
                           <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
                             {formatNumber(used, 1)}h / {formatNumber(purchased)}h
@@ -812,7 +812,7 @@ export default function SmartTiersPanel() {
             </div>
             {rotinasMonitor.items.length > 0 && (
               <LayerRoutineTable
-                titulo={`Rotinas vinculadas (Monitor${includeTodosIn("Monitor") ? " + Todos" : ""})`}
+                titulo="Rotinas Técnicas Preventivas — Smart Monitor"
                 items={rotinasMonitor.items}
                 totals={rotinasMonitor.totals}
               />
@@ -971,7 +971,7 @@ export default function SmartTiersPanel() {
                       <div className="space-y-1 pt-1">
                         <div className="flex items-center justify-between text-[10px]">
                           <span className="text-muted-foreground">
-                            Consumido por rotinas Flow{includeTodosIn("Flow") ? " + Todos" : ""} ({rotinasFlow.items.length})
+                            Consumido por Rotinas Técnicas Preventivas — Smart Flow ({rotinasFlow.items.length})
                           </span>
                           <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
                             {formatNumber(used, 1)}h / {formatNumber(purchased)}h
@@ -1062,7 +1062,7 @@ export default function SmartTiersPanel() {
             </div>
             {rotinasFlow.items.length > 0 && (
               <LayerRoutineTable
-                titulo={`Rotinas vinculadas (Flow${includeTodosIn("Flow") ? " + Todos" : ""})`}
+                titulo="Rotinas Técnicas Preventivas — Smart Flow"
                 items={rotinasFlow.items}
                 totals={rotinasFlow.totals}
               />
@@ -1114,7 +1114,7 @@ export default function SmartTiersPanel() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <ListChecks className="h-3.5 w-3.5 text-emerald-600" />
-                    <p className="text-xs font-semibold">Rotinas vinculadas (Operation{includeTodosIn("Operation") ? " + Todos" : ""})</p>
+                    <p className="text-xs font-semibold">Rotinas Técnicas Preventivas — Smart Operation</p>
                   </div>
                   <span className="text-[10px] text-muted-foreground">
                     custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
