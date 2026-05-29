@@ -1445,7 +1445,7 @@ export default function Detalhamento() {
                 </p>
                 <p className="mt-1 text-3xl md:text-4xl font-bold text-primary">{formatBRL(investimentoTotal)}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Margem {state.margemLucro}% · Tributos {state.impostosTaxas}%
+                  Valor mensal de contrato
                 </p>
               </div>
               <div className="text-right text-xs space-y-1">
