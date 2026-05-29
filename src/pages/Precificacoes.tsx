@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar } from "lucide-react";
+import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { usePricingPresets, type PricingPreset } from "@/hooks/usePricingPresets";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL } from "@/hooks/useITSMCalculator";
+import { openPresetInNewTab } from "@/lib/activePreset";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +37,10 @@ export default function Precificacoes() {
   const handleLoad = (p: PricingPreset) => {
     loadPreset(p);
     toast.success(`"${p.name}" carregada.`);
+  };
+
+  const handleOpenInNewTab = (p: PricingPreset) => {
+    openPresetInNewTab(p.id);
   };
 
   const startEdit = (p: PricingPreset) => {
@@ -112,6 +117,16 @@ export default function Precificacoes() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 gap-1"
+                          onClick={() => handleOpenInNewTab(p)}
+                          title="Abre esta precificação em uma nova aba, com auto-save direto nela"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span className="hidden md:inline text-xs">Abrir em nova aba</span>
+                        </Button>
                         <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => handleLoad(p)}>
                           <Download className="h-3.5 w-3.5" />
                           <span className="hidden sm:inline text-xs">Carregar</span>
