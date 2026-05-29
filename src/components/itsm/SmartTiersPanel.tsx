@@ -164,9 +164,21 @@ export default function SmartTiersPanel() {
     wRotN2 * results.custoPorChamadoN2 +
     wRotN3 * custoChN3Mix;
 
+  // Última camada ativa (ordem Monitor → Flow → Operation → Performance → Enterprise).
+  // Rotinas com oferta "Todos" devem ser exibidas/consumidas apenas pela camada dominante.
+  const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise" | null =
+    state.tierEnterprise ? "Enterprise"
+    : state.tierPerformance ? "Performance"
+    : state.tierOperation ? "Operation"
+    : state.tierFlow ? "Flow"
+    : state.tierMonitor ? "Monitor"
+    : null;
+  const includeTodosIn = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") =>
+    dominantTierKey === camada;
+
   const rotinasOperation = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Operation" || r.oferta === "Todos")
+      .filter((r) => r.oferta === "Operation" || (r.oferta === "Todos" && includeTodosIn("Operation")))
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
       // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
@@ -212,8 +224,8 @@ export default function SmartTiersPanel() {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
       .filter((r) => {
-        // "Todos" entram no sub-quadro Padrão (não têm complexidade).
-        if (r.oferta === "Todos") return complexidade === "Padrão";
+        // "Todos" entram no sub-quadro Padrão, apenas quando Performance é a camada dominante.
+        if (r.oferta === "Todos") return complexidade === "Padrão" && includeTodosIn("Performance");
         return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
       })
       .filter((r) =>
@@ -272,7 +284,7 @@ export default function SmartTiersPanel() {
   // (Monitor / Flow / Enterprise) — inclui também as rotinas "Todos".
   const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
     const items = rotinas
-      .filter((r) => r.oferta === camada || r.oferta === "Todos")
+      .filter((r) => r.oferta === camada || (r.oferta === "Todos" && includeTodosIn(camada)))
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
