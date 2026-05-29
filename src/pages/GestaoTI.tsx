@@ -319,7 +319,8 @@ export default function GestaoTI() {
           ? data.complexFlag
           : undefined,
       horasExecucao:
-        data.oferta === "Performance" && data.complexidade === "Complexo"
+        (data.oferta === "Performance" && data.complexidade === "Complexo") ||
+        data.oferta === "Todos"
           ? data.horasExecucao ?? 4
           : undefined,
     };
