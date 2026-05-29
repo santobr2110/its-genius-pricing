@@ -204,10 +204,13 @@ export default function Detalhamento() {
   const pctLivre = Math.max(0, 100 - corteOwner);
   const horasTotaisN3 = state.horasN3Mensais || 0;
 
-  // Fator de venda (markup divisor + impostos) — converte custo em preço de venda
-  const fatorMargem = (100 - state.margemLucro) / 100;
-  const fatorImposto = (100 - state.impostosTaxas) / 100;
-  const fatorVenda = (fatorMargem > 0 && fatorImposto > 0) ? 1 / (fatorMargem * fatorImposto) : 1;
+  // Fator de venda (markup divisor único) — converte custo em preço de venda
+  const totalEncargosPerc =
+    (state.pisPerc || 0) + (state.cofinsPerc || 0) + (state.issPerc || 0) +
+    (state.comissaoPerc || 0) + (state.irpjCsllPerc || 0) + (state.encFinancPerc || 0) +
+    (state.lucroPerc || 0);
+  const fatorDivisor = totalEncargosPerc < 100 ? (100 - totalEncargosPerc) / 100 : 0;
+  const fatorVenda = fatorDivisor > 0 ? 1 / fatorDivisor : 1;
   const valorHoraN3Venda = state.valorHoraN3 * fatorVenda;
 
   const inv = {
