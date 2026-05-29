@@ -1061,7 +1061,7 @@ export default function Detalhamento() {
             <>
               <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
-                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+                Precificadas em separado — não abatem das horas contratadas para atuação técnica.
               </p>
               <RoutineList items={rotinasGerenciais} accent="bronze" />
             </>
@@ -1221,7 +1221,7 @@ export default function Detalhamento() {
             <>
               <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
-                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+                Precificadas em separado — não abatem das horas contratadas para atuação técnica.
               </p>
               <RoutineList items={rotinasGerenciais} accent="steel" />
             </>
@@ -1264,7 +1264,7 @@ export default function Detalhamento() {
             <>
               <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
-                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+                Precificadas em separado — não abatem das horas contratadas para atuação técnica.
               </p>
               <RoutineList items={rotinasGerenciais} accent="silver" />
             </>
@@ -1384,7 +1384,7 @@ export default function Detalhamento() {
             <>
               <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
-                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+                Precificadas em separado — não abatem das horas contratadas para atuação técnica.
               </p>
               <RoutineList items={rotinasGerenciais} accent="gold" />
             </>
