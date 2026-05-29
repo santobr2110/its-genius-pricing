@@ -215,7 +215,7 @@ export function useActivePresetSession(): ActivePresetStatus {
       for (const baseKey of PARAM_KEYS) {
         const presetKey = withPresetPrefix(baseKey, id);
         const raw = window.sessionStorage.getItem(presetKey);
-        if (raw != null) parts.push(presetKey + "=" + raw.length + ":" + raw.charCodeAt(0));
+        if (raw != null) parts.push(presetKey + "=" + raw);
       }
       const snap = parts.join("|");
       if (lastSnapshot && snap !== lastSnapshot) {
