@@ -1180,6 +1180,8 @@ function NovaRotinaDialog({
 
   const isPerf = oferta === "Performance";
   const isComplexo = isPerf && complexidade === "Complexo";
+  const isTodos = oferta === "Todos";
+  const showHoras = isComplexo || isTodos;
   const grupoFinal = grupoMode === "novo" ? novoGrupo : grupo;
   const podeSalvar = grupoFinal.trim().length > 0 && rotina.trim().length > 0;
 
@@ -1210,7 +1212,7 @@ function NovaRotinaDialog({
       complexFlag: isComplexo ? complexFlag : undefined,
       automacao,
       frequencia,
-      horasExecucao: isComplexo ? horasExecucao : undefined,
+      horasExecucao: showHoras ? horasExecucao : undefined,
     });
     reset();
     setOpen(false);
@@ -1376,9 +1378,13 @@ function NovaRotinaDialog({
             </div>
           </div>
 
-          {isComplexo && (
+          {showHoras && (
             <div className="space-y-1">
-              <Label className="text-xs">Horas por execução (custo via valor/hora N3)</Label>
+              <Label className="text-xs">
+                {isTodos
+                  ? "Horas por execução (consumidas das horas da camada)"
+                  : "Horas por execução (custo via valor/hora N3)"}
+              </Label>
               <Input
                 type="number"
                 min={0}
