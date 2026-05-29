@@ -263,6 +263,50 @@ export default function SmartTiersPanel() {
     [rotinas, state, results, fatorVenda],
   );
 
+  // Builder genérico para rotinas vinculadas a uma camada específica
+  // (Monitor / Flow / Enterprise) — inclui também as rotinas "Todos".
+  const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
+    const items = rotinas
+      .filter((r) => r.oferta === camada || r.oferta === "Todos")
+      .map((r) => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const fatorAuto = r.automacao
+          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
+          : 1;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const venda = toSell(custo);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
+      })
+      .filter((i) => i.demanda > 0)
+      .sort((a, b) => b.venda - a.venda);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+  };
+  const rotinasMonitor = useMemo(
+    () => buildLayerRotinas("Monitor"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state, results, fatorVenda],
+  );
+  const rotinasFlow = useMemo(
+    () => buildLayerRotinas("Flow"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state, results, fatorVenda],
+  );
+
+  // Horas equivalentes consumidas pelas rotinas em cada camada
+  const horasRotinasMonitor = state.valorHoraN3 > 0 ? rotinasMonitor.totals.custo / state.valorHoraN3 : 0;
+  const horasRotinasFlow = state.valorHoraN3 > 0 ? rotinasFlow.totals.custo / state.valorHoraN3 : 0;
+
   // Rotinas Performance consomem horas do pool N3 contratado (slider).
   // Convertemos o custo em horas equivalentes e abatemos do "Horas Técnicas".
   // Inclui também as rotinas de Operation (mesmo princípio: absorvidas pelo pool N3).
@@ -273,10 +317,16 @@ export default function SmartTiersPanel() {
     ? (rotinasPerfPadrao.totals.custo + rotinasPerfComplexo.totals.custo) / state.valorHoraN3
     : 0;
   const horasRotinasN3 = horasRotinasOperationN3 + horasRotinasPerformanceN3;
+  // Performance: rotinas consomem PRIMEIRO das horas do Owner; o excedente
+  // (e as rotinas de Operation) vai para o pool "Livre".
+  const horasOwnerConsumidasRotinas = Math.min(horasOwner, horasRotinasPerformanceN3);
+  const horasOwnerLivre = Math.max(0, horasOwner - horasOwnerConsumidasRotinas);
+  const horasRotinasExcedeOwner = Math.max(0, horasRotinasPerformanceN3 - horasOwner);
+  const horasRotinasNoLivre = horasRotinasOperationN3 + horasRotinasExcedeOwner;
   const pctRotinasN3 = horasTotaisN3 > 0 ? (horasRotinasN3 / horasTotaisN3) * 100 : 0;
-  const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasN3 - horasTam - horasOwner);
+  const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasNoLivre - horasTam - horasOwner);
   const pctLivreReal = horasTotaisN3 > 0 ? (horasLivre / horasTotaisN3) * 100 : 0;
-  const livreEstourado = horasChamadosN3 + horasRotinasN3 + horasTam + horasOwner > horasTotaisN3;
+  const livreEstourado = horasChamadosN3 + horasRotinasNoLivre + horasTam + horasOwner > horasTotaisN3;
 
   // Mesma distribuição, mas para o pool N3 do Smart Operation (quando Performance está desativado).
   const horasLivreOperation = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasOperationN3);
