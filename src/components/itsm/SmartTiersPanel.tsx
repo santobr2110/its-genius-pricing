@@ -714,7 +714,7 @@ export default function SmartTiersPanel() {
                       <div className="space-y-1 pt-1">
                         <div className="flex items-center justify-between text-[10px]">
                           <span className="text-muted-foreground">
-                            Consumido por rotinas Monitor + Todos ({rotinasMonitor.items.length})
+                            Consumido por rotinas Monitor{includeTodosIn("Monitor") ? " + Todos" : ""} ({rotinasMonitor.items.length})
                           </span>
                           <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
                             {formatNumber(used, 1)}h / {formatNumber(purchased)}h
@@ -948,7 +948,7 @@ export default function SmartTiersPanel() {
                       <div className="space-y-1 pt-1">
                         <div className="flex items-center justify-between text-[10px]">
                           <span className="text-muted-foreground">
-                            Consumido por rotinas Flow + Todos ({rotinasFlow.items.length})
+                            Consumido por rotinas Flow{includeTodosIn("Flow") ? " + Todos" : ""} ({rotinasFlow.items.length})
                           </span>
                           <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
                             {formatNumber(used, 1)}h / {formatNumber(purchased)}h
