@@ -254,8 +254,13 @@ export default function Detalhamento() {
 
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
     rotinas
-      .filter(r => r.oferta === oferta)
-      .filter(r => oferta === "Performance" ? (r.complexidade ?? "Padrão") === complexidade : true)
+      .filter(r => {
+        // Operation: inclui rotinas marcadas como "Todos".
+        // Performance: "Todos" vai para o sub-quadro Padrão.
+        if (oferta === "Operation") return r.oferta === "Operation" || r.oferta === "Todos";
+        if (r.oferta === "Todos") return complexidade === "Padrão";
+        return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
+      })
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
       // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
@@ -278,6 +283,22 @@ export default function Detalhamento() {
   const rotinasOp = useMemo(() => filterRoutines("Operation"), [rotinas, state]);
   const rotinasPerfPadrao = useMemo(() => filterRoutines("Performance", "Padrão"), [rotinas, state]);
   const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [rotinas, state]);
+
+  // Rotinas vinculadas às camadas Monitor / Flow (inclui "Todos").
+  const filterLayerRoutines = (camada: "Monitor" | "Flow") =>
+    rotinas
+      .filter(r => r.oferta === camada || r.oferta === "Todos")
+      .map(r => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const custo = rotinaCusto(r, demanda);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
+      })
+      .filter(i => i.demanda > 0);
+
+  const rotinasMonitor = useMemo(() => filterLayerRoutines("Monitor"), [rotinas, state]);
+  const rotinasFlow = useMemo(() => filterLayerRoutines("Flow"), [rotinas, state]);
 
   const rotinasField = useMemo(() => {
     if (!state.tierFieldOperation || n3OptionalScenario) return [];
