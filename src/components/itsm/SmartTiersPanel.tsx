@@ -1091,7 +1091,7 @@ export default function SmartTiersPanel() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <ListChecks className="h-3.5 w-3.5 text-emerald-600" />
-                    <p className="text-xs font-semibold">Rotinas vinculadas (Operation)</p>
+                    <p className="text-xs font-semibold">Rotinas vinculadas (Operation{includeTodosIn("Operation") ? " + Todos" : ""})</p>
                   </div>
                   <span className="text-[10px] text-muted-foreground">
                     custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
