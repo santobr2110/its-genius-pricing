@@ -165,7 +165,9 @@ export default function SmartTiersPanel() {
     wRotN3 * custoChN3Mix;
 
   // Última camada ativa (ordem Monitor → Flow → Operation → Performance → Enterprise).
-  // Rotinas com oferta "Todos" devem ser exibidas/consumidas apenas pela camada dominante.
+  // O quadro de "Rotinas Gerenciais Selbetti" (oferta "Todos") é exibido
+  // apenas na camada dominante — mas seu custo é cobrado em separado e NÃO
+  // consome as horas selecionadas pelos sliders.
   const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise" | null =
     state.tierEnterprise ? "Enterprise"
     : state.tierPerformance ? "Performance"
@@ -173,12 +175,10 @@ export default function SmartTiersPanel() {
     : state.tierFlow ? "Flow"
     : state.tierMonitor ? "Monitor"
     : null;
-  const includeTodosIn = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") =>
-    dominantTierKey === camada;
 
   const rotinasOperation = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Operation" || (r.oferta === "Todos" && includeTodosIn("Operation")))
+      .filter((r) => r.oferta === "Operation")
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
       // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
@@ -197,10 +197,7 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo =
-          r.oferta === "Todos"
-            ? demanda * (r.horasExecucao ?? 1) * state.valorHoraN3 * fatorAuto
-            : demanda * custoPorChamadoMix * fatorAuto;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
       })
@@ -223,11 +220,7 @@ export default function SmartTiersPanel() {
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
-      .filter((r) => {
-        // "Todos" entram no sub-quadro Padrão, apenas quando Performance é a camada dominante.
-        if (r.oferta === "Todos") return complexidade === "Padrão" && includeTodosIn("Performance");
-        return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
-      })
+      .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
@@ -243,9 +236,8 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        // Rotinas "Todos" também consomem horas manuais (igual Complexo).
-        const usaHoras = isComplex || r.oferta === "Todos";
-        const horas = r.horasExecucao ?? (r.oferta === "Todos" ? 1 : 4);
+        const usaHoras = isComplex;
+        const horas = r.horasExecucao ?? 4;
         const horasMes = usaHoras ? demanda * horas : 0;
         const custo = usaHoras
           ? horasMes * state.valorHoraN3 * fatorAuto
@@ -281,10 +273,10 @@ export default function SmartTiersPanel() {
   );
 
   // Builder genérico para rotinas vinculadas a uma camada específica
-  // (Monitor / Flow / Enterprise) — inclui também as rotinas "Todos".
+  // (Monitor / Flow / Enterprise) — apenas rotinas técnicas preventivas.
   const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
     const items = rotinas
-      .filter((r) => r.oferta === camada || (r.oferta === "Todos" && includeTodosIn(camada)))
+      .filter((r) => r.oferta === camada)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -292,10 +284,7 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo =
-          r.oferta === "Todos"
-            ? demanda * (r.horasExecucao ?? 1) * state.valorHoraN3 * fatorAuto
-            : demanda * custoPorChamadoMix * fatorAuto;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
       })
@@ -322,6 +311,40 @@ export default function SmartTiersPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rotinas, state, results, fatorVenda],
   );
+
+  // Rotinas Gerenciais Selbetti (oferta "Todos") — precificadas em separado
+  // e exibidas apenas na camada dominante. Não consomem as horas dos sliders.
+  const rotinasGerenciais = useMemo(() => {
+    const items = rotinas
+      .filter((r) => r.oferta === "Todos")
+      .map((r) => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const fatorAuto = r.automacao
+          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
+          : 1;
+        const horas = r.horasExecucao ?? 1;
+        const custo = demanda * horas * state.valorHoraN3 * fatorAuto;
+        const venda = toSell(custo);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
+      })
+      .filter((i) => i.demanda > 0)
+      .sort((a, b) => b.venda - a.venda);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rotinas, state, results, fatorVenda]);
+  const gerenciaisVendaIn = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") =>
+    dominantTierKey === camada ? rotinasGerenciais.totals.venda : 0;
 
   // Horas equivalentes consumidas pelas rotinas em cada camada
   const horasRotinasMonitor = state.valorHoraN3 > 0 ? rotinasMonitor.totals.custo / state.valorHoraN3 : 0;
