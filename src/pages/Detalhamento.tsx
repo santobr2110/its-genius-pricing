@@ -1176,6 +1176,15 @@ export default function Detalhamento() {
             parts={unifiedMonitorFlow ? [...valorMonitorParts, ...valorFlowParts] : valorFlowParts}
             color="steel"
           />
+          {rotinasFlow.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Smart Flow ({rotinasFlow.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Consumidas pelas horas de Automação / Manutenção do Smart Flow.
+              </p>
+              <RoutineList items={rotinasFlow} accent="steel" />
+            </>
+          )}
         </TierBlock>
         )}
 
