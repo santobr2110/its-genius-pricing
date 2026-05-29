@@ -1673,10 +1673,12 @@ function LayerRoutineTable({
   titulo,
   items,
   totals,
+  descricao,
 }: {
   titulo: string;
   items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; custo: number; venda: number }[];
   totals: { demanda: number; custo: number; venda: number };
+  descricao?: string;
 }) {
   return (
     <div className="rounded border bg-background p-2 space-y-1.5">
@@ -1685,6 +1687,9 @@ function LayerRoutineTable({
         <p className="text-xs font-semibold">{titulo}</p>
         <span className="text-[10px] text-muted-foreground ml-auto">{items.length} item(ns)</span>
       </div>
+      {descricao && (
+        <p className="text-[10px] text-muted-foreground italic px-1">{descricao}</p>
+      )}
       <div className="max-h-56 overflow-auto rounded border">
         <table className="w-full text-[11px]">
           <thead className="bg-muted sticky top-0">
