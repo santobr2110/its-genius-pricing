@@ -1,5 +1,5 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
-import { formatBRL, ITSMState } from "@/hooks/useITSMCalculator";
+import { formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
