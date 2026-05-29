@@ -1037,6 +1037,13 @@ export default function SmartTiersPanel() {
                 </div>
               </div>
             </div>
+            {rotinasFlow.items.length > 0 && (
+              <LayerRoutineTable
+                titulo={`Rotinas vinculadas (Flow${includeTodosIn("Flow") ? " + Todos" : ""})`}
+                items={rotinasFlow.items}
+                totals={rotinasFlow.totals}
+              />
+            )}
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Flow (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(sflTotalVenda)}</span>
