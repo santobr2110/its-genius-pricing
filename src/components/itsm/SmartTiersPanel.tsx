@@ -185,7 +185,10 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const custo =
+          r.oferta === "Todos"
+            ? demanda * (r.horasExecucao ?? 1) * state.valorHoraN3 * fatorAuto
+            : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
       })
@@ -228,9 +231,11 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const horas = r.horasExecucao ?? 4;
-        const horasMes = isComplex ? demanda * horas : 0;
-        const custo = isComplex
+        // Rotinas "Todos" também consomem horas manuais (igual Complexo).
+        const usaHoras = isComplex || r.oferta === "Todos";
+        const horas = r.horasExecucao ?? (r.oferta === "Todos" ? 1 : 4);
+        const horasMes = usaHoras ? demanda * horas : 0;
+        const custo = usaHoras
           ? horasMes * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
@@ -275,7 +280,10 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const custo =
+          r.oferta === "Todos"
+            ? demanda * (r.horasExecucao ?? 1) * state.valorHoraN3 * fatorAuto
+            : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
       })
