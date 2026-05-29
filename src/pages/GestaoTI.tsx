@@ -1078,7 +1078,7 @@ function RotinaGroupCards({
                 </div>
                 {showHoras && (
                   <div>
-                    <Label className="text-[10px] text-muted-foreground">Horas/mês</Label>
+                    <Label className="text-[10px] text-muted-foreground">Horas/exec</Label>
                     <Input
                       type="number"
                       min={0}
