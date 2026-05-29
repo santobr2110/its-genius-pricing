@@ -360,16 +360,13 @@ export default function SmartTiersPanel() {
     ? (rotinasPerfPadrao.totals.custo + rotinasPerfComplexo.totals.custo) / state.valorHoraN3
     : 0;
   const horasRotinasN3 = horasRotinasOperationN3 + horasRotinasPerformanceN3;
-  // Performance: rotinas consomem PRIMEIRO das horas do Owner; o excedente
-  // (e as rotinas de Operation) vai para o pool "Livre".
-  const horasOwnerConsumidasRotinas = Math.min(horasOwner, horasRotinasPerformanceN3);
-  const horasOwnerLivre = Math.max(0, horasOwner - horasOwnerConsumidasRotinas);
-  const horasRotinasExcedeOwner = Math.max(0, horasRotinasPerformanceN3 - horasOwner);
-  const horasRotinasNoLivre = horasRotinasOperationN3 + horasRotinasExcedeOwner;
+  // Regra: as horas N3 contratadas são consumidas, na ordem:
+  // 1) Chamados  2) TAM  3) Owner  4) Rotinas Técnicas (Operation + Performance)
+  // O que sobrar fica em "Horas Técnicas" (livre).
   const pctRotinasN3 = horasTotaisN3 > 0 ? (horasRotinasN3 / horasTotaisN3) * 100 : 0;
-  const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasNoLivre - horasTam - horasOwner);
+  const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasTam - horasOwner - horasRotinasN3);
   const pctLivreReal = horasTotaisN3 > 0 ? (horasLivre / horasTotaisN3) * 100 : 0;
-  const livreEstourado = horasChamadosN3 + horasRotinasNoLivre + horasTam + horasOwner > horasTotaisN3;
+  const livreEstourado = horasChamadosN3 + horasTam + horasOwner + horasRotinasN3 > horasTotaisN3;
 
   // Mesma distribuição, mas para o pool N3 do Smart Operation (quando Performance está desativado).
   const horasLivreOperation = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasOperationN3);
@@ -1583,11 +1580,6 @@ export default function SmartTiersPanel() {
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">Owner · {pctOwner}%</div>
                     <div className="font-semibold">{formatNumber(horasOwner)}h</div>
-                    {horasRotinasPerformanceN3 > 0 && (
-                      <div className="text-[9px] text-muted-foreground mt-0.5">
-                        −{formatNumber(horasOwnerConsumidasRotinas, 1)}h rotinas · livre {formatNumber(horasOwnerLivre, 1)}h
-                      </div>
-                    )}
                   </div>
                   <div className={`rounded px-1.5 py-1 border ${livreEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
                     <div className="text-muted-foreground">Horas Técnicas · {pctLivreReal.toFixed(0)}%</div>
