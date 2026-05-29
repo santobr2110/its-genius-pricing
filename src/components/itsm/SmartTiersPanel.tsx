@@ -166,7 +166,7 @@ export default function SmartTiersPanel() {
 
   const rotinasOperation = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Operation")
+      .filter((r) => r.oferta === "Operation" || r.oferta === "Todos")
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
       // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
@@ -208,7 +208,11 @@ export default function SmartTiersPanel() {
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
-      .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
+      .filter((r) => {
+        // "Todos" entram no sub-quadro Padrão (não têm complexidade).
+        if (r.oferta === "Todos") return complexidade === "Padrão";
+        return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
+      })
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
