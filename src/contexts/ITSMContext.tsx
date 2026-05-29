@@ -8,6 +8,9 @@ import { SMART_ITO_NS } from "@/lib/offerings";
 import { notifyPersistentStateRestored } from "@/hooks/usePersistentState";
 import { supabase } from "@/integrations/supabase/client";
 import { applyParamsPayload } from "@/hooks/useParameterProfiles";
+import { useActivePresetSession, type ActivePresetStatus } from "@/hooks/useActivePresetSession";
+import { isPresetActive } from "@/lib/activePreset";
+import { toast } from "sonner";
 
 interface ITSMContextType {
   state: ITSMState;
@@ -35,6 +38,7 @@ interface ITSMContextType {
   removeFieldProfessional: ReturnType<typeof useFieldTeamsState>["removeProfessional"];
   updateFieldLevelConfig: ReturnType<typeof useFieldTeamsState>["updateLevelConfig"];
   loadPreset: (preset: PricingPreset) => void;
+  activePreset: ActivePresetStatus;
 }
 
 const ITSMContext = createContext<ITSMContextType | null>(null);
@@ -44,6 +48,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const n1 = useN1TeamState();
   const n2 = useN2TeamState();
   const field = useFieldTeamsState();
+  const activePreset = useActivePresetSession();
 
   useEffect(() => {
     const nextCusto = n1.results.custoTotalEquipe / 4;
@@ -114,6 +119,12 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   }, [field.results.n3f.custoTotalEquipe, field.state.n3f.capacidadeChamadosTotal, field.results.n3f.custoUmProfissional, calc.state.custoEquipeFieldN3, calc.state.capacidadeFieldN3, calc.state.custoUmFieldN3, calc.setState]);
 
   const loadPreset = useCallback((preset: PricingPreset) => {
+    // Em uma aba que já está editando uma precificação, "carregar" não faz
+    // sentido (poderia sobrescrever silenciosamente o preset aberto).
+    if (isPresetActive()) {
+      toast.info("Esta aba já está editando uma precificação. Abra a nova em outra aba.");
+      return;
+    }
     // Se o preset trouxer o snapshot completo de parâmetros (presets novos),
     // restaura tudo (equipes Field, rotinas, GMUDs, cortes Smart Perf, escopo)
     // via mesmo mecanismo dos Perfis de Parâmetros.
@@ -176,6 +187,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     removeFieldProfessional: field.removeProfessional,
     updateFieldLevelConfig: field.updateLevelConfig,
     loadPreset,
+    activePreset,
   };
 
   return <ITSMContext.Provider value={value}>{children}</ITSMContext.Provider>;

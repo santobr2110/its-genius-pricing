@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SMART_ITO_NS } from "@/lib/offerings";
+import { getPresetKeyPrefix, isPresetActive } from "@/lib/activePreset";
 
 export const PERSISTENT_STATE_RESTORED_EVENT = "itsm:persistent-state-restored";
 
@@ -14,15 +15,20 @@ const migratedKeys = new Set<string>();
  * `observabilidade.` é considerada já namespeada e passa intacta.
  */
 function namespaceKey(rawKey: string): string {
+  // Quando há precificação ativa nesta aba, prefixa com `preset.<id>.` ANTES
+  // do namespace de oferta, isolando o estado da aba do workspace pessoal.
+  const presetPrefix = getPresetKeyPrefix();
   if (
     rawKey.startsWith("ito.") ||
     rawKey.startsWith("datacenter.") ||
     rawKey.startsWith("cloud.") ||
     rawKey.startsWith("observabilidade.")
   ) {
-    return rawKey;
+    // Chave já namespeada: insere o prefixo do preset logo após o namespace.
+    if (!presetPrefix) return rawKey;
+    return rawKey.replace(/^(ito\.|datacenter\.|cloud\.|observabilidade\.)([^.]+\.)/, (_m, a, b) => a + b + presetPrefix);
   }
-  return SMART_ITO_NS + rawKey;
+  return SMART_ITO_NS + presetPrefix + rawKey;
 }
 
 /** Migração one-shot da chave legada (sem namespace) para a chave namespeada. */
@@ -68,8 +74,9 @@ function mergeWithInitial<T>(value: T | undefined, initial: T): T {
 
 function readLocal<T>(key: string): T | undefined {
   if (typeof window === "undefined") return undefined;
+  const storage = isPresetActive() ? window.sessionStorage : window.localStorage;
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw = storage.getItem(key);
     if (raw == null) return undefined;
     return JSON.parse(raw) as T;
   } catch {
@@ -79,8 +86,9 @@ function readLocal<T>(key: string): T | undefined {
 
 function writeLocal<T>(key: string, value: T) {
   if (typeof window === "undefined") return;
+  const storage = isPresetActive() ? window.sessionStorage : window.localStorage;
   try {
-    window.localStorage.setItem(key, JSON.stringify(value));
+    storage.setItem(key, JSON.stringify(value));
   } catch {
     /* ignore */
   }
@@ -211,6 +219,13 @@ export function usePersistentState<T>(
 
   // Hydrate from cloud + react to auth changes.
   useEffect(() => {
+    // Quando a aba está em modo "precificação ativa", a sincronização cloud
+    // é gerenciada por `useActivePresetSession` (que escreve em
+    // pricing_presets.payload). Não tocamos em user_app_state aqui.
+    if (isPresetActive()) {
+      hydratedRef.current = true;
+      return;
+    }
     let cancelled = false;
 
     const hydrate = async (uid: string | null) => {
@@ -316,6 +331,9 @@ export function usePersistentState<T>(
         localVersionRef.current += 1;
         stateRef.current = merged;
         writeLocal(key, merged);
+        // No modo preset, não persistimos em user_app_state (cloud sync vai
+        // pela payload do preset, gerenciada em useActivePresetSession).
+        if (isPresetActive()) return merged;
         const uidForCache = userIdRef.current;
         if (uidForCache) cloudValueCache.set(cacheKey(uidForCache, key), merged);
 
