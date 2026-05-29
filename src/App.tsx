@@ -26,8 +26,22 @@ import { ITSMProvider } from "./contexts/ITSMContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import SeoHead from "./components/SeoHead";
+import ActivePresetBanner from "./components/ActivePresetBanner";
+import { useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient();
+
+function GlobalActivePresetBanner() {
+  const { pathname } = useLocation();
+  // Mostra o banner em todas as rotas Smart ITO (compartilham o workspace).
+  const SHOW_ON = [
+    "/ito", "/detalhamento", "/equipe-n1", "/equipe-n2", "/equipe-n3",
+    "/financeiro", "/taxas-demanda", "/precificacoes", "/field-service",
+    "/gestao-ti", "/relatorio-demanda", "/escopo", "/perfis-parametros",
+  ];
+  if (!SHOW_ON.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
+  return <ActivePresetBanner />;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -38,6 +52,7 @@ const App = () => (
         <AuthProvider>
           <ITSMProvider>
             <SeoHead />
+            <GlobalActivePresetBanner />
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/sem-acesso" element={<SemAcesso />} />
