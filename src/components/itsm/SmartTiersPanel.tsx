@@ -862,7 +862,7 @@ export default function SmartTiersPanel() {
                 titulo="Rotinas Gerenciais Selbetti"
                 items={rotinasGerenciais.items}
                 totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas selecionadas pelos sliders."
+                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
               />
             )}
             <div className="flex justify-between border-t pt-2">
@@ -1080,7 +1080,7 @@ export default function SmartTiersPanel() {
                 titulo="Rotinas Gerenciais Selbetti"
                 items={rotinasGerenciais.items}
                 totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas selecionadas pelos sliders."
+                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
               />
             )}
             <div className="flex justify-between border-t pt-2">
@@ -1438,7 +1438,7 @@ export default function SmartTiersPanel() {
                 titulo="Rotinas Gerenciais Selbetti"
                 items={rotinasGerenciais.items}
                 totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas selecionadas pelos sliders."
+                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
               />
             )}
             <CompositionFooter
@@ -1611,7 +1611,7 @@ export default function SmartTiersPanel() {
                 titulo="Rotinas Gerenciais Selbetti"
                 items={rotinasGerenciais.items}
                 totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas selecionadas pelos sliders."
+                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
               />
             )}
             <CompositionFooter
