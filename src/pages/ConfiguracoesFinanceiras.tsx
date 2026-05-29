@@ -175,45 +175,54 @@ export default function ConfiguracoesFinanceiras() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {renderLinha("Preço de Venda (Receita Bruta)", pv, 100, { bold: true })}
-              <Separator className="my-2" />
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground pt-1">(−) Tributos sobre venda</p>
-              {renderLinha("PIS", -comp.pis, state.pisPerc, { tone: "negative" })}
-              {renderLinha("COFINS", -comp.cofins, state.cofinsPerc, { tone: "negative" })}
-              {renderLinha("ISS", -comp.iss, state.issPerc, { tone: "negative" })}
-              <Separator className="my-2" />
-              {renderLinha("Receita Líquida", comp.receitaLiquida, (comp.receitaLiquida / (pv || 1)) * 100, { bold: true })}
-              <Separator className="my-2" />
-              {renderLinha("(−) Custo Total da Operação", -custo, (custo / (pv || 1)) * 100, { tone: "negative" })}
-              {renderLinha("(−) Comissão Comercial", -comp.comissao, state.comissaoPerc, { tone: "negative" })}
-              <Separator className="my-2" />
-              {renderLinha("Margem de Contribuição", comp.margemContribuicao, (comp.margemContribuicao / (pv || 1)) * 100, { bold: true })}
-              <Separator className="my-2" />
-              {renderLinha("(−) IRPJ / CSLL", -comp.irpjCsll, state.irpjCsllPerc, { tone: "negative" })}
-              {renderLinha("(−) Encargos Financeiros", -comp.encFinanc, state.encFinancPerc, { tone: "negative" })}
-              <Separator className="my-2" />
-              {renderLinha("Resultado Operacional (Lucro)", comp.lucro, state.lucroPerc, { bold: true, tone: "positive" })}
+              {(() => {
+                const impostosVendaPerc = state.pisPerc + state.cofinsPerc + state.issPerc;
+                const impostosVendaRs = comp.pis + comp.cofins + comp.iss;
+                const lucroAntesIR = pv - impostosVendaRs - comp.comissao - custo - comp.encFinanc;
+                const lucroAntesIRPerc = pv > 0 ? (lucroAntesIR / pv) * 100 : 0;
+                const irEfetivo = lucroAntesIR > 0 ? (comp.irpjCsll / lucroAntesIR) * 100 : 0;
+                const markupPerc = comp.custoPerc; // % do custo sobre PV
+                return (
+                  <>
+                    {renderLinha("Valor de VENDA", pv, 100, { bold: true })}
+                    <Separator className="my-2" />
+                    {renderLinha("(−) Impostos (PIS + COFINS + ISS)", -impostosVendaRs, impostosVendaPerc, { tone: "negative" })}
+                    {renderLinha("(−) Comissão", -comp.comissao, state.comissaoPerc, { tone: "negative" })}
+                    {renderLinha("(−) Custo Total da Operação", -custo, (custo / (pv || 1)) * 100, { tone: "negative" })}
+                    {state.encFinancPerc > 0 && renderLinha("(−) Encargos Financeiros", -comp.encFinanc, state.encFinancPerc, { tone: "negative" })}
+                    <Separator className="my-2" />
+                    {renderLinha("Lucro antes do IR", lucroAntesIR, lucroAntesIRPerc, { bold: true })}
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground -mt-1">
+                      <span className="italic">IR/CSLL efetivo sobre o lucro antes do IR</span>
+                      <span className="tabular-nums">{irEfetivo.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</span>
+                    </div>
+                    {renderLinha("(−) IR / CSLL", -comp.irpjCsll, state.irpjCsllPerc, { tone: "negative" })}
+                    <Separator className="my-2" />
+                    {renderLinha("Lucro Líquido (ROI)", comp.lucro, state.lucroPerc, { bold: true, tone: "positive" })}
 
-              <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3 grid grid-cols-3 gap-3 text-center">
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Markup</p>
-                  <p className="text-sm font-bold text-foreground">
-                    {custo > 0 ? (pv / custo).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}×
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ROI s/ Custo</p>
-                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                    {custo > 0 ? ((comp.lucro / custo) * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}%
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lucro / PV</p>
-                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                    {state.lucroPerc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
-                  </p>
-                </div>
-              </div>
+                    <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-3 grid grid-cols-3 gap-3 text-center">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Markup (Custo/PV)</p>
+                        <p className="text-sm font-bold text-foreground">
+                          {markupPerc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ROI s/ Custo</p>
+                        <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                          {custo > 0 ? ((comp.lucro / custo) * 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—"}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lucro / PV</p>
+                        <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                          {state.lucroPerc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
