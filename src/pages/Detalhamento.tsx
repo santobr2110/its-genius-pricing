@@ -255,10 +255,9 @@ export default function Detalhamento() {
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
     rotinas
       .filter(r => {
-        // Operation: inclui rotinas marcadas como "Todos".
-        // Performance: "Todos" vai para o sub-quadro Padrão.
-        if (oferta === "Operation") return r.oferta === "Operation" || r.oferta === "Todos";
-        if (r.oferta === "Todos") return complexidade === "Padrão";
+        // Rotinas "Todos" (Gerenciais Selbetti) são listadas em quadro próprio.
+        if (r.oferta === "Todos") return false;
+        if (oferta === "Operation") return r.oferta === "Operation";
         return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
       })
       // Sem infra (apenas service desk): apenas microinformática.
@@ -284,10 +283,10 @@ export default function Detalhamento() {
   const rotinasPerfPadrao = useMemo(() => filterRoutines("Performance", "Padrão"), [rotinas, state]);
   const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [rotinas, state]);
 
-  // Rotinas vinculadas às camadas Monitor / Flow (inclui "Todos").
+  // Rotinas técnicas preventivas vinculadas às camadas Monitor / Flow.
   const filterLayerRoutines = (camada: "Monitor" | "Flow") =>
     rotinas
-      .filter(r => r.oferta === camada || r.oferta === "Todos")
+      .filter(r => r.oferta === camada)
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -299,6 +298,30 @@ export default function Detalhamento() {
 
   const rotinasMonitor = useMemo(() => filterLayerRoutines("Monitor"), [rotinas, state]);
   const rotinasFlow = useMemo(() => filterLayerRoutines("Flow"), [rotinas, state]);
+
+  // Rotinas Gerenciais Selbetti (oferta "Todos") — quadro próprio na camada dominante.
+  const rotinasGerenciais = useMemo(() =>
+    rotinas
+      .filter(r => r.oferta === "Todos")
+      .map(r => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const fa = r.automacao ? fatorAutoPerc : 1;
+        const horas = r.horasExecucao ?? 1;
+        const custo = demanda * horas * state.valorHoraN3 * fa;
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
+      })
+      .filter(i => i.demanda > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state],
+  );
+  const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | null =
+    state.tierPerformance ? "Performance"
+    : state.tierOperation ? "Operation"
+    : state.tierFlow ? "Flow"
+    : state.tierMonitor ? "Monitor"
+    : null;
 
   const rotinasField = useMemo(() => {
     if (!state.tierFieldOperation || n3OptionalScenario) return [];
@@ -1027,11 +1050,20 @@ export default function Detalhamento() {
           )}
           {rotinasMonitor.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Smart Monitor ({rotinasMonitor.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Monitor ({rotinasMonitor.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Consumidas pelas horas de Automação / Manutenção do Smart Monitor.
               </p>
               <RoutineList items={rotinasMonitor} accent="bronze" />
+            </>
+          )}
+          {dominantTierKey === "Monitor" && rotinasGerenciais.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+              </p>
+              <RoutineList items={rotinasGerenciais} accent="bronze" />
             </>
           )}
         </TierBlock>
@@ -1178,11 +1210,20 @@ export default function Detalhamento() {
           />
           {rotinasFlow.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Smart Flow ({rotinasFlow.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Flow ({rotinasFlow.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Consumidas pelas horas de Automação / Manutenção do Smart Flow.
               </p>
               <RoutineList items={rotinasFlow} accent="steel" />
+            </>
+          )}
+          {dominantTierKey === "Flow" && rotinasGerenciais.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+              </p>
+              <RoutineList items={rotinasGerenciais} accent="steel" />
             </>
           )}
         </TierBlock>
@@ -1215,8 +1256,17 @@ export default function Detalhamento() {
 
           {rotinasOp.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas preventivas básicas ({rotinasOp.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Operation ({rotinasOp.length})</SubTitle>
               <RoutineList items={rotinasOp} accent="silver" />
+            </>
+          )}
+          {dominantTierKey === "Operation" && rotinasGerenciais.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+              </p>
+              <RoutineList items={rotinasGerenciais} accent="silver" />
             </>
           )}
 
@@ -1319,15 +1369,24 @@ export default function Detalhamento() {
 
           {rotinasPerfPadrao.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Performance — Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Performance · Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
               <RoutineList items={rotinasPerfPadrao} accent="gold" />
             </>
           )}
 
           {algumComplexAtivo && rotinasPerfComplexo.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Performance — Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Performance · Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
               <RoutineList items={rotinasPerfComplexo} accent="gold" complexo />
+            </>
+          )}
+          {dominantTierKey === "Performance" && rotinasGerenciais.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Precificadas em separado — não abatem das horas selecionadas nos sliders.
+              </p>
+              <RoutineList items={rotinasGerenciais} accent="gold" />
             </>
           )}
 

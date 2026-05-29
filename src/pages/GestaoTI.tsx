@@ -56,6 +56,7 @@ import {
   COMPLEX_FLAG_KEYS,
   COMPLEX_FLAG_LABELS,
   rotinaMultiplicador,
+  OFERTA_LABELS,
 } from "@/data/rotinas";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import {
@@ -546,7 +547,7 @@ export default function GestaoTI() {
                     const t = totals.byOferta[o];
                     return (
                       <TableRow key={o}>
-                        <TableCell className="font-medium">{o}</TableCell>
+                        <TableCell className="font-medium">{OFERTA_LABELS[o]}</TableCell>
                         <TableCell className="text-right tabular-nums text-primary font-semibold">{t.countAuto}</TableCell>
                         <TableCell className="text-right tabular-nums">{t.countManual}</TableCell>
                         <TableCell className="text-right tabular-nums font-semibold">{t.count}</TableCell>
@@ -599,7 +600,7 @@ export default function GestaoTI() {
                     const t = totals.byOferta[o];
                     return (
                       <TableRow key={o}>
-                        <TableCell className="font-medium">{o}</TableCell>
+                        <TableCell className="font-medium">{OFERTA_LABELS[o]}</TableCell>
                         <TableCell className="text-right tabular-nums text-primary font-semibold">
                           {t.demandaAuto.toFixed(1)}
                         </TableCell>
@@ -649,7 +650,7 @@ export default function GestaoTI() {
               <TabsList>
               {OFERTAS.map((o) => (
                   <TabsTrigger key={o} value={o}>
-                    {o}{" "}
+                    {OFERTA_LABELS[o]}{" "}
                     <Badge variant="secondary" className="ml-2">
                     {totals.byOferta[o].count}
                     </Badge>
@@ -711,6 +712,21 @@ export default function GestaoTI() {
                 }
                 return (
                   <TabsContent key={oferta} value={oferta} className="space-y-6 mt-4">
+                    {oferta === "Todos" && (
+                      <div className="rounded-lg border border-amber-300 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-800 p-3">
+                        <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
+                          Rotinas Gerenciais Selbetti
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-1">
+                          Estas rotinas são <strong>precificadas em separado</strong> e cobradas do
+                          cliente, mas <strong>não abatem</strong> do total de horas selecionadas
+                          pelos sliders das camadas (Automação/Manutenção, Acionamento N3, Owner,
+                          etc.). Informe manualmente a quantidade de horas consumidas no mês em
+                          "Horas/exec" — o custo é calculado por valor/hora N3 × horas × demanda.
+                          O quadro aparece somente na camada mais alta ativada na tela principal.
+                        </p>
+                      </div>
+                    )}
                     {renderGrupos(filtered)}
                   </TabsContent>
                 );
@@ -950,7 +966,7 @@ function RotinaGroupCards({
                     </SelectTrigger>
                     <SelectContent>
                       {OFERTAS.map((o) => (
-                        <SelectItem key={o} value={o}>{o}</SelectItem>
+                        <SelectItem key={o} value={o}>{OFERTA_LABELS[o]}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1243,7 +1259,7 @@ function NovaRotinaDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {OFERTAS.map((o) => (
-                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                    <SelectItem key={o} value={o}>{OFERTA_LABELS[o]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -1382,7 +1398,7 @@ function NovaRotinaDialog({
             <div className="space-y-1">
               <Label className="text-xs">
                 {isTodos
-                  ? "Horas por execução (consumidas das horas da camada)"
+                  ? "Horas por execução (cobradas em separado — NÃO consomem horas dos sliders)"
                   : "Horas por execução (custo via valor/hora N3)"}
               </Label>
               <Input

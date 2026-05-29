@@ -17,6 +17,20 @@ export const OFERTAS_ALL: Oferta[] = [
 ];
 
 /**
+ * Rótulo de exibição da oferta. A oferta "Todos" é apresentada ao usuário
+ * como "Gerenciais Selbetti" — rotinas precificadas separadamente que não
+ * consomem as horas selecionadas nos sliders das camadas.
+ */
+export const OFERTA_LABELS: Record<Oferta, string> = {
+  Monitor: "Monitor",
+  Flow: "Flow",
+  Operation: "Operation",
+  Performance: "Performance",
+  Enterprise: "Enterprise",
+  Todos: "Gerenciais Selbetti",
+};
+
+/**
  * Verifica se uma rotina se aplica a uma oferta-alvo.
  * Rotinas com oferta "Todos" aplicam-se a todas as camadas.
  */
