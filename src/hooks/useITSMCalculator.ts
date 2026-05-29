@@ -755,6 +755,7 @@ export function useITSMCalculator() {
       smartFlow,
       humanAttendanceActive,
       fieldService,
+      composicaoPreco,
     };
   }, [state]);
 
