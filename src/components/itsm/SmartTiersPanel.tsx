@@ -685,6 +685,33 @@ export default function SmartTiersPanel() {
                     step={1}
                     disabled={monitorAdvanced}
                   />
+                  {!monitorAdvanced && rotinasMonitor.items.length > 0 && (() => {
+                    const purchased = state.horasN3MonitorManut || 0;
+                    const used = horasRotinasMonitor;
+                    const overflow = used > purchased;
+                    const pct = purchased > 0 ? Math.min(100, (used / purchased) * 100) : 0;
+                    return (
+                      <div className="space-y-1 pt-1">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-muted-foreground">
+                            Consumido por rotinas Monitor + Todos ({rotinasMonitor.items.length})
+                          </span>
+                          <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
+                            {formatNumber(used, 1)}h / {formatNumber(purchased)}h
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full border bg-muted overflow-hidden">
+                          <div
+                            className={overflow ? "bg-destructive h-full" : "bg-sky-500 h-full"}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        {overflow && (
+                          <p className="text-[10px] text-destructive">Horas insuficientes — aumente o slider.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
