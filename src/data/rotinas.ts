@@ -1,4 +1,28 @@
-export type Oferta = "Operation" | "Performance";
+export type Oferta =
+  | "Monitor"
+  | "Flow"
+  | "Operation"
+  | "Performance"
+  | "Enterprise"
+  | "Todos";
+
+/** Ordem oficial das ofertas para exibição em selects/tabs. */
+export const OFERTAS_ALL: Oferta[] = [
+  "Monitor",
+  "Flow",
+  "Operation",
+  "Performance",
+  "Enterprise",
+  "Todos",
+];
+
+/**
+ * Verifica se uma rotina se aplica a uma oferta-alvo.
+ * Rotinas com oferta "Todos" aplicam-se a todas as camadas.
+ */
+export function rotinaAplicaA(r: { oferta: Oferta }, alvo: Oferta): boolean {
+  return r.oferta === alvo || r.oferta === "Todos";
+}
 export type Complexidade = "Padrão" | "Complexo";
 export const COMPLEXIDADES: Complexidade[] = ["Padrão", "Complexo"];
 export type Frequencia =
