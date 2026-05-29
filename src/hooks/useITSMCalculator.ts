@@ -769,3 +769,27 @@ export function formatBRL(value: number): string {
 export function formatNumber(value: number, decimals = 0): string {
   return value.toLocaleString("pt-BR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
+
+/**
+ * Soma dos percentuais que compõem o preço de venda (markup divisor).
+ */
+export function getTotalEncargosPerc(state: ITSMState): number {
+  return (
+    (state.pisPerc || 0) +
+    (state.cofinsPerc || 0) +
+    (state.issPerc || 0) +
+    (state.comissaoPerc || 0) +
+    (state.irpjCsllPerc || 0) +
+    (state.encFinancPerc || 0) +
+    (state.lucroPerc || 0)
+  );
+}
+
+/**
+ * Fator divisor para converter custo em preço de venda:
+ * preço = custo / fatorDivisor.
+ */
+export function getFatorDivisor(state: ITSMState): number {
+  const restante = 100 - getTotalEncargosPerc(state);
+  return restante > 0 ? restante / 100 : 0;
+}
