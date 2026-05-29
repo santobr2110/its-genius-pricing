@@ -1580,11 +1580,6 @@ export default function SmartTiersPanel() {
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">Owner · {pctOwner}%</div>
                     <div className="font-semibold">{formatNumber(horasOwner)}h</div>
-                    {horasRotinasPerformanceN3 > 0 && (
-                      <div className="text-[9px] text-muted-foreground mt-0.5">
-                        −{formatNumber(horasOwnerConsumidasRotinas, 1)}h rotinas · livre {formatNumber(horasOwnerLivre, 1)}h
-                      </div>
-                    )}
                   </div>
                   <div className={`rounded px-1.5 py-1 border ${livreEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
                     <div className="text-muted-foreground">Horas Técnicas · {pctLivreReal.toFixed(0)}%</div>
