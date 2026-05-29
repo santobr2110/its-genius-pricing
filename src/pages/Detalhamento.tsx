@@ -255,10 +255,9 @@ export default function Detalhamento() {
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
     rotinas
       .filter(r => {
-        // Operation: inclui rotinas marcadas como "Todos".
-        // Performance: "Todos" vai para o sub-quadro Padrão.
-        if (oferta === "Operation") return r.oferta === "Operation" || r.oferta === "Todos";
-        if (r.oferta === "Todos") return complexidade === "Padrão";
+        // Rotinas "Todos" (Gerenciais Selbetti) são listadas em quadro próprio.
+        if (r.oferta === "Todos") return false;
+        if (oferta === "Operation") return r.oferta === "Operation";
         return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
       })
       // Sem infra (apenas service desk): apenas microinformática.
@@ -284,10 +283,10 @@ export default function Detalhamento() {
   const rotinasPerfPadrao = useMemo(() => filterRoutines("Performance", "Padrão"), [rotinas, state]);
   const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [rotinas, state]);
 
-  // Rotinas vinculadas às camadas Monitor / Flow (inclui "Todos").
+  // Rotinas técnicas preventivas vinculadas às camadas Monitor / Flow.
   const filterLayerRoutines = (camada: "Monitor" | "Flow") =>
     rotinas
-      .filter(r => r.oferta === camada || r.oferta === "Todos")
+      .filter(r => r.oferta === camada)
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -299,6 +298,30 @@ export default function Detalhamento() {
 
   const rotinasMonitor = useMemo(() => filterLayerRoutines("Monitor"), [rotinas, state]);
   const rotinasFlow = useMemo(() => filterLayerRoutines("Flow"), [rotinas, state]);
+
+  // Rotinas Gerenciais Selbetti (oferta "Todos") — quadro próprio na camada dominante.
+  const rotinasGerenciais = useMemo(() =>
+    rotinas
+      .filter(r => r.oferta === "Todos")
+      .map(r => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const fa = r.automacao ? fatorAutoPerc : 1;
+        const horas = r.horasExecucao ?? 1;
+        const custo = demanda * horas * state.valorHoraN3 * fa;
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
+      })
+      .filter(i => i.demanda > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state],
+  );
+  const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | null =
+    state.tierPerformance ? "Performance"
+    : state.tierOperation ? "Operation"
+    : state.tierFlow ? "Flow"
+    : state.tierMonitor ? "Monitor"
+    : null;
 
   const rotinasField = useMemo(() => {
     if (!state.tierFieldOperation || n3OptionalScenario) return [];
