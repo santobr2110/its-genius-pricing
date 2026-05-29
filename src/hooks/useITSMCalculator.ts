@@ -193,6 +193,23 @@ export interface ITSMResults {
   valorMargem: number;
   valorImpostos: number;
   precoVendaMensal: number;
+  // Composição detalhada do preço de venda
+  composicaoPreco: {
+    custo: number;
+    pis: number;
+    cofins: number;
+    iss: number;
+    comissao: number;
+    irpjCsll: number;
+    encFinanc: number;
+    lucro: number;
+    precoVenda: number;
+    totalEncargosPerc: number; // soma dos 7 percentuais
+    custoPerc: number;          // 100 - totalEncargosPerc
+    receitaLiquida: number;     // PV - (PIS+COFINS+ISS)
+    margemContribuicao: number; // PV - custo - (PIS+COFINS+ISS+Comissão)
+    resultadoOperacional: number; // = lucro pretendido em R$
+  };
   // Smart Monitor
   smartMonitor: {
     ativos: number;
