@@ -56,6 +56,7 @@ import {
   COMPLEX_FLAG_KEYS,
   COMPLEX_FLAG_LABELS,
   rotinaMultiplicador,
+  OFERTA_LABELS,
 } from "@/data/rotinas";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import {
