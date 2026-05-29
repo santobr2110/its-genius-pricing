@@ -166,7 +166,7 @@ export default function SmartTiersPanel() {
 
   const rotinasOperation = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Operation")
+      .filter((r) => r.oferta === "Operation" || r.oferta === "Todos")
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
       // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
@@ -208,7 +208,11 @@ export default function SmartTiersPanel() {
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
-      .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
+      .filter((r) => {
+        // "Todos" entram no sub-quadro Padrão (não têm complexidade).
+        if (r.oferta === "Todos") return complexidade === "Padrão";
+        return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
+      })
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
@@ -259,6 +263,50 @@ export default function SmartTiersPanel() {
     [rotinas, state, results, fatorVenda],
   );
 
+  // Builder genérico para rotinas vinculadas a uma camada específica
+  // (Monitor / Flow / Enterprise) — inclui também as rotinas "Todos".
+  const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
+    const items = rotinas
+      .filter((r) => r.oferta === camada || r.oferta === "Todos")
+      .map((r) => {
+        const rotina = normalizeOsRotina(r);
+        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+        const demanda = r.chamadosMes * mult;
+        const fatorAuto = r.automacao
+          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
+          : 1;
+        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const venda = toSell(custo);
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
+      })
+      .filter((i) => i.demanda > 0)
+      .sort((a, b) => b.venda - a.venda);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+  };
+  const rotinasMonitor = useMemo(
+    () => buildLayerRotinas("Monitor"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state, results, fatorVenda],
+  );
+  const rotinasFlow = useMemo(
+    () => buildLayerRotinas("Flow"),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rotinas, state, results, fatorVenda],
+  );
+
+  // Horas equivalentes consumidas pelas rotinas em cada camada
+  const horasRotinasMonitor = state.valorHoraN3 > 0 ? rotinasMonitor.totals.custo / state.valorHoraN3 : 0;
+  const horasRotinasFlow = state.valorHoraN3 > 0 ? rotinasFlow.totals.custo / state.valorHoraN3 : 0;
+
   // Rotinas Performance consomem horas do pool N3 contratado (slider).
   // Convertemos o custo em horas equivalentes e abatemos do "Horas Técnicas".
   // Inclui também as rotinas de Operation (mesmo princípio: absorvidas pelo pool N3).
@@ -269,10 +317,16 @@ export default function SmartTiersPanel() {
     ? (rotinasPerfPadrao.totals.custo + rotinasPerfComplexo.totals.custo) / state.valorHoraN3
     : 0;
   const horasRotinasN3 = horasRotinasOperationN3 + horasRotinasPerformanceN3;
+  // Performance: rotinas consomem PRIMEIRO das horas do Owner; o excedente
+  // (e as rotinas de Operation) vai para o pool "Livre".
+  const horasOwnerConsumidasRotinas = Math.min(horasOwner, horasRotinasPerformanceN3);
+  const horasOwnerLivre = Math.max(0, horasOwner - horasOwnerConsumidasRotinas);
+  const horasRotinasExcedeOwner = Math.max(0, horasRotinasPerformanceN3 - horasOwner);
+  const horasRotinasNoLivre = horasRotinasOperationN3 + horasRotinasExcedeOwner;
   const pctRotinasN3 = horasTotaisN3 > 0 ? (horasRotinasN3 / horasTotaisN3) * 100 : 0;
-  const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasN3 - horasTam - horasOwner);
+  const horasLivre = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasNoLivre - horasTam - horasOwner);
   const pctLivreReal = horasTotaisN3 > 0 ? (horasLivre / horasTotaisN3) * 100 : 0;
-  const livreEstourado = horasChamadosN3 + horasRotinasN3 + horasTam + horasOwner > horasTotaisN3;
+  const livreEstourado = horasChamadosN3 + horasRotinasNoLivre + horasTam + horasOwner > horasTotaisN3;
 
   // Mesma distribuição, mas para o pool N3 do Smart Operation (quando Performance está desativado).
   const horasLivreOperation = Math.max(0, horasTotaisN3 - horasChamadosN3 - horasRotinasOperationN3);
@@ -631,6 +685,33 @@ export default function SmartTiersPanel() {
                     step={1}
                     disabled={monitorAdvanced}
                   />
+                  {!monitorAdvanced && rotinasMonitor.items.length > 0 && (() => {
+                    const purchased = state.horasN3MonitorManut || 0;
+                    const used = horasRotinasMonitor;
+                    const overflow = used > purchased;
+                    const pct = purchased > 0 ? Math.min(100, (used / purchased) * 100) : 0;
+                    return (
+                      <div className="space-y-1 pt-1">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-muted-foreground">
+                            Consumido por rotinas Monitor + Todos ({rotinasMonitor.items.length})
+                          </span>
+                          <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
+                            {formatNumber(used, 1)}h / {formatNumber(purchased)}h
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full border bg-muted overflow-hidden">
+                          <div
+                            className={overflow ? "bg-destructive h-full" : "bg-sky-500 h-full"}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        {overflow && (
+                          <p className="text-[10px] text-destructive">Horas insuficientes — aumente o slider.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
@@ -831,6 +912,33 @@ export default function SmartTiersPanel() {
                     step={1}
                     disabled={flowAdvanced}
                   />
+                  {!flowAdvanced && rotinasFlow.items.length > 0 && (() => {
+                    const purchased = state.horasN3FlowManut || 0;
+                    const used = horasRotinasFlow;
+                    const overflow = used > purchased;
+                    const pct = purchased > 0 ? Math.min(100, (used / purchased) * 100) : 0;
+                    return (
+                      <div className="space-y-1 pt-1">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-muted-foreground">
+                            Consumido por rotinas Flow + Todos ({rotinasFlow.items.length})
+                          </span>
+                          <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
+                            {formatNumber(used, 1)}h / {formatNumber(purchased)}h
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full border bg-muted overflow-hidden">
+                          <div
+                            className={overflow ? "bg-destructive h-full" : "bg-cyan-500 h-full"}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        {overflow && (
+                          <p className="text-[10px] text-destructive">Horas insuficientes — aumente o slider.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
@@ -1391,6 +1499,11 @@ export default function SmartTiersPanel() {
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">Owner · {pctOwner}%</div>
                     <div className="font-semibold">{formatNumber(horasOwner)}h</div>
+                    {horasRotinasPerformanceN3 > 0 && (
+                      <div className="text-[9px] text-muted-foreground mt-0.5">
+                        −{formatNumber(horasOwnerConsumidasRotinas, 1)}h rotinas · livre {formatNumber(horasOwnerLivre, 1)}h
+                      </div>
+                    )}
                   </div>
                   <div className={`rounded px-1.5 py-1 border ${livreEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
                     <div className="text-muted-foreground">Horas Técnicas · {pctLivreReal.toFixed(0)}%</div>
