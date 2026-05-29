@@ -1025,6 +1025,15 @@ export default function Detalhamento() {
           <CompositionBox title="Composição do valor mensal" total={valorMonitor} parts={valorMonitorParts} color="bronze" />
           </>
           )}
+          {rotinasMonitor.length > 0 && (
+            <>
+              <SubTitle className="mt-4">Rotinas Smart Monitor ({rotinasMonitor.length})</SubTitle>
+              <p className="text-[11px] text-muted-foreground mb-2">
+                Consumidas pelas horas de Automação / Manutenção do Smart Monitor.
+              </p>
+              <RoutineList items={rotinasMonitor} accent="bronze" />
+            </>
+          )}
         </TierBlock>
         )}
 
