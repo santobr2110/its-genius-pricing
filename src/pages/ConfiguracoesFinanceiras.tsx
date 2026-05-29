@@ -1,19 +1,50 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
-import { formatBRL } from "@/hooks/useITSMCalculator";
+import { formatBRL, ITSMState } from "@/hooks/useITSMCalculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
-import { DollarSign, TrendingUp, Percent, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, Percent, Wallet, Calculator, Receipt } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 
+type CompKey = "pisPerc" | "cofinsPerc" | "issPerc" | "comissaoPerc" | "irpjCsllPerc" | "encFinancPerc" | "lucroPerc";
+
+const COMPONENTES: { key: CompKey; label: string; descricao: string; max: number }[] = [
+  { key: "pisPerc",       label: "PIS",                 descricao: "Imposto federal sobre receita bruta.",                                max: 10 },
+  { key: "cofinsPerc",    label: "COFINS",              descricao: "Contribuição federal sobre receita bruta.",                            max: 15 },
+  { key: "issPerc",       label: "ISS",                 descricao: "Imposto municipal sobre serviços.",                                    max: 10 },
+  { key: "comissaoPerc",  label: "Comissão",            descricao: "Comissão comercial sobre o preço de venda.",                           max: 20 },
+  { key: "irpjCsllPerc",  label: "IRPJ / CSLL",         descricao: "Imposto de renda e contribuição social sobre o lucro presumido.",     max: 15 },
+  { key: "encFinancPerc", label: "Encargos Financeiros", descricao: "Custos financeiros do contrato (prazos, antecipações, garantias).",   max: 15 },
+  { key: "lucroPerc",     label: "Lucro Pretendido",     descricao: "Margem líquida desejada para a operação.",                            max: 60 },
+];
+
 export default function ConfiguracoesFinanceiras() {
   const { state, update, results } = useITSMContext();
+  const comp = results.composicaoPreco;
+  const custo = results.custoTotalOperacao;
+  const pv = comp.precoVenda;
+  const invalidConfig = comp.totalEncargosPerc >= 100;
 
-  const { valorMargem, valorImpostos, precoPreImposto } = results;
+  const renderLinha = (label: string, valor: number, perc: number, opts?: { bold?: boolean; muted?: boolean; tone?: "neutral" | "negative" | "positive" }) => {
+    const tone = opts?.tone ?? "neutral";
+    const toneCls =
+      tone === "negative" ? "text-destructive" :
+      tone === "positive" ? "text-emerald-600 dark:text-emerald-400" :
+      "text-foreground";
+    return (
+      <div className={`flex items-center justify-between text-sm ${opts?.muted ? "text-muted-foreground" : ""} ${opts?.bold ? "font-semibold" : ""}`}>
+        <span className="truncate">{label}</span>
+        <span className="flex items-baseline gap-3 tabular-nums">
+          <span className={`w-16 text-right text-xs ${opts?.muted ? "" : "text-muted-foreground"}`}>{perc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</span>
+          <span className={`w-32 text-right ${opts?.bold ? toneCls : ""}`}>{formatBRL(valor)}</span>
+        </span>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-muted/30">
