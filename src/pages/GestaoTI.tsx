@@ -73,7 +73,14 @@ import {
   type GmudFrequencia,
 } from "@/data/gmuds";
 
-const OFERTAS: Oferta[] = ["Operation", "Performance"];
+const OFERTAS: Oferta[] = [
+  "Monitor",
+  "Flow",
+  "Operation",
+  "Performance",
+  "Enterprise",
+  "Todos",
+];
 
 function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
   return arr.reduce<Record<string, T[]>>((acc, item) => {
@@ -379,8 +386,12 @@ export default function GestaoTI() {
         demandaManual: number;
       }
     > = {
-      Operation: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
+      Monitor:     { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
+      Flow:        { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
+      Operation:   { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
       Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
+      Enterprise:  { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
+      Todos:       { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
     };
     let automatizadosCount = 0;
     let automatizadosChamados = 0;
@@ -408,7 +419,7 @@ export default function GestaoTI() {
         t.demandaManual += demanda;
       }
     });
-    const totalChamados = byOferta.Operation.chamados + byOferta.Performance.chamados;
+    const totalChamados = OFERTAS.reduce((s, o) => s + byOferta[o].chamados, 0);
     return { byOferta, automatizadosCount, automatizadosChamados, totalChamados, totalDemanda, automatizadosDemanda };
   }, [
     rotinas,
@@ -1226,8 +1237,9 @@ function NovaRotinaDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Operation">Operation</SelectItem>
-                  <SelectItem value="Performance">Performance</SelectItem>
+                  {OFERTAS.map((o) => (
+                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
