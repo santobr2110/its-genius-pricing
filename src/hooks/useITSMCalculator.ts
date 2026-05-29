@@ -38,6 +38,14 @@ export interface ITSMState {
   // Financeiro
   margemLucro: number;
   impostosTaxas: number;
+  // Composição do preço de venda (markup divisor por componente)
+  pisPerc: number;
+  cofinsPerc: number;
+  issPerc: number;
+  comissaoPerc: number;
+  irpjCsllPerc: number;
+  encFinancPerc: number;
+  lucroPerc: number;
   // Camadas de oferta
   percAlocacaoN1Monitor: number;
   custoAtivoMonitorado: number;
