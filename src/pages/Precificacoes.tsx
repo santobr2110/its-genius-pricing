@@ -35,8 +35,10 @@ export default function Precificacoes() {
   const [editName, setEditName] = useState("");
 
   const handleLoad = (p: PricingPreset) => {
-    loadPreset(p);
-    toast.success(`"${p.name}" carregada.`);
+    // Restaurar = abrir nesta aba em modo auto-save.
+    if (typeof window !== "undefined") {
+      window.location.href = `/ito?preset=${encodeURIComponent(p.id)}`;
+    }
   };
 
   const handleOpenInNewTab = (p: PricingPreset) => {
