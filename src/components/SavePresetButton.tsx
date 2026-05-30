@@ -94,8 +94,10 @@ export default function SavePresetButton() {
   };
 
   const handleRestore = (p: PricingPreset) => {
-    loadPreset(p);
-    toast.success(`"${p.name}" carregada.`);
+    // Restaurar = abrir a precificação nesta aba em modo auto-save.
+    if (typeof window !== "undefined") {
+      window.location.href = `/ito?preset=${encodeURIComponent(p.id)}`;
+    }
   };
 
   const canView = can("page.precificacoes");
