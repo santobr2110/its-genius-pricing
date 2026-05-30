@@ -82,6 +82,12 @@ export default function SavePresetButton() {
       toast.success(`Precificação "${preset.name}" salva.`);
       setName("");
       setOpen(false);
+      // Ativa esta aba no modo "precificação aberta" para que edições
+      // subsequentes sejam auto-salvas no preset recém-criado (mesmo
+      // comportamento de "Abrir em nova aba").
+      if (typeof window !== "undefined") {
+        window.location.href = `/ito?preset=${encodeURIComponent(preset.id)}`;
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao salvar.");
     }
