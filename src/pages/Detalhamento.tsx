@@ -147,6 +147,10 @@ export default function Detalhamento() {
   if (state.tierEnterprise) componentNames.push("Enterprise");
 
   const handleExportPDF = async () => {
+    if (!isSavedPricing) {
+      toast.error("Salve a precificação para exportar o relatório.");
+      return;
+    }
     const el = document.getElementById("proposicao-printable");
     if (!el) return;
     const html2canvas = (await import("html2canvas")).default;
