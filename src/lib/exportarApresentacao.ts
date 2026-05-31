@@ -1050,6 +1050,25 @@ function slideFechamento(
     },
   );
 
+  if (data.presetName || data.exportedAt) {
+    const when = data.exportedAt
+      ? new Date(data.exportedAt).toLocaleString("pt-BR")
+      : new Date().toLocaleString("pt-BR");
+    const label = data.presetName
+      ? `Precificação: ${data.presetName} · Exportado em ${when}`
+      : `Exportado em ${when}`;
+    slide.addText(label, {
+      x: 0.7,
+      y: 5.45,
+      w: 8.6,
+      h: 0.18,
+      fontFace: FONT_BODY,
+      fontSize: 8,
+      color: C.textDim,
+      italic: true,
+    });
+  }
+
   addFooter(slide, page, total, data.ofertaNome);
 }
 
