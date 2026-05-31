@@ -847,9 +847,17 @@ export default function Detalhamento() {
     return payload;
   };
   const handleExportPresentation = async () => {
+    if (!isSavedPricing) {
+      toast.error("Salve a precificação para exportar a apresentação.");
+      return;
+    }
     await exportarApresentacao(buildApresentacaoPayload());
   };
   const handleExportPresentationModelo2 = async () => {
+    if (!isSavedPricing) {
+      toast.error("Salve a precificação para exportar a apresentação.");
+      return;
+    }
     await exportarApresentacaoModelo2(buildApresentacaoPayload());
   };
 
@@ -874,13 +882,20 @@ export default function Detalhamento() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={handleExportPDF} className="gap-2">
+                <DropdownMenuItem
+                  onClick={handleExportPDF}
+                  className="gap-2"
+                  disabled={!isSavedPricing}
+                  title={exportDisabledReason}
+                >
                   <FileDown className="h-4 w-4" />
                   Exportar PDF
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleExportPresentation}
                   className="gap-2"
+                  disabled={!isSavedPricing}
+                  title={exportDisabledReason}
                 >
                   <Presentation className="h-4 w-4" />
                   Apresentação · Modelo 1
@@ -888,6 +903,8 @@ export default function Detalhamento() {
                 <DropdownMenuItem
                   onClick={handleExportPresentationModelo2}
                   className="gap-2"
+                  disabled={!isSavedPricing}
+                  title={exportDisabledReason}
                 >
                   <Presentation className="h-4 w-4" />
                   Apresentação · Modelo 2 (Selbetti)
