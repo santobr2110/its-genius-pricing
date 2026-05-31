@@ -78,7 +78,11 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 };
 
 export default function Detalhamento() {
-  const { state, results } = useITSMContext();
+  const { state, results, activePreset } = useITSMContext();
+  const isSavedPricing = !!activePreset.activeId;
+  const exportDisabledReason = isSavedPricing
+    ? undefined
+    : "Salve a precificação para habilitar a exportação";
   const sm = results.smartMonitor;
   const sf = results.smartFlow;
   const fs = results.fieldService;
