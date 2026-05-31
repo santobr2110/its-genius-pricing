@@ -836,6 +836,8 @@ export default function Detalhamento() {
       itensAdicionais: itensSlide,
       restricoesGerais,
       investimentoTotal: investimentoTotal,
+      presetName: activePreset.name ?? undefined,
+      exportedAt: Date.now(),
     };
     return payload;
   };
@@ -871,11 +873,17 @@ export default function Detalhamento() {
                   <FileDown className="h-4 w-4" />
                   Exportar PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportPresentation} className="gap-2">
+                <DropdownMenuItem
+                  onClick={handleExportPresentation}
+                  className="gap-2"
+                >
                   <Presentation className="h-4 w-4" />
                   Apresentação · Modelo 1
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportPresentationModelo2} className="gap-2">
+                <DropdownMenuItem
+                  onClick={handleExportPresentationModelo2}
+                  className="gap-2"
+                >
                   <Presentation className="h-4 w-4" />
                   Apresentação · Modelo 2 (Selbetti)
                 </DropdownMenuItem>
