@@ -1743,6 +1743,14 @@ export default function Detalhamento() {
             </Card>
           );
         })()}
+        {isSavedPricing && (
+          <div className="mt-8 pt-4 border-t border-border/40 text-center text-[11px] text-muted-foreground italic">
+            <div>
+              Precificação: <span className="font-medium not-italic text-foreground">{activePreset.name}</span>
+            </div>
+            <div>Exportado em {new Date().toLocaleString("pt-BR")}</div>
+          </div>
+        )}
       </main>
     </div>
   );
