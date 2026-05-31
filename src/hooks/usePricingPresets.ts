@@ -84,6 +84,7 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       .from("pricing_presets")
       .select("*")
       .eq("offering_slug", OFFERING_SLUG)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (!error && data) {
       setPresets((data as unknown as DbRow[]).map(fromRow));
@@ -163,7 +164,14 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
 
   const remove = useCallback(
     async (id: string) => {
-      const { error } = await supabase.from("pricing_presets").delete().eq("id", id);
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase
+        .from("pricing_presets")
+        .update({
+          deleted_at: new Date().toISOString(),
+          deleted_by: user?.id ?? null,
+        } as unknown as never)
+        .eq("id", id);
       if (!error) refresh();
     },
     [refresh],
