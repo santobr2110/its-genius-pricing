@@ -136,6 +136,8 @@ export type Database = {
       pricing_presets: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           group_slug: string
           id: string
           name: string
@@ -146,6 +148,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           group_slug?: string
           id?: string
           name: string
@@ -156,6 +160,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           group_slug?: string
           id?: string
           name?: string
