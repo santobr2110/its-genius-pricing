@@ -1183,3 +1183,171 @@ function PermissionList({
     </div>
   );
 }
+// ============================================================================
+// TrashTab — soft-deleted pricing presets (admin-only view)
+// ============================================================================
+interface TrashRow {
+  id: string;
+  name: string;
+  user_id: string;
+  group_slug: string;
+  offering_slug: string;
+  deleted_at: string;
+  deleted_by: string | null;
+  created_at: string;
+}
+
+const GROUP_LABELS: Record<string, string> = {
+  ito: "ITO",
+  datacenter: "Datacenter",
+  cloud: "Cloud",
+  observabilidade: "Observabilidade",
+};
+const OFFERING_LABELS: Record<string, string> = {
+  "smart-ito": "Smart ITO",
+  "pacote-horas": "Pacote de Horas",
+  bodyshop: "Bodyshop",
+};
+
+function TrashTab() {
+  const [rows, setRows] = useState<TrashRow[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [confirmPurge, setConfirmPurge] = useState<TrashRow | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("pricing_presets")
+      .select("id,name,user_id,group_slug,offering_slug,deleted_at,deleted_by,created_at")
+      .not("deleted_at", "is", null)
+      .order("deleted_at", { ascending: false });
+    if (error) {
+      toast.error(error.message);
+      setLoading(false);
+      return;
+    }
+    const list = (data ?? []) as unknown as TrashRow[];
+    setRows(list);
+    const ids = Array.from(new Set(list.flatMap((r) => [r.user_id, r.deleted_by].filter(Boolean) as string[])));
+    if (ids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", ids);
+      const map: Record<string, string> = {};
+      (profs ?? []).forEach((p: { id: string; full_name: string | null; email: string | null }) => {
+        map[p.id] = p.full_name || p.email || p.id;
+      });
+      setProfiles(map);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const restore = async (r: TrashRow) => {
+    const { error } = await supabase
+      .from("pricing_presets")
+      .update({ deleted_at: null, deleted_by: null } as unknown as never)
+      .eq("id", r.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Precificação restaurada.");
+      load();
+    }
+  };
+
+  const purge = async (r: TrashRow) => {
+    const { error } = await supabase.from("pricing_presets").delete().eq("id", r.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Precificação excluída definitivamente.");
+      setConfirmPurge(null);
+      load();
+    }
+  };
+
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle className="text-base">Lixeira de Precificações</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
+          </div>
+        ) : rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma precificação na lixeira.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Grupo / Oferta</TableHead>
+                <TableHead>Proprietário</TableHead>
+                <TableHead>Excluída por</TableHead>
+                <TableHead>Excluída em</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="text-sm font-medium">{r.name}</TableCell>
+                  <TableCell className="text-xs">
+                    <Badge variant="secondary" className="mr-1">
+                      {GROUP_LABELS[r.group_slug] ?? r.group_slug}
+                    </Badge>
+                    <Badge variant="outline">
+                      {OFFERING_LABELS[r.offering_slug] ?? r.offering_slug}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {profiles[r.user_id] ?? r.user_id.slice(0, 8)}
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {r.deleted_by ? profiles[r.deleted_by] ?? r.deleted_by.slice(0, 8) : "—"}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {new Date(r.deleted_at).toLocaleString("pt-BR")}
+                  </TableCell>
+                  <TableCell className="text-right space-x-1">
+                    <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => restore(r)}>
+                      <RotateCcw className="h-3.5 w-3.5" /> Restaurar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 gap-1 text-destructive"
+                      onClick={() => setConfirmPurge(r)}
+                    >
+                      <Trash className="h-3.5 w-3.5" /> Excluir definitivamente
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+
+      <Dialog open={!!confirmPurge} onOpenChange={(o) => !o && setConfirmPurge(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir definitivamente?</DialogTitle>
+            <DialogDescription>
+              "{confirmPurge?.name}" será removida permanentemente do banco. Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmPurge(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => confirmPurge && purge(confirmPurge)}>
+              Excluir definitivamente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
