@@ -80,6 +80,10 @@ export interface ApresentacaoPayload {
   itensAdicionais: ItemAdicionalSlide[];
   restricoesGerais: string[];
   investimentoTotal: number;
+  /** Nome da precificação salva (Smart ITO). Exibido no slide de fechamento. */
+  presetName?: string;
+  /** Timestamp (ms) da exportação. Exibido no slide de fechamento. */
+  exportedAt?: number;
 }
 
 /* Paleta hightech verde */
