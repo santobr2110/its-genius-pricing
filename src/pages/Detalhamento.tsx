@@ -42,6 +42,7 @@ import {
   type FieldSlideData,
 } from "@/lib/exportarApresentacao";
 import { exportarApresentacaoModelo2 } from "@/lib/exportarApresentacaoModelo2";
+import { toast } from "sonner";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
@@ -78,7 +79,11 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 };
 
 export default function Detalhamento() {
-  const { state, results } = useITSMContext();
+  const { state, results, activePreset } = useITSMContext();
+  const isSavedPricing = !!activePreset.activeId;
+  const exportDisabledReason = isSavedPricing
+    ? undefined
+    : "Salve a precificação para habilitar a exportação";
   const sm = results.smartMonitor;
   const sf = results.smartFlow;
   const fs = results.fieldService;
@@ -143,6 +148,10 @@ export default function Detalhamento() {
   if (state.tierEnterprise) componentNames.push("Enterprise");
 
   const handleExportPDF = async () => {
+    if (!isSavedPricing) {
+      toast.error("Salve a precificação para exportar o relatório.");
+      return;
+    }
     const el = document.getElementById("proposicao-printable");
     if (!el) return;
     const html2canvas = (await import("html2canvas")).default;
@@ -832,13 +841,23 @@ export default function Detalhamento() {
       itensAdicionais: itensSlide,
       restricoesGerais,
       investimentoTotal: investimentoTotal,
+      presetName: activePreset.name ?? undefined,
+      exportedAt: Date.now(),
     };
     return payload;
   };
   const handleExportPresentation = async () => {
+    if (!isSavedPricing) {
+      toast.error("Salve a precificação para exportar a apresentação.");
+      return;
+    }
     await exportarApresentacao(buildApresentacaoPayload());
   };
   const handleExportPresentationModelo2 = async () => {
+    if (!isSavedPricing) {
+      toast.error("Salve a precificação para exportar a apresentação.");
+      return;
+    }
     await exportarApresentacaoModelo2(buildApresentacaoPayload());
   };
 
@@ -863,15 +882,30 @@ export default function Detalhamento() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={handleExportPDF} className="gap-2">
+                <DropdownMenuItem
+                  onClick={handleExportPDF}
+                  className="gap-2"
+                  disabled={!isSavedPricing}
+                  title={exportDisabledReason}
+                >
                   <FileDown className="h-4 w-4" />
                   Exportar PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportPresentation} className="gap-2">
+                <DropdownMenuItem
+                  onClick={handleExportPresentation}
+                  className="gap-2"
+                  disabled={!isSavedPricing}
+                  title={exportDisabledReason}
+                >
                   <Presentation className="h-4 w-4" />
                   Apresentação · Modelo 1
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportPresentationModelo2} className="gap-2">
+                <DropdownMenuItem
+                  onClick={handleExportPresentationModelo2}
+                  className="gap-2"
+                  disabled={!isSavedPricing}
+                  title={exportDisabledReason}
+                >
                   <Presentation className="h-4 w-4" />
                   Apresentação · Modelo 2 (Selbetti)
                 </DropdownMenuItem>
@@ -1709,6 +1743,14 @@ export default function Detalhamento() {
             </Card>
           );
         })()}
+        {isSavedPricing && (
+          <div className="mt-8 pt-4 border-t border-border/40 text-center text-[11px] text-muted-foreground italic">
+            <div>
+              Precificação: <span className="font-medium not-italic text-foreground">{activePreset.name}</span>
+            </div>
+            <div>Exportado em {new Date().toLocaleString("pt-BR")}</div>
+          </div>
+        )}
       </main>
     </div>
   );

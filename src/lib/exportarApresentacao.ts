@@ -80,6 +80,10 @@ export interface ApresentacaoPayload {
   itensAdicionais: ItemAdicionalSlide[];
   restricoesGerais: string[];
   investimentoTotal: number;
+  /** Nome da precificação salva (Smart ITO). Exibido no slide de fechamento. */
+  presetName?: string;
+  /** Timestamp (ms) da exportação. Exibido no slide de fechamento. */
+  exportedAt?: number;
 }
 
 /* Paleta hightech verde */
@@ -1045,6 +1049,25 @@ function slideFechamento(
       paraSpaceAfter: 2,
     },
   );
+
+  if (data.presetName || data.exportedAt) {
+    const when = data.exportedAt
+      ? new Date(data.exportedAt).toLocaleString("pt-BR")
+      : new Date().toLocaleString("pt-BR");
+    const label = data.presetName
+      ? `Precificação: ${data.presetName} · Exportado em ${when}`
+      : `Exportado em ${when}`;
+    slide.addText(label, {
+      x: 0.7,
+      y: 5.45,
+      w: 8.6,
+      h: 0.18,
+      fontFace: FONT_BODY,
+      fontSize: 8,
+      color: C.textDim,
+      italic: true,
+    });
+  }
 
   addFooter(slide, page, total, data.ofertaNome);
 }
