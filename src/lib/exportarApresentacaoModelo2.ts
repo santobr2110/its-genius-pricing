@@ -1203,6 +1203,25 @@ function slideFechamento(
     align: "right",
     italic: true,
   });
+
+  if (data.presetName || data.exportedAt) {
+    const when = data.exportedAt
+      ? new Date(data.exportedAt).toLocaleString("pt-BR")
+      : new Date().toLocaleString("pt-BR");
+    const label = data.presetName
+      ? `Precificação: ${data.presetName} · Exportado em ${when}`
+      : `Exportado em ${when}`;
+    slide.addText(label, {
+      x: 0.7,
+      y: 7.15,
+      w: 12,
+      h: 0.22,
+      fontFace: FONT,
+      fontSize: 9,
+      color: C.text,
+      italic: true,
+    });
+  }
 }
 
 export async function exportarApresentacaoModelo2(data: ApresentacaoPayload) {
