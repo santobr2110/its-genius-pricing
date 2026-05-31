@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import {
   Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save,
   ChevronRight, Layers, Package, Settings2, Server, Cloud, Activity, Calculator,
+  RotateCcw, Trash,
 } from "lucide-react";
 import type { PermissionKey } from "@/lib/permissions";
 
@@ -183,12 +184,16 @@ export default function Admin() {
             <TabsList>
               <TabsTrigger value="users">Usuários</TabsTrigger>
               <TabsTrigger value="roles">Perfis e Permissões</TabsTrigger>
+              <TabsTrigger value="trash">Lixeira</TabsTrigger>
             </TabsList>
             <TabsContent value="users">
               <UsersTab users={users} roles={roles} reload={loadAll} currentUserId={user?.id} />
             </TabsContent>
             <TabsContent value="roles">
               <RolesTab roles={roles} reload={loadAll} onRolesChanged={refresh} />
+            </TabsContent>
+            <TabsContent value="trash">
+              <TrashTab />
             </TabsContent>
           </Tabs>
         )}
