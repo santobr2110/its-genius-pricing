@@ -1,5 +1,5 @@
 // @refresh reset
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePersistentState } from "./usePersistentState";
 
 export type FieldLevel = "n1f" | "n2f" | "n3f";
@@ -107,6 +107,33 @@ function computeLevelResults(s: FieldLevelState): FieldLevelResults {
 
 export function useFieldTeamsState() {
   const [state, setState] = usePersistentState<FieldTeamsState>("itsm:fieldteams:v1", DEFAULT_STATE);
+
+  const dedupedRef = useRef(false);
+  useEffect(() => {
+    if (dedupedRef.current) return;
+    const levels: FieldLevel[] = ["n1f", "n2f", "n3f"];
+    const hasDup = levels.some((lvl) => {
+      const ids = state[lvl].professionals.map((p) => p.id);
+      return new Set(ids).size !== ids.length;
+    });
+    if (!hasDup) { dedupedRef.current = true; return; }
+    dedupedRef.current = true;
+    setState((prev) => {
+      const next = { ...prev };
+      for (const lvl of levels) {
+        const seen = new Set<string>();
+        next[lvl] = {
+          ...prev[lvl],
+          professionals: prev[lvl].professionals.map((p) => {
+            if (seen.has(p.id)) return { ...p, id: genId(lvl) };
+            seen.add(p.id);
+            return p;
+          }),
+        };
+      }
+      return next;
+    });
+  }, [state, setState]);
 
   const updateProfessional = useCallback(
     (level: FieldLevel, id: string, field: keyof Omit<FieldProfessional, "id">, value: number | string) => {
