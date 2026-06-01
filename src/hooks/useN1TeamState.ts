@@ -1,5 +1,5 @@
 // @refresh reset
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePersistentState } from "./usePersistentState";
 
 export interface N1Professional {
@@ -29,9 +29,11 @@ export interface N1TeamResults {
   custoPorChamado: number;
 }
 
-let nextId = 1;
 function genId() {
-  return `n1-${nextId++}`;
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `n1-${crypto.randomUUID()}`;
+  }
+  return `n1-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 const DEFAULT_PROFESSIONALS: N1Professional[] = [
@@ -74,6 +76,27 @@ const DEFAULT_STATE: N1TeamState = {
 
 export function useN1TeamState() {
   const [teamState, setTeamState] = usePersistentState<N1TeamState>("itsm:n1team:v1", DEFAULT_STATE);
+
+  // Migração: corrige ids duplicados criados por versões antigas do gerador.
+  const dedupedRef = useRef(false);
+  useEffect(() => {
+    if (dedupedRef.current) return;
+    const ids = teamState.professionals.map((p) => p.id);
+    const hasDup = new Set(ids).size !== ids.length;
+    if (!hasDup) { dedupedRef.current = true; return; }
+    dedupedRef.current = true;
+    setTeamState((prev) => {
+      const seen = new Set<string>();
+      return {
+        ...prev,
+        professionals: prev.professionals.map((p) => {
+          if (seen.has(p.id)) return { ...p, id: genId() };
+          seen.add(p.id);
+          return p;
+        }),
+      };
+    });
+  }, [teamState.professionals, setTeamState]);
 
   const updateProfessional = useCallback(
     (id: string, field: keyof Omit<N1Professional, "id">, value: number | string) => {

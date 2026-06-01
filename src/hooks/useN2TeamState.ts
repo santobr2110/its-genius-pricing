@@ -1,5 +1,5 @@
 // @refresh reset
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePersistentState } from "./usePersistentState";
 
 export interface N2Professional {
@@ -29,9 +29,11 @@ export interface N2TeamResults {
   custoPorChamado: number;
 }
 
-let nextId = 1;
 function genId() {
-  return `n2-${nextId++}`;
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `n2-${crypto.randomUUID()}`;
+  }
+  return `n2-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 const DEFAULT_PROFESSIONALS: N2Professional[] = [
@@ -64,6 +66,26 @@ const DEFAULT_STATE: N2TeamState = {
 
 export function useN2TeamState() {
   const [teamState, setTeamState] = usePersistentState<N2TeamState>("itsm:n2team:v1", DEFAULT_STATE);
+
+  const dedupedRef = useRef(false);
+  useEffect(() => {
+    if (dedupedRef.current) return;
+    const ids = teamState.professionals.map((p) => p.id);
+    const hasDup = new Set(ids).size !== ids.length;
+    if (!hasDup) { dedupedRef.current = true; return; }
+    dedupedRef.current = true;
+    setTeamState((prev) => {
+      const seen = new Set<string>();
+      return {
+        ...prev,
+        professionals: prev.professionals.map((p) => {
+          if (seen.has(p.id)) return { ...p, id: genId() };
+          seen.add(p.id);
+          return p;
+        }),
+      };
+    });
+  }, [teamState.professionals, setTeamState]);
 
   const updateProfessional = useCallback(
     (id: string, field: keyof Omit<N2Professional, "id">, value: number | string) => {
