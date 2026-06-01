@@ -59,6 +59,10 @@ export default function SaveDefaultsButton() {
       if (error) throw error;
       toast.success(
         `Parâmetros (${rows.length}) salvos como padrão para todos os usuários.`,
+        {
+          description:
+            "Cada alteração fica versionada em Administração › Parâmetros padrão e pode ser revertida a qualquer momento.",
+        },
       );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Não foi possível salvar os parâmetros.");
