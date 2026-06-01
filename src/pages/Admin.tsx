@@ -34,6 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PERMISSIONS } from "@/lib/permissions";
 import { toast } from "sonner";
+import DefaultsAdminTab from "@/components/admin/DefaultsAdminTab";
 import {
   Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save,
   ChevronRight, Layers, Package, Settings2, Server, Cloud, Activity, Calculator,
@@ -184,6 +185,7 @@ export default function Admin() {
             <TabsList>
               <TabsTrigger value="users">Usuários</TabsTrigger>
               <TabsTrigger value="roles">Perfis e Permissões</TabsTrigger>
+              <TabsTrigger value="defaults">Parâmetros padrão</TabsTrigger>
               <TabsTrigger value="trash">Lixeira</TabsTrigger>
             </TabsList>
             <TabsContent value="users">
@@ -191,6 +193,9 @@ export default function Admin() {
             </TabsContent>
             <TabsContent value="roles">
               <RolesTab roles={roles} reload={loadAll} onRolesChanged={refresh} />
+            </TabsContent>
+            <TabsContent value="defaults">
+              <DefaultsAdminTab />
             </TabsContent>
             <TabsContent value="trash">
               <TrashTab />

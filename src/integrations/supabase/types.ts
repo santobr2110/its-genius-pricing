@@ -35,6 +35,36 @@ export type Database = {
         }
         Relationships: []
       }
+      app_defaults_history: {
+        Row: {
+          change_kind: string
+          changed_at: string
+          changed_by: string | null
+          id: string
+          key: string
+          value: Json
+          version: number
+        }
+        Insert: {
+          change_kind: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          key: string
+          value: Json
+          version: number
+        }
+        Update: {
+          change_kind?: string
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          key?: string
+          value?: Json
+          version?: number
+        }
+        Relationships: []
+      }
       groups: {
         Row: {
           created_at: string
@@ -309,6 +339,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      revert_app_default: {
+        Args: { _key: string; _version: number }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "arquiteto" | "gestor_operacao" | "custom"
