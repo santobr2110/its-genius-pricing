@@ -1,68 +1,84 @@
-## Objetivo
+# Persistência e histórico de parâmetros padrão
 
-Permitir que o usuário abra **várias precificações salvas em abas diferentes**, cada uma com seu estado isolado (clientes, equipes, financeiro, escopo). Edições vão direto para a precificação aberta naquela aba, sem cruzar com outras abas/precificações.
+## Diagnóstico do caso "61% virou 40%"
 
-## Modelo conceitual
+Consultei `app_defaults` e `user_app_state` para todas as chaves de equipes (N1, N2, Field Teams). Em **nenhuma versão** existe `encargosPerc: 61` — só `40`, em todas as datas (24/05, 25/05 e 01/06). Conclusão: a alteração para 61% nunca chegou ao banco. Provavelmente ficou só no `localStorage` da aba (sem clicar em "Salvar como padrão") e se perdeu quando o cache local foi limpo ou a migração de namespace (`itsm:` → `ito.smart-ito.itsm:`) puxou o valor antigo da nuvem.
 
-Cada aba assume um de dois modos:
+A Etapa 2 abaixo elimina essa classe de problema: passamos a guardar **todas as versões** dos defaults no servidor, com autor, data e botão de reverter.
 
-| Modo | Como | Storage local | Storage cloud |
-|------|------|--------------|---------------|
-| **Rascunho** (atual) | Sem `?preset=` na URL | `localStorage["ito.smart-ito.<key>"]` | `user_app_state` |
-| **Precificação ativa** | URL `?preset=<id>` | `sessionStorage["ito.smart-ito.preset.<id>.<key>"]` (por aba) | `pricing_presets.payload` (debounced) |
+---
 
-Trocar de aba/precificação **não interfere** em outras abas porque:
-- `sessionStorage` é por aba (não compartilhado como `localStorage`).
-- Cada preset escreve em seu próprio registro de `pricing_presets`.
+## Etapa 1 — Histórico visível dos defaults atuais
 
-## Componentes
+Painel na aba Admin > nova seção "Parâmetros padrão" listando cada chave de `app_defaults` com:
 
-### 1. `src/lib/activePreset.ts` (novo)
-Resolve a precificação ativa a partir de `?preset=<id>` na URL e mantém em `sessionStorage`. Exporta:
-- `getActivePresetId()`
-- `getStorageNamespace()` → `ito.smart-ito.` ou `ito.smart-ito.preset.<id>.`
-- Listener para mudanças (custom event).
+- Nome amigável da chave (mapeamento ex.: `ito.smart-ito.itsm:n1team:v1` → "Equipe N1")
+- Última atualização (`updated_at`)
+- Quem alterou (`updated_by` → join com `profiles.full_name/email`)
+- Botão "Ver JSON" abrindo um modal com o `value` completo (read-only, formatado)
 
-### 2. `src/hooks/usePersistentState.ts` (alterar)
-Quando há preset ativo:
-- Usa `sessionStorage` no lugar de `localStorage`.
-- Prefixa todas as chaves com `preset.<id>.`.
-- **Não** lê/escreve em `user_app_state` (cloud sync ocorre via payload do preset).
-- Hidrata o valor inicial a partir do payload do preset injetado pelo provider.
+Sem mudanças de schema. Já dá visibilidade imediata de quem mexeu e quando.
 
-### 3. `src/hooks/useActivePresetSession.ts` (novo)
-Hook que roda dentro do `ITSMProvider`:
-- Na entrada da aba com `?preset=<id>`: carrega o preset, popula sessionStorage com cada fatia do payload (calculator, n1Team, n2Team, allParams, escopo), dispara `notifyPersistentStateRestored` para todos hooks já montados re-hidratarem.
-- Observa mudanças em `sessionStorage` (via custom event disparado pelo próprio `usePersistentState`).
-- Debounce 800 ms: serializa o snapshot atual e chama `pricing_presets.update({ payload })`.
-- Expõe status: `{ activeId, name, savedAt, saving }`.
+## Etapa 2 — Versionamento server-side dos defaults
 
-### 4. `src/components/ActivePresetBanner.tsx` (novo)
-Banner sticky no topo das páginas Smart ITO quando há preset ativo:
-- "Editando: **Nome da precificação** · salvo há Xs"
-- Botões: "Salvar como novo", "Fechar precificação" (volta ao rascunho na MESMA aba — remove `?preset=`).
+Toda alteração em `app_defaults` gera automaticamente uma linha na nova tabela `app_defaults_history`, permitindo auditoria e reversão a qualquer versão anterior.
 
-### 5. `src/pages/Precificacoes.tsx` (alterar)
-- Botão "Carregar" continua funcionando na aba atual (modo rascunho).
-- Adicionar botão **"Abrir em nova aba"** (ícone `ExternalLink`) que abre `/ito?preset=<id>` em `target="_blank"`.
+### Mudanças de banco
 
-### 6. `src/contexts/ITSMContext.tsx` (alterar)
-- Monta `useActivePresetSession` e expõe seu status no contexto.
-- `loadPreset` na aba atual continua sobrescrevendo o workspace (modo rascunho); quando há preset ativo, `loadPreset` é desabilitado (já estamos editando um).
+Nova tabela `app_defaults_history`:
+
+- `key` (text)
+- `value` (jsonb) — snapshot completo
+- `version` (bigint, autoincrement por key)
+- `changed_by` (uuid)
+- `changed_at` (timestamptz default now())
+- `change_kind` (text: `insert` | `update` | `revert`)
+
+Trigger `AFTER INSERT OR UPDATE` em `app_defaults` que insere a linha de snapshot.
+
+RLS: leitura para `authenticated` (mesmo critério do `app_defaults`); insert só via trigger (sem policy de insert direto para usuários comuns); admin pode deletar entradas (limpeza).
+
+GRANTs: `SELECT` para `authenticated`, `ALL` para `service_role`.
+
+Backfill inicial: para cada linha atual de `app_defaults`, criar a versão 1 no histórico, com `changed_by = updated_by` e `change_kind = 'insert'`.
+
+### UI no Admin
+
+Na lista da Etapa 1, cada chave passa a ter botão "Histórico" abrindo um drawer:
+
+- Tabela com colunas: Versão · Data/hora · Autor · Tipo · Ações
+- Ação "Ver" abre o JSON formatado da versão
+- Ação "Comparar com atual" mostra diff (campo a campo, só dos valores diferentes)
+- Ação "Reverter para esta versão" pede confirmação e faz `UPDATE app_defaults SET value = <versão> WHERE key = ...`. A trigger registra automaticamente uma nova entrada no histórico marcada como `revert`.
+
+Só admins (`is_admin`) podem reverter; demais usuários autenticados apenas visualizam (já é o comportamento do `app_defaults`).
+
+### Aviso ao usuário no salvamento
+
+No botão "Salvar como padrão" (`SaveDefaultsButton`), adicionar toast de sucesso com texto explícito: "Padrão atualizado e arquivado na versão N — pode ser revertido em Admin > Parâmetros padrão". Garante que o usuário entenda que a persistência foi efetivada.
+
+---
 
 ## Detalhes técnicos
 
-**Por que `sessionStorage` no modo ativo?** Garante que duas abas do mesmo usuário com presets diferentes não compartilhem cache local — `localStorage` é compartilhado entre abas e provocaria flicker/colisão.
+Arquivos novos:
 
-**Conflito de escrita simultânea no mesmo preset:** se o usuário abrir o MESMO preset em duas abas, vale last-write-wins (mesmo comportamento que hoje no rascunho). Aceitável e raro.
+- `supabase/migrations/<timestamp>_app_defaults_history.sql` — tabela, índice por `(key, version desc)`, trigger, backfill, GRANTs, RLS
+- `src/components/admin/DefaultsHistoryDrawer.tsx` — drawer com lista de versões + ações
+- `src/components/admin/DefaultsAdminTab.tsx` — nova aba/seção em `Admin.tsx`
+- `src/hooks/useAppDefaultsHistory.ts` — fetch + revert (com `supabase.from('app_defaults_history')` e `app_defaults`)
 
-**Migração:** zero — presets existentes continuam funcionando; o modo "Carregar" tradicional fica intacto.
+Arquivos alterados:
 
-**Auto-save:** debounce 800 ms; usa `pricing_presets.update({ payload, updated_at: now() })` direto; falha silenciosa com toast de erro se a conexão cair.
+- `src/pages/Admin.tsx` — adicionar `TabsTrigger` "Parâmetros padrão" e renderizar `DefaultsAdminTab`
+- `src/components/SaveDefaultsButton.tsx` — texto do toast (mensagem com nº de versão criada — opcional, pode buscar `MAX(version)` depois do upsert)
+- `src/integrations/supabase/types.ts` — regenerado automaticamente após a migration
 
-**Indicador de estado:** "salvando…" → "salvo agora" → "salvo há Xs" no banner.
+Mapeamento de chaves para nomes amigáveis fica em um único `Record<string,string>` em `src/lib/defaultsLabels.ts` (reaproveitando os labels que já existem em `GROUP_LABELS`/`OFFERING_LABELS`).
 
-## Escopo fora deste plano
-- Lista visual de "abas abertas" globalmente (cada navegador gerencia).
-- Trava/lock pessimista entre abas do mesmo preset.
-- Histórico de versões da precificação.
+A trigger usa `SECURITY DEFINER` para conseguir escrever no histórico mesmo quando o usuário só tem permissão de update via `has_permission('params.save_defaults')`.
+
+## Fora de escopo
+
+- Versionamento de `user_app_state` (estado pessoal por usuário) — pode entrar em uma etapa futura se necessário.
+- Versionamento de `pricing_presets` — já têm soft-delete; histórico de payload pode ser adicionado depois.
