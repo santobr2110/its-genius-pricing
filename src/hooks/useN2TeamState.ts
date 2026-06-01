@@ -29,9 +29,11 @@ export interface N2TeamResults {
   custoPorChamado: number;
 }
 
-let nextId = 1;
 function genId() {
-  return `n2-${nextId++}`;
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `n2-${crypto.randomUUID()}`;
+  }
+  return `n2-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 const DEFAULT_PROFESSIONALS: N2Professional[] = [
