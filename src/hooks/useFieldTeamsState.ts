@@ -44,8 +44,12 @@ export interface FieldTeamsResults {
   n3f: FieldLevelResults;
 }
 
-let nextId = 1;
-const genId = (lvl: FieldLevel) => `${lvl}-${nextId++}`;
+const genId = (lvl: FieldLevel) => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${lvl}-${crypto.randomUUID()}`;
+  }
+  return `${lvl}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+};
 
 const DEFAULT_STATE: FieldTeamsState = {
   n1f: {
