@@ -1,22 +1,30 @@
-import { createContext, useContext, ReactNode, useEffect, useCallback } from "react";
+import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { useITSMCalculator, ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { useN1TeamState, N1TeamState, N1TeamResults } from "@/hooks/useN1TeamState";
 import { useN2TeamState, N2TeamState, N2TeamResults } from "@/hooks/useN2TeamState";
 import { useFieldTeamsState, FieldTeamsState, FieldTeamsResults, FieldLevel } from "@/hooks/useFieldTeamsState";
 import type { PricingPreset } from "@/hooks/usePricingPresets";
 import { SMART_ITO_NS } from "@/lib/offerings";
-import { notifyPersistentStateRestored } from "@/hooks/usePersistentState";
+import { notifyPersistentStateRestored, usePersistentState } from "@/hooks/usePersistentState";
 import { supabase } from "@/integrations/supabase/client";
 import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 import { useActivePresetSession, type ActivePresetStatus } from "@/hooks/useActivePresetSession";
 import { isPresetActive } from "@/lib/activePreset";
 import { toast } from "sonner";
+import { type Rotina, ROTINAS_DEFAULT } from "@/data/rotinas";
+import { type Gmud, GMUDS_DEFAULT } from "@/data/gmuds";
+import {
+  computeExtrasOperacionais,
+  recomputeComposicaoComExtras,
+  type ExtrasOperacionais,
+} from "@/lib/extrasOperacionais";
 
 interface ITSMContextType {
   state: ITSMState;
   update: <K extends keyof ITSMState>(key: K, value: ITSMState[K]) => void;
   updateFunnel: (level: "percN1" | "percN2" | "percN3", value: number) => void;
   results: ITSMResults;
+  extrasOperacionais: ExtrasOperacionais;
   n1Team: N1TeamState;
   updateN1Professional: ReturnType<typeof useN1TeamState>["updateProfessional"];
   addN1Professional: ReturnType<typeof useN1TeamState>["addProfessional"];
@@ -49,6 +57,23 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const n2 = useN2TeamState();
   const field = useFieldTeamsState();
   const activePreset = useActivePresetSession();
+
+  // Rotinas e GMUDs precisam estar no contexto para que `custoTotalOperacao`
+  // e a composição do PV reflitam os mesmos extras exibidos nas camadas Smart
+  // e no Relatório de Proposição (Configurações Financeiras vs Camadas vs
+  // Relatório passam a usar a mesma base de custo).
+  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+
+  const extrasOperacionais = useMemo(
+    () => computeExtrasOperacionais(calc.state, calc.results, rotinas, gmuds),
+    [calc.state, calc.results, rotinas, gmuds],
+  );
+
+  const unifiedResults = useMemo(
+    () => recomputeComposicaoComExtras(calc.state, calc.results, extrasOperacionais.custoTotal),
+    [calc.state, calc.results, extrasOperacionais.custoTotal],
+  );
 
   useEffect(() => {
     const nextCusto = n1.results.custoTotalEquipe / 4;
@@ -165,7 +190,8 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     state: calc.state,
     update: calc.update,
     updateFunnel: calc.updateFunnel,
-    results: calc.results,
+    results: unifiedResults,
+    extrasOperacionais,
     n1Team: n1.teamState,
     updateN1Professional: n1.updateProfessional,
     addN1Professional: n1.addProfessional,
