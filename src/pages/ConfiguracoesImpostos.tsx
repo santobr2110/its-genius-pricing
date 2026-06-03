@@ -18,14 +18,16 @@ import { useEffect } from "react";
 
 type CompKey = "pisPerc" | "cofinsPerc" | "issPerc" | "irpjCsllPerc" | "encFinancPerc" | "lucroPerc";
 
-const COMPONENTES: { key: CompKey; label: string; descricao: string; max: number }[] = [
-  { key: "pisPerc",       label: "PIS",                 descricao: "Imposto federal sobre receita bruta.",                                max: 10 },
-  { key: "cofinsPerc",    label: "COFINS",              descricao: "Contribuição federal sobre receita bruta.",                            max: 15 },
-  { key: "issPerc",       label: "ISS",                 descricao: "Imposto municipal sobre serviços.",                                    max: 10 },
-  { key: "irpjCsllPerc",  label: "IRPJ / CSLL",         descricao: "Imposto de renda e contribuição social sobre o lucro presumido.",     max: 15 },
-  { key: "encFinancPerc", label: "Encargos Financeiros", descricao: "Custos financeiros do contrato (prazos, antecipações, garantias).",   max: 15 },
-  { key: "lucroPerc",     label: "Rentabilidade",        descricao: "Rentabilidade pretendida da operação. Define automaticamente a comissão pela tabela de Comissões.", max: 60 },
+const COMPONENTES_AUTO: { key: CompKey; label: string; descricao: string }[] = [
+  { key: "pisPerc",      label: "PIS",         descricao: "Imposto federal sobre receita bruta. Definido pelo código de produto." },
+  { key: "cofinsPerc",   label: "COFINS",      descricao: "Contribuição federal sobre receita bruta. Definido pelo código de produto." },
+  { key: "issPerc",      label: "ISS",         descricao: "Imposto municipal sobre serviços. Definido pelo município selecionado." },
+  { key: "irpjCsllPerc", label: "IRPJ / CSLL", descricao: "Imposto de renda e contribuição social sobre o lucro presumido. Definido pelo código de produto." },
 ];
+const ENCARGOS: { key: CompKey; label: string; descricao: string; max: number } = {
+  key: "encFinancPerc", label: "Encargos Financeiros",
+  descricao: "Custos financeiros do contrato (prazos, antecipações, garantias).", max: 15,
+};
 
 export default function ConfiguracoesImpostos() {
   const { state, update, results } = useITSMContext();
@@ -208,23 +210,46 @@ export default function ConfiguracoesImpostos() {
               calculada automaticamente em <Link to="/financeiro/comissoes" className="text-primary hover:underline">Comissões</Link>.
             </p>
           </CardHeader>
-          <CardContent className="space-y-5">
-            {COMPONENTES.map((c, i) => {
+          <CardContent className="space-y-3">
+            {COMPONENTES_AUTO.map((c) => {
               const val = (state[c.key] as number) ?? 0;
               const rs = pv * val / 100;
               return (
-                <div key={c.key} className="space-y-2">
+                <div key={c.key} className="space-y-1 rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 p-3">
+                  <div className="flex justify-between items-center">
+                    <div className="min-w-0">
+                      <Label className="text-sm font-medium">{c.label} <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-1">(automático)</span></Label>
+                      <p className="text-[11px] text-muted-foreground leading-snug">{c.descricao}</p>
+                    </div>
+                    <span className="text-base font-bold text-foreground tabular-nums shrink-0">
+                      {val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-muted-foreground">
+                    <span>Valor estimado sobre PV</span>
+                    <span className="font-semibold text-foreground tabular-nums">{formatBRL(rs)}</span>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Encargos Financeiros - único editável */}
+            {(() => {
+              const val = (state[ENCARGOS.key] as number) ?? 0;
+              const rs = pv * val / 100;
+              return (
+                <div className="space-y-2 rounded-lg border border-primary/30 bg-background p-3">
                   <div className="flex justify-between items-center gap-3">
                     <div className="min-w-0">
-                      <Label className="text-sm font-medium">{c.label}</Label>
-                      <p className="text-[11px] text-muted-foreground leading-snug">{c.descricao}</p>
+                      <Label className="text-sm font-medium">{ENCARGOS.label} <span className="text-[10px] uppercase tracking-wider text-primary ml-1">(editável)</span></Label>
+                      <p className="text-[11px] text-muted-foreground leading-snug">{ENCARGOS.descricao}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Input
                         type="number"
                         step={0.01}
                         value={val}
-                        onChange={(e) => update(c.key, parseFloat(e.target.value) || 0)}
+                        onChange={(e) => update(ENCARGOS.key, parseFloat(e.target.value) || 0)}
                         className="h-8 w-20 text-right"
                       />
                       <span className="text-sm font-semibold text-foreground w-4">%</span>
@@ -232,21 +257,38 @@ export default function ConfiguracoesImpostos() {
                   </div>
                   <Slider
                     value={[val]}
-                    onValueChange={([v]) => update(c.key, v)}
+                    onValueChange={([v]) => update(ENCARGOS.key, v)}
                     min={0}
-                    max={c.max}
+                    max={ENCARGOS.max}
                     step={0.01}
                   />
                   <div className="flex justify-between text-[11px] text-muted-foreground">
                     <span>Valor estimado sobre PV</span>
                     <span className="font-semibold text-foreground tabular-nums">{formatBRL(rs)}</span>
                   </div>
-                  {i < COMPONENTES.length - 1 && <Separator className="mt-3" />}
                 </div>
               );
-            })}
+            })()}
 
-            <Separator className="mt-3" />
+            {/* Rentabilidade - vinda do cabeçalho das camadas */}
+            <div className="space-y-1 rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3">
+              <div className="flex justify-between items-center">
+                <div className="min-w-0">
+                  <Label className="text-sm font-medium">Rentabilidade <span className="text-[10px] uppercase tracking-wider text-muted-foreground ml-1">(automática)</span></Label>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Definida no cabeçalho das Camadas de Oferta (Smart ITO). Determina a comissão pela tabela de faixas.
+                  </p>
+                </div>
+                <span className="text-base font-bold text-primary tabular-nums shrink-0">
+                  {(state.lucroPerc || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </span>
+              </div>
+              <div className="flex justify-between text-[11px] text-muted-foreground">
+                <span>Valor estimado sobre PV</span>
+                <span className="font-semibold text-foreground tabular-nums">{formatBRL(pv * (state.lucroPerc || 0) / 100)}</span>
+              </div>
+            </div>
+
             <div className="space-y-1 rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3">
               <div className="flex justify-between items-center">
                 <div className="min-w-0">
