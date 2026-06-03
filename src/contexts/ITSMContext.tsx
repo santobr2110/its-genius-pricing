@@ -18,6 +18,11 @@ import {
   recomputeComposicaoComExtras,
   type ExtrasOperacionais,
 } from "@/lib/extrasOperacionais";
+import {
+  DEFAULT_COMISSAO_TIERS,
+  comissaoFromRent,
+  type ComissaoTier,
+} from "@/lib/comissaoRentabilidade";
 
 interface ITSMContextType {
   state: ITSMState;
@@ -25,6 +30,8 @@ interface ITSMContextType {
   updateFunnel: (level: "percN1" | "percN2" | "percN3", value: number) => void;
   results: ITSMResults;
   extrasOperacionais: ExtrasOperacionais;
+  comissaoTiers: ComissaoTier[];
+  setComissaoTiers: (t: ComissaoTier[]) => void;
   n1Team: N1TeamState;
   updateN1Professional: ReturnType<typeof useN1TeamState>["updateProfessional"];
   addN1Professional: ReturnType<typeof useN1TeamState>["addProfessional"];
@@ -64,6 +71,22 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   // Relatório passam a usar a mesma base de custo).
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+
+  // Tabela de comissão por faixa de rentabilidade (editável em Configurações Financeiras).
+  const [comissaoTiers, setComissaoTiers] = usePersistentState<ComissaoTier[]>(
+    "itsm:comissaoTiers:v1",
+    DEFAULT_COMISSAO_TIERS,
+  );
+
+  // Sincroniza automaticamente a comissão com base na rentabilidade (lucroPerc)
+  // usando a tabela. Sempre que rentabilidade ou tiers mudarem, a comissão é
+  // recalculada — mantendo o markup coerente em toda a calculadora.
+  useEffect(() => {
+    const next = comissaoFromRent(calc.state.lucroPerc || 0, comissaoTiers);
+    if (Math.abs((calc.state.comissaoPerc || 0) - next) > 1e-6) {
+      calc.update("comissaoPerc", next);
+    }
+  }, [calc.state.lucroPerc, comissaoTiers, calc.state.comissaoPerc, calc.update]);
 
   const extrasOperacionais = useMemo(
     () => computeExtrasOperacionais(calc.state, calc.results, rotinas, gmuds),
@@ -192,6 +215,8 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     updateFunnel: calc.updateFunnel,
     results: unifiedResults,
     extrasOperacionais,
+    comissaoTiers,
+    setComissaoTiers,
     n1Team: n1.teamState,
     updateN1Professional: n1.updateProfessional,
     addN1Professional: n1.addProfessional,
