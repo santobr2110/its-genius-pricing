@@ -522,8 +522,31 @@ export default function SmartTiersPanel() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold">Camadas de Oferta</CardTitle>
-        <p className="text-xs text-muted-foreground">Selecione as camadas que comporão a precificação.</p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <CardTitle className="text-sm font-semibold">Camadas de Oferta</CardTitle>
+            <p className="text-xs text-muted-foreground">Selecione as camadas que comporão a precificação.</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5">
+            <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap">
+              Rentabilidade
+            </Label>
+            <Input
+              id="tiers-rent"
+              type="number"
+              step={0.01}
+              min={0}
+              max={100}
+              value={state.lucroPerc ?? 0}
+              onChange={(e) => update("lucroPerc", parseFloat(e.target.value) || 0)}
+              className="h-7 w-20 text-right tabular-nums"
+            />
+            <span className="text-xs font-semibold text-foreground">%</span>
+            <span className="text-[11px] text-muted-foreground whitespace-nowrap pl-2 border-l border-border/60">
+              Comissão: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
