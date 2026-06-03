@@ -5,11 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
-import { Calculator, DollarSign, Percent, TrendingUp, Wallet } from "lucide-react";
+import { Calculator, DollarSign, Percent, TrendingUp, Wallet, Package, MapPin } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import FinanceiroSubNav from "@/components/itsm/FinanceiroSubNav";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { usePersistentState } from "@/hooks/usePersistentState";
+import { CIDADES_ISS, CODIGOS_PRODUTO_IMPOSTO, CidadeISS, getIssPercByCidade } from "@/data/codigosProdutoImposto";
+import { useEffect } from "react";
 
 type CompKey = "pisPerc" | "cofinsPerc" | "issPerc" | "irpjCsllPerc" | "encFinancPerc" | "lucroPerc";
 
@@ -29,6 +34,19 @@ export default function ConfiguracoesImpostos() {
   const pv = comp.precoVenda;
   const invalidConfig = comp.totalEncargosPerc >= 100;
 
+  const [codigoProduto, setCodigoProduto] = usePersistentState<string>("financeiro.codigoProduto", CODIGOS_PRODUTO_IMPOSTO[0].codigo);
+  const [cidadeIss, setCidadeIss] = usePersistentState<CidadeISS>("financeiro.cidadeIss", "jlle");
+  const produto = CODIGOS_PRODUTO_IMPOSTO.find(p => p.codigo === codigoProduto) ?? CODIGOS_PRODUTO_IMPOSTO[0];
+  const issAtual = getIssPercByCidade(produto, cidadeIss);
+
+  // Sincroniza PIS / COFINS / ISS no estado conforme o produto/cidade selecionados
+  useEffect(() => {
+    if (state.pisPerc !== produto.pis) update("pisPerc", produto.pis);
+    if (state.cofinsPerc !== produto.cofins) update("cofinsPerc", produto.cofins);
+    if (state.issPerc !== issAtual) update("issPerc", issAtual);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [produto.codigo, cidadeIss]);
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -46,6 +64,92 @@ export default function ConfiguracoesImpostos() {
 
       <main className="mx-auto max-w-5xl p-6 space-y-6">
         <FinanceiroSubNav />
+
+        {/* Código do Produto (Faturamento) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Package className="h-4 w-4 text-primary" />
+              Código do Produto para Faturamento
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Selecione o código fiscal do produto. PIS, COFINS e ISS do Markup Divisor serão preenchidos automaticamente.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium">Código / Descrição</Label>
+                <Select value={codigoProduto} onValueChange={setCodigoProduto}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[60vh]">
+                    {CODIGOS_PRODUTO_IMPOSTO.map((p) => (
+                      <SelectItem key={p.codigo} value={p.codigo}>
+                        <span className="font-mono text-xs mr-2">{p.codigo}</span>
+                        <span className="text-xs">{p.descricao}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> Município do ISS
+                </Label>
+                <RadioGroup
+                  value={cidadeIss}
+                  onValueChange={(v) => setCidadeIss(v as CidadeISS)}
+                  className="flex gap-1 rounded-md border bg-background p-1"
+                >
+                  {CIDADES_ISS.map((c) => (
+                    <label
+                      key={c.value}
+                      className={`flex-1 flex items-center justify-center gap-1.5 rounded px-2 py-1.5 text-xs cursor-pointer transition-colors ${
+                        cidadeIss === c.value
+                          ? "bg-primary text-primary-foreground font-semibold"
+                          : "text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      <RadioGroupItem value={c.value} className="sr-only" />
+                      {c.label}
+                      <span className="tabular-nums opacity-80">({getIssPercByCidade(produto, c.value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%)</span>
+                    </label>
+                  ))}
+                </RadioGroup>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">BU Deb.</p>
+                <p className="font-mono font-semibold text-foreground">{produto.buDeb}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Cta Contábil</p>
+                <p className="font-mono font-semibold text-foreground">{produto.ctaContabil}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Cod.Serv.ISS</p>
+                <p className="font-mono font-semibold text-foreground">{produto.codServIss}</p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">PIS / COFINS</p>
+                <p className="font-semibold text-foreground tabular-nums">
+                  {produto.pis.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}% / {produto.cofins.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ISS aplicado</p>
+                <p className="font-bold text-primary tabular-nums">
+                  {issAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                  <span className="ml-1 text-[10px] text-muted-foreground">({CIDADES_ISS.find(c => c.value === cidadeIss)?.short})</span>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
