@@ -13,7 +13,9 @@ import FinanceiroSubNav from "@/components/itsm/FinanceiroSubNav";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { usePersistentState } from "@/hooks/usePersistentState";
-import { CIDADES_ISS, CODIGOS_PRODUTO_IMPOSTO, CidadeISS, getIssPercByCidade } from "@/data/codigosProdutoImposto";
+import { CIDADES_ISS, CidadeISS, getIssPercByCidade } from "@/data/codigosProdutoImposto";
+import { useCodigosProdutoImposto } from "@/hooks/useCodigosProdutoImposto";
+import ProdutosImpostoManager from "@/components/itsm/ProdutosImpostoManager";
 import { useEffect } from "react";
 
 type CompKey = "pisPerc" | "cofinsPerc" | "issPerc" | "irpjCsllPerc" | "encFinancPerc" | "lucroPerc";
@@ -37,9 +39,10 @@ export default function ConfiguracoesImpostos() {
   const pv = comp.precoVenda;
   const invalidConfig = comp.totalEncargosPerc >= 100;
 
-  const [codigoProduto, setCodigoProduto] = usePersistentState<string>("financeiro.codigoProduto", CODIGOS_PRODUTO_IMPOSTO[0].codigo);
+  const { lista: produtos } = useCodigosProdutoImposto();
+  const [codigoProduto, setCodigoProduto] = usePersistentState<string>("financeiro.codigoProduto", produtos[0]?.codigo ?? "");
   const [cidadeIss, setCidadeIss] = usePersistentState<CidadeISS>("financeiro.cidadeIss", "jlle");
-  const produto = CODIGOS_PRODUTO_IMPOSTO.find(p => p.codigo === codigoProduto) ?? CODIGOS_PRODUTO_IMPOSTO[0];
+  const produto = produtos.find(p => p.codigo === codigoProduto) ?? produtos[0];
   const issAtual = getIssPercByCidade(produto, cidadeIss);
 
   // Sincroniza PIS / COFINS / ISS no estado conforme o produto/cidade selecionados
@@ -71,6 +74,8 @@ export default function ConfiguracoesImpostos() {
         {/* Código do Produto (Faturamento) */}
         <Card>
           <CardHeader>
+            <div className="flex items-start justify-between gap-3">
+              <div>
             <CardTitle className="text-base flex items-center gap-2">
               <Package className="h-4 w-4 text-primary" />
               Código do Produto para Faturamento
@@ -78,6 +83,9 @@ export default function ConfiguracoesImpostos() {
             <p className="text-xs text-muted-foreground">
               Selecione o código fiscal do produto. PIS, COFINS e ISS do Markup Divisor serão preenchidos automaticamente.
             </p>
+              </div>
+              <ProdutosImpostoManager />
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
@@ -88,7 +96,7 @@ export default function ConfiguracoesImpostos() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="max-h-[60vh]">
-                    {CODIGOS_PRODUTO_IMPOSTO.map((p) => (
+                    {produtos.map((p) => (
                       <SelectItem key={p.codigo} value={p.codigo}>
                         <span className="font-mono text-xs mr-2">{p.codigo}</span>
                         <span className="text-xs">{p.descricao}</span>
