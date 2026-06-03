@@ -22,12 +22,13 @@ const COMPONENTES_AUTO: { key: CompKey; label: string; descricao: string }[] = [
   { key: "pisPerc",      label: "PIS",         descricao: "Imposto federal sobre receita bruta. Definido pelo código de produto." },
   { key: "cofinsPerc",   label: "COFINS",      descricao: "Contribuição federal sobre receita bruta. Definido pelo código de produto." },
   { key: "issPerc",      label: "ISS",         descricao: "Imposto municipal sobre serviços. Definido pelo município selecionado." },
-  { key: "irpjCsllPerc", label: "IRPJ / CSLL", descricao: "Imposto de renda e contribuição social sobre o lucro presumido. Definido pelo código de produto." },
 ];
-const ENCARGOS: { key: CompKey; label: string; descricao: string; max: number } = {
-  key: "encFinancPerc", label: "Encargos Financeiros",
-  descricao: "Custos financeiros do contrato (prazos, antecipações, garantias).", max: 15,
-};
+const EDITAVEIS: { key: CompKey; label: string; descricao: string; max: number }[] = [
+  { key: "irpjCsllPerc", label: "IRPJ / CSLL",
+    descricao: "Imposto de renda e contribuição social sobre o lucro presumido. Não consta no cadastro de produto.", max: 20 },
+  { key: "encFinancPerc", label: "Encargos Financeiros",
+    descricao: "Custos financeiros do contrato (prazos, antecipações, garantias).", max: 15 },
+];
 
 export default function ConfiguracoesImpostos() {
   const { state, update, results } = useITSMContext();
@@ -233,23 +234,23 @@ export default function ConfiguracoesImpostos() {
               );
             })}
 
-            {/* Encargos Financeiros - único editável */}
-            {(() => {
-              const val = (state[ENCARGOS.key] as number) ?? 0;
+            {/* Componentes editáveis (IRPJ/CSLL e Encargos Financeiros) */}
+            {EDITAVEIS.map((c) => {
+              const val = (state[c.key] as number) ?? 0;
               const rs = pv * val / 100;
               return (
-                <div className="space-y-2 rounded-lg border border-primary/30 bg-background p-3">
+                <div key={c.key} className="space-y-2 rounded-lg border border-primary/30 bg-background p-3">
                   <div className="flex justify-between items-center gap-3">
                     <div className="min-w-0">
-                      <Label className="text-sm font-medium">{ENCARGOS.label} <span className="text-[10px] uppercase tracking-wider text-primary ml-1">(editável)</span></Label>
-                      <p className="text-[11px] text-muted-foreground leading-snug">{ENCARGOS.descricao}</p>
+                      <Label className="text-sm font-medium">{c.label} <span className="text-[10px] uppercase tracking-wider text-primary ml-1">(editável)</span></Label>
+                      <p className="text-[11px] text-muted-foreground leading-snug">{c.descricao}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Input
                         type="number"
                         step={0.01}
                         value={val}
-                        onChange={(e) => update(ENCARGOS.key, parseFloat(e.target.value) || 0)}
+                        onChange={(e) => update(c.key, parseFloat(e.target.value) || 0)}
                         className="h-8 w-20 text-right"
                       />
                       <span className="text-sm font-semibold text-foreground w-4">%</span>
@@ -257,9 +258,9 @@ export default function ConfiguracoesImpostos() {
                   </div>
                   <Slider
                     value={[val]}
-                    onValueChange={([v]) => update(ENCARGOS.key, v)}
+                    onValueChange={([v]) => update(c.key, v)}
                     min={0}
-                    max={ENCARGOS.max}
+                    max={c.max}
                     step={0.01}
                   />
                   <div className="flex justify-between text-[11px] text-muted-foreground">
@@ -268,7 +269,7 @@ export default function ConfiguracoesImpostos() {
                   </div>
                 </div>
               );
-            })()}
+            })}
 
             {/* Rentabilidade - vinda do cabeçalho das camadas */}
             <div className="space-y-1 rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3">
