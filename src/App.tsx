@@ -10,6 +10,8 @@ import EquipeN1 from "./pages/EquipeN1";
 import EquipeN2 from "./pages/EquipeN2";
 import EquipeN3 from "./pages/EquipeN3";
 import ConfiguracoesFinanceiras from "./pages/ConfiguracoesFinanceiras";
+import ConfiguracoesImpostos from "./pages/ConfiguracoesImpostos";
+import ConfiguracoesComissoes from "./pages/ConfiguracoesComissoes";
 import TaxasDemanda from "./pages/TaxasDemanda";
 import Precificacoes from "./pages/Precificacoes";
 import FieldService from "./pages/FieldService";
@@ -64,6 +66,8 @@ const App = () => (
               <Route path="/equipe-n2" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.equipe_n2"><EquipeN2 /></ProtectedRoute>} />
               <Route path="/equipe-n3" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.equipe_n3"><EquipeN3 /></ProtectedRoute>} />
               <Route path="/financeiro" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.financeiro"><ConfiguracoesFinanceiras /></ProtectedRoute>} />
+              <Route path="/financeiro/impostos" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.financeiro"><ConfiguracoesImpostos /></ProtectedRoute>} />
+              <Route path="/financeiro/comissoes" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.financeiro"><ConfiguracoesComissoes /></ProtectedRoute>} />
               <Route path="/taxas-demanda" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.taxas_demanda"><TaxasDemanda /></ProtectedRoute>} />
               <Route path="/precificacoes" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.precificacoes"><Precificacoes /></ProtectedRoute>} />
               <Route path="/field-service" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.field_service"><FieldService /></ProtectedRoute>} />
