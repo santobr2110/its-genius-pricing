@@ -114,7 +114,7 @@ export default function ProdutosImpostoManager() {
                 <Plus className="h-3.5 w-3.5" /> Novo produto
               </Button>
             </div>
-            <ScrollArea className="flex-1 rounded-md border">
+            <ScrollArea className="flex-1 min-h-0 max-h-[60vh] rounded-md border">
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
