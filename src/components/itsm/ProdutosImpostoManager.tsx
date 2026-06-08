@@ -20,7 +20,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Pencil, Plus, Trash2, RotateCcw, Settings2 } from "lucide-react";
 import { CodigoProdutoImposto } from "@/data/codigosProdutoImposto";
 import { useCodigosProdutoImposto } from "@/hooks/useCodigosProdutoImposto";
@@ -114,7 +113,7 @@ export default function ProdutosImpostoManager() {
                 <Plus className="h-3.5 w-3.5" /> Novo produto
               </Button>
             </div>
-            <ScrollArea className="flex-1 min-h-0 max-h-[60vh] rounded-md border">
+            <div className="flex-1 min-h-0 max-h-[60vh] overflow-y-auto rounded-md border">
               <Table>
                 <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
@@ -189,7 +188,7 @@ export default function ProdutosImpostoManager() {
                   })}
                 </TableBody>
               </Table>
-            </ScrollArea>
+            </div>
           </>
         ) : (
           <ProdutoForm
