@@ -1,11 +1,11 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Upload, Trash2, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
-import { useKnowledgeBase, KbTipo } from "@/hooks/useKnowledgeBase";
+import { useKnowledgeBase, KbTipo, KbRow } from "@/hooks/useKnowledgeBase";
 import { parseCargosFile, parseDescritivosFile, CargoRow } from "@/lib/profissionais/parsers";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -25,23 +25,30 @@ function diasDesde(iso: string): number {
 }
 
 export default function BaseConhecimento() {
-  const { rows, loading, upsert, remove } = useKnowledgeBase();
+  const { byTipo, loading, add, removeOne, removeAll } = useKnowledgeBase();
   const [busy, setBusy] = useState<KbTipo | null>(null);
   const cargosRef = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLInputElement>(null);
 
-  async function handleCargos(file: File) {
+  async function handleCargos(files: FileList) {
     setBusy("cargos_salarios");
     try {
-      const { rows: parsed, texto } = await parseCargosFile(file);
-      if (parsed.length === 0) throw new Error("Nenhum cargo válido detectado no arquivo.");
-      await upsert("cargos_salarios", {
-        nome_arquivo: file.name,
-        conteudo_parsed: parsed,
-        conteudo_texto: texto,
-        total_registros: parsed.length,
-      });
-      toast({ title: "Arquivo atualizado", description: `${parsed.length} cargos importados.` });
+      let total = 0;
+      for (const file of Array.from(files)) {
+        const { rows: parsed, texto } = await parseCargosFile(file);
+        if (parsed.length === 0) {
+          toast({ title: `Ignorado: ${file.name}`, description: "Nenhum cargo válido detectado.", variant: "destructive" });
+          continue;
+        }
+        await add("cargos_salarios", {
+          nome_arquivo: file.name,
+          conteudo_parsed: parsed,
+          conteudo_texto: texto,
+          total_registros: parsed.length,
+        });
+        total += parsed.length;
+      }
+      if (total > 0) toast({ title: "Arquivos adicionados", description: `${total} cargos importados.` });
     } catch (e: any) {
       toast({ title: "Erro ao processar", description: e.message, variant: "destructive" });
     } finally {
@@ -49,17 +56,21 @@ export default function BaseConhecimento() {
     }
   }
 
-  async function handleDescritivos(file: File) {
+  async function handleDescritivos(files: FileList) {
     setBusy("descritivos");
     try {
-      const { texto, cargosIdentificados } = await parseDescritivosFile(file);
-      await upsert("descritivos", {
-        nome_arquivo: file.name,
-        conteudo_texto: texto,
-        conteudo_parsed: { cargos: cargosIdentificados },
-        total_registros: cargosIdentificados.length,
-      });
-      toast({ title: "Descritivos atualizados", description: `${cargosIdentificados.length} cargos identificados.` });
+      let totalArquivos = 0;
+      for (const file of Array.from(files)) {
+        const { texto, cargosIdentificados } = await parseDescritivosFile(file);
+        await add("descritivos", {
+          nome_arquivo: file.name,
+          conteudo_texto: texto,
+          conteudo_parsed: { cargos: cargosIdentificados },
+          total_registros: cargosIdentificados.length,
+        });
+        totalArquivos++;
+      }
+      if (totalArquivos > 0) toast({ title: "Descritivos adicionados", description: `${totalArquivos} arquivo(s) processado(s).` });
     } catch (e: any) {
       toast({ title: "Erro ao processar", description: e.message, variant: "destructive" });
     } finally {
@@ -67,17 +78,25 @@ export default function BaseConhecimento() {
     }
   }
 
-  const cargos = rows.cargos_salarios;
-  const desc = rows.descritivos;
-  const cargosOutdated = cargos && diasDesde(cargos.atualizado_em) > 30;
-  const descOutdated = desc && diasDesde(desc.atualizado_em) > 30;
+  const cargosList = byTipo.cargos_salarios;
+  const descList = byTipo.descritivos;
+  const cargosOutdated = useMemo(
+    () => cargosList.length > 0 && cargosList.every((r) => diasDesde(r.atualizado_em) > 30),
+    [cargosList],
+  );
+  const descOutdated = useMemo(
+    () => descList.length > 0 && descList.every((r) => diasDesde(r.atualizado_em) > 30),
+    [descList],
+  );
+  const totalCargos = useMemo(() => cargosList.reduce((s, r) => s + (r.total_registros ?? 0), 0), [cargosList]);
+  const totalDesc = useMemo(() => descList.reduce((s, r) => s + (r.total_registros ?? 0), 0), [descList]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Base de Conhecimento</h1>
         <p className="text-sm text-muted-foreground">
-          Carregue e mantenha atualizados os documentos que alimentam a precificação e a IA.
+          Carregue e mantenha atualizados os documentos que alimentam a precificação e a IA. Você pode adicionar quantos arquivos quiser de cada tipo.
         </p>
       </div>
 
@@ -85,7 +104,7 @@ export default function BaseConhecimento() {
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Arquivos desatualizados</AlertTitle>
-          <AlertDescription>Há mais de 30 dias sem atualização em pelo menos um dos arquivos.</AlertDescription>
+          <AlertDescription>Há mais de 30 dias sem atualização em todos os arquivos de um tipo.</AlertDescription>
         </Alert>
       )}
 
@@ -101,33 +120,16 @@ export default function BaseConhecimento() {
           <CardContent className="space-y-4">
             {loading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
-            ) : cargos ? (
+            ) : cargosList.length > 0 ? (
               <>
-                <div className="text-sm space-y-1">
-                  <div><span className="text-muted-foreground">Arquivo:</span> {cargos.nome_arquivo}</div>
-                  <div><span className="text-muted-foreground">Atualizado:</span> {new Date(cargos.atualizado_em).toLocaleString("pt-BR")}</div>
-                  <div><span className="text-muted-foreground">Registros:</span> <Badge variant="secondary">{cargos.total_registros}</Badge></div>
+                <div className="text-sm text-muted-foreground">
+                  {cargosList.length} arquivo(s) · <Badge variant="secondary">{totalCargos}</Badge> registros no total
                 </div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cargo</TableHead>
-                      <TableHead>Área</TableHead>
-                      <TableHead>Nível</TableHead>
-                      <TableHead className="text-right">Salário</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(cargos.conteudo_parsed as CargoRow[]).slice(0, 5).map((r, i) => (
-                      <TableRow key={i}>
-                        <TableCell>{r.cargo}</TableCell>
-                        <TableCell>{r.area}</TableCell>
-                        <TableCell>{r.nivel}</TableCell>
-                        <TableCell className="text-right">R$ {r.salario_base.toLocaleString("pt-BR")}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="space-y-2 max-h-72 overflow-auto">
+                  {cargosList.map((r) => (
+                    <FileRow key={r.id} row={r} onRemove={() => removeOne(r.id)} />
+                  ))}
+                </div>
               </>
             ) : (
               <p className="text-sm text-muted-foreground">Nenhum arquivo carregado ainda.</p>
@@ -137,27 +139,31 @@ export default function BaseConhecimento() {
               <input
                 ref={cargosRef}
                 type="file"
+                multiple
                 accept=".xlsx,.xls,.csv"
                 className="hidden"
-                onChange={(e) => e.target.files?.[0] && handleCargos(e.target.files[0])}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) handleCargos(e.target.files);
+                  e.target.value = "";
+                }}
               />
               <Button onClick={() => cargosRef.current?.click()} disabled={busy === "cargos_salarios"}>
                 {busy === "cargos_salarios" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-                Atualizar Arquivo
+                Adicionar Arquivos
               </Button>
-              {cargos && (
+              {cargosList.length > 0 && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="outline"><Trash2 className="h-4 w-4 mr-2" /> Limpar tudo</Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Limpar tabela de cargos?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta ação remove o arquivo da Base de Conhecimento.</AlertDialogDescription>
+                      <AlertDialogTitle>Limpar todos os arquivos de cargos?</AlertDialogTitle>
+                      <AlertDialogDescription>Esta ação remove todos os arquivos de cargos e salários da Base de Conhecimento.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => remove("cargos_salarios")}>Remover</AlertDialogAction>
+                      <AlertDialogAction onClick={() => removeAll("cargos_salarios")}>Remover</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -177,16 +183,14 @@ export default function BaseConhecimento() {
           <CardContent className="space-y-4">
             {loading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
-            ) : desc ? (
+            ) : descList.length > 0 ? (
               <>
-                <div className="text-sm space-y-1">
-                  <div><span className="text-muted-foreground">Arquivo:</span> {desc.nome_arquivo}</div>
-                  <div><span className="text-muted-foreground">Atualizado:</span> {new Date(desc.atualizado_em).toLocaleString("pt-BR")}</div>
-                  <div><span className="text-muted-foreground">Cargos identificados:</span> <Badge variant="secondary">{desc.total_registros}</Badge></div>
+                <div className="text-sm text-muted-foreground">
+                  {descList.length} arquivo(s) · <Badge variant="secondary">{totalDesc}</Badge> cargos identificados no total
                 </div>
-                <div className="max-h-48 overflow-auto rounded border p-2 text-xs space-y-0.5">
-                  {(desc.conteudo_parsed?.cargos ?? []).slice(0, 30).map((c: string, i: number) => (
-                    <div key={i}>• {c}</div>
+                <div className="space-y-2 max-h-72 overflow-auto">
+                  {descList.map((r) => (
+                    <FileRow key={r.id} row={r} onRemove={() => removeOne(r.id)} />
                   ))}
                 </div>
               </>
@@ -198,27 +202,31 @@ export default function BaseConhecimento() {
               <input
                 ref={descRef}
                 type="file"
+                multiple
                 accept=".pdf,.docx,.txt"
                 className="hidden"
-                onChange={(e) => e.target.files?.[0] && handleDescritivos(e.target.files[0])}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) handleDescritivos(e.target.files);
+                  e.target.value = "";
+                }}
               />
               <Button onClick={() => descRef.current?.click()} disabled={busy === "descritivos"}>
                 {busy === "descritivos" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-                Atualizar Arquivo
+                Adicionar Arquivos
               </Button>
-              {desc && (
+              {descList.length > 0 && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="outline"><Trash2 className="h-4 w-4 mr-2" /> Limpar tudo</Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Limpar descritivos?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta ação remove o arquivo da Base de Conhecimento.</AlertDialogDescription>
+                      <AlertDialogTitle>Limpar todos os descritivos?</AlertDialogTitle>
+                      <AlertDialogDescription>Esta ação remove todos os descritivos da Base de Conhecimento.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => remove("descritivos")}>Remover</AlertDialogAction>
+                      <AlertDialogAction onClick={() => removeAll("descritivos")}>Remover</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -227,6 +235,22 @@ export default function BaseConhecimento() {
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function FileRow({ row, onRemove }: { row: KbRow; onRemove: () => void }) {
+  return (
+    <div className="flex items-center justify-between gap-2 rounded border p-2 text-sm">
+      <div className="min-w-0 flex-1">
+        <div className="truncate font-medium">{row.nome_arquivo}</div>
+        <div className="text-xs text-muted-foreground">
+          {new Date(row.atualizado_em).toLocaleString("pt-BR")} · {row.total_registros ?? 0} registros
+        </div>
+      </div>
+      <Button variant="ghost" size="icon" onClick={onRemove} aria-label="Remover arquivo">
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
