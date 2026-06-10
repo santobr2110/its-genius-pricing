@@ -24,6 +24,11 @@ import AuthPage from "./pages/Auth";
 import SemAcesso from "./pages/SemAcesso";
 import Admin from "./pages/Admin";
 import EmBreve from "./pages/EmBreve";
+import ProfissionaisLayout from "./pages/profissionais/Layout";
+import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
+import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
+import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
+import CotacoesSalvas from "./pages/profissionais/CotacoesSalvas";
 import { ITSMProvider } from "./contexts/ITSMContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -80,6 +85,20 @@ const App = () => (
               <Route path="/observabilidade" element={<ProtectedRoute group="observabilidade"><EmBreve /></ProtectedRoute>} />
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               <Route path="/bodyshop" element={<ProtectedRoute group="ito" offering="bodyshop"><EmBreve /></ProtectedRoute>} />
+              <Route
+                path="/profissionais-alocados"
+                element={
+                  <ProtectedRoute group="ito" offering="profissionais-alocados">
+                    <ProfissionaisLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<PrecificacaoManual />} />
+                <Route path="base-conhecimento" element={<BaseConhecimento />} />
+                <Route path="precificacao-manual" element={<PrecificacaoManual />} />
+                <Route path="precificacao-ia" element={<PrecificacaoIA />} />
+                <Route path="cotacoes" element={<CotacoesSalvas />} />
+              </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
