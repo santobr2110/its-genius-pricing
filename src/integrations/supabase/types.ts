@@ -65,6 +65,162 @@ export type Database = {
         }
         Relationships: []
       }
+      base_conhecimento: {
+        Row: {
+          atualizado_em: string
+          conteudo_parsed: Json | null
+          conteudo_texto: string | null
+          criado_em: string
+          id: string
+          nome_arquivo: string
+          tipo: string
+          total_registros: number | null
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          conteudo_parsed?: Json | null
+          conteudo_texto?: string | null
+          criado_em?: string
+          id?: string
+          nome_arquivo: string
+          tipo: string
+          total_registros?: number | null
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          conteudo_parsed?: Json | null
+          conteudo_texto?: string | null
+          criado_em?: string
+          id?: string
+          nome_arquivo?: string
+          tipo?: string
+          total_registros?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      config_precificacao: {
+        Row: {
+          atualizado_em: string
+          encargos_pct: number
+          horas_mensais: number
+          id: string
+          margem_pct: number
+          overhead_pct: number
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          encargos_pct?: number
+          horas_mensais?: number
+          id?: string
+          margem_pct?: number
+          overhead_pct?: number
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          encargos_pct?: number
+          horas_mensais?: number
+          id?: string
+          margem_pct?: number
+          overhead_pct?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cotacoes: {
+        Row: {
+          area: string
+          atualizado_em: string
+          cargo: string
+          cliente: string
+          competencias: string[] | null
+          criado_em: string
+          custo_total: number
+          descricao_cargo: string | null
+          encargos_pct: number
+          excluido: boolean
+          horas_mensais: number
+          ia_competencias_chave: string[] | null
+          ia_descricao_original: string | null
+          ia_indice_aderencia: number | null
+          ia_justificativa: string | null
+          id: string
+          margem_pct: number
+          nivel: string
+          observacoes: string | null
+          origem: string
+          overhead_pct: number
+          salario_base: number
+          user_id: string
+          valida_ate: string
+          valor_hora: number
+          valor_sprint: number
+          valor_venda: number
+        }
+        Insert: {
+          area: string
+          atualizado_em?: string
+          cargo: string
+          cliente: string
+          competencias?: string[] | null
+          criado_em?: string
+          custo_total: number
+          descricao_cargo?: string | null
+          encargos_pct: number
+          excluido?: boolean
+          horas_mensais: number
+          ia_competencias_chave?: string[] | null
+          ia_descricao_original?: string | null
+          ia_indice_aderencia?: number | null
+          ia_justificativa?: string | null
+          id?: string
+          margem_pct: number
+          nivel: string
+          observacoes?: string | null
+          origem: string
+          overhead_pct: number
+          salario_base: number
+          user_id: string
+          valida_ate: string
+          valor_hora: number
+          valor_sprint: number
+          valor_venda: number
+        }
+        Update: {
+          area?: string
+          atualizado_em?: string
+          cargo?: string
+          cliente?: string
+          competencias?: string[] | null
+          criado_em?: string
+          custo_total?: number
+          descricao_cargo?: string | null
+          encargos_pct?: number
+          excluido?: boolean
+          horas_mensais?: number
+          ia_competencias_chave?: string[] | null
+          ia_descricao_original?: string | null
+          ia_indice_aderencia?: number | null
+          ia_justificativa?: string | null
+          id?: string
+          margem_pct?: number
+          nivel?: string
+          observacoes?: string | null
+          origem?: string
+          overhead_pct?: number
+          salario_base?: number
+          user_id?: string
+          valida_ate?: string
+          valor_hora?: number
+          valor_sprint?: number
+          valor_venda?: number
+        }
+        Relationships: []
+      }
       groups: {
         Row: {
           created_at: string
