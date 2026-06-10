@@ -9,6 +9,7 @@ import {
   SMART_ITO_ACCESS_KEY,
   PACOTE_HORAS_ACCESS_KEY,
   BODYSHOP_ACCESS_KEY,
+  PROFISSIONAIS_ALOCADOS_ACCESS_KEY,
 } from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";
 
@@ -55,6 +56,15 @@ const GROUPS: GroupCard[] = [
         permissionKey: SMART_ITO_ACCESS_KEY as PermissionKey,
       },
       {
+        id: "profissionais-alocados",
+        title: "Precificação de Profissionais Alocados",
+        description: "Calcule o valor de venda de profissionais de TI alocados, com apoio de IA.",
+        to: "/profissionais-alocados",
+        icon: Users,
+        available: true,
+        permissionKey: PROFISSIONAIS_ALOCADOS_ACCESS_KEY as PermissionKey,
+      },
+      {
         id: "pacote-horas",
         title: "Pacote de Horas",
         description: "Modelo de pacote de horas — em desenvolvimento.",
@@ -62,15 +72,6 @@ const GROUPS: GroupCard[] = [
         icon: Clock,
         available: false,
         permissionKey: PACOTE_HORAS_ACCESS_KEY as PermissionKey,
-      },
-      {
-        id: "bodyshop",
-        title: "Bodyshop",
-        description: "Alocação de profissionais — em desenvolvimento.",
-        to: "/bodyshop",
-        icon: Users,
-        available: false,
-        permissionKey: BODYSHOP_ACCESS_KEY as PermissionKey,
       },
     ],
   },

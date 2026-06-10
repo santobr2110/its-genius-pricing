@@ -1,84 +1,130 @@
-# Persistência e histórico de parâmetros padrão
+## Visão geral
 
-## Diagnóstico do caso "61% virou 40%"
+Criar uma nova oferta autônoma dentro do grupo ITO chamada **Precificação de Profissionais Alocados** (substitui o card "Bodyshop"), reordenada para ficar entre Smart ITO e Pacote de Horas no Hub. A calculadora terá navegação própria (sidebar) com 4 seções e persistência completa no Supabase.
 
-Consultei `app_defaults` e `user_app_state` para todas as chaves de equipes (N1, N2, Field Teams). Em **nenhuma versão** existe `encargosPerc: 61` — só `40`, em todas as datas (24/05, 25/05 e 01/06). Conclusão: a alteração para 61% nunca chegou ao banco. Provavelmente ficou só no `localStorage` da aba (sem clicar em "Salvar como padrão") e se perdeu quando o cache local foi limpo ou a migração de namespace (`itsm:` → `ito.smart-ito.itsm:`) puxou o valor antigo da nuvem.
-
-A Etapa 2 abaixo elimina essa classe de problema: passamos a guardar **todas as versões** dos defaults no servidor, com autor, data e botão de reverter.
+Modelo de IA confirmado: **Lovable AI — `google/gemini-2.5-pro`** via edge function (sem chave externa).
 
 ---
 
-## Etapa 1 — Histórico visível dos defaults atuais
+## 1. Hub e roteamento
 
-Painel na aba Admin > nova seção "Parâmetros padrão" listando cada chave de `app_defaults` com:
+- `src/pages/Hub.tsx`: renomear oferta `bodyshop` → `profissionais-alocados`, label "Precificação de Profissionais Alocados", ícone `Users`, `available: true`, reordenar para 2º lugar (Smart ITO → Profissionais Alocados → Pacote de Horas).
+- `src/lib/offerings.ts`: nova `OfferingDef` `profissionais-alocados` em ITO, com `routePrefix: "/profissionais-alocados"` e rotas das 4 sub-páginas. Remover a oferta `bodyshop` (ou mantê-la sem aparecer — preferência: substituir).
+- `src/lib/permissions.ts`: nova chave `offering.ito.profissionais-alocados.access` (admin liberado por padrão; demais roles via tela Admin).
+- `src/App.tsx`: novas rotas protegidas (`group="ito"`, `offering="profissionais-alocados"`):
+  - `/profissionais-alocados` (redireciona para `/precificacao-manual`)
+  - `/profissionais-alocados/base-conhecimento`
+  - `/profissionais-alocados/precificacao-manual`
+  - `/profissionais-alocados/precificacao-ia`
+  - `/profissionais-alocados/cotacoes`
 
-- Nome amigável da chave (mapeamento ex.: `ito.smart-ito.itsm:n1team:v1` → "Equipe N1")
-- Última atualização (`updated_at`)
-- Quem alterou (`updated_by` → join com `profiles.full_name/email`)
-- Botão "Ver JSON" abrindo um modal com o `value` completo (read-only, formatado)
+## 2. Schema Supabase (uma migration)
 
-Sem mudanças de schema. Já dá visibilidade imediata de quem mexeu e quando.
+Três tabelas + grants + RLS escopada por usuário (`auth.uid()`):
 
-## Etapa 2 — Versionamento server-side dos defaults
+- `base_conhecimento` (`tipo`, `nome_arquivo`, `conteudo_texto`, `conteudo_parsed jsonb`, `total_registros`, `user_id`, timestamps).  
+  Constraint `unique(user_id, tipo)` para suportar upsert "manter o mais recente por tipo por usuário".
+- `cotacoes` — todos os campos do escopo + `user_id` + `excluido boolean default false` (soft delete) + `ia_*` opcionais.
+- `config_precificacao` — um registro por usuário (PK composta ou `unique(user_id)`); defaults `encargos_pct=68`, `overhead_pct=15`, `margem_pct=25`, `horas_mensais=176`.
 
-Toda alteração em `app_defaults` gera automaticamente uma linha na nova tabela `app_defaults_history`, permitindo auditoria e reversão a qualquer versão anterior.
+RLS: cada usuário só lê/escreve as próprias linhas. Grants padrão `authenticated`/`service_role`. Trigger `touch_updated_at` em todas.
 
-### Mudanças de banco
+## 3. Layout da calculadora
 
-Nova tabela `app_defaults_history`:
+- `src/pages/profissionais/Layout.tsx`: `SidebarProvider` + sidebar fixa à esquerda com 4 itens (Base Conhecimento, Precificação Manual, Precificação IA, Cotações Salvas), header com `SidebarTrigger` + `BackHomeButton` + `UserMenu`/`ThemeToggle`. `<Outlet />` no main.
+- Reaproveitar tokens semânticos atuais (paleta verde/emerald, fontes do projeto).
 
-- `key` (text)
-- `value` (jsonb) — snapshot completo
-- `version` (bigint, autoincrement por key)
-- `changed_by` (uuid)
-- `changed_at` (timestamptz default now())
-- `change_kind` (text: `insert` | `update` | `revert`)
+## 4. Seção: Base de Conhecimento (`/profissionais-alocados/base-conhecimento`)
 
-Trigger `AFTER INSERT OR UPDATE` em `app_defaults` que insere a linha de snapshot.
+- Dois slots (cards) — `cargos_salarios` e `descritivos`.
+- Upload via `<input type="file">` + parse no browser:
+  - XLSX/CSV → `xlsx` (já presumido ou adicionar `xlsx` lib) → `conteudo_parsed` é array de `{cargo, area, nivel, salario_base, descricao?, competencias?[]}`. Normalizar nomes de colunas (case/acentos).
+  - PDF → `pdfjs-dist`; DOCX → `mammoth`; TXT → leitura direta. Texto extraído vai em `conteudo_texto`.
+- Upsert no Supabase via `usePersonasKnowledge` hook (chave `(user_id, tipo)`).
+- Mostrar: nome arquivo, data, total registros, prévia (5 primeiros para cargos; lista de cargos identificados para descritivos via regex/heurística simples).
+- Banner amarelo se `atualizado_em > 30 dias`. Banner vermelho nas outras seções se faltar registro.
+- Botão "Limpar Base" com `AlertDialog` → delete por `(user_id, tipo)`.
 
-RLS: leitura para `authenticated` (mesmo critério do `app_defaults`); insert só via trigger (sem policy de insert direto para usuários comuns); admin pode deletar entradas (limpeza).
+## 5. Seção: Precificação Manual
 
-GRANTs: `SELECT` para `authenticated`, `ALL` para `service_role`.
+- Layout 2 colunas: painel de seleção (esquerda) + painel de resultado (direita, ver §7).
+- Dropdowns encadeados alimentados por `conteudo_parsed`:
+  1. Área (distinct das áreas presentes no arquivo)
+  2. Cargo (filtrado pela área)
+  3. Nível (fixo: Júnior, Pleno, Sênior, Especialista, Coordenador, Gerente)
+  4. Regime (Integral 100% / Meio período 50% / Sprint quinzenal)
+  5. Duração (3/6/12/24+ meses)
+- Ao preencher tudo, popula salário base do registro mais aderente (mesma área+cargo, fallback para o cargo) e renderiza o painel de resultado.
 
-Backfill inicial: para cada linha atual de `app_defaults`, criar a versão 1 no histórico, com `changed_by = updated_by` e `change_kind = 'insert'`.
+## 6. Seção: Precificação por IA
 
-### UI no Admin
+- Edge function `supabase/functions/precificacao-ia/index.ts`:
+  - Recebe `{descricao}` do cliente autenticado (verifica JWT via header).
+  - Lê `conteudo_texto` mais recente de ambos os tipos para o `user_id`.
+  - Chama Lovable AI Gateway (`google/gemini-2.5-pro`) com `Output.object` (Zod) garantindo JSON `{cargo_identificado, area, nivel_senioridade, salario_base, justificativa, competencias_chave[], indice_aderencia}`.
+  - System prompt em PT-BR (texto fornecido na spec).
+  - Trata 429 (rate-limit) e 402 (créditos) com mensagens claras.
+  - Retorna JSON ao cliente.
+- Frontend: `Textarea` grande + botão "Analisar com IA e Calcular Valor" + loading state.
+- Resultado preenche painel comum + card "Por que a IA escolheu este perfil" (justificativa, chips de competências, barra de aderência verde/amarela/vermelha com thresholds 80/60).
 
-Na lista da Etapa 1, cada chave passa a ter botão "Histórico" abrindo um drawer:
+## 7. Painel de Resultado e cálculo (componente compartilhado)
 
-- Tabela com colunas: Versão · Data/hora · Autor · Tipo · Ações
-- Ação "Ver" abre o JSON formatado da versão
-- Ação "Comparar com atual" mostra diff (campo a campo, só dos valores diferentes)
-- Ação "Reverter para esta versão" pede confirmação e faz `UPDATE app_defaults SET value = <versão> WHERE key = ...`. A trigger registra automaticamente uma nova entrada no histórico marcada como `revert`.
+`<PainelResultado>` recebe `{perfil, origem, dadosIA?}`:
 
-Só admins (`is_admin`) podem reverter; demais usuários autenticados apenas visualizam (já é o comportamento do `app_defaults`).
+- Bloco perfil: cargo + badge nível + área + descrição + chips competências.
+- Bloco parâmetros (editáveis) carregados do `config_precificacao` do usuário; alterações disparam `upsert` debounced no Supabase.
+- Cálculo reativo (`useMemo`):
+  - `custo = salario * (1+encargos/100) * (1+overhead/100)`
+  - `valorVenda = custo * (1+margem/100)`
+  - `valorHora = valorVenda / horas`
+  - `valorSprint = valorHora * 80`
+- Destaque visual no Valor de Venda Sugerido.
+- Botão "Salvar Cotação" abre modal (cliente obrigatório, observações, validade default hoje+30 editável, origem auto). Insert em `cotacoes` com todo o snapshot. Toast de sucesso.
 
-### Aviso ao usuário no salvamento
+## 8. Seção: Cotações Salvas
 
-No botão "Salvar como padrão" (`SaveDefaultsButton`), adicionar toast de sucesso com texto explícito: "Padrão atualizado e arquivado na versão N — pode ser revertido em Admin > Parâmetros padrão". Garante que o usuário entenda que a persistência foi efetivada.
+- 3 cards de métricas (queries dedicadas: total; válidas `valida_ate >= today`; média do mês corrente).
+- Toolbar: busca livre (`ilike` em cliente/cargo/area/nivel), selects (Área, Nível, Origem, Status), ordenação, "Exportar Todas (.csv)".
+- Todas as queries filtram `excluido = false` e `user_id = auth.uid()` (via RLS automaticamente).
+- Cards horizontais com badge Manual (azul) / IA (roxo), status calculado client-side a partir de `valida_ate`.
+- Ações por card:
+  - Ver detalhes → `Sheet`/`Dialog` lateral com breakdown completo (inclui justificativa IA se aplicável) + botão "Exportar esta Proposta".
+  - Duplicar → navega para Manual/IA pré-preenchida via state.
+  - Exportar → gera `.txt` estruturado conforme spec (cabeçalho, cliente, parâmetros, valores, nota IA, rodapé "Calculado via IT Pricing Hub") + cópia para clipboard.
+  - Excluir → soft delete (`update excluido=true`) com `AlertDialog`.
+
+## 9. Hooks e organização
+
+- `src/hooks/useKnowledgeBase.ts`, `useConfigPrecificacao.ts`, `useCotacoes.ts` (CRUD + filtros).
+- `src/lib/profissionais/calc.ts` (fórmulas puras + testes simples).
+- `src/lib/profissionais/parsers.ts` (XLSX/PDF/DOCX → JSON/texto).
+- `src/lib/profissionais/exportProposta.ts` (gera `.txt` e `.csv`).
+
+## 10. Dependências a adicionar
+
+`xlsx`, `pdfjs-dist`, `mammoth` para parsing client-side dos arquivos.
+
+## 11. Permissões/Admin
+
+- Adicionar `offering.ito.profissionais-alocados.access` à lista de permissões; admin ganha automaticamente via `is_admin`; tela Admin já gerencia atribuição.
 
 ---
 
-## Detalhes técnicos
+## Ordem de execução
 
-Arquivos novos:
+1. Migration Supabase (3 tabelas + RLS + grants + triggers).
+2. Catálogo de ofertas + rotas + Hub reordenado/renomeado + permissão.
+3. Layout com sidebar + 4 páginas stub.
+4. Base de Conhecimento (upload, parse, persistência).
+5. Painel de Resultado compartilhado + `config_precificacao`.
+6. Precificação Manual ligada ao painel.
+7. Edge function `precificacao-ia` + tela IA + card de justificativa.
+8. Cotações Salvas (métricas, filtros, exportações, soft delete).
+9. Polimento visual + verificação build/preview.
 
-- `supabase/migrations/<timestamp>_app_defaults_history.sql` — tabela, índice por `(key, version desc)`, trigger, backfill, GRANTs, RLS
-- `src/components/admin/DefaultsHistoryDrawer.tsx` — drawer com lista de versões + ações
-- `src/components/admin/DefaultsAdminTab.tsx` — nova aba/seção em `Admin.tsx`
-- `src/hooks/useAppDefaultsHistory.ts` — fetch + revert (com `supabase.from('app_defaults_history')` e `app_defaults`)
+## Riscos / observações
 
-Arquivos alterados:
-
-- `src/pages/Admin.tsx` — adicionar `TabsTrigger` "Parâmetros padrão" e renderizar `DefaultsAdminTab`
-- `src/components/SaveDefaultsButton.tsx` — texto do toast (mensagem com nº de versão criada — opcional, pode buscar `MAX(version)` depois do upsert)
-- `src/integrations/supabase/types.ts` — regenerado automaticamente após a migration
-
-Mapeamento de chaves para nomes amigáveis fica em um único `Record<string,string>` em `src/lib/defaultsLabels.ts` (reaproveitando os labels que já existem em `GROUP_LABELS`/`OFFERING_LABELS`).
-
-A trigger usa `SECURITY DEFINER` para conseguir escrever no histórico mesmo quando o usuário só tem permissão de update via `has_permission('params.save_defaults')`.
-
-## Fora de escopo
-
-- Versionamento de `user_app_state` (estado pessoal por usuário) — pode entrar em uma etapa futura se necessário.
-- Versionamento de `pricing_presets` — já têm soft-delete; histórico de payload pode ser adicionado depois.
+- Parsing de XLSX/PDF/DOCX no navegador depende de heurísticas para mapear colunas — usar normalização e mostrar prévia para o usuário validar.
+- Edge function precisa do `LOVABLE_API_KEY` (já presente).
+- Gemini 2.5 Pro com schema estruturado tem limite de "states" — manter o schema enxuto (sem enums longos).

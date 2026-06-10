@@ -57,6 +57,13 @@ export const GROUPS: GroupDef[] = [
         ],
       },
       {
+        slug: "profissionais-alocados",
+        name: "Precificação de Profissionais Alocados",
+        status: "active",
+        routePrefix: "/profissionais-alocados",
+        routes: ["/profissionais-alocados"],
+      },
+      {
         slug: "pacote-horas",
         name: "Pacote de Horas",
         status: "coming_soon",
@@ -129,3 +136,4 @@ export const GROUP_ACCESS_KEYS: Record<GroupSlug, string> = {
 export const SMART_ITO_ACCESS_KEY = offeringAccessKey("ito", "smart-ito");
 export const PACOTE_HORAS_ACCESS_KEY = offeringAccessKey("ito", "pacote-horas");
 export const BODYSHOP_ACCESS_KEY = offeringAccessKey("ito", "bodyshop");
+export const PROFISSIONAIS_ALOCADOS_ACCESS_KEY = offeringAccessKey("ito", "profissionais-alocados");
