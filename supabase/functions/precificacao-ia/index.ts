@@ -29,8 +29,14 @@ Deno.serve(async (req) => {
       .select("tipo, conteudo_texto")
       .eq("user_id", user.id);
 
-    const cargosTxt = kb?.find((r: any) => r.tipo === "cargos_salarios")?.conteudo_texto ?? "";
-    const descTxt = kb?.find((r: any) => r.tipo === "descritivos")?.conteudo_texto ?? "";
+    const cargosTxt = (kb ?? [])
+      .filter((r: any) => r.tipo === "cargos_salarios")
+      .map((r: any) => r.conteudo_texto ?? "")
+      .join("\n");
+    const descTxt = (kb ?? [])
+      .filter((r: any) => r.tipo === "descritivos")
+      .map((r: any) => r.conteudo_texto ?? "")
+      .join("\n\n");
 
     if (!cargosTxt) {
       return new Response(JSON.stringify({ error: "Carregue a tabela de cargos e salários antes de usar a IA." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
