@@ -37,6 +37,10 @@ export interface PricingPreset {
   n2Team?: N2TeamState;
   volumes?: PresetVolumes;
   escopo?: PresetEscopo;
+  salesforceCode?: string | null;
+  userId: string;
+  savedByName?: string | null;
+  savedByEmail?: string | null;
   /**
    * Snapshot completo dos parâmetros persistidos (mesma cobertura dos
    * Perfis de Parâmetros): equipes N1/N2/Field, rotinas, GMUDs, cortes
@@ -48,6 +52,8 @@ export interface PricingPreset {
 interface DbRow {
   id: string;
   name: string;
+  user_id: string;
+  salesforce_code: string | null;
   payload: {
     calculator: ITSMState;
     n1Team: N1TeamState;
@@ -60,7 +66,8 @@ interface DbRow {
   updated_at: string;
 }
 
-function fromRow(r: DbRow): PricingPreset {
+function fromRow(r: DbRow, profileById?: Map<string, { full_name: string | null; email: string | null }>): PricingPreset {
+  const prof = profileById?.get(r.user_id);
   return {
     id: r.id,
     name: r.name,
@@ -72,6 +79,10 @@ function fromRow(r: DbRow): PricingPreset {
     volumes: r.payload.volumes,
     escopo: r.payload.escopo,
     allParams: r.payload.allParams,
+    salesforceCode: r.salesforce_code ?? null,
+    userId: r.user_id,
+    savedByName: prof?.full_name ?? null,
+    savedByEmail: prof?.email ?? null,
   };
 }
 
@@ -87,7 +98,22 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (!error && data) {
-      setPresets((data as unknown as DbRow[]).map(fromRow));
+      const rows = data as unknown as DbRow[];
+      const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+      const profileById = new Map<string, { full_name: string | null; email: string | null }>();
+      if (ids.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", ids);
+        (profs ?? []).forEach((p) =>
+          profileById.set(p.id as string, {
+            full_name: (p as { full_name: string | null }).full_name ?? null,
+            email: (p as { email: string | null }).email ?? null,
+          }),
+        );
+      }
+      setPresets(rows.map((r) => fromRow(r, profileById)));
     }
     setLoading(false);
   }, []);
@@ -110,6 +136,7 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       volumes?: PresetVolumes,
       escopo?: PresetEscopo,
       allParams?: ParamPayload,
+      salesforceCode?: string | null,
     ): Promise<PricingPreset> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Faça login para salvar precificações.");
@@ -123,6 +150,7 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
           payload: payload as unknown as never,
           group_slug: GROUP_SLUG,
           offering_slug: OFFERING_SLUG,
+          salesforce_code: salesforceCode?.trim() || null,
         })
         .select("*")
         .single();
@@ -162,6 +190,17 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
     [refresh],
   );
 
+  const updateSalesforceCode = useCallback(
+    async (id: string, salesforceCode: string | null) => {
+      const { error } = await supabase
+        .from("pricing_presets")
+        .update({ salesforce_code: salesforceCode?.trim() || null })
+        .eq("id", id);
+      if (!error) refresh();
+    },
+    [refresh],
+  );
+
   const remove = useCallback(
     async (id: string) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -177,5 +216,5 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
     [refresh],
   );
 
-  return { presets, loading, save, overwrite, rename, remove, refresh };
+  return { presets, loading, save, overwrite, rename, remove, refresh, updateSalesforceCode };
 }
