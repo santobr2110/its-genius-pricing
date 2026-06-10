@@ -28,11 +28,13 @@ function fmtDate(ts: number) {
 }
 
 export default function Precificacoes() {
-  const { presets, remove, rename } = usePricingPresets();
+  const { presets, remove, rename, updateSalesforceCode } = usePricingPresets();
   const { loadPreset } = useITSMContext();
   const [confirmDel, setConfirmDel] = useState<PricingPreset | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [editingSf, setEditingSf] = useState<string | null>(null);
+  const [editSf, setEditSf] = useState("");
 
   const handleLoad = (p: PricingPreset) => {
     // Restaurar = abrir nesta aba em modo auto-save.
@@ -53,6 +55,16 @@ export default function Precificacoes() {
   const commitEdit = (id: string) => {
     if (editName.trim()) rename(id, editName.trim());
     setEditing(null);
+  };
+
+  const startEditSf = (p: PricingPreset) => {
+    setEditingSf(p.id);
+    setEditSf(p.salesforceCode ?? "");
+  };
+
+  const commitEditSf = (id: string) => {
+    updateSalesforceCode(id, editSf.trim() || null);
+    setEditingSf(null);
   };
 
   return (
@@ -80,6 +92,8 @@ export default function Precificacoes() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Código Salesforce</TableHead>
+                  <TableHead className="hidden md:table-cell">Salvo por</TableHead>
                   <TableHead className="hidden md:table-cell">Atualizada</TableHead>
                   <TableHead className="text-right">Preço Mensal</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -106,6 +120,33 @@ export default function Precificacoes() {
                           {p.name}
                         </button>
                       )}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {editingSf === p.id ? (
+                        <Input
+                          autoFocus
+                          value={editSf}
+                          onChange={(e) => setEditSf(e.target.value)}
+                          onBlur={() => commitEditSf(p.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") commitEditSf(p.id);
+                            if (e.key === "Escape") setEditingSf(null);
+                          }}
+                          className="h-8"
+                          placeholder="Código Salesforce"
+                        />
+                      ) : (
+                        <button
+                          onClick={() => startEditSf(p)}
+                          className="text-left hover:underline text-xs"
+                          title="Editar Código Salesforce"
+                        >
+                          {p.salesforceCode || <span className="text-muted-foreground italic">—</span>}
+                        </button>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground text-xs">
+                      {p.savedByName || p.savedByEmail || "—"}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground text-xs">
                       <span className="inline-flex items-center gap-1">
