@@ -53,6 +53,7 @@ export default function SavePresetButton() {
   const { presets, save } = usePricingPresets();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
+  const [salesforceCode, setSalesforceCode] = useState("");
 
   const handleSave = async () => {
     const totalAtivos =
@@ -78,9 +79,10 @@ export default function SavePresetButton() {
       // ao Perfil de Parâmetros) para que a restauração seja 100% fiel.
       const { data: { user } } = await supabase.auth.getUser();
       const allParams = user ? await snapshotCurrentParams(user.id) : undefined;
-      const preset = await save(name, state, n1Team, n2Team, volumes, escopo, allParams);
+      const preset = await save(name, state, n1Team, n2Team, volumes, escopo, allParams, salesforceCode);
       toast.success(`Precificação "${preset.name}" salva.`);
       setName("");
+      setSalesforceCode("");
       setOpen(false);
       // Ativa esta aba no modo "precificação aberta" para que edições
       // subsequentes sejam auto-salvas no preset recém-criado (mesmo
@@ -181,6 +183,15 @@ export default function SavePresetButton() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex.: Cliente Acme - Proposta v1"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="preset-sf">Código Salesforce</Label>
+            <Input
+              id="preset-sf"
+              value={salesforceCode}
+              onChange={(e) => setSalesforceCode(e.target.value)}
+              placeholder="Ex.: 0061x00000ABCDE"
               onKeyDown={(e) => e.key === "Enter" && handleSave()}
             />
           </div>
