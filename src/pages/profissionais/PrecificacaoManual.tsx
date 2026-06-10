@@ -16,8 +16,11 @@ import { NIVEIS, REGIMES, DURACOES } from "@/lib/profissionais/calc";
 import PainelResultado, { PerfilSelecionado } from "./PainelResultado";
 
 export default function PrecificacaoManual() {
-  const { rows } = useKnowledgeBase();
-  const cargos = (rows.cargos_salarios?.conteudo_parsed ?? []) as CargoRow[];
+  const { byTipo } = useKnowledgeBase();
+  const cargos = useMemo(
+    () => byTipo.cargos_salarios.flatMap((r) => (r.conteudo_parsed ?? []) as CargoRow[]),
+    [byTipo.cargos_salarios],
+  );
 
   const areas = useMemo(() => Array.from(new Set(cargos.map((c) => c.area).filter(Boolean))).sort(), [cargos]);
   const [area, setArea] = useState<string>("");
