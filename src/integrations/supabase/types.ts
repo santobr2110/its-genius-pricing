@@ -173,6 +173,7 @@ export type Database = {
           name: string
           offering_slug: string
           payload: Json
+          salesforce_code: string | null
           updated_at: string
           user_id: string
         }
@@ -185,6 +186,7 @@ export type Database = {
           name: string
           offering_slug?: string
           payload: Json
+          salesforce_code?: string | null
           updated_at?: string
           user_id: string
         }
@@ -197,6 +199,7 @@ export type Database = {
           name?: string
           offering_slug?: string
           payload?: Json
+          salesforce_code?: string | null
           updated_at?: string
           user_id?: string
         }
