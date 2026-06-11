@@ -98,6 +98,7 @@ const PERMISSION_TREE: GroupNode[] = [
               { read: "page.taxas_demanda",     write: "page.taxas_demanda.write",     label: "Métricas e Parâmetros" },
               { read: "page.precificacoes",                                            label: "Precificações salvas" },
               { read: "page.relatorio_demanda",                                        label: "Relatório de Demanda" },
+              { read: "page.resumo_cotacao",                                           label: "Resumo de Cotação" },
               { read: "page.escopo",            write: "page.escopo.write",            label: "Escopo da Proposição" },
             ],
           },
