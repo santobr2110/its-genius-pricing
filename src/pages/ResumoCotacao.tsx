@@ -14,6 +14,7 @@ import { GMUDS_DEFAULT, bucketGmuds, computeGmud, type Gmud } from "@/data/gmuds
 import { useAuth } from "@/contexts/AuthContext";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
+import selbettiLogo from "@/assets/selbetti-logo.png.asset.json";
 
 interface CommercialRow {
   client_name: string | null;
@@ -225,8 +226,8 @@ export default function ResumoCotacao() {
 
   const Field = ({ label, value }: { label: string; value?: string | null }) => (
     <div className="flex gap-2 text-sm">
-      <span className="font-bold text-foreground whitespace-nowrap">{label}</span>
-      <span className="text-foreground">{value || "—"}</span>
+      <span className="font-bold whitespace-nowrap" style={{ color: "#000" }}>{label}</span>
+      <span style={{ color: "#000" }}>{value || "—"}</span>
     </div>
   );
 
@@ -280,16 +281,13 @@ export default function ResumoCotacao() {
 
         <div
           id="resumo-cotacao-printable"
-          className="bg-white text-slate-900 rounded-md shadow-sm p-10 mx-auto"
-          style={{ width: "210mm", minHeight: "297mm" }}
+          className="bg-white rounded-md shadow-sm p-10 mx-auto"
+          style={{ width: "210mm", minHeight: "297mm", color: "#000" }}
         >
           {/* Cabeçalho */}
           <div className="flex items-start justify-between mb-8">
-            <div className="text-3xl font-bold tracking-tight">
-              <span style={{ color: "#f97316" }}>s</span>
-              <span style={{ color: "#22c55e" }}>elbetti</span>
-            </div>
-            <div className="text-3xl font-bold" style={{ color: "#16a34a" }}>Resumo de Cotação</div>
+            <img src={selbettiLogo.url} alt="Selbetti" style={{ height: 48, width: "auto" }} crossOrigin="anonymous" />
+            <div className="text-3xl font-bold" style={{ color: "#000" }}>Resumo de Cotação</div>
           </div>
 
           {/* Metadados */}
@@ -305,7 +303,7 @@ export default function ResumoCotacao() {
           </div>
 
           {/* Taxas e Impostos */}
-          <h2 className="text-center text-xl font-bold mb-4">Taxas e Impostos</h2>
+          <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Taxas e Impostos</h2>
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Investimento Total:" value={formatBRL(investimentoTotal)} />
             <Field label="Impostos:" value={formatBRL(impostos)} />
@@ -317,22 +315,22 @@ export default function ResumoCotacao() {
           </div>
 
           {/* Rentabilidade */}
-          <h2 className="text-center text-xl font-bold mb-4">Rentabilidade</h2>
+          <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Rentabilidade</h2>
           <div className="grid grid-cols-2 mb-10">
             <div className="text-center">
-              <div className="text-3xl font-bold" style={{ color: "#16a34a" }}>{formatBRL(liquido)}</div>
-              <div className="text-base" style={{ color: "#4ade80" }}>Líquido</div>
+              <div className="text-3xl font-bold" style={{ color: "#000" }}>{formatBRL(liquido)}</div>
+              <div className="text-base" style={{ color: "#000" }}>Líquido</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold" style={{ color: "#16a34a" }}>{liquidoPerc.toFixed(2).replace(".", ",")}%</div>
-              <div className="text-base" style={{ color: "#4ade80" }}>Percentual</div>
+              <div className="text-3xl font-bold" style={{ color: "#000" }}>{liquidoPerc.toFixed(2).replace(".", ",")}%</div>
+              <div className="text-base" style={{ color: "#000" }}>Percentual</div>
             </div>
           </div>
 
           {/* Resumo da oferta */}
-          <table className="w-full text-xs border-collapse">
+          <table className="w-full text-xs border-collapse" style={{ color: "#000" }}>
             <thead>
-              <tr className="bg-slate-50">
+              <tr style={{ backgroundColor: "#f8fafc" }}>
                 <th className="border border-slate-300 px-2 py-2 text-left font-bold">Item</th>
                 <th className="border border-slate-300 px-2 py-2 text-left font-bold">Camada da Oferta</th>
                 <th className="border border-slate-300 px-2 py-2 text-right font-bold">Reativos (ch/mês)</th>
@@ -345,7 +343,7 @@ export default function ResumoCotacao() {
             <tbody>
               {layerRows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="border border-slate-300 px-2 py-3 text-center text-slate-500">
+                  <td colSpan={7} className="border border-slate-300 px-2 py-3 text-center" style={{ color: "#000" }}>
                     Nenhuma camada selecionada.
                   </td>
                 </tr>
@@ -363,7 +361,7 @@ export default function ResumoCotacao() {
               ))}
               {state.tierPerformance && horasN3 > 0 && (
                 <tr>
-                  <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px] text-slate-600">
+                  <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
                     <span className="font-semibold">Distribuição das Horas N3:</span>{" "}
                     Tamanho/TMA {formatNumber(horasN3 * pctTam / 100)}h ({pctTam}%) ·{" "}
                     Owner {formatNumber(horasN3 * pctOwner / 100)}h ({pctOwner}%) ·{" "}
@@ -373,7 +371,7 @@ export default function ResumoCotacao() {
               )}
             </tbody>
             <tfoot>
-              <tr className="bg-slate-50">
+              <tr style={{ backgroundColor: "#f8fafc" }}>
                 <td colSpan={6} className="border border-slate-300 px-2 py-2 text-right font-bold">TOTAL:</td>
                 <td className="border border-slate-300 px-2 py-2 text-right font-bold">
                   {formatBRL(layerRows.reduce((a, r) => a + r.valor, 0))}
@@ -382,7 +380,7 @@ export default function ResumoCotacao() {
             </tfoot>
           </table>
 
-          <div className="mt-8 text-center text-[10px] text-slate-500">
+          <div className="mt-8 text-center text-[10px]" style={{ color: "#000" }}>
             Documento gerado por IT Pricing Hub — {new Date().toLocaleString("pt-BR")}
           </div>
         </div>
