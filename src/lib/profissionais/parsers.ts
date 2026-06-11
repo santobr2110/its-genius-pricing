@@ -47,10 +47,31 @@ export async function parseCargosFile(file: File): Promise<{ rows: CargoRow[]; t
   const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
   const rows: CargoRow[] = json
     .map((r) => {
-      const cargo = String(pickKey(r, ["cargo", "funcao", "função", "posicao", "posição"]) ?? "").trim();
+      const cargo = String(
+        pickKey(r, ["nome do cargo", "cargo", "funcao", "função", "posicao", "posição"]) ?? "",
+      ).trim();
       const area = String(pickKey(r, ["area", "área", "dominio", "domínio", "departamento"]) ?? "").trim();
       const nivel = String(pickKey(r, ["nivel", "nível", "senioridade"]) ?? "").trim();
-      const salario = parseSalario(pickKey(r, ["salario", "salário", "remuneracao", "remuneração", "valor"]));
+      let salario = parseSalario(
+        pickKey(r, ["salario", "salário", "remuneracao", "remuneração", "valor"]),
+      );
+      // Suporte a tabelas com faixas por nível (colunas C1..C6, ou similar).
+      // Seleciona a coluna correspondente ao nível (ex: "C3") ou a maior faixa disponível.
+      if (!salario) {
+        const faixas: Array<{ col: string; valor: number }> = [];
+        for (const k of Object.keys(r)) {
+          const nk = norm(k);
+          if (/^c\s*\d+$/.test(nk) || /^faixa\s*\d+$/.test(nk) || /^nivel\s*\d+$/.test(nk)) {
+            const v = parseSalario(r[k]);
+            if (v > 0) faixas.push({ col: nk.replace(/\s+/g, ""), valor: v });
+          }
+        }
+        if (faixas.length > 0) {
+          const nivelKey = norm(nivel).replace(/\s+/g, "");
+          const match = faixas.find((f) => f.col === nivelKey);
+          salario = match ? match.valor : Math.max(...faixas.map((f) => f.valor));
+        }
+      }
       const descricao = String(pickKey(r, ["descricao", "descrição", "resumo"]) ?? "").trim() || undefined;
       const comp = String(pickKey(r, ["competencia", "competência", "skill", "habilidade"]) ?? "").trim();
       return {
