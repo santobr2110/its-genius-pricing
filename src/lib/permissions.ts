@@ -77,6 +77,7 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.taxas_demanda",     label: "Métricas e Parâmetros",             group: "ITO › Smart ITO › Páginas" },
   { key: "page.precificacoes",     label: "Precificações salvas",              group: "ITO › Smart ITO › Páginas" },
   { key: "page.relatorio_demanda", label: "Relatório de Demanda",              group: "ITO › Smart ITO › Páginas" },
+  { key: "page.resumo_cotacao",    label: "Resumo de Cotação",                 group: "ITO › Smart ITO › Páginas" },
   { key: "page.escopo",            label: "Escopo da Proposição",              group: "ITO › Smart ITO › Páginas" },
   { key: "page.home.write",          label: "Editar Início / calculadora",      group: "ITO › Smart ITO › Páginas" },
   { key: "page.detalhamento.write",  label: "Editar Proposição",                group: "ITO › Smart ITO › Páginas" },
