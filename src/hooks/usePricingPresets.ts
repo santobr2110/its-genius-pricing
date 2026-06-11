@@ -239,6 +239,35 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
     [refresh],
   );
 
+  const updateCommercial = useCallback(
+    async (
+      id: string,
+      patch: { name?: string; salesforceCode?: string | null } & Partial<PresetCommercial>,
+    ) => {
+      const update: Record<string, unknown> = {};
+      if (patch.name !== undefined) update.name = patch.name.trim() || "Sem nome";
+      if (patch.salesforceCode !== undefined)
+        update.salesforce_code = patch.salesforceCode?.toString().trim() || null;
+      if (patch.clientName !== undefined)
+        update.client_name = patch.clientName?.trim() || null;
+      if (patch.accountManager !== undefined)
+        update.account_manager = patch.accountManager?.trim() || null;
+      if (patch.buSpecialist !== undefined)
+        update.bu_specialist = patch.buSpecialist?.trim() || null;
+      if (patch.contractTerm !== undefined)
+        update.contract_term = patch.contractTerm?.trim() || null;
+      if (patch.buArchitect !== undefined)
+        update.bu_architect = patch.buArchitect?.trim() || null;
+      const { error } = await supabase
+        .from("pricing_presets")
+        .update(update as unknown as never)
+        .eq("id", id);
+      if (!error) refresh();
+      return !error;
+    },
+    [refresh],
+  );
+
   const remove = useCallback(
     async (id: string) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -254,5 +283,5 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
     [refresh],
   );
 
-  return { presets, loading, save, overwrite, rename, remove, refresh, updateSalesforceCode };
+  return { presets, loading, save, overwrite, rename, remove, refresh, updateSalesforceCode, updateCommercial };
 }
