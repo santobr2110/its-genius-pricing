@@ -382,7 +382,7 @@ export default function ResumoCotacao() {
               </tr>
             </thead>
             <tbody>
-              {totalLinhas.length === 0 && (
+              {layerRows.length === 0 && (
                 <tr>
                   <td colSpan={7} className="border border-slate-300 px-2 py-3 text-center" style={{ color: "#000" }}>
                     Nenhuma camada selecionada.
@@ -410,33 +410,12 @@ export default function ResumoCotacao() {
                   </td>
                 </tr>
               )}
-              {layerRows.length > 0 && (
-                <tr style={{ backgroundColor: "#f1f5f9" }}>
-                  <td colSpan={6} className="border border-slate-300 px-2 py-1.5 text-right font-semibold">
-                    Subtotal Custo Operacional:
-                  </td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right font-semibold">
-                    {formatBRL(layerRows.reduce((a, r) => a + r.valor, 0))}
-                  </td>
-                </tr>
-              )}
-              {encargoRows.map((r, i) => (
-                <tr key={r.camada}>
-                  <td className="border border-slate-300 px-2 py-1.5">{layerRows.length + i + 1}</td>
-                  <td className="border border-slate-300 px-2 py-1.5">{r.camada}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">—</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">—</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">—</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">—</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">{formatBRL(r.valor)}</td>
-                </tr>
-              ))}
             </tbody>
             <tfoot>
               <tr style={{ backgroundColor: "#f8fafc" }}>
                 <td colSpan={6} className="border border-slate-300 px-2 py-2 text-right font-bold">TOTAL (Receita Mensal):</td>
                 <td className="border border-slate-300 px-2 py-2 text-right font-bold">
-                  {formatBRL(totalLinhas.reduce((a, r) => a + r.valor, 0))}
+                  {formatBRL(layerRows.reduce((a, r) => a + r.valor, 0))}
                 </td>
               </tr>
             </tfoot>
