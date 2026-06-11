@@ -769,9 +769,6 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       fieldService,
       composicaoPreco,
     };
-  }, [state]);
-
-  return { state, setState, update, updateFunnel, results };
 }
 
 export function formatBRL(value: number): string {
