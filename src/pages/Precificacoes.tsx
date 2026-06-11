@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePricingPresets, type PricingPreset } from "@/hooks/usePricingPresets";
 import { useITSMContext } from "@/contexts/ITSMContext";
-import { formatBRL } from "@/hooks/useITSMCalculator";
+import { formatBRL, computeITSMResults } from "@/hooks/useITSMCalculator";
 import { openPresetInNewTab } from "@/lib/activePreset";
 import {
   AlertDialog,
@@ -161,7 +161,15 @@ export default function Precificacoes() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
-                      —
+                      {(() => {
+                        try {
+                          const r = computeITSMResults(p.calculator);
+                          const v = r.composicaoPreco?.precoVenda || 0;
+                          return v > 0 ? formatBRL(v) : <span className="text-muted-foreground italic">—</span>;
+                        } catch {
+                          return <span className="text-muted-foreground italic">—</span>;
+                        }
+                      })()}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
