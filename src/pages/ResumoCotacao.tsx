@@ -454,7 +454,6 @@ export default function ResumoCotacao() {
                 </tr>
               )}
               {layerRows.map((r, i) => (
-              {layerRows.map((r, i) => (
                 <Fragment key={r.camada}>
                   <tr>
                     <td className="border border-slate-300 px-2 py-1.5">{i + 1}</td>
