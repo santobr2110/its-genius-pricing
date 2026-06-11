@@ -321,6 +321,11 @@ export type Database = {
       }
       pricing_presets: {
         Row: {
+          account_manager: string | null
+          bu_architect: string | null
+          bu_specialist: string | null
+          client_name: string | null
+          contract_term: string | null
           created_at: string
           deleted_at: string | null
           deleted_by: string | null
@@ -329,11 +334,17 @@ export type Database = {
           name: string
           offering_slug: string
           payload: Json
+          quote_code: string | null
           salesforce_code: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          account_manager?: string | null
+          bu_architect?: string | null
+          bu_specialist?: string | null
+          client_name?: string | null
+          contract_term?: string | null
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -342,11 +353,17 @@ export type Database = {
           name: string
           offering_slug?: string
           payload: Json
+          quote_code?: string | null
           salesforce_code?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          account_manager?: string | null
+          bu_architect?: string | null
+          bu_specialist?: string | null
+          client_name?: string | null
+          contract_term?: string | null
           created_at?: string
           deleted_at?: string | null
           deleted_by?: string | null
@@ -355,6 +372,7 @@ export type Database = {
           name?: string
           offering_slug?: string
           payload?: Json
+          quote_code?: string | null
           salesforce_code?: string | null
           updated_at?: string
           user_id?: string
