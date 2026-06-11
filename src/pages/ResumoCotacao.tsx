@@ -221,8 +221,7 @@ export default function ResumoCotacao() {
       valor: sf.total || 0,
     });
   }
-  const showOperation = calcState.tierOperation || gmudData.operation.chamados > 0;
-  if (showOperation) {
+  if (calcState.tierOperation) {
     layerRows.push({
       camada: "Smart Operation",
       reativos: (computed.volumeN1 || 0) + (computed.volumeN2 || 0),
@@ -232,12 +231,7 @@ export default function ResumoCotacao() {
       valor: (computed.custoN1 || 0) + (computed.custoN2 || 0),
     });
   }
-  const showPerformance =
-    calcState.tierPerformance ||
-    rotinasTotal > 0 ||
-    horasN3 > 0 ||
-    gmudData.performance.chamados > 0;
-  if (showPerformance) {
+  if (calcState.tierPerformance) {
     layerRows.push({
       camada: "Smart Performance",
       reativos: computed.volumeN3 || 0,
