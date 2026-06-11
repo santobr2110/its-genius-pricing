@@ -268,14 +268,28 @@ export default function ResumoCotacao() {
       camada: "Ferramenta de Endpoint",
       reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
       valor: custoEndpointTooling,
+      nota: buildNota([
+        ["Equipamentos", formatNumber(calcState.qtdEquipamentos || 0)],
+        ["Custo unitário/mês", formatBRL(calcState.custoFerramentaEndpoint || 0)],
+      ]),
     });
   }
   if ((computed.fieldService?.total || 0) > 0) {
+    const fs = computed.fieldService;
+    const analistas: string[] = [];
+    if ((calcState.fieldDirectQtdN1 || 0) > 0) analistas.push(`N1: ${calcState.fieldDirectQtdN1}`);
+    if ((calcState.fieldDirectQtdN2 || 0) > 0) analistas.push(`N2: ${calcState.fieldDirectQtdN2}`);
+    if ((calcState.fieldDirectQtdN3 || 0) > 0) analistas.push(`N3: ${calcState.fieldDirectQtdN3}`);
+    const totalAnalistas = (calcState.fieldDirectQtdN1 || 0) + (calcState.fieldDirectQtdN2 || 0) + (calcState.fieldDirectQtdN3 || 0);
     layerRows.push({
       camada: "Field Service",
-      reativos: (computed.fieldService.volumeN1F || 0) + (computed.fieldService.volumeN2F || 0) + (computed.fieldService.volumeN3F || 0),
+      reativos: (fs.volumeN1F || 0) + (fs.volumeN2F || 0) + (fs.volumeN3F || 0),
       rotinas: 0, gmuds: 0, horasN3: 0,
-      valor: computed.fieldService.total || 0,
+      valor: fs.total || 0,
+      nota: buildNota([
+        ["Analistas (total)", totalAnalistas || 0],
+        ["Distribuição", analistas.length ? analistas.join(", ") : ""],
+      ]),
     });
   }
   if (calcState.tierEnterprise) {
