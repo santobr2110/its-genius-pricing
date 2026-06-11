@@ -41,6 +41,12 @@ export interface PricingPreset {
   userId: string;
   savedByName?: string | null;
   savedByEmail?: string | null;
+  clientName?: string | null;
+  accountManager?: string | null;
+  buSpecialist?: string | null;
+  contractTerm?: string | null;
+  buArchitect?: string | null;
+  quoteCode?: string | null;
   /**
    * Snapshot completo dos parâmetros persistidos (mesma cobertura dos
    * Perfis de Parâmetros): equipes N1/N2/Field, rotinas, GMUDs, cortes
@@ -54,6 +60,12 @@ interface DbRow {
   name: string;
   user_id: string;
   salesforce_code: string | null;
+  client_name: string | null;
+  account_manager: string | null;
+  bu_specialist: string | null;
+  contract_term: string | null;
+  bu_architect: string | null;
+  quote_code: string | null;
   payload: {
     calculator: ITSMState;
     n1Team: N1TeamState;
@@ -83,7 +95,26 @@ function fromRow(r: DbRow, profileById?: Map<string, { full_name: string | null;
     userId: r.user_id,
     savedByName: prof?.full_name ?? null,
     savedByEmail: prof?.email ?? null,
+    clientName: r.client_name ?? null,
+    accountManager: r.account_manager ?? null,
+    buSpecialist: r.bu_specialist ?? null,
+    contractTerm: r.contract_term ?? null,
+    buArchitect: r.bu_architect ?? null,
+    quoteCode: r.quote_code ?? null,
   };
+}
+
+export interface PresetCommercial {
+  clientName: string;
+  accountManager: string;
+  buSpecialist: string;
+  contractTerm: string;
+  buArchitect: string;
+}
+
+function generateQuoteCode() {
+  const n = Math.floor(1000000 + Math.random() * 9000000);
+  return `ITS-SMART-ITO-${n}`;
 }
 
 export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = {}) {
@@ -137,6 +168,7 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       escopo?: PresetEscopo,
       allParams?: ParamPayload,
       salesforceCode?: string | null,
+      commercial?: PresetCommercial,
     ): Promise<PricingPreset> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Faça login para salvar precificações.");
@@ -151,6 +183,12 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
           group_slug: GROUP_SLUG,
           offering_slug: OFFERING_SLUG,
           salesforce_code: salesforceCode?.trim() || null,
+          client_name: commercial?.clientName?.trim() || null,
+          account_manager: commercial?.accountManager?.trim() || null,
+          bu_specialist: commercial?.buSpecialist?.trim() || null,
+          contract_term: commercial?.contractTerm?.trim() || null,
+          bu_architect: commercial?.buArchitect?.trim() || null,
+          quote_code: generateQuoteCode(),
         })
         .select("*")
         .single();
