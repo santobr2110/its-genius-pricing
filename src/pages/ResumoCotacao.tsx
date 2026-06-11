@@ -103,28 +103,17 @@ export default function ResumoCotacao() {
     return recomputeComposicaoComExtras(calcState, base, extras.custoTotal);
   }, [isSaved, results, calcState, rotinas, gmuds]);
 
-  // ===== Composição financeira (mesma base do Painel financeiro) =====
-  const comp = computed.composicaoPreco;
+  // ===== Composição financeira (mesma fórmula das Camadas de Oferta) =====
   const meses = parseMonths(commercial?.contract_term);
-  const receitaMes = comp.precoVenda || 0;
-  const investimentoTotal = receitaMes * meses;
-  const impostos = (comp.pis || 0) + (comp.cofins || 0) + (comp.iss || 0) + (comp.irpjCsll || 0);
-  const comercial = comp.comissao || 0;
-  const financeiro = comp.encFinanc || 0;
-  // "Suporte / Atendimento" = atendimento humano (N1+N2+N3 + Field) + monitoramento + ferramentas
-  const custoEndpointToolingTotal =
-    (calcState.custoFerramentaEndpoint || 0) * (calcState.qtdEquipamentos || 0);
   const sm = computed.smartMonitor;
   const sf = computed.smartFlow;
-  const suporteAtendimento =
-    (computed.custoN1 || 0) + (computed.custoN2 || 0) + (computed.custoN3 || 0) +
-    (computed.fieldService?.total || 0) +
-    (sm?.total || 0) + (sf?.total || 0) +
-    custoEndpointToolingTotal;
-  // "Administrativo" = custos indiretos / overhead operacional (resíduo do custo total).
-  const administrativo = Math.max(0, (computed.custoTotalOperacao || 0) - suporteAtendimento);
-  const liquido = comp.lucro || 0;
-  const liquidoPerc = receitaMes > 0 ? (liquido / receitaMes) * 100 : 0;
+  const totalEncargosPerc =
+    (calcState.pisPerc || 0) + (calcState.cofinsPerc || 0) + (calcState.issPerc || 0) +
+    (calcState.comissaoPerc || 0) + (calcState.irpjCsllPerc || 0) + (calcState.encFinancPerc || 0) +
+    (calcState.lucroPerc || 0);
+  const fatorDivisor = totalEncargosPerc < 100 ? (100 - totalEncargosPerc) / 100 : 0;
+  const fatorVenda = fatorDivisor > 0 ? 1 / fatorDivisor : 1;
+  const toSell = (custo: number) => custo * fatorVenda;
 
   // ===== Tabela: camadas contratadas × componentes principais =====
   const hasInfraInventory =
@@ -185,6 +174,19 @@ export default function ResumoCotacao() {
     };
   }, [gmuds, computed.custoPorChamadoN2, calcState.tempoMedioChamadoN3, calcState.valorHoraN3, calcState.percGmudN2, calcState.percGmudN3]);
 
+  const extrasResumo = useMemo(
+    () => computeExtrasOperacionais(calcState, computed, rotinas, gmuds),
+    [calcState, computed, rotinas, gmuds],
+  );
+  const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | null =
+    calcState.tierPerformance ? "Performance"
+    : calcState.tierOperation ? "Operation"
+    : calcState.tierFlow ? "Flow"
+    : calcState.tierMonitor ? "Monitor"
+    : null;
+  const addDominantGerenciais = (tier: typeof dominantTierKey, custo: number) =>
+    custo + (dominantTierKey === tier ? extrasResumo.custoRotinasGerenciais : 0);
+
   // Horas N3 — Tamanho, Owner e Livre (cortes Smart Performance)
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
@@ -201,9 +203,11 @@ export default function ResumoCotacao() {
     rotinas: number;
     gmuds: number;
     horasN3: number;
-    valor: number; // custo operacional da linha
+    valor: number; // preço de venda mensal da linha
+    custo: number;
     tipo?: "custo" | "encargo";
     nota?: string;
+    valorLabel?: string;
   };
   const layerRows: Row[] = [];
   const buildNota = (parts: Array<[string, string | number | null | undefined]>) =>
