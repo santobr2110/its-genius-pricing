@@ -215,16 +215,20 @@ export default function ResumoCotacao() {
       .filter(([, v]) => v !== null && v !== undefined && v !== "" && v !== 0)
       .map(([k, v]) => `${k}: ${v}`)
       .join(" · ");
+  const monitorCusto = sm?.total || 0;
+  const flowCusto = (sf?.total || 0) + (calcState.tierMonitor && hasInfraInventory ? monitorCusto : 0);
+
   // Quando Smart Flow está ativo, ele consolida o Smart Monitor (não exibir separado).
   if (calcState.tierMonitor && !calcState.tierFlow && hasInfraInventory) {
-    const sm = computed.smartMonitor;
+    const custo = addDominantGerenciais("Monitor", monitorCusto);
     layerRows.push({
       camada: "Smart Monitor",
       reativos: sm.chamadosAtivos || 0,
       rotinas: 0,
       gmuds: 0,
       horasN3: (sm.horasN3 || 0) + (sm.horasN3Manut || 0),
-      valor: sm.total || 0,
+      valor: toSell(custo),
+      custo,
       nota: buildNota([
         ["Ativos monitorados", formatNumber(sm.ativos || 0)],
         ["Proxys", sm.qtdProxys || 0],
@@ -235,15 +239,17 @@ export default function ResumoCotacao() {
     });
   }
   if (calcState.tierFlow) {
-    const sf = computed.smartFlow;
+    const custo = addDominantGerenciais("Flow", flowCusto);
     layerRows.push({
       camada: "Smart Flow",
       reativos: sf.chamadosAtivos || 0,
       rotinas: 0,
       gmuds: 0,
       horasN3: ((sf.horasN3 as number) || 0) + ((sf.horasN3Manut as number) || 0),
-      valor: sf.total || 0,
+      valor: toSell(custo),
+      custo,
       nota: buildNota([
+        ["Monitor consolidado", calcState.tierMonitor && hasInfraInventory ? formatBRL(toSell(monitorCusto)) : ""],
         ["Ativos monitorados", formatNumber(sf.ativos || 0)],
         ["Proxys", sf.qtdProxys || 0],
         ["Atendentes ITSM", sf.qtdAtendentes || 0],
@@ -253,6 +259,10 @@ export default function ResumoCotacao() {
     });
   }
   if (calcState.tierOperation) {
+    const custoOperacaoBase =
+      (computed.custoN1 || 0) + (computed.custoN2 || 0) +
+      (calcState.tierPerformance ? 0 : (computed.custoN3 || 0));
+    const custo = addDominantGerenciais("Operation", custoOperacaoBase + gmudData.operation.custo);
     layerRows.push({
       camada: "Smart Operation",
       reativos: (computed.volumeN1 || 0) + (computed.volumeN2 || 0),
@@ -261,24 +271,29 @@ export default function ResumoCotacao() {
       // Quando Performance está ativo, as horas N3 contratadas migram para a linha
       // Smart Performance; caso contrário, ficam na linha do Smart Operation.
       horasN3: calcState.tierPerformance ? 0 : (computed.horasN3 || 0),
-      valor: (computed.custoN1 || 0) + (computed.custoN2 || 0),
+      valor: toSell(custo),
+      custo,
     });
   }
   if (calcState.tierPerformance) {
+    const custo = addDominantGerenciais("Performance", (computed.custoN3 || 0) + gmudData.performance.custo);
     layerRows.push({
       camada: "Smart Performance",
       reativos: computed.volumeN3 || 0,
       rotinas: rotinasPerformance,
       gmuds: gmudData.performance.chamados,
       horasN3: horasN3,
-      valor: computed.custoN3 || 0,
+      valor: toSell(custo),
+      custo,
     });
   }
   if (custoEndpointTooling > 0) {
     layerRows.push({
       camada: "Ferramenta de Endpoint",
       reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
-      valor: custoEndpointTooling,
+      valor: 0,
+      custo: 0,
+      valorLabel: "Informativo",
       nota: buildNota([
         ["Equipamentos", formatNumber(calcState.qtdEquipamentos || 0)],
         ["Custo unitário/mês", formatBRL(calcState.custoFerramentaEndpoint || 0)],
@@ -287,6 +302,7 @@ export default function ResumoCotacao() {
   }
   if ((computed.fieldService?.total || 0) > 0) {
     const fs = computed.fieldService;
+    const custo = (fs.total || 0) + extrasResumo.custoRotinasField;
     const analistas: string[] = [];
     if ((calcState.fieldDirectQtdN1 || 0) > 0) analistas.push(`N1: ${calcState.fieldDirectQtdN1}`);
     if ((calcState.fieldDirectQtdN2 || 0) > 0) analistas.push(`N2: ${calcState.fieldDirectQtdN2}`);
@@ -296,7 +312,8 @@ export default function ResumoCotacao() {
       camada: "Field Service",
       reativos: (fs.volumeN1F || 0) + (fs.volumeN2F || 0) + (fs.volumeN3F || 0),
       rotinas: rotinasField, gmuds: 0, horasN3: 0,
-      valor: fs.total || 0,
+      valor: toSell(custo),
+      custo,
       nota: buildNota([
         ["Analistas (total)", totalAnalistas || 0],
         ["Distribuição", analistas.length ? analistas.join(", ") : ""],
@@ -308,17 +325,19 @@ export default function ResumoCotacao() {
       camada: "Smart Enterprise",
       reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
       valor: 0,
+      custo: 0,
     });
   }
 
-  // Converte custo operacional de cada linha em preço de venda proporcional,
-  // de modo que a soma dos "valor" fecha com receitaMes (preço de venda mensal).
-  const custoTotalLinhas = layerRows.reduce((a, r) => a + r.valor, 0);
-  if (custoTotalLinhas > 0 && receitaMes > 0) {
-    layerRows.forEach((r) => {
-      r.valor = (r.valor / custoTotalLinhas) * receitaMes;
-    });
-  }
+  const receitaMes = layerRows.reduce((a, r) => a + r.valor, 0);
+  const investimentoTotal = receitaMes * meses;
+  const impostos = receitaMes * (((calcState.pisPerc || 0) + (calcState.cofinsPerc || 0) + (calcState.issPerc || 0) + (calcState.irpjCsllPerc || 0)) / 100);
+  const comercial = receitaMes * ((calcState.comissaoPerc || 0) / 100);
+  const financeiro = receitaMes * ((calcState.encFinancPerc || 0) / 100);
+  const suporteAtendimento = layerRows.reduce((a, r) => a + r.custo, 0);
+  const administrativo = 0;
+  const liquido = receitaMes * ((calcState.lucroPerc || 0) / 100);
+  const liquidoPerc = receitaMes > 0 ? (liquido / receitaMes) * 100 : 0;
 
   // ===== Exportar PDF =====
   const handleExportPDF = async () => {
