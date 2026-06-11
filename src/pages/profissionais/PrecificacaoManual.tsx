@@ -22,20 +22,44 @@ export default function PrecificacaoManual() {
     [byTipo.cargos_salarios],
   );
 
-  const areas = useMemo(() => Array.from(new Set(cargos.map((c) => c.area).filter(Boolean))).sort(), [cargos]);
+  const areas = useMemo(
+    () => Array.from(new Set(cargos.map((c) => c.area).filter(Boolean))).sort(),
+    [cargos],
+  );
+  const hasAreas = areas.length > 0;
   const [area, setArea] = useState<string>("");
-  const cargosDaArea = useMemo(() => cargos.filter((c) => c.area === area), [cargos, area]);
-  const cargosUnicos = useMemo(() => Array.from(new Set(cargosDaArea.map((c) => c.cargo))).sort(), [cargosDaArea]);
+  const cargosDaArea = useMemo(
+    () => (hasAreas ? cargos.filter((c) => c.area === area) : cargos),
+    [cargos, area, hasAreas],
+  );
+  const cargosUnicos = useMemo(
+    () => Array.from(new Set(cargosDaArea.map((c) => c.cargo).filter(Boolean))).sort(),
+    [cargosDaArea],
+  );
   const [cargo, setCargo] = useState<string>("");
   const [nivel, setNivel] = useState<string>("");
+  const niveisDisponiveis = useMemo(() => {
+    const fromData = Array.from(
+      new Set(
+        cargosDaArea
+          .filter((c) => !cargo || c.cargo === cargo)
+          .map((c) => c.nivel)
+          .filter(Boolean),
+      ),
+    ).sort();
+    return fromData.length > 0 ? fromData : [...NIVEIS];
+  }, [cargosDaArea, cargo]);
   const [regime, setRegime] = useState<string>("");
   const [duracao, setDuracao] = useState<string>("");
 
   useEffect(() => { setCargo(""); }, [area]);
 
   const perfil: PerfilSelecionado | null = useMemo(() => {
-    if (!area || !cargo || !nivel || !regime || !duracao) return null;
-    const ref = cargosDaArea.find((c) => c.cargo === cargo) ?? null;
+    if ((hasAreas && !area) || !cargo || !nivel || !regime || !duracao) return null;
+    const ref =
+      cargosDaArea.find((c) => c.cargo === cargo && c.nivel === nivel) ??
+      cargosDaArea.find((c) => c.cargo === cargo) ??
+      null;
     if (!ref) return null;
     return {
       cargo: ref.cargo,
@@ -45,7 +69,7 @@ export default function PrecificacaoManual() {
       competencias: ref.competencias,
       salario_base: ref.salario_base,
     };
-  }, [area, cargo, nivel, regime, duracao, cargosDaArea]);
+  }, [hasAreas, area, cargo, nivel, regime, duracao, cargosDaArea]);
 
   if (cargos.length === 0) {
     return (
@@ -62,16 +86,18 @@ export default function PrecificacaoManual() {
       <Card>
         <CardHeader><CardTitle>Selecionar Perfil</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          <div>
-            <Label>Área / Domínio</Label>
-            <Select value={area} onValueChange={setArea}>
-              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>{areas.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
+          {hasAreas && (
+            <div>
+              <Label>Área / Domínio</Label>
+              <Select value={area} onValueChange={setArea}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>{areas.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label>Cargo</Label>
-            <Select value={cargo} onValueChange={setCargo} disabled={!area}>
+            <Select value={cargo} onValueChange={setCargo} disabled={hasAreas && !area}>
               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
               <SelectContent>{cargosUnicos.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
@@ -80,7 +106,7 @@ export default function PrecificacaoManual() {
             <Label>Nível de Senioridade</Label>
             <Select value={nivel} onValueChange={setNivel}>
               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>{NIVEIS.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}</SelectContent>
+              <SelectContent>{niveisDisponiveis.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
