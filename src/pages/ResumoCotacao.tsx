@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useITSMContext } from "@/contexts/ITSMContext";
-import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
+import { formatBRL, formatNumber, computeITSMResults, type ITSMState, type ITSMResults } from "@/hooks/useITSMCalculator";
+import { computeExtrasOperacionais, recomputeComposicaoComExtras } from "@/lib/extrasOperacionais";
+import { SMART_ITO_NS } from "@/lib/offerings";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { ROTINAS_DEFAULT, rotinaMultiplicador, type ComplexFlags, type Rotina } from "@/data/rotinas";
@@ -27,6 +29,12 @@ interface CommercialRow {
   created_at: string;
 }
 
+interface PresetSnapshot {
+  commercial: CommercialRow;
+  calculator: ITSMState;
+  allParams: Record<string, unknown> | null;
+}
+
 function parseMonths(term: string | null | undefined): number {
   if (!term) return 12;
   const m = String(term).match(/(\d+)/);
@@ -39,28 +47,61 @@ export default function ResumoCotacao() {
   const isSaved = !!activePreset.activeId;
   const canExport = can("pricing.export_pdf");
 
-  const [commercial, setCommercial] = useState<CommercialRow | null>(null);
+  const [snapshot, setSnapshot] = useState<PresetSnapshot | null>(null);
 
   useEffect(() => {
     let cancel = false;
     (async () => {
-      if (!activePreset.activeId) { setCommercial(null); return; }
+      if (!activePreset.activeId) { setSnapshot(null); return; }
       const { data } = await supabase
         .from("pricing_presets")
-        .select("client_name, account_manager, bu_specialist, bu_architect, contract_term, salesforce_code, quote_code, created_at")
+        .select("client_name, account_manager, bu_specialist, bu_architect, contract_term, salesforce_code, quote_code, created_at, payload")
         .eq("id", activePreset.activeId)
         .maybeSingle();
-      if (!cancel) setCommercial((data as unknown as CommercialRow) ?? null);
+      if (!cancel && data) {
+        const row = data as unknown as CommercialRow & { payload?: { calculator: ITSMState; allParams?: Record<string, unknown> } };
+        setSnapshot({
+          commercial: {
+            client_name: row.client_name, account_manager: row.account_manager,
+            bu_specialist: row.bu_specialist, bu_architect: row.bu_architect,
+            contract_term: row.contract_term, salesforce_code: row.salesforce_code,
+            quote_code: row.quote_code, created_at: row.created_at,
+          },
+          calculator: row.payload?.calculator ?? (state as ITSMState),
+          allParams: row.payload?.allParams ?? null,
+        });
+      } else if (!cancel) {
+        setSnapshot(null);
+      }
     })();
     return () => { cancel = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePreset.activeId]);
 
-  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
-  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
-  const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  const [rotinasLive] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [gmudsLive] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+  const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+
+  const commercial = snapshot?.commercial ?? null;
+
+  // ===== Fonte canônica = snapshot salvo (quando há), senão estado ao vivo =====
+  // Garante que o relatório reflita EXATAMENTE a configuração salva da
+  // precificação, mesmo que o estado ao vivo divirja por algum motivo.
+  const calcState: ITSMState = snapshot?.calculator ?? (state as ITSMState);
+  const rotinas: Rotina[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? rotinasLive;
+  const gmuds: Gmud[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:gmuds`] as Gmud[] | undefined) ?? gmudsLive;
+  const n3Cortes: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3Cortes`] as [number, number] | undefined) ?? n3CortesLive;
+
+  // Resultados unificados (base + extras de rotinas/gmuds) — mesma fórmula do contexto.
+  const computed: ITSMResults = useMemo(() => {
+    const base = snapshot ? computeITSMResults(calcState) : (results as ITSMResults);
+    if (!snapshot) return base;
+    const extras = computeExtrasOperacionais(calcState, base, rotinas, gmuds);
+    return recomputeComposicaoComExtras(calcState, base, extras.custoTotal);
+  }, [snapshot, calcState, rotinas, gmuds, results]);
 
   // ===== Composição financeira (mesma base do Painel financeiro) =====
-  const comp = results.composicaoPreco;
+  const comp = computed.composicaoPreco;
   const meses = parseMonths(commercial?.contract_term);
   const receitaMes = comp.precoVenda || 0;
   const investimentoTotal = receitaMes * meses;
@@ -69,40 +110,40 @@ export default function ResumoCotacao() {
   const financeiro = comp.encFinanc || 0;
   // "Suporte / Atendimento" = atendimento humano (N1+N2+N3 + Field) + monitoramento + ferramentas
   const custoEndpointToolingTotal =
-    (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0);
-  const sm = results.smartMonitor;
-  const sf = results.smartFlow;
+    (calcState.custoFerramentaEndpoint || 0) * (calcState.qtdEquipamentos || 0);
+  const sm = computed.smartMonitor;
+  const sf = computed.smartFlow;
   const suporteAtendimento =
-    (results.custoN1 || 0) + (results.custoN2 || 0) + (results.custoN3 || 0) +
-    (results.fieldService?.total || 0) +
+    (computed.custoN1 || 0) + (computed.custoN2 || 0) + (computed.custoN3 || 0) +
+    (computed.fieldService?.total || 0) +
     (sm?.total || 0) + (sf?.total || 0) +
     custoEndpointToolingTotal;
   // "Administrativo" = custos indiretos / overhead operacional (resíduo do custo total).
-  const administrativo = Math.max(0, (results.custoTotalOperacao || 0) - suporteAtendimento);
+  const administrativo = Math.max(0, (computed.custoTotalOperacao || 0) - suporteAtendimento);
   const liquido = comp.lucro || 0;
   const liquidoPerc = receitaMes > 0 ? (liquido / receitaMes) * 100 : 0;
 
   // ===== Tabela: camadas contratadas × componentes principais =====
   const hasInfraInventory =
-    (state.qtdServidores || 0) + (state.qtdAtivosRede || 0) +
-    (state.qtdBancosDados || 0) + (state.qtdSistemas || 0) > 0;
+    (calcState.qtdServidores || 0) + (calcState.qtdAtivosRede || 0) +
+    (calcState.qtdBancosDados || 0) + (calcState.qtdSistemas || 0) > 0;
 
   // Rotinas preventivas — total de CACs (chamados/mês) com base no inventário.
   const rotinasTotal = useMemo(() => {
     const inv = {
-      qtdUsuarios: state.qtdUsuarios, qtdEquipamentos: state.qtdEquipamentos,
-      qtdServidores: state.qtdServidores, qtdAtivosRede: state.qtdAtivosRede,
-      qtdBancosDados: state.qtdBancosDados, qtdSistemas: state.qtdSistemas,
+      qtdUsuarios: calcState.qtdUsuarios, qtdEquipamentos: calcState.qtdEquipamentos,
+      qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
+      qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
     };
     const flags: ComplexFlags = {
-      complexVirtualizacaoCluster: state.complexVirtualizacaoCluster,
-      complexBancoDadosHA: state.complexBancoDadosHA,
-      complexFirewallHA: state.complexFirewallHA,
-      complexMultiSites: state.complexMultiSites,
-      complexSiteBackup: state.complexSiteBackup,
-      complexHibridoCloudOnPrem: state.complexHibridoCloudOnPrem,
-      complexOperacao24x7: state.complexOperacao24x7,
-      complexErpMercado: state.complexErpMercado,
+      complexVirtualizacaoCluster: calcState.complexVirtualizacaoCluster,
+      complexBancoDadosHA: calcState.complexBancoDadosHA,
+      complexFirewallHA: calcState.complexFirewallHA,
+      complexMultiSites: calcState.complexMultiSites,
+      complexSiteBackup: calcState.complexSiteBackup,
+      complexHibridoCloudOnPrem: calcState.complexHibridoCloudOnPrem,
+      complexOperacao24x7: calcState.complexOperacao24x7,
+      complexErpMercado: calcState.complexErpMercado,
     };
     let total = 0;
     rotinas.forEach((r) => {
@@ -110,16 +151,16 @@ export default function ResumoCotacao() {
       total += r.chamadosMes * mult;
     });
     return total;
-  }, [rotinas, state]);
+  }, [rotinas, calcState]);
 
   // GMUDs — totais Operation + Performance
   const gmudData = useMemo(() => {
     const input = {
-      custoPorChamadoN2: results.custoPorChamadoN2,
-      tempoMedioChamadoN3: state.tempoMedioChamadoN3,
-      valorHoraN3: state.valorHoraN3,
-      percN2: state.percGmudN2 ?? 70,
-      percN3: state.percGmudN3 ?? 30,
+      custoPorChamadoN2: computed.custoPorChamadoN2,
+      tempoMedioChamadoN3: calcState.tempoMedioChamadoN3,
+      valorHoraN3: calcState.valorHoraN3,
+      percN2: calcState.percGmudN2 ?? 70,
+      percN3: calcState.percGmudN3 ?? 30,
     };
     const buckets = bucketGmuds(gmuds);
     const reduce = (list: Gmud[]) => list.reduce(
@@ -135,17 +176,17 @@ export default function ResumoCotacao() {
       operation: reduce(buckets.operation),
       performance: reduce(buckets.performance),
     };
-  }, [gmuds, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3]);
+  }, [gmuds, computed.custoPorChamadoN2, calcState.tempoMedioChamadoN3, calcState.valorHoraN3, calcState.percGmudN2, calcState.percGmudN3]);
 
   // Horas N3 — Tamanho, Owner e Livre (cortes Smart Performance)
   const [corteTam, corteOwner] = n3Cortes;
   const pctTam = corteTam;
   const pctOwner = Math.max(0, corteOwner - corteTam);
   const pctLivre = Math.max(0, 100 - corteOwner);
-  const horasN3 = state.horasN3Mensais || 0;
+  const horasN3 = calcState.horasN3Mensais || 0;
 
   // Custo extra: Endpoint Tooling (entra no custoTotalOperacao do calculador).
-  const custoEndpointTooling = (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0);
+  const custoEndpointTooling = (calcState.custoFerramentaEndpoint || 0) * (calcState.qtdEquipamentos || 0);
 
   type Row = {
     camada: string;
@@ -158,8 +199,8 @@ export default function ResumoCotacao() {
   };
   const layerRows: Row[] = [];
   // Quando Smart Flow está ativo, ele consolida o Smart Monitor (não exibir separado).
-  if (state.tierMonitor && !state.tierFlow && hasInfraInventory) {
-    const sm = results.smartMonitor;
+  if (calcState.tierMonitor && !calcState.tierFlow && hasInfraInventory) {
+    const sm = computed.smartMonitor;
     layerRows.push({
       camada: "Smart Monitor",
       reativos: sm.chamadosAtivos || 0,
@@ -169,8 +210,8 @@ export default function ResumoCotacao() {
       valor: sm.total || 0,
     });
   }
-  if (state.tierFlow) {
-    const sf = results.smartFlow;
+  if (calcState.tierFlow) {
+    const sf = computed.smartFlow;
     layerRows.push({
       camada: "Smart Flow",
       reativos: sf.chamadosAtivos || 0,
@@ -180,30 +221,30 @@ export default function ResumoCotacao() {
       valor: sf.total || 0,
     });
   }
-  const showOperation = state.tierOperation || gmudData.operation.chamados > 0;
+  const showOperation = calcState.tierOperation || gmudData.operation.chamados > 0;
   if (showOperation) {
     layerRows.push({
       camada: "Smart Operation",
-      reativos: (results.volumeN1 || 0) + (results.volumeN2 || 0),
+      reativos: (computed.volumeN1 || 0) + (computed.volumeN2 || 0),
       rotinas: 0,
       gmuds: gmudData.operation.chamados,
       horasN3: 0,
-      valor: (results.custoN1 || 0) + (results.custoN2 || 0),
+      valor: (computed.custoN1 || 0) + (computed.custoN2 || 0),
     });
   }
   const showPerformance =
-    state.tierPerformance ||
+    calcState.tierPerformance ||
     rotinasTotal > 0 ||
     horasN3 > 0 ||
     gmudData.performance.chamados > 0;
   if (showPerformance) {
     layerRows.push({
       camada: "Smart Performance",
-      reativos: results.volumeN3 || 0,
+      reativos: computed.volumeN3 || 0,
       rotinas: rotinasTotal,
       gmuds: gmudData.performance.chamados,
       horasN3: horasN3,
-      valor: results.custoN3 || 0,
+      valor: computed.custoN3 || 0,
     });
   }
   if (custoEndpointTooling > 0) {
@@ -213,15 +254,15 @@ export default function ResumoCotacao() {
       valor: custoEndpointTooling,
     });
   }
-  if ((results.fieldService?.total || 0) > 0) {
+  if ((computed.fieldService?.total || 0) > 0) {
     layerRows.push({
       camada: "Field Service",
-      reativos: (results.fieldService.volumeN1F || 0) + (results.fieldService.volumeN2F || 0) + (results.fieldService.volumeN3F || 0),
+      reativos: (computed.fieldService.volumeN1F || 0) + (computed.fieldService.volumeN2F || 0) + (computed.fieldService.volumeN3F || 0),
       rotinas: 0, gmuds: 0, horasN3: 0,
-      valor: results.fieldService.total || 0,
+      valor: computed.fieldService.total || 0,
     });
   }
-  if (state.tierEnterprise) {
+  if (calcState.tierEnterprise) {
     layerRows.push({
       camada: "Smart Enterprise",
       reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
