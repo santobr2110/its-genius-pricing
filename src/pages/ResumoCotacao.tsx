@@ -206,7 +206,7 @@ export default function ResumoCotacao() {
       reativos: sm.chamadosAtivos || 0,
       rotinas: 0,
       gmuds: 0,
-      horasN3: sm.horasN3 || 0,
+      horasN3: (sm.horasN3 || 0) + (sm.horasN3Manut || 0),
       valor: sm.total || 0,
     });
   }
@@ -217,7 +217,7 @@ export default function ResumoCotacao() {
       reativos: sf.chamadosAtivos || 0,
       rotinas: 0,
       gmuds: 0,
-      horasN3: (sf.horasN3Manut as number) || 0,
+      horasN3: ((sf.horasN3 as number) || 0) + ((sf.horasN3Manut as number) || 0),
       valor: sf.total || 0,
     });
   }
@@ -227,7 +227,9 @@ export default function ResumoCotacao() {
       reativos: (computed.volumeN1 || 0) + (computed.volumeN2 || 0),
       rotinas: 0,
       gmuds: gmudData.operation.chamados,
-      horasN3: 0,
+      // Quando Performance está ativo, as horas N3 contratadas migram para a linha
+      // Smart Performance; caso contrário, ficam na linha do Smart Operation.
+      horasN3: calcState.tierPerformance ? 0 : (computed.horasN3 || 0),
       valor: (computed.custoN1 || 0) + (computed.custoN2 || 0),
     });
   }
