@@ -67,11 +67,17 @@ export default function ResumoCotacao() {
   const impostos = (comp.pis || 0) + (comp.cofins || 0) + (comp.iss || 0) + (comp.irpjCsll || 0);
   const comercial = comp.comissao || 0;
   const financeiro = comp.encFinanc || 0;
-  // "Suporte / Atendimento" = custo direto de operação humana (N1+N2+N3 + Field)
+  // "Suporte / Atendimento" = atendimento humano (N1+N2+N3 + Field) + monitoramento + ferramentas
+  const custoEndpointToolingTotal =
+    (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0);
+  const sm = results.smartMonitor;
+  const sf = results.smartFlow;
   const suporteAtendimento =
     (results.custoN1 || 0) + (results.custoN2 || 0) + (results.custoN3 || 0) +
-    (results.fieldService?.total || 0);
-  // "Administrativo" = restante do custo operacional (ferramentas, monitoramento etc.)
+    (results.fieldService?.total || 0) +
+    (sm?.total || 0) + (sf?.total || 0) +
+    custoEndpointToolingTotal;
+  // "Administrativo" = custos indiretos / overhead operacional (resíduo do custo total).
   const administrativo = Math.max(0, (results.custoTotalOperacao || 0) - suporteAtendimento);
   const liquido = comp.lucro || 0;
   const liquidoPerc = receitaMes > 0 ? (liquido / receitaMes) * 100 : 0;
