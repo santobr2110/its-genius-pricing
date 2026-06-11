@@ -186,7 +186,7 @@ export default function ResumoCotacao() {
   const horasN3 = calcState.horasN3Mensais || 0;
 
   // Custo extra: Endpoint Tooling (entra no custoTotalOperacao do calculador).
-  const custoEndpointTooling = (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0);
+  const custoEndpointTooling = (calcState.custoFerramentaEndpoint || 0) * (calcState.qtdEquipamentos || 0);
 
   type Row = {
     camada: string;
@@ -199,8 +199,8 @@ export default function ResumoCotacao() {
   };
   const layerRows: Row[] = [];
   // Quando Smart Flow está ativo, ele consolida o Smart Monitor (não exibir separado).
-  if (state.tierMonitor && !state.tierFlow && hasInfraInventory) {
-    const sm = results.smartMonitor;
+  if (calcState.tierMonitor && !calcState.tierFlow && hasInfraInventory) {
+    const sm = computed.smartMonitor;
     layerRows.push({
       camada: "Smart Monitor",
       reativos: sm.chamadosAtivos || 0,
@@ -210,8 +210,8 @@ export default function ResumoCotacao() {
       valor: sm.total || 0,
     });
   }
-  if (state.tierFlow) {
-    const sf = results.smartFlow;
+  if (calcState.tierFlow) {
+    const sf = computed.smartFlow;
     layerRows.push({
       camada: "Smart Flow",
       reativos: sf.chamadosAtivos || 0,
@@ -221,30 +221,30 @@ export default function ResumoCotacao() {
       valor: sf.total || 0,
     });
   }
-  const showOperation = state.tierOperation || gmudData.operation.chamados > 0;
+  const showOperation = calcState.tierOperation || gmudData.operation.chamados > 0;
   if (showOperation) {
     layerRows.push({
       camada: "Smart Operation",
-      reativos: (results.volumeN1 || 0) + (results.volumeN2 || 0),
+      reativos: (computed.volumeN1 || 0) + (computed.volumeN2 || 0),
       rotinas: 0,
       gmuds: gmudData.operation.chamados,
       horasN3: 0,
-      valor: (results.custoN1 || 0) + (results.custoN2 || 0),
+      valor: (computed.custoN1 || 0) + (computed.custoN2 || 0),
     });
   }
   const showPerformance =
-    state.tierPerformance ||
+    calcState.tierPerformance ||
     rotinasTotal > 0 ||
     horasN3 > 0 ||
     gmudData.performance.chamados > 0;
   if (showPerformance) {
     layerRows.push({
       camada: "Smart Performance",
-      reativos: results.volumeN3 || 0,
+      reativos: computed.volumeN3 || 0,
       rotinas: rotinasTotal,
       gmuds: gmudData.performance.chamados,
       horasN3: horasN3,
-      valor: results.custoN3 || 0,
+      valor: computed.custoN3 || 0,
     });
   }
   if (custoEndpointTooling > 0) {
@@ -254,15 +254,15 @@ export default function ResumoCotacao() {
       valor: custoEndpointTooling,
     });
   }
-  if ((results.fieldService?.total || 0) > 0) {
+  if ((computed.fieldService?.total || 0) > 0) {
     layerRows.push({
       camada: "Field Service",
-      reativos: (results.fieldService.volumeN1F || 0) + (results.fieldService.volumeN2F || 0) + (results.fieldService.volumeN3F || 0),
+      reativos: (computed.fieldService.volumeN1F || 0) + (computed.fieldService.volumeN2F || 0) + (computed.fieldService.volumeN3F || 0),
       rotinas: 0, gmuds: 0, horasN3: 0,
-      valor: results.fieldService.total || 0,
+      valor: computed.fieldService.total || 0,
     });
   }
-  if (state.tierEnterprise) {
+  if (calcState.tierEnterprise) {
     layerRows.push({
       camada: "Smart Enterprise",
       reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
