@@ -162,7 +162,8 @@ export default function ResumoCotacao() {
       valor: (sf.custoMonitoramento || 0) + (sf.custoN1Alocado || 0) + (sf.custoAtendentes || 0) + (sf.custoProxys || 0) + (sf.custoN3 || 0) + (sf.custoN3Manut || 0),
     });
   }
-  if (state.tierOperation) {
+  const showOperation = state.tierOperation || gmudData.operation.chamados > 0;
+  if (showOperation) {
     layerRows.push({
       camada: "Smart Operation",
       reativos: (results.volumeN1 || 0) + (results.volumeN2 || 0),
@@ -172,7 +173,12 @@ export default function ResumoCotacao() {
       valor: (results.custoN1 || 0) + (results.custoN2 || 0) + gmudData.operation.custo,
     });
   }
-  if (state.tierPerformance) {
+  const showPerformance =
+    state.tierPerformance ||
+    rotinasTotal > 0 ||
+    horasN3 > 0 ||
+    gmudData.performance.chamados > 0;
+  if (showPerformance) {
     layerRows.push({
       camada: "Smart Performance",
       reativos: results.volumeN3 || 0,
@@ -359,7 +365,7 @@ export default function ResumoCotacao() {
                   <td className="border border-slate-300 px-2 py-1.5 text-right">{formatBRL(r.valor)}</td>
                 </tr>
               ))}
-              {state.tierPerformance && horasN3 > 0 && (
+              {horasN3 > 0 && (
                 <tr>
                   <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
                     <span className="font-semibold">Distribuição das Horas N3:</span>{" "}
