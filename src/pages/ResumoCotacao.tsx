@@ -442,16 +442,24 @@ export default function ResumoCotacao() {
                   <td className="border border-slate-300 px-2 py-1.5 text-right">{formatBRL(r.valor)}</td>
                 </tr>
               ))}
-              {calcState.tierPerformance && horasN3 > 0 && (
-                <tr>
-                  <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
-                    <span className="font-semibold">Distribuição das Horas N3:</span>{" "}
-                    Tamanho/TMA {formatNumber(horasN3 * pctTam / 100)}h ({pctTam}%) ·{" "}
-                    Owner {formatNumber(horasN3 * pctOwner / 100)}h ({pctOwner}%) ·{" "}
-                    Livre {formatNumber(horasN3 * pctLivre / 100)}h ({pctLivre}%)
-                  </td>
-                </tr>
-              )}
+              {horasN3 > 0 && (() => {
+                const horasAtend = computed.horasAtendimentoN3 || 0;
+                const horasTam = (horasN3 * pctTam) / 100;
+                const horasOwner = (horasN3 * pctOwner) / 100;
+                const horasLivre = Math.max(0, horasN3 - horasAtend - horasTam - horasOwner);
+                const pct = (h: number) => (horasN3 > 0 ? (h / horasN3) * 100 : 0);
+                return (
+                  <tr>
+                    <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
+                      <span className="font-semibold">Distribuição das Horas N3 ({formatNumber(horasN3)}h/mês):</span>{" "}
+                      Chamados N3 {formatNumber(horasAtend)}h ({pct(horasAtend).toFixed(0)}%) ·{" "}
+                      TAM {formatNumber(horasTam)}h ({pctTam}%) ·{" "}
+                      Owner {formatNumber(horasOwner)}h ({pctOwner}%) ·{" "}
+                      Horas técnicas {formatNumber(horasLivre)}h ({pct(horasLivre).toFixed(0)}%)
+                    </td>
+                  </tr>
+                );
+              })()}
             </tbody>
             <tfoot>
               <tr style={{ backgroundColor: "#f8fafc" }}>
