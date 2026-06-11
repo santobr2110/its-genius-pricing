@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FileText, FileDown } from "lucide-react";
 import { toast } from "sonner";
@@ -196,8 +196,14 @@ export default function ResumoCotacao() {
     horasN3: number;
     valor: number; // custo operacional da linha
     tipo?: "custo" | "encargo";
+    nota?: string;
   };
   const layerRows: Row[] = [];
+  const buildNota = (parts: Array<[string, string | number | null | undefined]>) =>
+    parts
+      .filter(([, v]) => v !== null && v !== undefined && v !== "" && v !== 0)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(" · ");
   // Quando Smart Flow está ativo, ele consolida o Smart Monitor (não exibir separado).
   if (calcState.tierMonitor && !calcState.tierFlow && hasInfraInventory) {
     const sm = computed.smartMonitor;
@@ -208,6 +214,13 @@ export default function ResumoCotacao() {
       gmuds: 0,
       horasN3: (sm.horasN3 || 0) + (sm.horasN3Manut || 0),
       valor: sm.total || 0,
+      nota: buildNota([
+        ["Ativos monitorados", formatNumber(sm.ativos || 0)],
+        ["Proxys", sm.qtdProxys || 0],
+        ["Atendentes ITSM", sm.qtdAtendentes || 0],
+        ["Horas N3 atendimento", (sm.horasN3 || 0) ? `${formatNumber(sm.horasN3)}h` : 0],
+        ["Horas Automação/Manutenção", (sm.horasN3Manut || 0) ? `${formatNumber(sm.horasN3Manut)}h` : 0],
+      ]),
     });
   }
   if (calcState.tierFlow) {
@@ -219,6 +232,13 @@ export default function ResumoCotacao() {
       gmuds: 0,
       horasN3: ((sf.horasN3 as number) || 0) + ((sf.horasN3Manut as number) || 0),
       valor: sf.total || 0,
+      nota: buildNota([
+        ["Ativos monitorados", formatNumber(sf.ativos || 0)],
+        ["Proxys", sf.qtdProxys || 0],
+        ["Atendentes ITSM", sf.qtdAtendentes || 0],
+        ["Horas N3 atendimento", ((sf.horasN3 as number) || 0) ? `${formatNumber(sf.horasN3 as number)}h` : 0],
+        ["Horas Automação/Manutenção", ((sf.horasN3Manut as number) || 0) ? `${formatNumber(sf.horasN3Manut as number)}h` : 0],
+      ]),
     });
   }
   if (calcState.tierOperation) {
@@ -434,15 +454,24 @@ export default function ResumoCotacao() {
                 </tr>
               )}
               {layerRows.map((r, i) => (
-                <tr key={r.camada}>
-                  <td className="border border-slate-300 px-2 py-1.5">{i + 1}</td>
-                  <td className="border border-slate-300 px-2 py-1.5">{r.camada}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.reativos)}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.rotinas)}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.gmuds)}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.horasN3)}</td>
-                  <td className="border border-slate-300 px-2 py-1.5 text-right">{formatBRL(r.valor)}</td>
-                </tr>
+                <Fragment key={r.camada}>
+                  <tr>
+                    <td className="border border-slate-300 px-2 py-1.5">{i + 1}</td>
+                    <td className="border border-slate-300 px-2 py-1.5">{r.camada}</td>
+                    <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.reativos)}</td>
+                    <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.rotinas)}</td>
+                    <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.gmuds)}</td>
+                    <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.horasN3)}</td>
+                    <td className="border border-slate-300 px-2 py-1.5 text-right">{formatBRL(r.valor)}</td>
+                  </tr>
+                  {r.nota && (
+                    <tr>
+                      <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
+                        <span className="font-semibold">Composição {r.camada}:</span> {r.nota}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
               {horasN3 > 0 && (() => {
                 const horasAtend = computed.horasAtendimentoN3 || 0;
