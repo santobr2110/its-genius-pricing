@@ -506,7 +506,7 @@ export default function ResumoCotacao() {
                     <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.rotinas)}</td>
                     <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.gmuds)}</td>
                     <td className="border border-slate-300 px-2 py-1.5 text-right">{formatNumber(r.horasN3)}</td>
-                    <td className="border border-slate-300 px-2 py-1.5 text-right">{formatBRL(r.valor)}</td>
+                    <td className="border border-slate-300 px-2 py-1.5 text-right">{r.valorLabel ?? formatBRL(r.valor)}</td>
                   </tr>
                   {r.nota && (
                     <tr>
