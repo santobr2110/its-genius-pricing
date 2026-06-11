@@ -426,6 +426,18 @@ export function useITSMCalculator() {
   }, []);
 
   const results: ITSMResults = useMemo(() => {
+    return computeITSMResults(state);
+  }, [state]);
+
+  return { state, setState, update, updateFunnel, results };
+}
+
+/**
+ * Computa os resultados a partir de um ITSMState puro (sem context/hooks).
+ * Útil para previews/listagens que precisam do preço de venda mensal de um
+ * preset salvo sem precisar carregá-lo na calculadora.
+ */
+export function computeITSMResults(state: ITSMState): ITSMResults {
     const escala = state.criticidadeEscala ?? DEFAULTS.criticidadeEscala;
     const nivel = state.criticidadeNivel ?? DEFAULTS.criticidadeNivel;
     const ajuste = escala[nivel] ?? 0;
