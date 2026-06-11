@@ -157,7 +157,8 @@ export default function ResumoCotacao() {
     tipo?: "custo" | "encargo";
   };
   const layerRows: Row[] = [];
-  if (state.tierMonitor && hasInfraInventory) {
+  // Quando Smart Flow está ativo, ele consolida o Smart Monitor (não exibir separado).
+  if (state.tierMonitor && !state.tierFlow && hasInfraInventory) {
     const sm = results.smartMonitor;
     layerRows.push({
       camada: "Smart Monitor",
