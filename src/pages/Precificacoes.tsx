@@ -91,8 +91,10 @@ export default function Precificacoes() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Código</TableHead>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Código Salesforce</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>No. Oportunidade SF</TableHead>
                   <TableHead className="hidden md:table-cell">Salvo por</TableHead>
                   <TableHead className="hidden md:table-cell">Atualizada</TableHead>
                   <TableHead className="text-right">Preço Mensal</TableHead>
@@ -102,6 +104,9 @@ export default function Precificacoes() {
               <TableBody>
                 {presets.map((p) => (
                   <TableRow key={p.id}>
+                    <TableCell className="font-mono text-[11px]">
+                      {p.quoteCode || <span className="text-muted-foreground italic">—</span>}
+                    </TableCell>
                     <TableCell className="font-medium">
                       {editing === p.id ? (
                         <Input
@@ -121,6 +126,9 @@ export default function Precificacoes() {
                         </button>
                       )}
                     </TableCell>
+                    <TableCell className="text-xs">
+                      {p.clientName || <span className="text-muted-foreground italic">—</span>}
+                    </TableCell>
                     <TableCell className="font-mono text-xs">
                       {editingSf === p.id ? (
                         <Input
@@ -133,13 +141,13 @@ export default function Precificacoes() {
                             if (e.key === "Escape") setEditingSf(null);
                           }}
                           className="h-8"
-                          placeholder="Código Salesforce"
+                          placeholder="No. Oportunidade SF"
                         />
                       ) : (
                         <button
                           onClick={() => startEditSf(p)}
                           className="text-left hover:underline text-xs"
-                          title="Editar Código Salesforce"
+                          title="Editar No. Oportunidade Sales Force"
                         >
                           {p.salesforceCode || <span className="text-muted-foreground italic">—</span>}
                         </button>
