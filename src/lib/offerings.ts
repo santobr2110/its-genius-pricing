@@ -53,6 +53,7 @@ export const GROUPS: GroupDef[] = [
           "/field-service",
           "/gestao-ti",
           "/relatorio-demanda",
+          "/resumo-cotacao",
           "/perfis-parametros",
         ],
       },
