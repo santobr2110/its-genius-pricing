@@ -21,6 +21,7 @@ export type PermissionKey =
   | "page.field_service"
   | "page.gestao_ti"
   | "page.relatorio_demanda"
+  | "page.resumo_cotacao"
   | "page.escopo"
   // Permissão de escrita por página (somente leitura quando ausente)
   | "page.home.write"
