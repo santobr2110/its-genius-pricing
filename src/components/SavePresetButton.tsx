@@ -54,8 +54,24 @@ export default function SavePresetButton() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [salesforceCode, setSalesforceCode] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [accountManager, setAccountManager] = useState("");
+  const [buSpecialist, setBuSpecialist] = useState("");
+  const [contractTerm, setContractTerm] = useState("");
+  const [buArchitect, setBuArchitect] = useState("");
 
   const handleSave = async () => {
+    const missing: string[] = [];
+    if (!clientName.trim()) missing.push("Nome do Cliente");
+    if (!accountManager.trim()) missing.push("Gerente de Conta");
+    if (!buSpecialist.trim()) missing.push("Especialista da BU");
+    if (!contractTerm.trim()) missing.push("Prazo de Contrato");
+    if (!salesforceCode.trim()) missing.push("No. Oportunidade Sales Force");
+    if (!buArchitect.trim()) missing.push("Arquiteto BU");
+    if (missing.length) {
+      toast.error(`Preencha os campos obrigatórios: ${missing.join(", ")}`);
+      return;
+    }
     const totalAtivos =
       (state.qtdServidores || 0) +
       (state.qtdAtivosRede || 0) +
@@ -79,10 +95,29 @@ export default function SavePresetButton() {
       // ao Perfil de Parâmetros) para que a restauração seja 100% fiel.
       const { data: { user } } = await supabase.auth.getUser();
       const allParams = user ? await snapshotCurrentParams(user.id) : undefined;
-      const preset = await save(name, state, n1Team, n2Team, volumes, escopo, allParams, salesforceCode);
-      toast.success(`Precificação "${preset.name}" salva.`);
+      const finalName = name.trim() || clientName.trim();
+      const preset = await save(
+        finalName,
+        state,
+        n1Team,
+        n2Team,
+        volumes,
+        escopo,
+        allParams,
+        salesforceCode,
+        {
+          clientName: clientName.trim(),
+          accountManager: accountManager.trim(),
+          buSpecialist: buSpecialist.trim(),
+          contractTerm: contractTerm.trim(),
+          buArchitect: buArchitect.trim(),
+        },
+      );
+      toast.success(`Precificação "${preset.name}" salva (${preset.quoteCode}).`);
       setName("");
       setSalesforceCode("");
+      setClientName(""); setAccountManager(""); setBuSpecialist("");
+      setContractTerm(""); setBuArchitect("");
       setOpen(false);
       // Ativa esta aba no modo "precificação aberta" para que edições
       // subsequentes sejam auto-salvas no preset recém-criado (mesmo
@@ -167,33 +202,43 @@ export default function SavePresetButton() {
       </DropdownMenu>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Salvar precificação</DialogTitle>
             <DialogDescription>
-              Dê um nome para identificar esta configuração. Todos os parâmetros atuais
-              (inventário, taxas, financeiro e equipes) serão salvos.
+              Preencha os dados comerciais desta cotação. Um código único
+              (ITS-SMART-ITO-XXXXXXX) será gerado automaticamente.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="preset-name">Nome da precificação</Label>
-            <Input
-              id="preset-name"
-              autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex.: Cliente Acme - Proposta v1"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="preset-sf">Código Salesforce</Label>
-            <Input
-              id="preset-sf"
-              value={salesforceCode}
-              onChange={(e) => setSalesforceCode(e.target.value)}
-              placeholder="Ex.: 0061x00000ABCDE"
-              onKeyDown={(e) => e.key === "Enter" && handleSave()}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="preset-client">Nome do Cliente *</Label>
+              <Input id="preset-client" autoFocus value={clientName} onChange={(e) => setClientName(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="preset-am">Gerente de Conta *</Label>
+              <Input id="preset-am" value={accountManager} onChange={(e) => setAccountManager(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="preset-bus">Especialista da BU *</Label>
+              <Input id="preset-bus" value={buSpecialist} onChange={(e) => setBuSpecialist(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="preset-term">Prazo de Contrato *</Label>
+              <Input id="preset-term" value={contractTerm} onChange={(e) => setContractTerm(e.target.value)} placeholder="Ex.: 12 meses" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="preset-sf">No. Oportunidade Sales Force *</Label>
+              <Input id="preset-sf" value={salesforceCode} onChange={(e) => setSalesforceCode(e.target.value)} placeholder="Ex.: 0061x00000ABCDE" />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="preset-arch">Arquiteto BU *</Label>
+              <Input id="preset-arch" value={buArchitect} onChange={(e) => setBuArchitect(e.target.value)} />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="preset-name">Nome da precificação (opcional)</Label>
+              <Input id="preset-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Padrão: nome do cliente" />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
