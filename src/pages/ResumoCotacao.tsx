@@ -93,12 +93,15 @@ export default function ResumoCotacao() {
   const n3Cortes: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3Cortes`] as [number, number] | undefined) ?? n3CortesLive;
 
   // Resultados unificados (base + extras de rotinas/gmuds) — mesma fórmula do contexto.
+  // Quando há um preset ativo, o contexto já hidratou o estado e aplicou os
+  // auto-syncs (comissão por rentabilidade, custos N1/N2 vindos das equipes).
+  // Usar `results` do contexto garante que Resumo == Camadas de oferta.
   const computed: ITSMResults = useMemo(() => {
-    const base = snapshot ? computeITSMResults(calcState) : (results as ITSMResults);
-    if (!snapshot) return base;
+    if (isSaved) return results as ITSMResults;
+    const base = computeITSMResults(calcState);
     const extras = computeExtrasOperacionais(calcState, base, rotinas, gmuds);
     return recomputeComposicaoComExtras(calcState, base, extras.custoTotal);
-  }, [snapshot, calcState, rotinas, gmuds, results]);
+  }, [isSaved, results, calcState, rotinas, gmuds]);
 
   // ===== Composição financeira (mesma base do Painel financeiro) =====
   const comp = computed.composicaoPreco;
