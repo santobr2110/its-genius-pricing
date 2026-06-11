@@ -63,7 +63,8 @@ export type NavItemId =
   | "field-service"
   | "detalhamento"
   | "precificacoes"
-  | "relatorio-demanda";
+  | "relatorio-demanda"
+  | "resumo-cotacao";
 
 interface PageDef {
   id: NavItemId;
@@ -85,6 +86,7 @@ const PAGES: Record<NavItemId, PageDef> = {
   detalhamento: { id: "detalhamento", to: "/detalhamento", label: "Proposição", icon: ClipboardList },
   precificacoes: { id: "precificacoes", to: "/precificacoes", label: "Precificações", icon: FolderOpen },
   "relatorio-demanda": { id: "relatorio-demanda", to: "/relatorio-demanda", label: "Demanda Operacional", icon: FileText },
+  "resumo-cotacao": { id: "resumo-cotacao", to: "/resumo-cotacao", label: "Resumo de Cotação", icon: FileText },
 };
 
 const PAGE_PERMISSION: Record<NavItemId, PermissionKey> = {
@@ -100,6 +102,7 @@ const PAGE_PERMISSION: Record<NavItemId, PermissionKey> = {
   detalhamento: "page.detalhamento",
   precificacoes: "page.precificacoes",
   "relatorio-demanda": "page.relatorio_demanda",
+  "resumo-cotacao": "page.resumo_cotacao",
 };
 
 type SlotId = "menu-equipes" | "menu-config" | "menu-relatorio";
@@ -144,7 +147,7 @@ const SLOTS: Slot[] = [
     label: "Relatório",
     shortLabel: "Relatório",
     icon: FileText,
-    items: ["detalhamento", "relatorio-demanda"],
+    items: ["detalhamento", "relatorio-demanda", "resumo-cotacao"],
   },
 ];
 

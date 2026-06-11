@@ -59,6 +59,11 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     description:
       "Relatório consolidado de demanda por origem, considerando todas as camadas de oferta ITSM.",
   },
+  "/resumo-cotacao": {
+    title: "Resumo de Cotação — Smart ITO",
+    description:
+      "Resumo financeiro e operacional da precificação salva, exportável em PDF.",
+  },
   "/auth": {
     title: "Entrar — Smart ITO",
     description:

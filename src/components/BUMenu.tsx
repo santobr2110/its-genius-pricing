@@ -25,6 +25,7 @@ const ITO_PATHS = new Set([
   "/field-service",
   "/gestao-ti",
   "/relatorio-demanda",
+  "/resumo-cotacao",
 ]);
 
 type GroupSlug = keyof typeof GROUP_ACCESS_KEYS;
