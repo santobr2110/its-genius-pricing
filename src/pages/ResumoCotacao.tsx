@@ -129,7 +129,8 @@ export default function ResumoCotacao() {
     (calcState.qtdBancosDados || 0) + (calcState.qtdSistemas || 0) > 0;
 
   // Rotinas preventivas — total de CACs (chamados/mês) com base no inventário.
-  const rotinasTotal = useMemo(() => {
+  // Separa rotinas de Microinformática (Field) das demais (Performance).
+  const { rotinasPerformance, rotinasField } = useMemo(() => {
     const inv = {
       qtdUsuarios: calcState.qtdUsuarios, qtdEquipamentos: calcState.qtdEquipamentos,
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
@@ -145,12 +146,15 @@ export default function ResumoCotacao() {
       complexOperacao24x7: calcState.complexOperacao24x7,
       complexErpMercado: calcState.complexErpMercado,
     };
-    let total = 0;
+    let perf = 0;
+    let field = 0;
     rotinas.forEach((r) => {
       const mult = rotinaMultiplicador(r, inv, flags);
-      total += r.chamadosMes * mult;
+      const ch = r.chamadosMes * mult;
+      if (r.grupo === "Microinformática") field += ch;
+      else perf += ch;
     });
-    return total;
+    return { rotinasPerformance: perf, rotinasField: field };
   }, [rotinas, calcState]);
 
   // GMUDs — totais Operation + Performance
@@ -257,7 +261,7 @@ export default function ResumoCotacao() {
     layerRows.push({
       camada: "Smart Performance",
       reativos: computed.volumeN3 || 0,
-      rotinas: rotinasTotal,
+      rotinas: rotinasPerformance,
       gmuds: gmudData.performance.chamados,
       horasN3: horasN3,
       valor: computed.custoN3 || 0,
@@ -284,7 +288,7 @@ export default function ResumoCotacao() {
     layerRows.push({
       camada: "Field Service",
       reativos: (fs.volumeN1F || 0) + (fs.volumeN2F || 0) + (fs.volumeN3F || 0),
-      rotinas: 0, gmuds: 0, horasN3: 0,
+      rotinas: rotinasField, gmuds: 0, horasN3: 0,
       valor: fs.total || 0,
       nota: buildNota([
         ["Analistas (total)", totalAnalistas || 0],
