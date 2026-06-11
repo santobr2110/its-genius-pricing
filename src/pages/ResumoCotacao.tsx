@@ -222,14 +222,14 @@ export default function ResumoCotacao() {
     });
   }
 
-  // Encargos do preço de venda (fecham com receitaMes).
-  const encargoRows: Row[] = [
-    { camada: "Impostos (PIS, COFINS, ISS, IRPJ/CSLL)", reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0, valor: impostos, tipo: "encargo" },
-    { camada: "Comercial (comissão)", reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0, valor: comercial, tipo: "encargo" },
-    { camada: "Encargos Financeiros", reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0, valor: financeiro, tipo: "encargo" },
-    { camada: "Lucro Líquido", reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0, valor: liquido, tipo: "encargo" },
-  ];
-  const totalLinhas = [...layerRows, ...encargoRows];
+  // Converte custo operacional de cada linha em preço de venda proporcional,
+  // de modo que a soma dos "valor" fecha com receitaMes (preço de venda mensal).
+  const custoTotalLinhas = layerRows.reduce((a, r) => a + r.valor, 0);
+  if (custoTotalLinhas > 0 && receitaMes > 0) {
+    layerRows.forEach((r) => {
+      r.valor = (r.valor / custoTotalLinhas) * receitaMes;
+    });
+  }
 
   // ===== Exportar PDF =====
   const handleExportPDF = async () => {
