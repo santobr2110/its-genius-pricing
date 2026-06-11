@@ -4,6 +4,7 @@ import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePricingPresets, type PricingPreset } from "@/hooks/usePricingPresets";
 import { useITSMContext } from "@/contexts/ITSMContext";
@@ -19,6 +20,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { toast } from "sonner";
@@ -28,16 +37,22 @@ function fmtDate(ts: number) {
 }
 
 export default function Precificacoes() {
-  const { presets, remove, rename, updateSalesforceCode } = usePricingPresets();
+  const { presets, remove, updateCommercial } = usePricingPresets();
   const { loadPreset } = useITSMContext();
   const [confirmDel, setConfirmDel] = useState<PricingPreset | null>(null);
-  const [editing, setEditing] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editingSf, setEditingSf] = useState<string | null>(null);
-  const [editSf, setEditSf] = useState("");
+  const [editPreset, setEditPreset] = useState<PricingPreset | null>(null);
+  const [form, setForm] = useState({
+    name: "",
+    clientName: "",
+    accountManager: "",
+    buSpecialist: "",
+    buArchitect: "",
+    contractTerm: "",
+    salesforceCode: "",
+  });
+  const [saving, setSaving] = useState(false);
 
   const handleLoad = (p: PricingPreset) => {
-    // Restaurar = abrir nesta aba em modo auto-save.
     if (typeof window !== "undefined") {
       window.location.href = `/ito?preset=${encodeURIComponent(p.id)}`;
     }
@@ -48,23 +63,37 @@ export default function Precificacoes() {
   };
 
   const startEdit = (p: PricingPreset) => {
-    setEditing(p.id);
-    setEditName(p.name);
+    setEditPreset(p);
+    setForm({
+      name: p.name ?? "",
+      clientName: p.clientName ?? "",
+      accountManager: p.accountManager ?? "",
+      buSpecialist: p.buSpecialist ?? "",
+      buArchitect: p.buArchitect ?? "",
+      contractTerm: p.contractTerm ?? "",
+      salesforceCode: p.salesforceCode ?? "",
+    });
   };
 
-  const commitEdit = (id: string) => {
-    if (editName.trim()) rename(id, editName.trim());
-    setEditing(null);
-  };
-
-  const startEditSf = (p: PricingPreset) => {
-    setEditingSf(p.id);
-    setEditSf(p.salesforceCode ?? "");
-  };
-
-  const commitEditSf = (id: string) => {
-    updateSalesforceCode(id, editSf.trim() || null);
-    setEditingSf(null);
+  const saveEdit = async () => {
+    if (!editPreset) return;
+    setSaving(true);
+    const ok = await updateCommercial(editPreset.id, {
+      name: form.name,
+      clientName: form.clientName,
+      accountManager: form.accountManager,
+      buSpecialist: form.buSpecialist,
+      buArchitect: form.buArchitect,
+      contractTerm: form.contractTerm,
+      salesforceCode: form.salesforceCode,
+    });
+    setSaving(false);
+    if (ok) {
+      toast.success("Precificação atualizada.");
+      setEditPreset(null);
+    } else {
+      toast.error("Falha ao atualizar.");
+    }
   };
 
   return (
@@ -95,6 +124,7 @@ export default function Precificacoes() {
                   <TableHead>Nome</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>No. Oportunidade SF</TableHead>
+                  <TableHead className="hidden md:table-cell">Contrato</TableHead>
                   <TableHead className="hidden md:table-cell">Salvo por</TableHead>
                   <TableHead className="hidden md:table-cell">Atualizada</TableHead>
                   <TableHead className="text-right">Preço Mensal</TableHead>
@@ -108,50 +138,18 @@ export default function Precificacoes() {
                       {p.quoteCode || <span className="text-muted-foreground italic">—</span>}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {editing === p.id ? (
-                        <Input
-                          autoFocus
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          onBlur={() => commitEdit(p.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") commitEdit(p.id);
-                            if (e.key === "Escape") setEditing(null);
-                          }}
-                          className="h-8"
-                        />
-                      ) : (
-                        <button onClick={() => startEdit(p)} className="text-left hover:underline">
-                          {p.name}
-                        </button>
-                      )}
+                      <button onClick={() => startEdit(p)} className="text-left hover:underline">
+                        {p.name}
+                      </button>
                     </TableCell>
                     <TableCell className="text-xs">
                       {p.clientName || <span className="text-muted-foreground italic">—</span>}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
-                      {editingSf === p.id ? (
-                        <Input
-                          autoFocus
-                          value={editSf}
-                          onChange={(e) => setEditSf(e.target.value)}
-                          onBlur={() => commitEditSf(p.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") commitEditSf(p.id);
-                            if (e.key === "Escape") setEditingSf(null);
-                          }}
-                          className="h-8"
-                          placeholder="No. Oportunidade SF"
-                        />
-                      ) : (
-                        <button
-                          onClick={() => startEditSf(p)}
-                          className="text-left hover:underline text-xs"
-                          title="Editar No. Oportunidade Sales Force"
-                        >
-                          {p.salesforceCode || <span className="text-muted-foreground italic">—</span>}
-                        </button>
-                      )}
+                      {p.salesforceCode || <span className="text-muted-foreground italic">—</span>}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-xs">
+                      {p.contractTerm || <span className="text-muted-foreground italic">—</span>}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground text-xs">
                       {p.savedByName || p.savedByEmail || "—"}
@@ -163,7 +161,6 @@ export default function Precificacoes() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
-                      {/* Aproximado: usa preço já calculado quando carregado; aqui mostra um preview rápido */}
                       —
                     </TableCell>
                     <TableCell className="text-right">
@@ -182,7 +179,13 @@ export default function Precificacoes() {
                           <Download className="h-3.5 w-3.5" />
                           <span className="hidden sm:inline text-xs">Carregar</span>
                         </Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => startEdit(p)}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => startEdit(p)}
+                          title="Editar dados da precificação"
+                        >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <Button
@@ -202,6 +205,56 @@ export default function Precificacoes() {
           )}
         </Card>
       </main>
+
+      <Dialog open={!!editPreset} onOpenChange={(o) => !o && setEditPreset(null)}>
+        <DialogContent className="sm:max-w-[640px]">
+          <DialogHeader>
+            <DialogTitle>Editar Precificação</DialogTitle>
+            <DialogDescription>
+              {editPreset?.quoteCode ? `Código: ${editPreset.quoteCode}` : "Atualize os dados comerciais da precificação."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 py-2">
+            <div className="space-y-1 md:col-span-2">
+              <Label htmlFor="ed-name">Nome da Precificação</Label>
+              <Input id="ed-name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ed-client">Nome do Cliente</Label>
+              <Input id="ed-client" value={form.clientName} onChange={(e) => setForm((f) => ({ ...f, clientName: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ed-am">Gerente de Conta</Label>
+              <Input id="ed-am" value={form.accountManager} onChange={(e) => setForm((f) => ({ ...f, accountManager: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ed-spec">Especialista da BU</Label>
+              <Input id="ed-spec" value={form.buSpecialist} onChange={(e) => setForm((f) => ({ ...f, buSpecialist: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ed-arch">Arquiteto BU</Label>
+              <Input id="ed-arch" value={form.buArchitect} onChange={(e) => setForm((f) => ({ ...f, buArchitect: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ed-term">Prazo de Contrato</Label>
+              <Input
+                id="ed-term"
+                value={form.contractTerm}
+                onChange={(e) => setForm((f) => ({ ...f, contractTerm: e.target.value }))}
+                placeholder="Ex.: 12 meses"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ed-sf">No. Oportunidade Sales Force</Label>
+              <Input id="ed-sf" value={form.salesforceCode} onChange={(e) => setForm((f) => ({ ...f, salesforceCode: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditPreset(null)} disabled={saving}>Cancelar</Button>
+            <Button onClick={saveEdit} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
