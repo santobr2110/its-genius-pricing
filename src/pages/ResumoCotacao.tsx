@@ -138,7 +138,18 @@ export default function ResumoCotacao() {
   const pctLivre = Math.max(0, 100 - corteOwner);
   const horasN3 = state.horasN3Mensais || 0;
 
-  type Row = { camada: string; reativos: number; rotinas: number; gmuds: number; horasN3: number; valor: number };
+  // Custo extra: Endpoint Tooling (entra no custoTotalOperacao do calculador).
+  const custoEndpointTooling = (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0);
+
+  type Row = {
+    camada: string;
+    reativos: number;
+    rotinas: number;
+    gmuds: number;
+    horasN3: number;
+    valor: number; // custo operacional da linha
+    tipo?: "custo" | "encargo";
+  };
   const layerRows: Row[] = [];
   if (state.tierMonitor && hasInfraInventory) {
     const sm = results.smartMonitor;
@@ -148,7 +159,7 @@ export default function ResumoCotacao() {
       rotinas: 0,
       gmuds: 0,
       horasN3: sm.horasN3 || 0,
-      valor: (sm.custoMonitoramento || 0) + (sm.custoN1Alocado || 0) + (sm.custoN3 || 0),
+      valor: sm.total || 0,
     });
   }
   if (state.tierFlow) {
@@ -158,8 +169,8 @@ export default function ResumoCotacao() {
       reativos: sf.chamadosAtivos || 0,
       rotinas: 0,
       gmuds: 0,
-      horasN3: sf.horasN3Manut ? (sf.horasN3Manut as number) : 0,
-      valor: (sf.custoMonitoramento || 0) + (sf.custoN1Alocado || 0) + (sf.custoAtendentes || 0) + (sf.custoProxys || 0) + (sf.custoN3 || 0) + (sf.custoN3Manut || 0),
+      horasN3: (sf.horasN3Manut as number) || 0,
+      valor: sf.total || 0,
     });
   }
   const showOperation = state.tierOperation || gmudData.operation.chamados > 0;
@@ -170,7 +181,7 @@ export default function ResumoCotacao() {
       rotinas: 0,
       gmuds: gmudData.operation.chamados,
       horasN3: 0,
-      valor: (results.custoN1 || 0) + (results.custoN2 || 0) + gmudData.operation.custo,
+      valor: (results.custoN1 || 0) + (results.custoN2 || 0),
     });
   }
   const showPerformance =
@@ -185,7 +196,22 @@ export default function ResumoCotacao() {
       rotinas: rotinasTotal,
       gmuds: gmudData.performance.chamados,
       horasN3: horasN3,
-      valor: (results.custoN3 || 0) + gmudData.performance.custo,
+      valor: results.custoN3 || 0,
+    });
+  }
+  if (custoEndpointTooling > 0) {
+    layerRows.push({
+      camada: "Ferramenta de Endpoint",
+      reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
+      valor: custoEndpointTooling,
+    });
+  }
+  if ((results.fieldService?.total || 0) > 0) {
+    layerRows.push({
+      camada: "Field Service",
+      reativos: (results.fieldService.volumeN1F || 0) + (results.fieldService.volumeN2F || 0) + (results.fieldService.volumeN3F || 0),
+      rotinas: 0, gmuds: 0, horasN3: 0,
+      valor: results.fieldService.total || 0,
     });
   }
   if (state.tierEnterprise) {
@@ -195,6 +221,15 @@ export default function ResumoCotacao() {
       valor: 0,
     });
   }
+
+  // Encargos do preço de venda (fecham com receitaMes).
+  const encargoRows: Row[] = [
+    { camada: "Impostos (PIS, COFINS, ISS, IRPJ/CSLL)", reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0, valor: impostos, tipo: "encargo" },
+    { camada: "Comercial (comissão)", reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0, valor: comercial, tipo: "encargo" },
+    { camada: "Encargos Financeiros", reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0, valor: financeiro, tipo: "encargo" },
+    { camada: "Lucro Líquido", reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0, valor: liquido, tipo: "encargo" },
+  ];
+  const totalLinhas = [...layerRows, ...encargoRows];
 
   // ===== Exportar PDF =====
   const handleExportPDF = async () => {
@@ -347,7 +382,7 @@ export default function ResumoCotacao() {
               </tr>
             </thead>
             <tbody>
-              {layerRows.length === 0 && (
+              {totalLinhas.length === 0 && (
                 <tr>
                   <td colSpan={7} className="border border-slate-300 px-2 py-3 text-center" style={{ color: "#000" }}>
                     Nenhuma camada selecionada.
@@ -375,12 +410,33 @@ export default function ResumoCotacao() {
                   </td>
                 </tr>
               )}
+              {layerRows.length > 0 && (
+                <tr style={{ backgroundColor: "#f1f5f9" }}>
+                  <td colSpan={6} className="border border-slate-300 px-2 py-1.5 text-right font-semibold">
+                    Subtotal Custo Operacional:
+                  </td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right font-semibold">
+                    {formatBRL(layerRows.reduce((a, r) => a + r.valor, 0))}
+                  </td>
+                </tr>
+              )}
+              {encargoRows.map((r, i) => (
+                <tr key={r.camada}>
+                  <td className="border border-slate-300 px-2 py-1.5">{layerRows.length + i + 1}</td>
+                  <td className="border border-slate-300 px-2 py-1.5">{r.camada}</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right">—</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right">—</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right">—</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right">—</td>
+                  <td className="border border-slate-300 px-2 py-1.5 text-right">{formatBRL(r.valor)}</td>
+                </tr>
+              ))}
             </tbody>
             <tfoot>
               <tr style={{ backgroundColor: "#f8fafc" }}>
-                <td colSpan={6} className="border border-slate-300 px-2 py-2 text-right font-bold">TOTAL:</td>
+                <td colSpan={6} className="border border-slate-300 px-2 py-2 text-right font-bold">TOTAL (Receita Mensal):</td>
                 <td className="border border-slate-300 px-2 py-2 text-right font-bold">
-                  {formatBRL(layerRows.reduce((a, r) => a + r.valor, 0))}
+                  {formatBRL(totalLinhas.reduce((a, r) => a + r.valor, 0))}
                 </td>
               </tr>
             </tfoot>
