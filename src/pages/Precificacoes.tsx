@@ -9,6 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { usePricingPresets, type PricingPreset } from "@/hooks/usePricingPresets";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL, computeITSMResults } from "@/hooks/useITSMCalculator";
+import { computeExtrasOperacionais, recomputeComposicaoComExtras } from "@/lib/extrasOperacionais";
+import { SMART_ITO_NS } from "@/lib/offerings";
+import { ROTINAS_DEFAULT, type Rotina } from "@/data/rotinas";
+import { GMUDS_DEFAULT, type Gmud } from "@/data/gmuds";
 import { openPresetInNewTab } from "@/lib/activePreset";
 import {
   AlertDialog,
@@ -163,8 +167,13 @@ export default function Precificacoes() {
                     <TableCell className="text-right font-mono text-xs">
                       {(() => {
                         try {
-                          const r = computeITSMResults(p.calculator);
-                          const v = r.composicaoPreco?.precoVenda || 0;
+                          const base = computeITSMResults(p.calculator);
+                          const params = (p.allParams || {}) as Record<string, unknown>;
+                          const rotinas = (params[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? ROTINAS_DEFAULT;
+                          const gmuds = (params[`${SMART_ITO_NS}gestao-ti:gmuds`] as Gmud[] | undefined) ?? GMUDS_DEFAULT;
+                          const extras = computeExtrasOperacionais(p.calculator, base, rotinas, gmuds);
+                          const unified = recomputeComposicaoComExtras(p.calculator, base, extras.custoTotal);
+                          const v = unified.composicaoPreco?.precoVenda || 0;
                           return v > 0 ? formatBRL(v) : <span className="text-muted-foreground italic">—</span>;
                         } catch {
                           return <span className="text-muted-foreground italic">—</span>;
