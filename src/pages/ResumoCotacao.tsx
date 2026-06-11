@@ -442,7 +442,7 @@ export default function ResumoCotacao() {
                   <td className="border border-slate-300 px-2 py-1.5 text-right">{formatBRL(r.valor)}</td>
                 </tr>
               ))}
-              {horasN3 > 0 && (
+              {calcState.tierPerformance && horasN3 > 0 && (
                 <tr>
                   <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
                     <span className="font-semibold">Distribuição das Horas N3:</span>{" "}
