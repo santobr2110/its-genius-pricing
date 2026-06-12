@@ -28,7 +28,9 @@ export default function PrecificacaoIA() {
       setPerfil({
         cargo: data.cargo_identificado,
         area: data.area,
-        nivel: data.nivel_senioridade,
+        nivel: `${data.nivel_senioridade}${data.faixa ? ` · ${data.faixa}` : ""}`,
+        nivel_num: data.nivel_num,
+        faixa: data.faixa,
         salario_base: Number(data.salario_base) || 0,
         competencias: data.competencias_chave ?? [],
       });

@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useKnowledgeBase } from "@/hooks/useKnowledgeBase";
-import { CargoRow } from "@/lib/profissionais/parsers";
-import { NIVEIS, REGIMES, DURACOES } from "@/lib/profissionais/calc";
+import { CargoRow, NIVEL_SENIORIDADE, FAIXAS_C } from "@/lib/profissionais/parsers";
+import { REGIMES, DURACOES } from "@/lib/profissionais/calc";
 import PainelResultado, { PerfilSelecionado } from "./PainelResultado";
 
 export default function PrecificacaoManual() {
@@ -22,54 +22,86 @@ export default function PrecificacaoManual() {
     [byTipo.cargos_salarios],
   );
 
-  const areas = useMemo(
-    () => Array.from(new Set(cargos.map((c) => c.area).filter(Boolean))).sort(),
+  const cargosUnicos = useMemo(
+    () => Array.from(new Set(cargos.map((c) => c.cargo).filter(Boolean))).sort(),
     [cargos],
   );
-  const hasAreas = areas.length > 0;
-  const [area, setArea] = useState<string>("");
-  const cargosDaArea = useMemo(
-    () => (hasAreas ? cargos.filter((c) => c.area === area) : cargos),
-    [cargos, area, hasAreas],
-  );
-  const cargosUnicos = useMemo(
-    () => Array.from(new Set(cargosDaArea.map((c) => c.cargo).filter(Boolean))).sort(),
-    [cargosDaArea],
-  );
+
   const [cargo, setCargo] = useState<string>("");
-  const [nivel, setNivel] = useState<string>("");
-  const niveisDisponiveis = useMemo(() => {
-    const fromData = Array.from(
-      new Set(
-        cargosDaArea
-          .filter((c) => !cargo || c.cargo === cargo)
-          .map((c) => c.nivel)
-          .filter(Boolean),
-      ),
-    ).sort();
-    return fromData.length > 0 ? fromData : [...NIVEIS];
-  }, [cargosDaArea, cargo]);
+  const [senioridade, setSenioridade] = useState<string>("");
+  const [faixa, setFaixa] = useState<string>("");
   const [regime, setRegime] = useState<string>("");
   const [duracao, setDuracao] = useState<string>("");
 
-  useEffect(() => { setCargo(""); }, [area]);
+  // Linhas do cargo selecionado, ordenadas por nível interno (1..6)
+  const linhasDoCargo = useMemo(
+    () =>
+      cargos
+        .filter((c) => c.cargo === cargo)
+        .sort((a, b) => (a.nivel_num ?? 99) - (b.nivel_num ?? 99)),
+    [cargos, cargo],
+  );
+
+  // Senioridades disponíveis (com mapeamento Nível N -> Júnior/Pleno/...)
+  const senioridadesDisponiveis = useMemo(() => {
+    const set = new Map<string, { label: string; nivel_num?: number }>();
+    linhasDoCargo.forEach((c) => {
+      const label =
+        c.senioridade ||
+        (c.nivel_num ? NIVEL_SENIORIDADE[c.nivel_num] : "") ||
+        c.nivel;
+      if (label && !set.has(label)) set.set(label, { label, nivel_num: c.nivel_num });
+    });
+    return Array.from(set.values());
+  }, [linhasDoCargo]);
+
+  // Linha selecionada (cargo + senioridade)
+  const linhaSelecionada = useMemo(
+    () =>
+      linhasDoCargo.find(
+        (c) =>
+          (c.senioridade && c.senioridade === senioridade) ||
+          (c.nivel_num && NIVEL_SENIORIDADE[c.nivel_num] === senioridade) ||
+          c.nivel === senioridade,
+      ) ?? null,
+    [linhasDoCargo, senioridade],
+  );
+
+  // Faixas C1..C6 disponíveis para a linha selecionada
+  const faixasDisponiveis = useMemo(() => {
+    if (!linhaSelecionada?.faixas) return [];
+    return FAIXAS_C.filter((f) => (linhaSelecionada.faixas as Record<string, number>)[f] > 0).map(
+      (f) => ({ codigo: f, valor: (linhaSelecionada.faixas as Record<string, number>)[f] }),
+    );
+  }, [linhaSelecionada]);
+
+  useEffect(() => {
+    setSenioridade("");
+    setFaixa("");
+  }, [cargo]);
+  useEffect(() => {
+    setFaixa("");
+  }, [senioridade]);
 
   const perfil: PerfilSelecionado | null = useMemo(() => {
-    if ((hasAreas && !area) || !cargo || !nivel || !regime || !duracao) return null;
-    const ref =
-      cargosDaArea.find((c) => c.cargo === cargo && c.nivel === nivel) ??
-      cargosDaArea.find((c) => c.cargo === cargo) ??
-      null;
-    if (!ref) return null;
+    if (!cargo || !senioridade || !regime || !duracao) return null;
+    if (!linhaSelecionada) return null;
+    // Salário: faixa escolhida; se não houver faixas, salario_base da linha
+    const salario =
+      (faixa && linhaSelecionada.faixas?.[faixa]) ||
+      (faixasDisponiveis.length === 0 ? linhaSelecionada.salario_base : 0);
+    if (!salario) return null;
     return {
-      cargo: ref.cargo,
-      area: ref.area,
-      nivel,
-      descricao: ref.descricao,
-      competencias: ref.competencias,
-      salario_base: ref.salario_base,
+      cargo: linhaSelecionada.cargo,
+      area: linhaSelecionada.area,
+      nivel: `${senioridade}${faixa ? ` · ${faixa}` : ""}`,
+      nivel_num: linhaSelecionada.nivel_num,
+      faixa: faixa || undefined,
+      descricao: linhaSelecionada.descricao,
+      competencias: linhaSelecionada.competencias,
+      salario_base: salario,
     };
-  }, [hasAreas, area, cargo, nivel, regime, duracao, cargosDaArea]);
+  }, [cargo, senioridade, faixa, regime, duracao, linhaSelecionada, faixasDisponiveis]);
 
   if (cargos.length === 0) {
     return (
@@ -86,29 +118,47 @@ export default function PrecificacaoManual() {
       <Card>
         <CardHeader><CardTitle>Selecionar Perfil</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          {hasAreas && (
-            <div>
-              <Label>Área / Domínio</Label>
-              <Select value={area} onValueChange={setArea}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                <SelectContent>{areas.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          )}
           <div>
             <Label>Cargo</Label>
-            <Select value={cargo} onValueChange={setCargo} disabled={hasAreas && !area}>
+            <Select value={cargo} onValueChange={setCargo}>
               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
               <SelectContent>{cargosUnicos.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div>
-            <Label>Nível de Senioridade</Label>
-            <Select value={nivel} onValueChange={setNivel}>
+            <Label>Senioridade (mercado)</Label>
+            <Select value={senioridade} onValueChange={setSenioridade} disabled={!cargo}>
               <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>{niveisDisponiveis.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                {senioridadesDisponiveis.map((s) => (
+                  <SelectItem key={s.label} value={s.label}>
+                    {s.label}{s.nivel_num ? ` (Nível ${s.nivel_num})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Internamente: Nível 1 = Júnior · 2 = Pleno · 3 = Sênior · 4 = Especialista...
+            </p>
           </div>
+          {faixasDisponiveis.length > 0 && (
+            <div>
+              <Label>Faixa Salarial (posição na faixa)</Label>
+              <Select value={faixa} onValueChange={setFaixa} disabled={!senioridade}>
+                <SelectTrigger><SelectValue placeholder="Selecione C1..C6" /></SelectTrigger>
+                <SelectContent>
+                  {faixasDisponiveis.map((f) => (
+                    <SelectItem key={f.codigo} value={f.codigo}>
+                      {f.codigo} — R$ {f.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                C1..C6 indica a posição do colaborador dentro da faixa salarial deste nível (não é senioridade).
+              </p>
+            </div>
+          )}
           <div>
             <Label>Regime de Alocação</Label>
             <Select value={regime} onValueChange={setRegime}>

@@ -45,7 +45,33 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) return new Response(JSON.stringify({ error: "LOVABLE_API_KEY ausente" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const systemPrompt = `Você é um especialista em cargos e carreiras de TI. Com base nos documentos de cargos e salários fornecidos, analise a descrição da vaga e identifique o perfil profissional mais aderente. Considere as responsabilidades descritas, as tecnologias mencionadas, o nível de complexidade e o contexto do projeto. Retorne exclusivamente um JSON válido, sem texto adicional, com a estrutura: {cargo_identificado: string, area: string, nivel_senioridade: string, salario_base: number, justificativa: string, competencias_chave: string[], indice_aderencia: number}`;
+    const systemPrompt = `Você é um especialista em cargos e carreiras de TI da Selbetti.
+
+Estrutura interna de cargos (IMPORTANTE):
+- Cada cargo tem um "Nível" interno de 1 a 6 que corresponde à senioridade de mercado:
+  Nível 1 = Júnior, Nível 2 = Pleno, Nível 3 = Sênior, Nível 4 = Especialista, Nível 5 = Coordenador, Nível 6 = Gerente.
+- Cada Nível possui faixas salariais C1..C6 — estas NÃO representam senioridade, e sim a posição do colaborador dentro da faixa (momento de carreira, desempenho, tempo no nível).
+- A tabela informada lista, para cada cargo + nível, os valores de cada faixa C1..C6.
+
+Sua tarefa:
+1. Analise a descrição da vaga (responsabilidades, stack, complexidade, autonomia esperada).
+2. Escolha o cargo mais aderente da tabela.
+3. Escolha o Nível interno (1..6) e a senioridade de mercado correspondente.
+4. Sugira a faixa C1..C6 inicial mais adequada (padrão razoável = C3, meio da faixa).
+5. Use como salario_base o valor exato dessa célula (cargo + nível + faixa) da tabela.
+
+Retorne EXCLUSIVAMENTE um JSON válido, sem texto adicional, com a estrutura:
+{
+  "cargo_identificado": string,
+  "area": string,
+  "nivel_num": number,           // 1..6
+  "nivel_senioridade": string,   // Júnior/Pleno/Sênior/Especialista/Coordenador/Gerente
+  "faixa": string,               // "C1".."C6"
+  "salario_base": number,        // valor da célula correspondente
+  "justificativa": string,
+  "competencias_chave": string[],
+  "indice_aderencia": number      // 0..100
+}`;
 
     const userPrompt = `### TABELA DE CARGOS E SALÁRIOS\n${cargosTxt.slice(0, 20000)}\n\n### DESCRITIVOS DE CARGOS\n${descTxt.slice(0, 20000)}\n\n### DESCRIÇÃO DA VAGA\n${descricao}`;
 
