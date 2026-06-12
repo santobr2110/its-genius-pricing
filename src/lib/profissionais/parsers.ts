@@ -88,8 +88,55 @@ function parsePct(v: unknown): number {
 export async function parseCargosFile(file: File): Promise<{ rows: CargoRow[]; texto: string }> {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
-  const sheet = wb.Sheets[wb.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+
+  // 1) Localizar a aba da Tabela Salarial (cabeçalhos com Nível + C1..C6)
+  let salaryJson: Record<string, unknown>[] = [];
+  let descritivosJson: Record<string, unknown>[] = [];
+  for (const name of wb.SheetNames) {
+    const sh = wb.Sheets[name];
+    const j = XLSX.utils.sheet_to_json<Record<string, unknown>>(sh, { defval: "" });
+    if (j.length === 0) continue;
+    const headers = Object.keys(j[0]).map((k) => norm(k).replace(/\s+/g, ""));
+    const hasC = headers.some((h) => /^c\d$/.test(h));
+    const hasNivel = headers.some((h) => h.includes("nivel") || h.includes("nível"));
+    const hasDescCol = headers.some((h) => h.includes("descricao") || h.includes("descrição"));
+    if (hasC && hasNivel && salaryJson.length === 0) salaryJson = j;
+    else if (hasDescCol && descritivosJson.length === 0) descritivosJson = j;
+  }
+  // Fallback: primeira aba se não detectou tabela salarial
+  if (salaryJson.length === 0) {
+    const sh = wb.Sheets[wb.SheetNames[0]];
+    salaryJson = XLSX.utils.sheet_to_json<Record<string, unknown>>(sh, { defval: "" });
+  }
+
+  // 2) Indexar descritivos por NOME normalizado para casar com cargo+nível
+  const descIndex = new Map<string, string>();
+  for (const d of descritivosJson) {
+    const nome = String(pickKey(d, ["nome", "cargo"]) ?? "").trim();
+    const desc = String(pickKey(d, ["descricao", "descrição"]) ?? "").trim();
+    if (nome && desc) descIndex.set(norm(nome), desc);
+  }
+  function findDescricao(cargo: string, senioridade: string): string | undefined {
+    const tries = [
+      `${cargo} ${senioridade}`,
+      cargo,
+      cargo.replace(/^AN\s/i, "ANALISTA "),
+      `${cargo.replace(/^AN\s/i, "ANALISTA ")} ${senioridade}`,
+    ];
+    for (const t of tries) {
+      const hit = descIndex.get(norm(t));
+      if (hit) return hit;
+    }
+    // tentativa por includes
+    const target = norm(`${cargo} ${senioridade}`);
+    for (const [k, v] of descIndex) {
+      if (k.includes(norm(cargo)) && (senioridade ? k.includes(norm(senioridade)) : true)) return v;
+      if (target.includes(k)) return v;
+    }
+    return undefined;
+  }
+
+  const json = salaryJson;
   const rows: CargoRow[] = json
     .map((r) => {
       const cargo = String(
@@ -125,7 +172,8 @@ export async function parseCargosFile(file: File): Promise<{ rows: CargoRow[]; t
       const ajuste_vertical_pct = parsePct(pickKey(r, ["ajuste vertical", "vertical"]));
       const ajuste_horizontal_pct = parsePct(pickKey(r, ["ajuste horizontal", "horizontal"]));
 
-      const descricao = String(pickKey(r, ["descricao", "descrição", "resumo"]) ?? "").trim() || undefined;
+      const descricaoCol = String(pickKey(r, ["descricao", "descrição", "resumo"]) ?? "").trim();
+      const descricao = descricaoCol || findDescricao(cargo, senioridade);
       const comp = String(pickKey(r, ["competencia", "competência", "skill", "habilidade"]) ?? "").trim();
       return {
         cargo,
