@@ -26,6 +26,8 @@ export interface PerfilSelecionado {
   descricao?: string;
   competencias?: string[];
   salario_base: number;
+  faixa?: string;
+  nivel_num?: number;
 }
 
 export interface DadosIA {
