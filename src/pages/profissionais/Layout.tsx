@@ -81,9 +81,9 @@ export default function ProfissionaisLayout() {
     <div className="min-h-screen w-full bg-muted/30">
       <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
         <div className="flex h-12 items-center gap-2 px-4">
-          <BUMenu />
           <BriefcaseBusiness className="h-5 w-5 text-primary shrink-0" aria-hidden />
           <h1 className="text-sm font-bold truncate">BodyShop - Alocação de Profissionais</h1>
+          <BUMenu />
           <div className="ml-auto flex items-center gap-1.5">
             {GROUPS.map((g) => <GroupSlot key={g.label} group={g} currentPath={pathname} />)}
             <ParametrosMenu scope="profissionais" />
