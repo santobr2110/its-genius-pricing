@@ -16,7 +16,8 @@ import {
 import { calcularPrecificacao, formatBRL } from "@/lib/profissionais/calc";
 import { useProfFinanceiro, markupDivisorPctProf } from "@/hooks/useProfFinanceiro";
 import { useCotacoes } from "@/hooks/useCotacoes";
-import { Save, Link as LinkIcon } from "lucide-react";
+import { Save, Link as LinkIcon, TrendingUp } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -46,7 +47,7 @@ export interface PainelResultadoProps {
 }
 
 export default function PainelResultado({ perfil, origem, dadosIA }: PainelResultadoProps) {
-  const { state: config } = useProfFinanceiro();
+  const { state: config, update } = useProfFinanceiro();
   const { save } = useCotacoes();
   const { can } = useAuth();
   const [salarioOverride, setSalarioOverride] = useState<number | null>(null);
@@ -205,6 +206,45 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
           <div>
             <Label>Horas Mensais</Label>
             <Input type="number" value={config.horasMensais} disabled />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" /> Rentabilidade Desejada
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              Ajuste a rentabilidade desta operação. O valor altera o slider em
+              <strong> Financeiro › Impostos &amp; Markup</strong> e recalcula a comissão.
+            </span>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                max={60}
+                step={0.5}
+                value={config.lucroPerc}
+                onChange={(e) => update("lucroPerc", Math.max(0, Math.min(60, parseFloat(e.target.value) || 0)))}
+                className="h-8 w-20 text-right font-mono"
+              />
+              <span className="text-sm font-medium">%</span>
+            </div>
+          </div>
+          <Slider
+            value={[config.lucroPerc]}
+            min={0}
+            max={60}
+            step={0.5}
+            onValueChange={(v) => update("lucroPerc", v[0] ?? 0)}
+          />
+          <div className="flex justify-between text-[11px] text-muted-foreground">
+            <span>Comissão sincronizada: <strong>{config.comissaoPerc.toFixed(2)}%</strong></span>
+            <span>Markup divisor: <strong>{markupPct.toFixed(2)}%</strong></span>
           </div>
         </CardContent>
       </Card>

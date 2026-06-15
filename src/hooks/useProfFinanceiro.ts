@@ -31,6 +31,8 @@ export const PROF_FIN_DEFAULTS: ProfFinState = {
 
 const STATE_KEY = "prof.fin.state.v1";
 const TIERS_KEY = "prof.fin.comissaoTiers.v1";
+const STATE_EVENT = "prof:fin:state";
+const TIERS_EVENT = "prof:fin:tiers";
 
 function loadLs<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -88,8 +90,45 @@ export function useProfFinanceiro(custoBase?: number) {
   const [state, setState] = useState<ProfFinState>(() => loadLs(STATE_KEY, PROF_FIN_DEFAULTS));
   const [comissaoTiers, setComissaoTiersState] = useState<ComissaoTier[]>(() => loadLs(TIERS_KEY, DEFAULT_COMISSAO_TIERS));
 
-  useEffect(() => { saveLs(STATE_KEY, state); }, [state]);
-  useEffect(() => { saveLs(TIERS_KEY, comissaoTiers); }, [comissaoTiers]);
+  useEffect(() => {
+    saveLs(STATE_KEY, state);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(STATE_EVENT, { detail: state }));
+    }
+  }, [state]);
+  useEffect(() => {
+    saveLs(TIERS_KEY, comissaoTiers);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(TIERS_EVENT, { detail: comissaoTiers }));
+    }
+  }, [comissaoTiers]);
+
+  // Cross-instance sync (e.g., slider em PainelResultado <-> tela Impostos & Markup)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onState = (e: Event) => {
+      const detail = (e as CustomEvent<ProfFinState>).detail;
+      if (!detail) return;
+      setState((cur) => (JSON.stringify(cur) === JSON.stringify(detail) ? cur : detail));
+    };
+    const onTiers = (e: Event) => {
+      const detail = (e as CustomEvent<ComissaoTier[]>).detail;
+      if (!Array.isArray(detail)) return;
+      setComissaoTiersState((cur) => (JSON.stringify(cur) === JSON.stringify(detail) ? cur : detail));
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STATE_KEY) setState(loadLs(STATE_KEY, PROF_FIN_DEFAULTS));
+      if (e.key === TIERS_KEY) setComissaoTiersState(loadLs(TIERS_KEY, DEFAULT_COMISSAO_TIERS));
+    };
+    window.addEventListener(STATE_EVENT, onState as EventListener);
+    window.addEventListener(TIERS_EVENT, onTiers as EventListener);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(STATE_EVENT, onState as EventListener);
+      window.removeEventListener(TIERS_EVENT, onTiers as EventListener);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
   // Sync comissão com rentabilidade
   useEffect(() => {
