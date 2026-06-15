@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { DEFAULT_COMISSAO_TIERS, comissaoFromRent, type ComissaoTier } from "@/lib/comissaoRentabilidade";
+import { PERSISTENT_STATE_RESTORED_EVENT } from "./usePersistentState";
 
 export interface ProfFinState {
   pisPerc: number;
@@ -122,13 +123,25 @@ export function useProfFinanceiro(custoBase?: number) {
       if (e.key === STATE_KEY) setState(loadLs(STATE_KEY, PROF_FIN_DEFAULTS));
       if (e.key === TIERS_KEY) setComissaoTiersState(loadLs(TIERS_KEY, DEFAULT_COMISSAO_TIERS));
     };
+    const onRestored = (e: Event) => {
+      const detail = (e as CustomEvent<{ key?: string; value?: unknown }>).detail;
+      if (!detail) return;
+      if (detail.key === STATE_KEY && detail.value && typeof detail.value === "object") {
+        setState((cur) => ({ ...PROF_FIN_DEFAULTS, ...cur, ...(detail.value as Partial<ProfFinState>) }));
+      }
+      if (detail.key === TIERS_KEY && Array.isArray(detail.value) && detail.value.length > 0) {
+        setComissaoTiersState(detail.value as ComissaoTier[]);
+      }
+    };
     window.addEventListener(STATE_EVENT, onState as EventListener);
     window.addEventListener(TIERS_EVENT, onTiers as EventListener);
     window.addEventListener("storage", onStorage);
+    window.addEventListener(PERSISTENT_STATE_RESTORED_EVENT, onRestored as EventListener);
     return () => {
       window.removeEventListener(STATE_EVENT, onState as EventListener);
       window.removeEventListener(TIERS_EVENT, onTiers as EventListener);
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener(PERSISTENT_STATE_RESTORED_EVENT, onRestored as EventListener);
     };
   }, []);
 
