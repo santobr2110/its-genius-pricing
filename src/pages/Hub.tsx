@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users } from "lucide-react";
+import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users, BriefcaseBusiness } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
