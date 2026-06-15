@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,13 @@ import {
 } from "@/components/ui/sheet";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCotacoes, Cotacao } from "@/hooks/useCotacoes";
 import { formatBRL, NIVEIS } from "@/lib/profissionais/calc";
 import { downloadFile, gerarCsv, gerarPropostaTxt } from "@/lib/profissionais/exportProposta";
-import { Download, Eye, Trash2, Copy as CopyIcon, Search } from "lucide-react";
+import { Download, Eye, Trash2, Copy as CopyIcon, Search, FolderOpen, Calendar } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 function diasAteValidade(iso: string): number {
@@ -30,6 +32,7 @@ function statusBadge(c: Cotacao) {
 
 export default function CotacoesSalvas() {
   const { cotacoes, loading, softDelete } = useCotacoes();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [q, setQ] = useState("");
   const [fArea, setFArea] = useState("all");
   const [fNivel, setFNivel] = useState("all");
@@ -37,6 +40,20 @@ export default function CotacoesSalvas() {
   const [fStatus, setFStatus] = useState("all");
   const [ordem, setOrdem] = useState("recentes");
   const [detalhe, setDetalhe] = useState<Cotacao | null>(null);
+  const [confirmDel, setConfirmDel] = useState<Cotacao | null>(null);
+
+  // Abrir detalhe via ?open=<id>
+  useEffect(() => {
+    const id = searchParams.get("open");
+    if (!id || cotacoes.length === 0) return;
+    const found = cotacoes.find((c) => c.id === id);
+    if (found) {
+      setDetalhe(found);
+      const next = new URLSearchParams(searchParams);
+      next.delete("open");
+      setSearchParams(next, { replace: true });
+    }
+  }, [cotacoes, searchParams, setSearchParams]);
 
   const areas = useMemo(() => Array.from(new Set(cotacoes.map((c) => c.area))).sort(), [cotacoes]);
 
@@ -87,9 +104,9 @@ export default function CotacoesSalvas() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-[1400px] mx-auto">
       <div>
-        <h1 className="text-2xl font-bold">Cotações Salvas</h1>
+        <h1 className="text-2xl font-bold">Precificações Salvas</h1>
         <p className="text-sm text-muted-foreground">Histórico, consulta e exportação das suas cotações.</p>
       </div>
 
@@ -141,55 +158,76 @@ export default function CotacoesSalvas() {
         </CardContent>
       </Card>
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">Carregando...</p>
-      ) : filtradas.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">Nenhuma cotação encontrada.</CardContent></Card>
-      ) : (
-        <div className="space-y-3">
-          {filtradas.map((c) => {
-            const st = statusBadge(c);
-            return (
-              <Card key={c.id}>
-                <CardContent className="pt-6 flex flex-wrap items-center gap-4">
-                  <Badge className={c.origem === "ia" ? "bg-purple-500" : "bg-blue-500"}>{c.origem === "ia" ? "IA" : "Manual"}</Badge>
-                  <div className="flex-1 min-w-[200px]">
-                    <div className="font-semibold">{c.cliente}</div>
-                    <div className="text-xs text-muted-foreground">{c.cargo} — {c.nivel} — {c.area}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-muted-foreground">Valor de Venda</div>
-                    <div className="font-bold">{formatBRL(Number(c.valor_venda))}</div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant={st.variant}>{st.label}</Badge>
-                    <div className="text-xs text-muted-foreground mt-1">Validade: {new Date(c.valida_ate).toLocaleDateString("pt-BR")}</div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => setDetalhe(c)}><Eye className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => exportarTxt(c)}><CopyIcon className="h-4 w-4" /></Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="icon" variant="ghost"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Excluir cotação?</AlertDialogTitle>
-                          <AlertDialogDescription>A cotação será marcada como excluída e removida da listagem.</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => softDelete(c.id)}>Excluir</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+      <Card className="p-4">
+        {loading ? (
+          <p className="text-sm text-muted-foreground py-6 text-center">Carregando...</p>
+        ) : filtradas.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-40" />
+            <p className="text-sm">Nenhuma cotação encontrada.</p>
+            <p className="text-xs mt-1">Use o botão "Precificações → Salvar" no cabeçalho.</p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Código</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Cargo / Nível</TableHead>
+                <TableHead className="hidden lg:table-cell">Área</TableHead>
+                <TableHead>Origem</TableHead>
+                <TableHead className="hidden md:table-cell">Validade</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Valor Venda</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtradas.map((c) => {
+                const st = statusBadge(c);
+                return (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-mono text-[11px]">{c.id.slice(0, 8)}</TableCell>
+                    <TableCell className="font-medium">
+                      <button onClick={() => setDetalhe(c)} className="text-left hover:underline">{c.cliente}</button>
+                    </TableCell>
+                    <TableCell className="text-xs">{c.cargo} — {c.nivel}</TableCell>
+                    <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">{c.area}</TableCell>
+                    <TableCell>
+                      <Badge className={c.origem === "ia" ? "bg-purple-500" : "bg-blue-500"}>{c.origem === "ia" ? "IA" : "Manual"}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground text-xs">
+                      <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{new Date(c.valida_ate).toLocaleDateString("pt-BR")}</span>
+                    </TableCell>
+                    <TableCell><Badge variant={st.variant}>{st.label}</Badge></TableCell>
+                    <TableCell className="text-right font-mono text-xs">{formatBRL(Number(c.valor_venda))}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setDetalhe(c)} title="Visualizar"><Eye className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => exportarTxt(c)} title="Exportar proposta"><CopyIcon className="h-3.5 w-3.5" /></Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setConfirmDel(c)} title="Excluir"><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </Card>
+
+      <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir cotação?</AlertDialogTitle>
+            <AlertDialogDescription>"{confirmDel?.cliente}" será removida permanentemente da listagem.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { if (confirmDel) { softDelete(confirmDel.id); toast({ title: "Cotação excluída." }); } setConfirmDel(null); }}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Sheet open={!!detalhe} onOpenChange={(o) => !o && setDetalhe(null)}>
         <SheetContent className="overflow-y-auto w-full sm:max-w-lg">
