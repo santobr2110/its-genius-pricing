@@ -30,6 +30,7 @@ import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
 import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
 import CotacoesSalvas from "./pages/profissionais/CotacoesSalvas";
+import FinanceiroProfissionais from "./pages/profissionais/FinanceiroProfissionais";
 import { ITSMProvider } from "./contexts/ITSMContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -86,7 +87,7 @@ const App = () => (
               <Route path="/cloud" element={<ProtectedRoute group="cloud"><EmBreve /></ProtectedRoute>} />
               <Route path="/observabilidade" element={<ProtectedRoute group="observabilidade"><EmBreve /></ProtectedRoute>} />
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
-              <Route path="/bodyshop" element={<ProtectedRoute group="ito" offering="bodyshop"><EmBreve /></ProtectedRoute>} />
+              {/* bodyshop oferta removida */}
               <Route
                 path="/profissionais-alocados"
                 element={
@@ -95,11 +96,14 @@ const App = () => (
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<PrecificacaoManual />} />
-                <Route path="base-conhecimento" element={<BaseConhecimento />} />
-                <Route path="precificacao-manual" element={<PrecificacaoManual />} />
-                <Route path="precificacao-ia" element={<PrecificacaoIA />} />
-                <Route path="cotacoes" element={<CotacoesSalvas />} />
+                <Route index element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
+                <Route path="base-conhecimento" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.base_conhecimento"><BaseConhecimento /></ProtectedRoute>} />
+                <Route path="financeiro" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroProfissionais /></ProtectedRoute>} />
+                <Route path="selecao-manual" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
+                <Route path="precificacao-manual" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
+                <Route path="selecao-ia" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_ia"><PrecificacaoIA /></ProtectedRoute>} />
+                <Route path="precificacao-ia" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_ia"><PrecificacaoIA /></ProtectedRoute>} />
+                <Route path="cotacoes" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.cotacoes"><CotacoesSalvas /></ProtectedRoute>} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
