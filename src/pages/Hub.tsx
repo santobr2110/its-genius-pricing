@@ -8,7 +8,6 @@ import {
   GROUP_ACCESS_KEYS,
   SMART_ITO_ACCESS_KEY,
   PACOTE_HORAS_ACCESS_KEY,
-  BODYSHOP_ACCESS_KEY,
   PROFISSIONAIS_ALOCADOS_ACCESS_KEY,
 } from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";

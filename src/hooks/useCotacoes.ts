@@ -27,11 +27,15 @@ export interface Cotacao {
   ia_justificativa: string | null;
   ia_indice_aderencia: number | null;
   ia_competencias_chave: string[] | null;
+  scope?: string;
+  impostos_pct?: number | null;
+  comissao_pct?: number | null;
+  extras?: Record<string, unknown> | null;
 }
 
 export type SaveCotacaoPayload = Omit<Cotacao, "id" | "criado_em">;
 
-export function useCotacoes() {
+export function useCotacoes(scope: string = "profissionais") {
   const { user } = useAuth();
   const [cotacoes, setCotacoes] = useState<Cotacao[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,11 +47,12 @@ export function useCotacoes() {
       .from("cotacoes")
       .select("*")
       .eq("user_id", user.id)
+      .eq("scope", scope)
       .eq("excluido", false)
       .order("criado_em", { ascending: false });
     setCotacoes(((data ?? []) as unknown) as Cotacao[]);
     setLoading(false);
-  }, [user]);
+  }, [user, scope]);
 
   useEffect(() => {
     refresh();
@@ -56,11 +61,12 @@ export function useCotacoes() {
   const save = useCallback(
     async (payload: SaveCotacaoPayload) => {
       if (!user) throw new Error("Não autenticado");
-      const { error } = await supabase.from("cotacoes").insert({ user_id: user.id, ...payload });
+      const insertPayload: any = { user_id: user.id, scope, ...payload };
+      const { error } = await supabase.from("cotacoes").insert(insertPayload);
       if (error) throw error;
       await refresh();
     },
-    [user, refresh],
+    [user, refresh, scope],
   );
 
   const softDelete = useCallback(

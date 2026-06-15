@@ -137,24 +137,28 @@ export type Database = {
           atualizado_em: string
           cargo: string
           cliente: string
+          comissao_pct: number | null
           competencias: string[] | null
           criado_em: string
           custo_total: number
           descricao_cargo: string | null
           encargos_pct: number
           excluido: boolean
+          extras: Json | null
           horas_mensais: number
           ia_competencias_chave: string[] | null
           ia_descricao_original: string | null
           ia_indice_aderencia: number | null
           ia_justificativa: string | null
           id: string
+          impostos_pct: number | null
           margem_pct: number
           nivel: string
           observacoes: string | null
           origem: string
           overhead_pct: number
           salario_base: number
+          scope: string
           user_id: string
           valida_ate: string
           valor_hora: number
@@ -166,24 +170,28 @@ export type Database = {
           atualizado_em?: string
           cargo: string
           cliente: string
+          comissao_pct?: number | null
           competencias?: string[] | null
           criado_em?: string
           custo_total: number
           descricao_cargo?: string | null
           encargos_pct: number
           excluido?: boolean
+          extras?: Json | null
           horas_mensais: number
           ia_competencias_chave?: string[] | null
           ia_descricao_original?: string | null
           ia_indice_aderencia?: number | null
           ia_justificativa?: string | null
           id?: string
+          impostos_pct?: number | null
           margem_pct: number
           nivel: string
           observacoes?: string | null
           origem: string
           overhead_pct: number
           salario_base: number
+          scope?: string
           user_id: string
           valida_ate: string
           valor_hora: number
@@ -195,24 +203,28 @@ export type Database = {
           atualizado_em?: string
           cargo?: string
           cliente?: string
+          comissao_pct?: number | null
           competencias?: string[] | null
           criado_em?: string
           custo_total?: number
           descricao_cargo?: string | null
           encargos_pct?: number
           excluido?: boolean
+          extras?: Json | null
           horas_mensais?: number
           ia_competencias_chave?: string[] | null
           ia_descricao_original?: string | null
           ia_indice_aderencia?: number | null
           ia_justificativa?: string | null
           id?: string
+          impostos_pct?: number | null
           margem_pct?: number
           nivel?: string
           observacoes?: string | null
           origem?: string
           overhead_pct?: number
           salario_base?: number
+          scope?: string
           user_id?: string
           valida_ate?: string
           valor_hora?: number

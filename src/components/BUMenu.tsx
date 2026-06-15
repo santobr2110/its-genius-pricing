@@ -10,7 +10,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { GROUP_ACCESS_KEYS, PACOTE_HORAS_ACCESS_KEY, BODYSHOP_ACCESS_KEY, SMART_ITO_ACCESS_KEY } from "@/lib/offerings";
+import {
+  GROUP_ACCESS_KEYS,
+  PACOTE_HORAS_ACCESS_KEY,
+  SMART_ITO_ACCESS_KEY,
+  PROFISSIONAIS_ALOCADOS_ACCESS_KEY,
+} from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";
 
 const ITO_PATHS = new Set([
@@ -53,8 +58,8 @@ const GROUPS_MENU: GroupItem[] = [
     icon: Package,
     offerings: [
       { id: "ito", label: "Smart ITO", description: "Calculadora completa", to: "/ito", icon: Calculator, permissionKey: SMART_ITO_ACCESS_KEY },
+      { id: "profissionais-alocados", label: "Profissionais Alocados", description: "Precificação com IA", to: "/profissionais-alocados", icon: Users, permissionKey: PROFISSIONAIS_ALOCADOS_ACCESS_KEY },
       { id: "pacote-horas", label: "Pacote de Horas", description: "Em breve", to: "/pacote-horas", icon: Clock, permissionKey: PACOTE_HORAS_ACCESS_KEY },
-      { id: "bodyshop", label: "Bodyshop", description: "Em breve", to: "/bodyshop", icon: Users, permissionKey: BODYSHOP_ACCESS_KEY },
     ],
   },
   { id: "datacenter", label: "Datacenter", icon: Server, offerings: [] },
@@ -84,11 +89,11 @@ export default function BUMenu() {
     pathname === "/datacenter" ? "datacenter"
     : pathname === "/cloud" ? "cloud"
     : pathname === "/observabilidade" ? "observabilidade"
-    : (pathname === "/pacote-horas" || pathname === "/bodyshop" || ITO_PATHS.has(pathname)) ? "ito"
+    : (pathname === "/pacote-horas" || pathname.startsWith("/profissionais-alocados") || ITO_PATHS.has(pathname)) ? "ito"
     : null;
   const currentOfferingId: string | null =
     pathname === "/pacote-horas" ? "pacote-horas"
-    : pathname === "/bodyshop" ? "bodyshop"
+    : pathname.startsWith("/profissionais-alocados") ? "profissionais-alocados"
     : ITO_PATHS.has(pathname) ? "ito"
     : null;
 

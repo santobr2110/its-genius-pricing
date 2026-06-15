@@ -42,7 +42,22 @@ export type PermissionKey =
   | "teams.edit"
   | "financeiro.edit"
   | "admin.users.manage"
-  | "admin.roles.manage";
+  | "admin.roles.manage"
+  // Profissionais Alocados — páginas
+  | "page.prof.base_conhecimento"
+  | "page.prof.financeiro"
+  | "page.prof.selecao_manual"
+  | "page.prof.selecao_ia"
+  | "page.prof.cotacoes"
+  // Profissionais Alocados — escrita
+  | "page.prof.base_conhecimento.write"
+  | "page.prof.financeiro.write"
+  | "page.prof.selecao_manual.write"
+  | "page.prof.selecao_ia.write"
+  // Profissionais Alocados — ações
+  | "prof.pricing.save"
+  | "prof.pricing.delete"
+  | "prof.pricing.export";
 
 export interface PermissionDef {
   key: PermissionKey;
@@ -54,6 +69,7 @@ export interface PermissionDef {
     | "ITO › Smart ITO › Precificação"
     | "ITO › Smart ITO › Equipes"
     | "ITO › Smart ITO › Financeiro"
+    | "ITO › Profissionais Alocados"
     | "Administração";
 }
 
@@ -98,6 +114,18 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "financeiro.edit",        label: "Editar configurações financeiras",  group: "ITO › Smart ITO › Financeiro" },
   { key: "admin.users.manage", label: "Gerenciar usuários", group: "Administração" },
   { key: "admin.roles.manage", label: "Gerenciar perfis e permissões", group: "Administração" },
+  { key: "page.prof.base_conhecimento",        label: "Base de Conhecimento",                   group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.base_conhecimento.write",  label: "Editar Base de Conhecimento",            group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.financeiro",               label: "Financeiro (Profissionais Alocados)",    group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.financeiro.write",         label: "Editar Financeiro (Profissionais)",     group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.selecao_manual",           label: "Seleção Manual",                         group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.selecao_manual.write",     label: "Editar Seleção Manual",                  group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.selecao_ia",               label: "Seleção com IA",                         group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.selecao_ia.write",         label: "Editar Seleção com IA",                  group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.cotacoes",                 label: "Cotações Salvas",                        group: "ITO › Profissionais Alocados" },
+  { key: "prof.pricing.save",                  label: "Salvar cotações (Profissionais)",        group: "ITO › Profissionais Alocados" },
+  { key: "prof.pricing.delete",                label: "Excluir cotações (Profissionais)",       group: "ITO › Profissionais Alocados" },
+  { key: "prof.pricing.export",                label: "Exportar propostas (Profissionais)",     group: "ITO › Profissionais Alocados" },
 ];
 
 export const PERMISSION_GROUPS = Array.from(new Set(PERMISSIONS.map((p) => p.group)));

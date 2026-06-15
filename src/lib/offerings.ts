@@ -71,13 +71,6 @@ export const GROUPS: GroupDef[] = [
         routePrefix: "/pacote-horas",
         routes: ["/pacote-horas"],
       },
-      {
-        slug: "bodyshop",
-        name: "Bodyshop",
-        status: "coming_soon",
-        routePrefix: "/bodyshop",
-        routes: ["/bodyshop"],
-      },
     ],
   },
   { slug: "datacenter",     name: "Datacenter",     status: "coming_soon", route: "/datacenter",     offerings: [] },

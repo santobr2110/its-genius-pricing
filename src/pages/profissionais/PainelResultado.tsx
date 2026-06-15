@@ -14,9 +14,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { calcularPrecificacao, formatBRL } from "@/lib/profissionais/calc";
-import { useConfigPrecificacao } from "@/hooks/useConfigPrecificacao";
+import { useFinanceiroProfissionais, markupDivisorPct } from "@/hooks/useFinanceiroProfissionais";
 import { useCotacoes } from "@/hooks/useCotacoes";
-import { Save } from "lucide-react";
+import { Save, Link as LinkIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
 export interface PerfilSelecionado {
@@ -44,8 +46,9 @@ export interface PainelResultadoProps {
 }
 
 export default function PainelResultado({ perfil, origem, dadosIA }: PainelResultadoProps) {
-  const { config, update } = useConfigPrecificacao();
+  const { config } = useFinanceiroProfissionais();
   const { save } = useCotacoes();
+  const { can } = useAuth();
   const [salarioOverride, setSalarioOverride] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [cliente, setCliente] = useState("");
@@ -57,6 +60,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
   });
 
   const salario = salarioOverride ?? perfil?.salario_base ?? 0;
+  const markupPct = markupDivisorPct(config);
 
   const calc = useMemo(
     () =>
@@ -64,10 +68,10 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
         salario,
         encargosPct: config.encargos_pct,
         overheadPct: config.overhead_pct,
-        margemPct: config.margem_pct,
+        markupDivisorPct: markupPct,
         horasMensais: config.horas_mensais,
       }),
-    [salario, config],
+    [salario, config, markupPct],
   );
 
   if (!perfil) {
@@ -99,12 +103,26 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
         salario_base: salario,
         encargos_pct: config.encargos_pct,
         overhead_pct: config.overhead_pct,
-        margem_pct: config.margem_pct,
+        margem_pct: config.lucro_pct,
+        impostos_pct: config.pis_pct + config.cofins_pct + config.iss_pct,
+        comissao_pct: config.comissao_pct,
         horas_mensais: config.horas_mensais,
         custo_total: calc.custoTotal,
         valor_venda: calc.valorVenda,
         valor_hora: calc.valorHora,
         valor_sprint: calc.valorSprint,
+        scope: "profissionais",
+        extras: {
+          pis_pct: config.pis_pct,
+          cofins_pct: config.cofins_pct,
+          iss_pct: config.iss_pct,
+          irpj_csll_pct: config.irpj_csll_pct,
+          enc_financ_pct: config.enc_financ_pct,
+          lucro_pct: config.lucro_pct,
+          markup_divisor_pct: markupPct,
+          faixa: perfil!.faixa ?? null,
+          nivel_num: perfil!.nivel_num ?? null,
+        },
         ia_descricao_original: dadosIA?.descricao_original ?? null,
         ia_justificativa: dadosIA?.justificativa ?? null,
         ia_indice_aderencia: dadosIA?.indice_aderencia ?? null,
@@ -142,7 +160,14 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Parâmetros de Precificação</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center justify-between">
+            <span>Parâmetros de Precificação</span>
+            <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
+              <Link to="/profissionais-alocados/financeiro"><LinkIcon className="h-3 w-3 mr-1" /> Editar no Financeiro</Link>
+            </Button>
+          </CardTitle>
+        </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3">
           <div>
             <Label>Salário Base (R$)</Label>
@@ -154,19 +179,19 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
           </div>
           <div>
             <Label>Encargos (%)</Label>
-            <Input type="number" value={config.encargos_pct} onChange={(e) => update({ encargos_pct: parseFloat(e.target.value) || 0 })} />
+            <Input type="number" value={config.encargos_pct} disabled />
           </div>
           <div>
             <Label>Overhead (%)</Label>
-            <Input type="number" value={config.overhead_pct} onChange={(e) => update({ overhead_pct: parseFloat(e.target.value) || 0 })} />
+            <Input type="number" value={config.overhead_pct} disabled />
           </div>
           <div>
-            <Label>Margem (%)</Label>
-            <Input type="number" value={config.margem_pct} onChange={(e) => update({ margem_pct: parseFloat(e.target.value) || 0 })} />
+            <Label>Σ Markup Divisor (%)</Label>
+            <Input type="number" value={markupPct.toFixed(2)} disabled />
           </div>
-          <div className="col-span-2">
-            <Label>Carga Horária Mensal (h)</Label>
-            <Input type="number" value={config.horas_mensais} onChange={(e) => update({ horas_mensais: parseInt(e.target.value) || 0 })} />
+          <div>
+            <Label>Horas Mensais</Label>
+            <Input type="number" value={config.horas_mensais} disabled />
           </div>
         </CardContent>
       </Card>
@@ -177,6 +202,9 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Custo Total Mensal</span>
             <span className="font-medium">{formatBRL(calc.custoTotal)}</span>
+          </div>
+          <div className="text-[11px] text-muted-foreground">
+            Salário × (1+Encargos) × (1+Overhead) — markup divisor {markupPct.toFixed(2)}%
           </div>
           <div className="rounded-lg border-2 border-primary bg-primary/5 p-4">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">💰 Valor de Venda Sugerido</div>
@@ -191,6 +219,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
             <span className="font-medium">{formatBRL(calc.valorSprint)}</span>
           </div>
 
+          {can("prof.pricing.save") && (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="w-full"><Save className="h-4 w-4 mr-2" /> Salvar Cotação</Button>
@@ -223,6 +252,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          )}
         </CardContent>
       </Card>
     </div>
