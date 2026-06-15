@@ -56,10 +56,10 @@ const GROUPS: GroupCard[] = [
       },
       {
         id: "profissionais-alocados",
-        title: "Precificação de Profissionais Alocados",
+        title: "BodyShop - Alocação de Profissionais",
         description: "Calcule o valor de venda de profissionais de TI alocados, com apoio de IA.",
         to: "/profissionais-alocados",
-        icon: Users,
+        icon: BriefcaseBusiness,
         available: true,
         permissionKey: PROFISSIONAIS_ALOCADOS_ACCESS_KEY as PermissionKey,
       },
