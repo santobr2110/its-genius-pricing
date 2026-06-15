@@ -31,6 +31,9 @@ import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
 import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
 import CotacoesSalvas from "./pages/profissionais/CotacoesSalvas";
 import FinanceiroProfissionais from "./pages/profissionais/FinanceiroProfissionais";
+import FinanceiroResultadoProf from "./pages/profissionais/financeiro/Resultado";
+import FinanceiroImpostosProf from "./pages/profissionais/financeiro/Impostos";
+import FinanceiroComissoesProf from "./pages/profissionais/financeiro/Comissoes";
 import { ITSMProvider } from "./contexts/ITSMContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -98,7 +101,10 @@ const App = () => (
               >
                 <Route index element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
                 <Route path="base-conhecimento" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.base_conhecimento"><BaseConhecimento /></ProtectedRoute>} />
-                <Route path="financeiro" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroProfissionais /></ProtectedRoute>} />
+                <Route path="financeiro" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroResultadoProf /></ProtectedRoute>} />
+                <Route path="financeiro/impostos" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroImpostosProf /></ProtectedRoute>} />
+                <Route path="financeiro/comissoes" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroComissoesProf /></ProtectedRoute>} />
+                <Route path="financeiro-legacy" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroProfissionais /></ProtectedRoute>} />
                 <Route path="selecao-manual" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
                 <Route path="precificacao-manual" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
                 <Route path="selecao-ia" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_ia"><PrecificacaoIA /></ProtectedRoute>} />
