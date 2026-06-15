@@ -1,76 +1,97 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Database, Hand, Bot, FolderOpen, ArrowLeft } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
+import { Database, Hand, Bot, FolderOpen, DollarSign } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
-import { Button } from "@/components/ui/button";
+import BUMenu from "@/components/BUMenu";
+import BackHomeButton from "@/components/BackHomeButton";
+import { useAuth } from "@/contexts/AuthContext";
+import type { PermissionKey } from "@/lib/permissions";
+import { cn } from "@/lib/utils";
 
-const items = [
-  { to: "/profissionais-alocados/base-conhecimento", label: "Base de Conhecimento", icon: Database },
-  { to: "/profissionais-alocados/precificacao-manual", label: "Precificação Manual", icon: Hand },
-  { to: "/profissionais-alocados/precificacao-ia", label: "Precificação por IA", icon: Bot },
-  { to: "/profissionais-alocados/cotacoes", label: "Cotações Salvas", icon: FolderOpen },
+type NavItem = { to: string; label: string; icon: typeof Database; permission?: PermissionKey };
+
+const GROUPS: { label: string; items: NavItem[] }[] = [
+  {
+    label: "Configurações",
+    items: [
+      { to: "/profissionais-alocados/base-conhecimento", label: "Base de Conhecimento", icon: Database, permission: "page.prof.base_conhecimento" },
+      { to: "/profissionais-alocados/financeiro", label: "Financeiro", icon: DollarSign, permission: "page.prof.financeiro" },
+    ],
+  },
+  {
+    label: "Seleção",
+    items: [
+      { to: "/profissionais-alocados/selecao-manual", label: "Seleção Manual", icon: Hand, permission: "page.prof.selecao_manual" },
+      { to: "/profissionais-alocados/selecao-ia", label: "Seleção com IA", icon: Bot, permission: "page.prof.selecao_ia" },
+    ],
+  },
+  {
+    label: "Precificações",
+    items: [
+      { to: "/profissionais-alocados/cotacoes", label: "Cotações Salvas", icon: FolderOpen, permission: "page.prof.cotacoes" },
+    ],
+  },
 ];
 
-function AppSidebar() {
+function TopNav() {
   const { pathname } = useLocation();
+  const { can } = useAuth();
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((it) => (
-                <SidebarMenuItem key={it.to}>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith(it.to)}>
-                    <NavLink to={it.to} className="flex items-center gap-2">
-                      <it.icon className="h-4 w-4" />
-                      <span>{it.label}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+    <nav className="flex flex-wrap items-center gap-4 border-b bg-background px-4 py-2">
+      {GROUPS.map((g) => {
+        const visible = g.items.filter((i) => !i.permission || can(i.permission));
+        if (visible.length === 0) return null;
+        return (
+          <div key={g.label} className="flex items-center gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pr-1">
+              {g.label}:
+            </span>
+            <div className="flex items-center gap-1 rounded-lg border bg-muted/30 p-0.5">
+              {visible.map((it) => {
+                const Icon = it.icon;
+                const active = pathname === it.to || pathname.startsWith(it.to + "/");
+                return (
+                  <NavLink
+                    key={it.to}
+                    to={it.to}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                      active
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-foreground/70 hover:bg-background hover:text-foreground",
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {it.label}
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </nav>
   );
 }
 
 export default function ProfissionaisLayout() {
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col">
-          <header className="h-14 border-b flex items-center gap-2 px-4">
-            <SidebarTrigger />
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/"><ArrowLeft className="h-4 w-4 mr-1" /> Hub</Link>
-            </Button>
-            <div className="flex-1 text-sm font-semibold tracking-tight">
-              Precificação de Profissionais Alocados
-            </div>
+    <div className="min-h-screen w-full bg-muted/30">
+      <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
+        <div className="flex h-12 items-center gap-2 px-4">
+          <BackHomeButton />
+          <BUMenu />
+          <h1 className="text-sm font-bold truncate">Precificação de Profissionais Alocados</h1>
+          <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
             <UserMenu />
-          </header>
-          <main className="flex-1 p-6">
-            <Outlet />
-          </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+        <TopNav />
+      </header>
+      <main className="px-6 py-6">
+        <Outlet />
+      </main>
+    </div>
   );
 }
