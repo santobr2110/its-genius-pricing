@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Calculator, Save, Trash2, Download, Pencil, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,13 @@ import UserMenu from "@/components/auth/UserMenu";
 import { useParameterProfiles, ParameterProfile, PARAM_KEYS } from "@/hooks/useParameterProfiles";
 
 export default function PerfisParametros() {
+  const location = useLocation();
+  const fromState = (location.state as { from?: "ito" | "profissionais"; fromPath?: string } | null) ?? null;
+  const from = fromState?.from ?? "ito";
+  const homeLink = from === "profissionais" ? "/profissionais-alocados" : "/ito";
+  const headerTitle = from === "profissionais"
+    ? "Perfis de Parâmetros · Profissionais Alocados"
+    : "Perfis de Parâmetros · Smart ITO";
   const { profiles, loading, save, overwrite, rename, remove, apply } = useParameterProfiles();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -85,12 +92,12 @@ export default function PerfisParametros() {
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
           <BackHomeButton />
-          <Link to="/ito" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
+          <Link to={homeLink} className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
             <Calculator className="h-5 w-5 text-primary shrink-0" />
-            <h1 className="text-sm font-bold text-foreground truncate">Perfis de Parâmetros</h1>
+            <h1 className="text-sm font-bold text-foreground truncate">{headerTitle}</h1>
           </Link>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
-            <SortableNav current="home" />
+            {from === "ito" && <SortableNav current="home" />}
             <UserMenu />
           </div>
         </div>

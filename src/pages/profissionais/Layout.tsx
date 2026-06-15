@@ -87,7 +87,7 @@ export default function ProfissionaisLayout() {
           <h1 className="text-sm font-bold truncate">Precificação de Profissionais Alocados</h1>
           <div className="ml-auto flex items-center gap-1.5">
             {GROUPS.map((g) => <GroupSlot key={g.label} group={g} currentPath={pathname} />)}
-            <ParametrosMenu />
+            <ParametrosMenu scope="profissionais" />
             <PrecificacoesProfMenu />
             <ThemeToggle />
             <UserMenu />
