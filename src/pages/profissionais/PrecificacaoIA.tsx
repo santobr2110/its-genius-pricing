@@ -51,7 +51,7 @@ export default function PrecificacaoIA() {
   const corAderencia = aderencia >= 80 ? "bg-green-500" : aderencia >= 60 ? "bg-yellow-500" : "bg-red-500";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
       <div className="space-y-4">
         <Card>
           <CardHeader><CardTitle className="flex items-center gap-2"><Bot className="h-5 w-5" /> Descrição da Vaga</CardTitle></CardHeader>
