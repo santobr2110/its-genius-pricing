@@ -21,7 +21,23 @@ const RAW_PARAM_KEYS = [
   "escopo:itensAdicionais",
 ] as const;
 
-export const PARAM_KEYS = RAW_PARAM_KEYS.map((k) => SMART_ITO_NS + k);
+// Chaves da Precificação de Profissionais Alocados.
+// As que passam por `usePersistentState` ganham o namespace SMART_ITO_NS;
+// as que usam `localStorage` cru (useProfFinanceiro) permanecem como estão.
+const PROF_NAMESPACED_KEYS = [
+  "prof.financeiro.codigoProduto",
+  "prof.financeiro.cidadeIss",
+] as const;
+const PROF_RAW_KEYS = [
+  "prof.fin.state.v1",
+  "prof.fin.comissaoTiers.v1",
+] as const;
+
+export const PARAM_KEYS = [
+  ...RAW_PARAM_KEYS.map((k) => SMART_ITO_NS + k),
+  ...PROF_NAMESPACED_KEYS.map((k) => SMART_ITO_NS + k),
+  ...PROF_RAW_KEYS,
+];
 
 export type ParamPayload = Record<string, unknown>;
 
