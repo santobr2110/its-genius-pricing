@@ -5,6 +5,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import BUMenu from "@/components/BUMenu";
 import BackHomeButton from "@/components/BackHomeButton";
 import PrecificacoesProfMenu from "@/components/profissionais/PrecificacoesProfMenu";
+import ParametrosMenu from "@/components/ParametrosMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import type { PermissionKey } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ export default function ProfissionaisLayout() {
           <h1 className="text-sm font-bold truncate">Precificação de Profissionais Alocados</h1>
           <div className="ml-auto flex items-center gap-1.5">
             {GROUPS.map((g) => <GroupSlot key={g.label} group={g} currentPath={pathname} />)}
+            <ParametrosMenu />
             <PrecificacoesProfMenu />
             <ThemeToggle />
             <UserMenu />
