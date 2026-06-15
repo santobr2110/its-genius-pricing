@@ -18,11 +18,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useParameterProfiles, type ParameterProfile } from "@/hooks/useParameterProfiles";
 
-export default function ParametrosMenu() {
+export default function ParametrosMenu({ scope = "ito" }: { scope?: "ito" | "profissionais" }) {
+  const location = useLocation();
   const { profiles, loading, save, apply, refresh } = useParameterProfiles({ autoLoad: false });
   const [saveOpen, setSaveOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
@@ -78,7 +79,7 @@ export default function ParametrosMenu() {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link to="/perfis-parametros">
+            <Link to="/perfis-parametros" state={{ from: scope, fromPath: location.pathname }}>
               <Settings2 className="h-3.5 w-3.5 mr-2" /> Gerenciar perfis
             </Link>
           </DropdownMenuItem>
