@@ -51,6 +51,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
   const { save } = useCotacoes();
   const { can } = useAuth();
   const [salarioOverride, setSalarioOverride] = useState<number | null>(null);
+  const [beneficioOverride, setBeneficioOverride] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [cliente, setCliente] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -61,6 +62,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
   });
 
   const salario = salarioOverride ?? perfil?.salario_base ?? 0;
+  const beneficio = beneficioOverride ?? config.beneficioFixo ?? 0;
   const markupPct = markupDivisorPctProf(config);
 
   const calc = useMemo(
@@ -71,8 +73,9 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
         overheadPct: config.overheadPerc,
         markupDivisorPct: markupPct,
         horasMensais: config.horasMensais,
+        beneficio,
       }),
-    [salario, config, markupPct],
+    [salario, beneficio, config, markupPct],
   );
 
   // Escuta o botão "Precificações → Salvar" do header
@@ -134,6 +137,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
           enc_financ_pct: config.encFinancPerc,
           lucro_pct: config.lucroPerc,
           markup_divisor_pct: markupPct,
+          beneficio,
           faixa: perfil!.faixa ?? null,
           nivel_num: perfil!.nivel_num ?? null,
         },
@@ -189,6 +193,15 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
               type="number"
               value={salario}
               onChange={(e) => setSalarioOverride(parseFloat(e.target.value) || 0)}
+            />
+          </div>
+          <div>
+            <Label>Benefícios (R$/mês)</Label>
+            <Input
+              type="number"
+              value={beneficio}
+              step={50}
+              onChange={(e) => setBeneficioOverride(parseFloat(e.target.value) || 0)}
             />
           </div>
           <div>
@@ -257,7 +270,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
             <span className="font-medium">{formatBRL(calc.custoTotal)}</span>
           </div>
           <div className="text-[11px] text-muted-foreground">
-            Salário × (1+Encargos) × (1+Overhead) — markup divisor {markupPct.toFixed(2)}%
+            Salário × (1+Encargos) × (1+Overhead) + Benefícios — markup divisor {markupPct.toFixed(2)}%
           </div>
           <div className="rounded-lg border-2 border-primary bg-primary/5 p-4">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">💰 Valor de Venda Sugerido</div>

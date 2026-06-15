@@ -44,9 +44,9 @@ export default function FinanceiroResultadoProf() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><Wallet className="h-4 w-4 text-primary" /> Custo Mensal Base do Profissional (referência)</CardTitle>
-          <p className="text-xs text-muted-foreground">Usado apenas para visualizar o demonstrativo. Na precificação real, o custo vem do salário do profissional × encargos × overhead.</p>
+          <p className="text-xs text-muted-foreground">Usado apenas para visualizar o demonstrativo. Na precificação real, o custo vem do salário × encargos × overhead + benefícios.</p>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="space-y-1">
             <Label className="text-xs">Custo de referência (R$)</Label>
             <Input type="number" value={state.custoExemplo} onChange={(e) => update("custoExemplo", parseFloat(e.target.value) || 0)} />
@@ -58,6 +58,10 @@ export default function FinanceiroResultadoProf() {
           <div className="space-y-1">
             <Label className="text-xs">Overhead (%)</Label>
             <Input type="number" value={state.overheadPerc} onChange={(e) => update("overheadPerc", parseFloat(e.target.value) || 0)} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Benefícios padrão (R$/mês)</Label>
+            <Input type="number" step={50} value={state.beneficioFixo} onChange={(e) => update("beneficioFixo", parseFloat(e.target.value) || 0)} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Carga Horária Mensal (h)</Label>
