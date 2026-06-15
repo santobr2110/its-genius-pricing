@@ -59,7 +59,7 @@ export const GROUPS: GroupDef[] = [
       },
       {
         slug: "profissionais-alocados",
-        name: "Precificação de Profissionais Alocados",
+        name: "BodyShop - Alocação de Profissionais",
         status: "active",
         routePrefix: "/profissionais-alocados",
         routes: ["/profissionais-alocados"],

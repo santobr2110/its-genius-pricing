@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users, Package } from "lucide-react";
+import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users, Package, BriefcaseBusiness } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   GROUP_ACCESS_KEYS,
@@ -58,7 +58,7 @@ const GROUPS_MENU: GroupItem[] = [
     icon: Package,
     offerings: [
       { id: "ito", label: "Smart ITO", description: "Calculadora completa", to: "/ito", icon: Calculator, permissionKey: SMART_ITO_ACCESS_KEY },
-      { id: "profissionais-alocados", label: "Profissionais Alocados", description: "Precificação com IA", to: "/profissionais-alocados", icon: Users, permissionKey: PROFISSIONAIS_ALOCADOS_ACCESS_KEY },
+      { id: "profissionais-alocados", label: "BodyShop - Alocação de Profissionais", description: "Precificação com IA", to: "/profissionais-alocados", icon: BriefcaseBusiness, permissionKey: PROFISSIONAIS_ALOCADOS_ACCESS_KEY },
       { id: "pacote-horas", label: "Pacote de Horas", description: "Em breve", to: "/pacote-horas", icon: Clock, permissionKey: PACOTE_HORAS_ACCESS_KEY },
     ],
   },
