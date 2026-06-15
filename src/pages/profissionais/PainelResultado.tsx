@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { calcularPrecificacao, formatBRL } from "@/lib/profissionais/calc";
-import { useFinanceiroProfissionais, markupDivisorPct } from "@/hooks/useFinanceiroProfissionais";
+import { useProfFinanceiro, markupDivisorPctProf } from "@/hooks/useProfFinanceiro";
 import { useCotacoes } from "@/hooks/useCotacoes";
 import { Save, Link as LinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -46,7 +46,7 @@ export interface PainelResultadoProps {
 }
 
 export default function PainelResultado({ perfil, origem, dadosIA }: PainelResultadoProps) {
-  const { config } = useFinanceiroProfissionais();
+  const { state: config } = useProfFinanceiro();
   const { save } = useCotacoes();
   const { can } = useAuth();
   const [salarioOverride, setSalarioOverride] = useState<number | null>(null);
@@ -60,19 +60,32 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
   });
 
   const salario = salarioOverride ?? perfil?.salario_base ?? 0;
-  const markupPct = markupDivisorPct(config);
+  const markupPct = markupDivisorPctProf(config);
 
   const calc = useMemo(
     () =>
       calcularPrecificacao({
         salario,
-        encargosPct: config.encargos_pct,
-        overheadPct: config.overhead_pct,
+        encargosPct: config.encargosPerc,
+        overheadPct: config.overheadPerc,
         markupDivisorPct: markupPct,
-        horasMensais: config.horas_mensais,
+        horasMensais: config.horasMensais,
       }),
     [salario, config, markupPct],
   );
+
+  // Escuta o botão "Precificações → Salvar" do header
+  useEffect(() => {
+    function open() {
+      if (!perfil) {
+        toast({ title: "Selecione um perfil antes de salvar", variant: "destructive" });
+        return;
+      }
+      setDialogOpen(true);
+    }
+    window.addEventListener("prof:save-cotacao", open);
+    return () => window.removeEventListener("prof:save-cotacao", open);
+  }, [perfil]);
 
   if (!perfil) {
     return (
@@ -101,24 +114,24 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
         descricao_cargo: perfil!.descricao ?? null,
         competencias: perfil!.competencias ?? null,
         salario_base: salario,
-        encargos_pct: config.encargos_pct,
-        overhead_pct: config.overhead_pct,
-        margem_pct: config.lucro_pct,
-        impostos_pct: config.pis_pct + config.cofins_pct + config.iss_pct,
-        comissao_pct: config.comissao_pct,
-        horas_mensais: config.horas_mensais,
+        encargos_pct: config.encargosPerc,
+        overhead_pct: config.overheadPerc,
+        margem_pct: config.lucroPerc,
+        impostos_pct: config.pisPerc + config.cofinsPerc + config.issPerc,
+        comissao_pct: config.comissaoPerc,
+        horas_mensais: config.horasMensais,
         custo_total: calc.custoTotal,
         valor_venda: calc.valorVenda,
         valor_hora: calc.valorHora,
         valor_sprint: calc.valorSprint,
         scope: "profissionais",
         extras: {
-          pis_pct: config.pis_pct,
-          cofins_pct: config.cofins_pct,
-          iss_pct: config.iss_pct,
-          irpj_csll_pct: config.irpj_csll_pct,
-          enc_financ_pct: config.enc_financ_pct,
-          lucro_pct: config.lucro_pct,
+          pis_pct: config.pisPerc,
+          cofins_pct: config.cofinsPerc,
+          iss_pct: config.issPerc,
+          irpj_csll_pct: config.irpjCsllPerc,
+          enc_financ_pct: config.encFinancPerc,
+          lucro_pct: config.lucroPerc,
           markup_divisor_pct: markupPct,
           faixa: perfil!.faixa ?? null,
           nivel_num: perfil!.nivel_num ?? null,
@@ -179,11 +192,11 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
           </div>
           <div>
             <Label>Encargos (%)</Label>
-            <Input type="number" value={config.encargos_pct} disabled />
+            <Input type="number" value={config.encargosPerc} disabled />
           </div>
           <div>
             <Label>Overhead (%)</Label>
-            <Input type="number" value={config.overhead_pct} disabled />
+            <Input type="number" value={config.overheadPerc} disabled />
           </div>
           <div>
             <Label>Σ Markup Divisor (%)</Label>
@@ -191,7 +204,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
           </div>
           <div>
             <Label>Horas Mensais</Label>
-            <Input type="number" value={config.horas_mensais} disabled />
+            <Input type="number" value={config.horasMensais} disabled />
           </div>
         </CardContent>
       </Card>
