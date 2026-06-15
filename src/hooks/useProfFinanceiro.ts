@@ -37,7 +37,14 @@ function loadLs<T>(key: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(key);
     if (!raw) return fallback;
-    return { ...(fallback as any), ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(fallback)) {
+      return (Array.isArray(parsed) && parsed.length > 0 ? parsed : fallback) as T;
+    }
+    if (parsed && typeof parsed === "object") {
+      return { ...(fallback as any), ...parsed } as T;
+    }
+    return fallback;
   } catch {
     return fallback;
   }
