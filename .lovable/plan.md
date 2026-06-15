@@ -1,73 +1,96 @@
+# Replicar padrão Smart ITO em Profissionais Alocados
 
-# Reestruturação · Precificação de Profissionais Alocados
+Objetivo: padronizar a oferta **Profissionais Alocados** para usar exatamente os mesmos componentes visuais e funcionais de **Smart ITO**, mantendo namespace de dados isolado.
 
-## 1. Menu Business Unit (BUMenu)
-Corrigir o dropdown "IT Solutions /":
-- Remover **Bodyshop** (não consta no Hub).
-- Reordenar para refletir o Hub: **Smart ITO**, **Profissionais Alocados**, **Pacote de Horas**.
-- Adicionar entrada **Profissionais Alocados** (faltante hoje) com permission key `offering.ito.profissionais-alocados.access`.
-- Atualizar `ITO_PATHS` para incluir `/profissionais-alocados/*` e refletir oferta ativa no breadcrumb.
+## 1. Navegação — padrão Smart ITO (SortableNav)
 
-## 2. Navegação Profissionais Alocados (top bar)
-Substituir a sidebar lateral por barra superior de botões (como Smart ITO), agrupados:
+Substituir o `TopNav` atual (chips agrupados) pelo mesmo padrão `SortableNav` do Smart ITO:
+- Botões com drag handle (GripVertical), ícone, label e ChevronDown
+- Agrupamentos via DropdownMenu (Configurações, Seleção)
+- Responsivo (mobile/icon/short/full)
+- BUMenu à esquerda + ThemeToggle/UserMenu à direita
 
-- **Configurações:** Base de Conhecimento · Financeiro
-- **Seleção:** Seleção Manual · Seleção com IA
-- **Precificações:** Cotações Salvas (estrutura semelhante a `/precificacoes` do Smart ITO)
+Criar `src/components/ProfSortableNav.tsx` reaproveitando o layout de `SortableNav.tsx` mas com slots/páginas da oferta Profissionais Alocados.
 
-`ProfissionaisLayout` passa a usar header com `BUMenu` + grupos de botões/segmented control, sem `SidebarProvider`. Conteúdo das páginas usa a largura total (remover grids restritivos).
+## 2. Botão "Precificações" (Salvar / Restaurar / Visualizar)
 
-## 3. Financeiro autônomo da oferta
-Criar cópia independente do Financeiro do Smart ITO em rotas `/profissionais-alocados/financeiro`, `/financeiro/impostos`, `/financeiro/comissoes`, persistindo em namespace separado para não afetar o Smart ITO.
+Criar `src/components/profissionais/PrecificacoesProfMenu.tsx` espelhando `SavePresetButton`:
+- **Salvar**: abre dialog com Cliente/Validade/Observações; emite `CustomEvent("prof:save-cotacao")` capturado pelo `PainelResultado` (que detém o perfil selecionado e os cálculos). Se nenhum perfil estiver selecionado, exibe toast.
+- **Restaurar**: submenu lista as últimas cotações; ao clicar, navega para `/profissionais-alocados/cotacoes` com `?open=<id>` (abre Sheet de detalhe).
+- **Visualizar**: navega para `/profissionais-alocados/cotacoes`.
 
-- Reutilizar componentes/UI (`ConfiguracoesFinanceiras`, `ConfiguracoesImpostos`, `ConfiguracoesComissoes`, `ProdutosImpostoManager`) parametrizando o escopo (`scope: "smart-ito" | "profissionais"`) ao ler/gravar em:
-  - `app_defaults` (chaves prefixadas `profissionais.*`)
-  - `config_precificacao` (nova coluna `scope` ou nova tabela `config_precificacao_profissionais` — escolher coluna `scope text default 'smart-ito'` com índice único `(user_id, scope)` para preservar dados atuais).
-- Hooks: criar `useConfigPrecificacaoProfissionais` e variantes de hooks de impostos/comissões com namespace.
+Adicionar ao header do `ProfissionaisLayout`.
 
-## 4. Cálculo de venda (mesmo motor do Smart ITO)
-Reaplicar exatamente a regra do Smart ITO sobre o custo do profissional alocado:
+## 3. Tela "Cotações Salvas" no padrão Smart ITO
 
-```text
-Custo Total = Salário (faixa C1..C6) × (1 + encargos%) × (1 + overhead%)
-Preço Base  = Custo Total / (1 - margem% - impostos% - comissão%)
+Reescrever `src/pages/profissionais/CotacoesSalvas.tsx` no padrão de `src/pages/Precificacoes.tsx`:
+- `Table` com colunas: Código, Cliente, Cargo/Nível/Área, Origem, Validade, Status, Valor Venda, Ações
+- Ações: Visualizar (Sheet de detalhe), Exportar (.txt), Excluir (AlertDialog)
+- Cards de KPIs no topo (Total / Válidas / Valor médio do mês) — mantidos
+- Filtros mantidos em uma barra acima
+
+Mantém integração com `useCotacoes(scope="profissionais")`.
+
+## 4. Configurações Financeiras idênticas ao Smart ITO
+
+Criar três telas autônomas usando os mesmos componentes do Smart ITO:
+
+- `/profissionais-alocados/financeiro` → cópia de `ConfiguracoesFinanceiras.tsx` (Resultado da Operação)
+- `/profissionais-alocados/financeiro/impostos` → cópia de `ConfiguracoesImpostos.tsx` (com lista de Códigos de Produto para Faturamento + município ISS + componentes do markup divisor)
+- `/profissionais-alocados/financeiro/comissoes` → cópia de `ConfiguracoesComissoes.tsx` (tabela progressiva de comissão por faixa de rentabilidade)
+
+### Detalhes técnicos
+
+- Reaproveitar componentes existentes (`ProdutosImpostoManager`, `CIDADES_ISS`, `getIssPercByCidade`, `DEFAULT_COMISSAO_TIERS`, `comissaoFromRent`) — são genéricos.
+- Substituir dependência de `useITSMContext` por um novo hook **`useProfFinanceiroState`** que expõe a mesma API (state, update, comissaoTiers, setComissaoTiers, results.composicaoPreco, custoTotalOperacao) mas:
+  - Persiste em `app_defaults` na chave `profissionais.financial.state` e `profissionais.financial.comissaoTiers`
+  - Calcula composição usando um "custo de exemplo" configurável (R$ 10.000 padrão) já que não há equipes Smart ITO acopladas — o custo real virá do salário do profissional na hora da precificação
+- Refatorar `ConfiguracoesImpostos`, `ConfiguracoesComissoes` e `ConfiguracoesFinanceiras` para aceitarem um prop opcional `scope: "smart-ito" | "profissionais"` ou criar versões espelho em `src/pages/profissionais/financeiro/`. **Decisão:** criar versões espelho em `src/pages/profissionais/financeiro/` que importam os mesmos blocos JSX, parametrizadas por hook (sem duplicação de UI). Implementação: extrair o corpo de cada tela Smart ITO em componentes `FinanceiroResultadoView`, `FinanceiroImpostosView`, `FinanceiroComissoesView` que recebem o hook como prop.
+- `FinanceiroSubNav` ganha prop `basePath` para apontar para `/financeiro/...` ou `/profissionais-alocados/financeiro/...`.
+
+### Integração com cálculo de venda
+
+O `PainelResultado` passa a usar o `state` do novo hook para extrair `pisPerc + cofinsPerc + issPerc + irpjCsllPerc + encFinancPerc + comissaoPerc + lucroPerc` como markup divisor — mesmo cálculo do Smart ITO. O atual `useFinanceiroProfissionais` é descontinuado em favor do novo hook unificado.
+
+## 5. Rotas
+
+Adicionar em `App.tsx`:
+```
+/profissionais-alocados/financeiro              → FinanceiroResultadoProf
+/profissionais-alocados/financeiro/impostos     → FinanceiroImpostosProf
+/profissionais-alocados/financeiro/comissoes    → FinanceiroComissoesProf
 ```
 
-Importar de `src/lib/comissaoRentabilidade.ts` e regras de markup/impostos atuais, alimentadas pelo financeiro da oferta (item 3). Atualizar `src/lib/profissionais/calc.ts` para receber o pacote financeiro `profissionais` e retornar a composição detalhada (custos, impostos, comissões, margem). Refletir em `PainelResultado`, `PrecificacaoManual`, `PrecificacaoIA` e export de proposta.
+Todas protegidas por `permission="page.prof.financeiro"`.
 
-## 5. Cotações Salvas (modelo Precificações Smart ITO)
-Replicar tela `/precificacoes` para a oferta:
-- Listagem, filtros, abrir, duplicar, excluir, exportar.
-- Reaproveitar `cotacoes` (já existe a tabela) adicionando coluna `scope text default 'smart-ito'` para separar do Smart ITO; novos registros gravam `'profissionais'`. Migration adiciona índice por `(user_id, scope)`.
-- Reusar componentes visuais do Smart ITO com adaptações de campos (cargo/faixa/senioridade).
+## 6. Memória de regra
 
-## 6. Permissões
-Adicionar em `src/lib/permissions.ts` (grupo novo: **ITO › Profissionais Alocados**):
-- `page.prof.base_conhecimento` (+ `.write`)
-- `page.prof.financeiro` (+ `.write`)
-- `page.prof.selecao_manual` (+ `.write`)
-- `page.prof.selecao_ia` (+ `.write`)
-- `page.prof.cotacoes`
-- `prof.pricing.edit`, `prof.pricing.save`, `prof.pricing.delete`, `prof.pricing.export_pdf`
+Salvar `mem://design/precificacao-nav-pattern` registrando que toda ferramenta de precificação nova deve usar o padrão `SortableNav` + botão **Precificações** (Salvar/Restaurar/Visualizar).
 
-Aplicar `ProtectedRoute permission=...` em cada rota e `Can permission=...` nos botões/ações. Esconder grupos do top menu quando sem permissão.
+## Arquivos afetados
 
-## 7. Migrations
-- `alter table public.cotacoes add column if not exists scope text not null default 'smart-ito';` + índice.
-- `alter table public.config_precificacao add column if not exists scope text not null default 'smart-ito';` + unique `(user_id, scope)` (drop antiga unique `user_id`).
-- Nada novo em `app_defaults` (apenas novas chaves prefixadas via app).
+**Novos**
+- `src/components/ProfSortableNav.tsx`
+- `src/components/profissionais/PrecificacoesProfMenu.tsx`
+- `src/components/financeiro/FinanceiroResultadoView.tsx`
+- `src/components/financeiro/FinanceiroImpostosView.tsx`
+- `src/components/financeiro/FinanceiroComissoesView.tsx`
+- `src/hooks/useProfFinanceiroState.ts`
+- `src/pages/profissionais/financeiro/Resultado.tsx`
+- `src/pages/profissionais/financeiro/Impostos.tsx`
+- `src/pages/profissionais/financeiro/Comissoes.tsx`
 
-## 8. Detalhes Técnicos
-- Rotas novas em `App.tsx` aninhadas em `/profissionais-alocados`: `financeiro`, `financeiro/impostos`, `financeiro/comissoes`, `cotacoes-salvas`.
-- Componentes financeiros refatorados para aceitar `scope` via prop ou contexto leve `ProfissionaisFinanceiroProvider`.
-- Remover dependência da sidebar (`Sidebar*`) em `Layout.tsx`; manter `BUMenu`, `ThemeToggle`, `UserMenu`.
-- Atualizar `Hub.tsx` (sem mudança visual) apenas se necessário para alinhar paths.
-- `BackHomeButton` / breadcrumbs continuam funcionando.
+**Editados**
+- `src/pages/profissionais/Layout.tsx` (nav + botão Precificações)
+- `src/pages/profissionais/CotacoesSalvas.tsx` (padrão tabela)
+- `src/pages/profissionais/PainelResultado.tsx` (usa novo hook + listener "prof:save-cotacao")
+- `src/pages/ConfiguracoesFinanceiras.tsx`, `ConfiguracoesImpostos.tsx`, `ConfiguracoesComissoes.tsx` (extraem views)
+- `src/components/itsm/FinanceiroSubNav.tsx` (prop `basePath`)
+- `src/App.tsx` (rotas novas)
+- `mem://index.md` + novo arquivo de memória
 
-## Entrega
-Etapa única (mudança coordenada). Após implementação, validar:
-- Menu BU correto em todas as rotas.
-- Top nav da oferta funcionando.
-- Cálculo Manual e IA usando markup/impostos/comissões da oferta.
-- Cotações salvas isoladas do Smart ITO.
-- Permissões respeitadas no Admin.
+## Observações
+
+- O `useFinanceiroProfissionais.ts` atual será substituído (mantido temporariamente até a migração estar pronta para evitar quebra).
+- Sem migração de banco — `app_defaults` já existe e as chaves novas (`profissionais.financial.state`, `profissionais.financial.comissaoTiers`) usam-no diretamente.
+- A tabela de Códigos de Produto é compartilhada (mesmo `useCodigosProdutoImposto`); não há necessidade de duplicar dados.
