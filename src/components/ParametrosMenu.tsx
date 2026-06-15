@@ -90,7 +90,7 @@ export default function ParametrosMenu() {
           <DialogHeader>
             <DialogTitle>Salvar perfil de parâmetros</DialogTitle>
             <DialogDescription>
-              Captura todos os parâmetros atuais (equipes N1/N2, Field Service de Microinformática, calculadora, rotinas, GMUDs e cortes).
+              Captura todos os parâmetros atuais de todas as calculadoras: Smart ITO (equipes N1/N2, Field Service, rotinas, GMUDs, cortes) e Precificação de Profissionais Alocados (impostos, markup, comissões, benefícios).
             </DialogDescription>
           </DialogHeader>
           <Input
