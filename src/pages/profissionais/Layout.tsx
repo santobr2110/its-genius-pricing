@@ -1,9 +1,8 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Database, Hand, Bot, DollarSign, ChevronDown, Check, GripVertical, Settings2, UsersRound, LucideIcon } from "lucide-react";
+import { Database, Hand, Bot, DollarSign, ChevronDown, Check, GripVertical, Settings2, UsersRound, BriefcaseBusiness, LucideIcon } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import BUMenu from "@/components/BUMenu";
-import BackHomeButton from "@/components/BackHomeButton";
 import PrecificacoesProfMenu from "@/components/profissionais/PrecificacoesProfMenu";
 import ParametrosMenu from "@/components/ParametrosMenu";
 import { useAuth } from "@/contexts/AuthContext";
@@ -82,9 +81,9 @@ export default function ProfissionaisLayout() {
     <div className="min-h-screen w-full bg-muted/30">
       <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
         <div className="flex h-12 items-center gap-2 px-4">
-          <BackHomeButton />
           <BUMenu />
-          <h1 className="text-sm font-bold truncate">Precificação de Profissionais Alocados</h1>
+          <BriefcaseBusiness className="h-5 w-5 text-primary shrink-0" aria-hidden />
+          <h1 className="text-sm font-bold truncate">BodyShop - Alocação de Profissionais</h1>
           <div className="ml-auto flex items-center gap-1.5">
             {GROUPS.map((g) => <GroupSlot key={g.label} group={g} currentPath={pathname} />)}
             <ParametrosMenu scope="profissionais" />
