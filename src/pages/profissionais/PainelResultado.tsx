@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,7 @@ import {
 import { calcularPrecificacao, formatBRL } from "@/lib/profissionais/calc";
 import { useProfFinanceiro, markupDivisorPctProf } from "@/hooks/useProfFinanceiro";
 import { useCotacoes } from "@/hooks/useCotacoes";
-import { Save, Link as LinkIcon, TrendingUp } from "lucide-react";
+import { Save, Link as LinkIcon, TrendingUp, Receipt } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,6 +78,41 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
       }),
     [salario, beneficio, config, markupPct],
   );
+
+  // Composição completa do custo mensal
+  const encargosRs = salario * (config.encargosPerc / 100);
+  const subAposEnc = salario + encargosRs;
+  const overheadRs = subAposEnc * (config.overheadPerc / 100);
+  const custoTotal = calc.custoTotal; // = salario + encargos + overhead + benefícios
+  const pv = calc.valorVenda;
+
+  // Composição do preço de venda (com base no PV calculado)
+  const pis = pv * config.pisPerc / 100;
+  const cofins = pv * config.cofinsPerc / 100;
+  const iss = pv * config.issPerc / 100;
+  const irpjCsll = pv * config.irpjCsllPerc / 100;
+  const encFinanc = pv * config.encFinancPerc / 100;
+  const comissao = pv * config.comissaoPerc / 100;
+  const lucro = pv * config.lucroPerc / 100;
+  const impostosVendaPerc = config.pisPerc + config.cofinsPerc + config.issPerc;
+  const impostosVendaRs = pis + cofins + iss;
+  const lucroAntesIR = pv - impostosVendaRs - comissao - custoTotal - encFinanc;
+  const lucroAntesIRPerc = pv > 0 ? (lucroAntesIR / pv) * 100 : 0;
+  const irEfetivo = lucroAntesIR > 0 ? (irpjCsll / lucroAntesIR) * 100 : 0;
+
+  const linha = (label: string, valor: number, perc: number, opts?: { bold?: boolean; muted?: boolean; tone?: "neutral" | "negative" | "positive" }) => {
+    const tone = opts?.tone ?? "neutral";
+    const toneCls = tone === "negative" ? "text-destructive" : tone === "positive" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground";
+    return (
+      <div className={`flex items-center justify-between text-sm ${opts?.muted ? "text-muted-foreground" : ""} ${opts?.bold ? "font-semibold" : ""}`}>
+        <span className="truncate">{label}</span>
+        <span className="flex items-baseline gap-3 tabular-nums">
+          <span className={`w-16 text-right text-xs ${opts?.muted ? "" : "text-muted-foreground"}`}>{perc.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</span>
+          <span className={`w-32 text-right ${opts?.bold ? toneCls : ""}`}>{formatBRL(valor)}</span>
+        </span>
+      </div>
+    );
+  };
 
   // Escuta o botão "Precificações → Salvar" do header
   useEffect(() => {
@@ -179,52 +215,6 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center justify-between">
-            <span>Parâmetros de Precificação</span>
-            <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
-              <Link to="/profissionais-alocados/financeiro"><LinkIcon className="h-3 w-3 mr-1" /> Editar no Financeiro</Link>
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3">
-          <div>
-            <Label>Salário Base (R$)</Label>
-            <Input
-              type="number"
-              value={salario}
-              onChange={(e) => setSalarioOverride(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-          <div>
-            <Label>Benefícios (R$/mês)</Label>
-            <Input
-              type="number"
-              value={beneficio}
-              step={50}
-              onChange={(e) => setBeneficioOverride(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-          <div>
-            <Label>Encargos (%)</Label>
-            <Input type="number" value={config.encargosPerc} disabled />
-          </div>
-          <div>
-            <Label>Overhead (%)</Label>
-            <Input type="number" value={config.overheadPerc} disabled />
-          </div>
-          <div>
-            <Label>Σ Markup Divisor (%)</Label>
-            <Input type="number" value={markupPct.toFixed(2)} disabled />
-          </div>
-          <div>
-            <Label>Horas Mensais</Label>
-            <Input type="number" value={config.horasMensais} disabled />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="h-4 w-4" /> Rentabilidade Desejada
           </CardTitle>
@@ -263,18 +253,64 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Resultado</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center justify-between">
+            <span className="flex items-center gap-2"><Receipt className="h-4 w-4 text-primary" /> Memorial de Cálculo</span>
+            <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
+              <Link to="/profissionais-alocados/financeiro"><LinkIcon className="h-3 w-3 mr-1" /> Editar no Financeiro</Link>
+            </Button>
+          </CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Custo Total Mensal</span>
-            <span className="font-medium">{formatBRL(calc.custoTotal)}</span>
+          <div>
+            <Label className="text-xs">Salário Base (R$)</Label>
+            <Input
+              type="number"
+              value={salario}
+              onChange={(e) => setSalarioOverride(parseFloat(e.target.value) || 0)}
+            />
           </div>
-          <div className="text-[11px] text-muted-foreground">
-            Salário × (1+Encargos) × (1+Overhead) + Benefícios — markup divisor {markupPct.toFixed(2)}%
+          <div>
+            <Label className="text-xs">Benefícios (R$/mês)</Label>
+            <Input
+              type="number"
+              value={beneficio}
+              step={50}
+              onChange={(e) => setBeneficioOverride(parseFloat(e.target.value) || 0)}
+            />
           </div>
+
+          <Separator className="my-2" />
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Composição do Custo Mensal</div>
+          {linha("Salário Base", salario, 100)}
+          {linha("(+) Encargos", encargosRs, config.encargosPerc)}
+          {linha("(+) Overhead", overheadRs, config.overheadPerc)}
+          {linha("(+) Benefícios", beneficio, salario > 0 ? (beneficio / salario) * 100 : 0)}
+          <Separator className="my-2" />
+          {linha("= Custo Total da Operação", custoTotal, custoTotal > 0 ? 100 : 0, { bold: true })}
+
+          <Separator className="my-3" />
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Resultado da Operação</div>
+          {linha("Valor de VENDA", pv, 100, { bold: true })}
+          <Separator className="my-2" />
+          {linha("(−) Impostos (PIS + COFINS + ISS)", -impostosVendaRs, impostosVendaPerc, { tone: "negative" })}
+          {linha("(−) Comissão", -comissao, config.comissaoPerc, { tone: "negative" })}
+          {linha("(−) Custo Total da Operação", -custoTotal, pv > 0 ? (custoTotal / pv) * 100 : 0, { tone: "negative" })}
+          {config.encFinancPerc > 0 && linha("(−) Encargos Financeiros", -encFinanc, config.encFinancPerc, { tone: "negative" })}
+          <Separator className="my-2" />
+          {linha("Lucro antes do IR", lucroAntesIR, lucroAntesIRPerc, { bold: true })}
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground -mt-1">
+            <span className="italic">IR/CSLL efetivo sobre o lucro antes do IR</span>
+            <span className="tabular-nums">{irEfetivo.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</span>
+          </div>
+          {linha("(−) IR / CSLL", -irpjCsll, config.irpjCsllPerc, { tone: "negative" })}
+          <Separator className="my-2" />
+          {linha("Rentabilidade (ROI)", lucro, config.lucroPerc, { bold: true, tone: "positive" })}
+
+          <Separator className="my-3" />
           <div className="rounded-lg border-2 border-primary bg-primary/5 p-4">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">💰 Valor de Venda Sugerido</div>
-            <div className="text-3xl font-bold text-primary mt-1">{formatBRL(calc.valorVenda)}</div>
+            <div className="text-3xl font-bold text-primary mt-1">{formatBRL(pv)}</div>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Valor por Hora</span>
