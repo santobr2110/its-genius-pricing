@@ -114,7 +114,7 @@ export default function PrecificacaoManual() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+    <div className="space-y-6">
       <Card>
         <CardHeader><CardTitle>Selecionar Perfil</CardTitle></CardHeader>
         <CardContent className="space-y-3">
