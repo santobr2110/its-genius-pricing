@@ -21,7 +21,7 @@ export default function PerfisParametros() {
   const from = fromState?.from ?? "ito";
   const homeLink = from === "profissionais" ? "/profissionais-alocados" : "/ito";
   const headerTitle = from === "profissionais"
-    ? "Perfis de Parâmetros · Profissionais Alocados"
+    ? "Perfis de Parâmetros · BodyShop"
     : "Perfis de Parâmetros · Smart ITO";
   const { profiles, loading, save, overwrite, rename, remove, apply } = useParameterProfiles();
   const [name, setName] = useState("");
