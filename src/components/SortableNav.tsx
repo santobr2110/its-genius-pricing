@@ -129,7 +129,7 @@ const SLOTS: Slot[] = [
     kind: "menu",
     id: "menu-config",
     label: "Configurações",
-    shortLabel: "Config",
+    shortLabel: "Configurações",
     icon: Settings2,
     items: ["taxas", "financeiro", "gestao-ti", "escopo"],
   },
