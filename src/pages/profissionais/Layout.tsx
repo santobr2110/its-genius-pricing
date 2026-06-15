@@ -22,7 +22,7 @@ const GROUPS: Group[] = [
     icon: Settings2,
     items: [
       { to: "/profissionais-alocados/base-conhecimento", label: "Base de Conhecimento", icon: Database, permission: "page.prof.base_conhecimento" },
-      { to: "/profissionais-alocados/financeiro", label: "Financeiro — Resultado", icon: DollarSign, permission: "page.prof.financeiro" },
+      { to: "/profissionais-alocados/financeiro", label: "Financeiro", icon: DollarSign, permission: "page.prof.financeiro" },
     ],
   },
   {
