@@ -2,13 +2,14 @@ import { NavLink } from "react-router-dom";
 import { Receipt, Calculator, Table as TableIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const items = [
-  { to: "/financeiro", label: "Resultado da Operação", icon: Receipt, end: true },
-  { to: "/financeiro/impostos", label: "Impostos & Markup", icon: Calculator, end: false },
-  { to: "/financeiro/comissoes", label: "Comissões", icon: TableIcon, end: false },
+const buildItems = (base: string) => [
+  { to: `${base}`, label: "Resultado da Operação", icon: Receipt, end: true },
+  { to: `${base}/impostos`, label: "Impostos & Markup", icon: Calculator, end: false },
+  { to: `${base}/comissoes`, label: "Comissões", icon: TableIcon, end: false },
 ];
 
-export default function FinanceiroSubNav() {
+export default function FinanceiroSubNav({ basePath = "/financeiro" }: { basePath?: string }) {
+  const items = buildItems(basePath);
   return (
     <div className="flex flex-wrap gap-1.5 rounded-lg border bg-background p-1 w-fit">
       {items.map((it) => {
