@@ -13,6 +13,7 @@ export interface ProfFinState {
   encargosPerc: number;
   overheadPerc: number;
   horasMensais: number;
+  beneficioFixo: number;
 }
 
 export const PROF_FIN_DEFAULTS: ProfFinState = {
@@ -27,6 +28,7 @@ export const PROF_FIN_DEFAULTS: ProfFinState = {
   encargosPerc: 68,
   overheadPerc: 15,
   horasMensais: 176,
+  beneficioFixo: 0,
 };
 
 const STATE_KEY = "prof.fin.state.v1";

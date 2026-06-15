@@ -5,6 +5,8 @@ export interface CalcInput {
   horasMensais: number;
   /** Markup divisor: somatório de % sobre o PV (PIS+COFINS+ISS+Comissão+ROI+IR/CSLL+EncFin). */
   markupDivisorPct: number;
+  /** Benefícios mensais (R$). Somados ao custo base após encargos/overhead. */
+  beneficio?: number;
 }
 
 export interface CalcOutput {
@@ -16,8 +18,8 @@ export interface CalcOutput {
 }
 
 export function calcularPrecificacao(input: CalcInput): CalcOutput {
-  const { salario, encargosPct, overheadPct, horasMensais, markupDivisorPct } = input;
-  const custoTotal = salario * (1 + encargosPct / 100) * (1 + overheadPct / 100);
+  const { salario, encargosPct, overheadPct, horasMensais, markupDivisorPct, beneficio = 0 } = input;
+  const custoTotal = salario * (1 + encargosPct / 100) * (1 + overheadPct / 100) + (beneficio || 0);
   const denom = 1 - Math.min(99, Math.max(0, markupDivisorPct)) / 100;
   const valorVenda = denom > 0 ? custoTotal / denom : custoTotal;
   const valorHora = horasMensais > 0 ? valorVenda / horasMensais : 0;
