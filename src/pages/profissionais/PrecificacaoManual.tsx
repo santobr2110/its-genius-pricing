@@ -114,10 +114,10 @@ export default function PrecificacaoManual() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+    <div className="space-y-6">
       <Card>
         <CardHeader><CardTitle>Selecionar Perfil</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           <div>
             <Label>Cargo</Label>
             <Select value={cargo} onValueChange={setCargo}>
