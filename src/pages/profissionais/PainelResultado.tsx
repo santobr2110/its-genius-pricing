@@ -17,9 +17,8 @@ import {
 import { calcularPrecificacao, formatBRL } from "@/lib/profissionais/calc";
 import { useProfFinanceiro, markupDivisorPctProf } from "@/hooks/useProfFinanceiro";
 import { useCotacoes } from "@/hooks/useCotacoes";
-import { Save, Link as LinkIcon, TrendingUp, Receipt } from "lucide-react";
+import { Save, TrendingUp, Receipt } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -51,8 +50,6 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
   const { state: config, update } = useProfFinanceiro();
   const { save } = useCotacoes();
   const { can } = useAuth();
-  const [salarioOverride, setSalarioOverride] = useState<number | null>(null);
-  const [beneficioOverride, setBeneficioOverride] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [cliente, setCliente] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -62,8 +59,8 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
     return d.toISOString().slice(0, 10);
   });
 
-  const salario = salarioOverride ?? perfil?.salario_base ?? 0;
-  const beneficio = beneficioOverride ?? config.beneficioFixo ?? 0;
+  const salario = perfil?.salario_base ?? 0;
+  const beneficio = config.beneficioFixo ?? 0;
   const markupPct = markupDivisorPctProf(config);
 
   const calc = useMemo(
@@ -254,33 +251,11 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center justify-between">
-            <span className="flex items-center gap-2"><Receipt className="h-4 w-4 text-primary" /> Memorial de Cálculo</span>
-            <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
-              <Link to="/profissionais-alocados/financeiro"><LinkIcon className="h-3 w-3 mr-1" /> Editar no Financeiro</Link>
-            </Button>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-primary" /> Memorial de Cálculo
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div>
-            <Label className="text-xs">Salário Base (R$)</Label>
-            <Input
-              type="number"
-              value={salario}
-              onChange={(e) => setSalarioOverride(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-          <div>
-            <Label className="text-xs">Benefícios (R$/mês)</Label>
-            <Input
-              type="number"
-              value={beneficio}
-              step={50}
-              onChange={(e) => setBeneficioOverride(parseFloat(e.target.value) || 0)}
-            />
-          </div>
-
-          <Separator className="my-2" />
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Composição do Custo Mensal</div>
           {linha("Salário Base", salario, 100)}
           {linha("(+) Encargos", encargosRs, config.encargosPerc)}
