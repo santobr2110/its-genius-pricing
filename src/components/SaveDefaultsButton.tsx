@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ALL_PARAM_KEYS as KEYS_ALL } from "@/lib/paramKeys";
+import { stripClientProfileFields } from "@/lib/clientProfileFields";
 
 // Mesma lista (já namespeada por oferta) usada para salvar perfis de parâmetros.
 const KEYS = KEYS_ALL;
@@ -44,7 +45,12 @@ export default function SaveDefaultsButton() {
         }
       }
 
-      const rows = Array.from(byKey.entries()).map(([key, value]) => ({
+      // Remove campos de Perfil de Cliente / inputs pontuais antes de
+      // gravar como padrão (não são parâmetros do sistema).
+      const filtered = stripClientProfileFields(
+        Object.fromEntries(byKey.entries()),
+      );
+      const rows = Object.entries(filtered).map(([key, value]) => ({
         key,
         value: value as never,
         updated_by: user.id,
