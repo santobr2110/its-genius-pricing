@@ -9,6 +9,7 @@ import { notifyPersistentStateRestored, usePersistentState } from "@/hooks/usePe
 import { supabase } from "@/integrations/supabase/client";
 import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 import { useActivePresetSession, type ActivePresetStatus } from "@/hooks/useActivePresetSession";
+import { useApplyDefaultProfileOnLogin } from "@/hooks/useApplyDefaultProfileOnLogin";
 import { isPresetActive } from "@/lib/activePreset";
 import { toast } from "sonner";
 import { type Rotina, ROTINAS_DEFAULT } from "@/data/rotinas";
@@ -64,6 +65,10 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const n2 = useN2TeamState();
   const field = useFieldTeamsState();
   const activePreset = useActivePresetSession();
+
+  // Aplica o "Perfil padrão" registrado em Administração para usuários novos
+  // (sem parâmetros próprios em user_app_state). Roda uma vez por usuário+oferta.
+  useApplyDefaultProfileOnLogin();
 
   // Rotinas e GMUDs precisam estar no contexto para que `custoTotalOperacao`
   // e a composição do PV reflitam os mesmos extras exibidos nas camadas Smart
