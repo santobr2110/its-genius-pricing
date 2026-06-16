@@ -18,14 +18,16 @@ const STOP = new Set(["de", "da", "do", "das", "dos", "para", "com", "sem", "the
 function isHeading(line: string): boolean {
   const t = line.trim();
   if (!t || t.length > 100) return false;
-  if (t.endsWith(".") || t.endsWith(":") && t.length > 60) return false;
-  // Mostly uppercase, or starts with capital and ≤ 10 words
+  if (t.endsWith(":")) return false;
   const letters = t.replace(/[^A-Za-zÀ-ÿ]/g, "");
-  if (letters.length === 0) return false;
+  if (letters.length < 5) return false;
   const upper = letters.replace(/[^A-ZÀ-Ý]/g, "").length;
   const ratio = upper / letters.length;
-  const words = t.split(/\s+/).length;
-  return (ratio > 0.6 && words <= 12) || (/^[A-ZÀ-Ý][\wÀ-ÿ\s\-\/]+$/.test(t) && words <= 8);
+  // Cargo title: starts with "Cód." / "Cod." / "Código"
+  if (/^c[oó]d(igo)?\.?\s/i.test(t)) return true;
+  // Or mostly uppercase with at least 3 words (avoids "Propósito do cargo")
+  const words = t.split(/\s+/).filter((w) => /[A-Za-zÀ-ÿ]/.test(w)).length;
+  return ratio >= 0.8 && words >= 3 && words <= 12;
 }
 
 interface Section { title: string; body: string; }
