@@ -10,15 +10,28 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, History, Eye, RotateCcw } from "lucide-react";
+import { Loader2, History, Eye, RotateCcw, Star, Pin } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { labelForDefaultKey, offeringForDefaultKey } from "@/lib/defaultsLabels";
+import { OFFERING_LABEL, type ParamOffering } from "@/lib/paramKeys";
 
 interface DefaultRow {
   key: string;
   updated_at: string;
   updated_by: string | null;
   value: unknown;
+  source_profile_id?: string | null;
+  source_profile_name?: string | null;
+}
+interface DefaultProfileRow {
+  offering_slug: string;
+  profile_id: string | null;
+  profile_name: string;
+  applied_at: string;
+  applied_by: string | null;
 }
 interface HistoryRow {
   id: string;
@@ -41,13 +54,20 @@ export default function DefaultsAdminTab() {
   const [loading, setLoading] = useState(true);
   const [viewRow, setViewRow] = useState<DefaultRow | null>(null);
   const [historyKey, setHistoryKey] = useState<string | null>(null);
+  const [defaultProfiles, setDefaultProfiles] = useState<DefaultProfileRow[]>([]);
+  const [setDefaultFor, setSetDefaultFor] = useState<ParamOffering | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("app_defaults")
-      .select("key, updated_at, updated_by, value")
-      .order("updated_at", { ascending: false });
+    const [{ data, error }, { data: dp }] = await Promise.all([
+      supabase
+        .from("app_defaults")
+        .select("key, updated_at, updated_by, value, source_profile_id, source_profile_name")
+        .order("updated_at", { ascending: false }),
+      supabase
+        .from("app_default_profile")
+        .select("offering_slug, profile_id, profile_name, applied_at, applied_by"),
+    ]);
     if (error) {
       toast.error(error.message);
       setLoading(false);
@@ -55,6 +75,7 @@ export default function DefaultsAdminTab() {
     }
     const list = (data ?? []) as DefaultRow[];
     setRows(list);
+    setDefaultProfiles((dp ?? []) as DefaultProfileRow[]);
     const userIds = Array.from(
       new Set(list.map((r) => r.updated_by).filter((u): u is string => !!u)),
     );
@@ -74,7 +95,45 @@ export default function DefaultsAdminTab() {
 
   useEffect(() => { load(); }, [load]);
 
+  const defaultByOffering = (slug: ParamOffering) =>
+    defaultProfiles.find((d) => d.offering_slug === slug) ?? null;
+
   return (
+    <>
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Star className="h-4 w-4" /> Perfil padrão em uso
+        </CardTitle>
+        <p className="text-xs text-muted-foreground mt-1">
+          Define qual perfil de parâmetros é a base oficial de cada oferta. Ao aplicar, todos os valores do perfil escolhido são gravados em "Parâmetros padrão" abaixo, ficando como ponto de partida para novos usuários.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {(["smart-ito", "profissionais-alocados"] as ParamOffering[]).map((slug) => {
+          const dp = defaultByOffering(slug);
+          return (
+            <div key={slug} className="flex items-center justify-between gap-2 rounded border p-3">
+              <div className="min-w-0">
+                <div className="text-xs text-muted-foreground">{OFFERING_LABEL[slug]}</div>
+                <div className="text-sm font-medium truncate">
+                  {dp ? dp.profile_name : <span className="text-muted-foreground italic">Nenhum perfil vinculado (padrão ad hoc)</span>}
+                </div>
+                {dp && (
+                  <div className="text-[11px] text-muted-foreground">
+                    Aplicado em {new Date(dp.applied_at).toLocaleString("pt-BR")}
+                  </div>
+                )}
+              </div>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setSetDefaultFor(slug)}>
+                <Pin className="h-3.5 w-3.5" /> Definir perfil padrão
+              </Button>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+
     <Card className="mt-4">
       <CardHeader>
         <CardTitle className="text-base">Parâmetros padrão</CardTitle>
@@ -95,6 +154,7 @@ export default function DefaultsAdminTab() {
               <TableRow>
                 <TableHead>Parâmetro</TableHead>
                 <TableHead>Oferta</TableHead>
+                <TableHead>Origem</TableHead>
                 <TableHead>Última alteração</TableHead>
                 <TableHead>Por</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -105,6 +165,11 @@ export default function DefaultsAdminTab() {
                 <TableRow key={r.key}>
                   <TableCell className="text-sm font-medium">{labelForDefaultKey(r.key)}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{offeringForDefaultKey(r.key)}</TableCell>
+                  <TableCell className="text-xs">
+                    {r.source_profile_name
+                      ? <Badge variant="secondary" className="text-[10px]">{r.source_profile_name}</Badge>
+                      : <span className="text-muted-foreground">ad hoc</span>}
+                  </TableCell>
                   <TableCell className="text-xs">{formatDate(r.updated_at)}</TableCell>
                   <TableCell className="text-xs">{r.updated_by ? (authors[r.updated_by] ?? r.updated_by.slice(0, 8)) : "—"}</TableCell>
                   <TableCell className="text-right space-x-1">
@@ -131,6 +196,128 @@ export default function DefaultsAdminTab() {
         onReverted={() => { setHistoryKey(null); load(); }}
       />
     </Card>
+
+    <SetDefaultProfileDialog
+      offering={setDefaultFor}
+      currentUserId={user?.id}
+      onClose={() => setSetDefaultFor(null)}
+      onApplied={() => { setSetDefaultFor(null); load(); }}
+    />
+    </>
+  );
+}
+
+function SetDefaultProfileDialog({
+  offering, currentUserId, onClose, onApplied,
+}: {
+  offering: ParamOffering | null;
+  currentUserId?: string;
+  onClose: () => void;
+  onApplied: () => void;
+}) {
+  const [profiles, setProfiles] = useState<{ id: string; name: string; payload: Record<string, unknown> }[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!offering) { setProfiles([]); setSelectedId(""); return; }
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("parameter_profiles")
+        .select("id, name, payload")
+        .eq("offering_slug", offering)
+        .order("updated_at", { ascending: false });
+      if (error) toast.error(error.message);
+      setProfiles((data ?? []) as never);
+      setSelectedId("");
+      setLoading(false);
+    })();
+  }, [offering]);
+
+  const apply = async () => {
+    if (!offering || !selectedId || !currentUserId) return;
+    const profile = profiles.find((p) => p.id === selectedId);
+    if (!profile) return;
+    setBusy(true);
+    try {
+      const payload = (profile.payload ?? {}) as Record<string, unknown>;
+      const rows = Object.entries(payload).map(([key, value]) => ({
+        key,
+        value: value as never,
+        updated_by: currentUserId,
+        source_profile_id: profile.id,
+        source_profile_name: profile.name,
+      }));
+      if (rows.length === 0) {
+        toast.error("Este perfil está vazio.");
+        setBusy(false);
+        return;
+      }
+      const { error: upErr } = await supabase
+        .from("app_defaults")
+        .upsert(rows as never[], { onConflict: "key" });
+      if (upErr) throw upErr;
+      const { error: dpErr } = await supabase
+        .from("app_default_profile")
+        .upsert(
+          {
+            offering_slug: offering,
+            profile_id: profile.id,
+            profile_name: profile.name,
+            applied_by: currentUserId,
+            applied_at: new Date().toISOString(),
+          } as never,
+          { onConflict: "offering_slug" },
+        );
+      if (dpErr) throw dpErr;
+      toast.success(`Perfil "${profile.name}" definido como padrão de ${OFFERING_LABEL[offering]}.`, {
+        description: `${rows.length} parâmetros aplicados.`,
+      });
+      onApplied();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao aplicar.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!offering} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Definir perfil padrão · {offering ? OFFERING_LABEL[offering] : ""}</DialogTitle>
+          <DialogDescription>
+            O perfil escolhido será gravado em "Parâmetros padrão" desta oferta. Os valores atuais de cada chave serão substituídos pelos do perfil (versão anterior fica no histórico).
+          </DialogDescription>
+        </DialogHeader>
+        {loading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Carregando perfis…
+          </div>
+        ) : profiles.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum perfil disponível para esta oferta. Crie um em "Perfis de Parâmetros".</p>
+        ) : (
+          <Select value={selectedId} onValueChange={setSelectedId}>
+            <SelectTrigger><SelectValue placeholder="Selecione um perfil…" /></SelectTrigger>
+            <SelectContent>
+              {profiles.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name} · {Object.keys(p.payload ?? {}).length} grupos
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={busy}>Cancelar</Button>
+          <Button onClick={apply} disabled={busy || !selectedId} className="gap-1.5">
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />} Aplicar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
