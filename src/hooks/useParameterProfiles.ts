@@ -6,6 +6,11 @@ import {
   keysForOffering,
   type ParamOffering,
 } from "@/lib/paramKeys";
+import {
+  stripClientProfileFields,
+  CALCULATOR_KEY,
+  CLIENT_PROFILE_CALCULATOR_FIELDS,
+} from "@/lib/clientProfileFields";
 
 const GROUP_SLUG = "ito";
 
@@ -63,13 +68,21 @@ export async function snapshotCurrentParams(
       }
     }
   }
-  return out;
+  // Remove campos de "Perfil de Cliente" / inputs pontuais do calculator
+  // antes de retornar — eles não fazem parte do snapshot de parâmetros.
+  return stripClientProfileFields(out);
 }
 
 /** Aplica um payload de parâmetros: nuvem + localStorage + notifica hooks. */
 export async function applyParamsPayload(payload: ParamPayload): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
-  const entries = Object.entries(payload);
+  // Ao aplicar um perfil, preservamos os campos de Perfil de Cliente
+  // do estado atual da precificação. Se o payload do perfil contiver
+  // esses campos (perfis legados), eles são ignorados; se o payload do
+  // calculator chegar parcial, merge com o estado atual para não
+  // limpar inventário/tiers/horas selecionadas.
+  const safePayload = await mergeCalculatorPreservingClientProfile(payload, user?.id);
+  const entries = Object.entries(safePayload);
   if (user && entries.length) {
     const rows = entries.map(([key, value]) => ({
       user_id: user.id,
@@ -84,6 +97,52 @@ export async function applyParamsPayload(payload: ParamPayload): Promise<void> {
       notifyPersistentStateRestored(key, value);
     }
   }
+}
+
+/**
+ * Para a chave do calculator, retorna um merge:
+ *   { ...campos do perfil (parâmetros), ...campos atuais do usuário (Perfil de Cliente) }
+ * Garante que aplicar um perfil nunca sobrescreva o que o usuário digitou
+ * sobre o cliente, tiers ou horas escolhidas para esta precificação.
+ */
+async function mergeCalculatorPreservingClientProfile(
+  payload: ParamPayload,
+  userId: string | undefined,
+): Promise<ParamPayload> {
+  const incoming = payload[CALCULATOR_KEY];
+  if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) return payload;
+
+  // Lê o calculator atual (nuvem → localStorage)
+  let current: Record<string, unknown> | null = null;
+  if (userId) {
+    const { data } = await supabase
+      .from("user_app_state")
+      .select("value")
+      .eq("user_id", userId)
+      .eq("key", CALCULATOR_KEY)
+      .maybeSingle();
+    if (data?.value && typeof data.value === "object") current = data.value as Record<string, unknown>;
+  }
+  if (!current && typeof window !== "undefined") {
+    const raw = window.localStorage.getItem(CALCULATOR_KEY);
+    if (raw) {
+      try { current = JSON.parse(raw); } catch { /* ignore */ }
+    }
+  }
+
+  // Começa pelo payload do perfil sem os campos de Perfil de Cliente
+  const merged: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(incoming as Record<string, unknown>)) {
+    if (CLIENT_PROFILE_CALCULATOR_FIELDS.has(k)) continue;
+    merged[k] = v;
+  }
+  // Sobrepõe com os valores atuais dos campos de Perfil de Cliente
+  if (current) {
+    for (const k of CLIENT_PROFILE_CALCULATOR_FIELDS) {
+      if (k in current) merged[k] = current[k];
+    }
+  }
+  return { ...payload, [CALCULATOR_KEY]: merged };
 }
 
 export function useParameterProfiles({

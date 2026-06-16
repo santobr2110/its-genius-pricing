@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { labelForDefaultKey, offeringForDefaultKey } from "@/lib/defaultsLabels";
 import { OFFERING_LABEL, type ParamOffering } from "@/lib/paramKeys";
+import { stripClientProfileFields } from "@/lib/clientProfileFields";
 
 interface DefaultRow {
   key: string;
@@ -242,7 +243,11 @@ function SetDefaultProfileDialog({
     if (!profile) return;
     setBusy(true);
     try {
-      const payload = (profile.payload ?? {}) as Record<string, unknown>;
+      // Mesmo que o perfil seja antigo e ainda contenha campos de Perfil
+      // de Cliente, removemos antes de gravar como padrão.
+      const payload = stripClientProfileFields(
+        (profile.payload ?? {}) as Record<string, unknown>,
+      );
       const rows = Object.entries(payload).map(([key, value]) => ({
         key,
         value: value as never,
