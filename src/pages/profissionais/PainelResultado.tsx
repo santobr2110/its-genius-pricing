@@ -17,7 +17,9 @@ import {
 import { calcularPrecificacao, formatBRL } from "@/lib/profissionais/calc";
 import { useProfFinanceiro, markupDivisorPctProf } from "@/hooks/useProfFinanceiro";
 import { useCotacoes } from "@/hooks/useCotacoes";
-import { Save, TrendingUp, Receipt } from "lucide-react";
+import { useKnowledgeBase } from "@/hooks/useKnowledgeBase";
+import { buscarDescritivoCargo } from "@/lib/profissionais/matchDescritivo";
+import { Save, TrendingUp, Receipt, FileText } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -50,6 +52,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
   const { state: config, update } = useProfFinanceiro();
   const { save } = useCotacoes();
   const { can } = useAuth();
+  const { byTipo } = useKnowledgeBase();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [cliente, setCliente] = useState("");
   const [observacoes, setObservacoes] = useState("");
@@ -96,6 +99,16 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
   const lucroAntesIR = pv - impostosVendaRs - comissao - custoTotal - encFinanc;
   const lucroAntesIRPerc = pv > 0 ? (lucroAntesIR / pv) * 100 : 0;
   const irEfetivo = lucroAntesIR > 0 ? (irpjCsll / lucroAntesIR) * 100 : 0;
+
+  // Busca descritivo do cargo na Base de Conhecimento (todos os documentos)
+  const descritivoMatch = useMemo(() => {
+    if (!perfil) return null;
+    return buscarDescritivoCargo(
+      perfil.cargo,
+      perfil.nivel,
+      byTipo.descritivos.map((d) => ({ nome_arquivo: d.nome_arquivo, conteudo_texto: d.conteudo_texto })),
+    );
+  }, [perfil, byTipo.descritivos]);
 
   const linha = (label: string, valor: number, perc: number, opts?: { bold?: boolean; muted?: boolean; tone?: "neutral" | "negative" | "positive" }) => {
     const tone = opts?.tone ?? "neutral";
@@ -199,7 +212,7 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
           <div className="text-sm text-muted-foreground">{perfil.area}</div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {perfil.descricao && <p className="text-sm">{perfil.descricao}</p>}
+          {perfil.descricao && <p className="text-sm whitespace-pre-wrap">{perfil.descricao}</p>}
           {perfil.competencias && perfil.competencias.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {perfil.competencias.map((c, i) => (
@@ -209,6 +222,24 @@ export default function PainelResultado({ perfil, origem, dadosIA }: PainelResul
           )}
         </CardContent>
       </Card>
+
+      {descritivoMatch && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" /> Descritivo do Cargo
+            </CardTitle>
+            <div className="text-xs text-muted-foreground">
+              <strong className="text-foreground">{descritivoMatch.titulo}</strong> · origem: {descritivoMatch.origem}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-sm font-sans whitespace-pre-wrap leading-relaxed text-foreground/90 max-h-[500px] overflow-auto">
+{descritivoMatch.conteudo}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
