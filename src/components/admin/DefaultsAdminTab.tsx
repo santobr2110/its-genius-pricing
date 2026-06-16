@@ -15,7 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { labelForDefaultKey, offeringForDefaultKey } from "@/lib/defaultsLabels";
+import { labelForDefaultKey } from "@/lib/defaultsLabels";
 import { OFFERING_LABEL, type ParamOffering } from "@/lib/paramKeys";
 import { stripClientProfileFields } from "@/lib/clientProfileFields";
 
