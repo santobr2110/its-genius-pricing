@@ -104,6 +104,9 @@ export default function DefaultsAdminTab() {
       return "profissionais-alocados";
     }
     if (key.startsWith("ito.smart-ito.")) return "smart-ito";
+    if (key === "financeiro.codigoProduto" || key === "financeiro.cidadeIss") {
+      return "smart-ito";
+    }
     return "outros";
   };
   const rowsByOffering: Record<ParamOffering | "outros", DefaultRow[]> = {
