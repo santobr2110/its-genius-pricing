@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Calculator, Save, Trash2, Download, Pencil, Loader2 } from "lucide-react";
+import { Calculator, Save, Trash2, Download, Pencil, Loader2, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -13,17 +14,35 @@ import { toast } from "@/hooks/use-toast";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import UserMenu from "@/components/auth/UserMenu";
-import { useParameterProfiles, ParameterProfile, PARAM_KEYS } from "@/hooks/useParameterProfiles";
+import { useParameterProfiles, ParameterProfile } from "@/hooks/useParameterProfiles";
+import { keysForOffering, OFFERING_LABEL, type ParamOffering } from "@/lib/paramKeys";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PerfisParametros() {
   const location = useLocation();
   const fromState = (location.state as { from?: "ito" | "profissionais"; fromPath?: string } | null) ?? null;
   const from = fromState?.from ?? "ito";
   const homeLink = from === "profissionais" ? "/profissionais-alocados" : "/ito";
-  const headerTitle = from === "profissionais"
-    ? "Perfis de Parâmetros · BodyShop"
-    : "Perfis de Parâmetros · Smart ITO";
-  const { profiles, loading, save, overwrite, rename, remove, apply } = useParameterProfiles();
+  const headerTitle = "Perfis de Parâmetros";
+  const initialTab: ParamOffering = from === "profissionais" ? "profissionais-alocados" : "smart-ito";
+  const [tab, setTab] = useState<ParamOffering>(initialTab);
+  const { profiles, loading, save, overwrite, rename, remove, apply } = useParameterProfiles({ offering: tab });
+
+  // Carrega quais perfis estão marcados como padrão do sistema (uma linha por oferta).
+  const [defaultProfileIds, setDefaultProfileIds] = useState<Record<string, string | null>>({});
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("app_default_profile")
+        .select("offering_slug, profile_id");
+      const map: Record<string, string | null> = {};
+      (data ?? []).forEach((r) => { map[r.offering_slug] = r.profile_id; });
+      setDefaultProfileIds(map);
+    })();
+  }, []);
+  const defaultProfileId = defaultProfileIds[tab] ?? null;
+
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -104,10 +123,16 @@ export default function PerfisParametros() {
       </header>
 
       <main className="mx-auto max-w-[900px] p-4 space-y-4">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as ParamOffering)}>
+          <TabsList className="grid grid-cols-2 w-full max-w-md">
+            <TabsTrigger value="smart-ito">Smart ITO</TabsTrigger>
+            <TabsTrigger value="profissionais-alocados">BodyShop</TabsTrigger>
+          </TabsList>
+          <TabsContent value={tab} className="mt-4 space-y-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-              <Save className="h-4 w-4" /> Salvar parâmetros atuais como novo perfil
+              <Save className="h-4 w-4" /> Salvar parâmetros atuais do {OFFERING_LABEL[tab]} como novo perfil
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -125,14 +150,14 @@ export default function PerfisParametros() {
               </Button>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              Captura snapshot de {PARAM_KEYS.length} grupos: calculadora, equipes N1/N2 e Field Service de Microinformática, rotinas, GMUDs e cortes Smart Perf.
+              Captura snapshot de {keysForOffering(tab).length} grupos de parâmetros desta oferta.
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Perfis salvos</CardTitle>
+            <CardTitle className="text-sm font-semibold">Perfis salvos · {OFFERING_LABEL[tab]}</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -158,6 +183,11 @@ export default function PerfisParametros() {
                       ) : (
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium truncate">{p.name}</span>
+                          {defaultProfileId === p.id && (
+                            <Badge variant="default" className="gap-1 text-[10px]">
+                              <Star className="h-3 w-3" /> Padrão do sistema
+                            </Badge>
+                          )}
                           <Badge variant="secondary" className="text-[10px]">
                             {Object.keys(p.payload).length} grupos
                           </Badge>
@@ -185,6 +215,8 @@ export default function PerfisParametros() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </main>
 
       <AlertDialog open={!!confirmApply} onOpenChange={(o) => !o && setConfirmApply(null)}>

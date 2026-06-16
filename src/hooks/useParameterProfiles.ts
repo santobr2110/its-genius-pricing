@@ -1,43 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyPersistentStateRestored } from "./usePersistentState";
-import { SMART_ITO_NS } from "@/lib/offerings";
+import {
+  ALL_PARAM_KEYS,
+  keysForOffering,
+  type ParamOffering,
+} from "@/lib/paramKeys";
 
 const GROUP_SLUG = "ito";
-const OFFERING_SLUG = "smart-ito";
 
-// Todas as chaves de parâmetros persistidos (equipes + configurações + gestão TI),
-// já namespeadas pela oferta Smart ITO.
-const RAW_PARAM_KEYS = [
-  "itsm:calculator:v1",
-  "itsm:n1team:v1",
-  "itsm:n2team:v1",
-  "itsm:fieldteams:v1",
-  "gestao-ti:rotinas",
-  "gestao-ti:gmuds",
-  "gestao-ti:smartPerf:n3Cortes",
-  "escopo:proposicao",
-  "escopo:restricoesGerais",
-  "escopo:itensAdicionais",
-] as const;
-
-// Chaves da Precificação de Profissionais Alocados.
-// As que passam por `usePersistentState` ganham o namespace SMART_ITO_NS;
-// as que usam `localStorage` cru (useProfFinanceiro) permanecem como estão.
-const PROF_NAMESPACED_KEYS = [
-  "prof.financeiro.codigoProduto",
-  "prof.financeiro.cidadeIss",
-] as const;
-const PROF_RAW_KEYS = [
-  "prof.fin.state.v1",
-  "prof.fin.comissaoTiers.v1",
-] as const;
-
-export const PARAM_KEYS = [
-  ...RAW_PARAM_KEYS.map((k) => SMART_ITO_NS + k),
-  ...PROF_NAMESPACED_KEYS.map((k) => SMART_ITO_NS + k),
-  ...PROF_RAW_KEYS,
-];
+// Mantido por compatibilidade com código que ainda importa de useParameterProfiles.
+export const PARAM_KEYS = ALL_PARAM_KEYS;
 
 export type ParamPayload = Record<string, unknown>;
 
@@ -68,15 +41,19 @@ function fromRow(r: DbRow): ParameterProfile {
 }
 
 /** Lê o valor atual de cada chave do usuário (nuvem → localStorage). */
-export async function snapshotCurrentParams(userId: string): Promise<ParamPayload> {
+export async function snapshotCurrentParams(
+  userId: string,
+  offering?: ParamOffering,
+): Promise<ParamPayload> {
   const out: ParamPayload = {};
+  const keys = offering ? keysForOffering(offering) : ALL_PARAM_KEYS;
   const { data } = await supabase
     .from("user_app_state")
     .select("key, value")
     .eq("user_id", userId)
-    .in("key", PARAM_KEYS as unknown as string[]);
+    .in("key", keys);
   const cloud = new Map((data ?? []).map((r) => [r.key as string, r.value]));
-  for (const k of PARAM_KEYS) {
+  for (const k of keys) {
     if (cloud.has(k)) {
       out[k] = cloud.get(k);
     } else if (typeof window !== "undefined") {
@@ -109,21 +86,22 @@ export async function applyParamsPayload(payload: ParamPayload): Promise<void> {
   }
 }
 
-export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean } = {}) {
+export function useParameterProfiles({
+  autoLoad = true,
+  offering,
+}: { autoLoad?: boolean; offering?: ParamOffering } = {}) {
   const [profiles, setProfiles] = useState<ParameterProfile[]>([]);
   const [loading, setLoading] = useState(autoLoad);
 
   const refresh = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("parameter_profiles")
-      .select("*")
-      .eq("offering_slug", OFFERING_SLUG)
-      .order("updated_at", { ascending: false });
+    let q = supabase.from("parameter_profiles").select("*").order("updated_at", { ascending: false });
+    if (offering) q = q.eq("offering_slug", offering);
+    const { data, error } = await q;
     if (!error && data) {
       setProfiles((data as unknown as DbRow[]).map(fromRow));
     }
     setLoading(false);
-  }, []);
+  }, [offering]);
 
   useEffect(() => {
     if (!autoLoad) return;
@@ -134,11 +112,13 @@ export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean }
     return () => sub.subscription.unsubscribe();
   }, [autoLoad, refresh]);
 
-  const save = useCallback(async (name: string): Promise<ParameterProfile> => {
+  const save = useCallback(async (name: string, offeringOverride?: ParamOffering): Promise<ParameterProfile> => {
+    const off = offeringOverride ?? offering;
+    if (!off) throw new Error("Oferta não especificada para salvar o perfil.");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Faça login para salvar perfis.");
     const finalName = name.trim() || `Perfil ${new Date().toLocaleString("pt-BR")}`;
-    const payload = await snapshotCurrentParams(user.id);
+    const payload = await snapshotCurrentParams(user.id, off);
     const { data, error } = await supabase
       .from("parameter_profiles")
       .insert({
@@ -146,7 +126,7 @@ export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean }
         name: finalName,
         payload: payload as unknown as never,
         group_slug: GROUP_SLUG,
-        offering_slug: OFFERING_SLUG,
+        offering_slug: off,
       })
       .select("*")
       .single();
@@ -154,19 +134,21 @@ export function useParameterProfiles({ autoLoad = true }: { autoLoad?: boolean }
     const p = fromRow(data as unknown as DbRow);
     setProfiles((prev) => [p, ...prev]);
     return p;
-  }, []);
+  }, [offering]);
 
-  const overwrite = useCallback(async (id: string) => {
+  const overwrite = useCallback(async (id: string, offeringOverride?: ParamOffering) => {
+    const off = offeringOverride ?? offering;
+    if (!off) throw new Error("Oferta não especificada para sobrescrever o perfil.");
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Faça login.");
-    const payload = await snapshotCurrentParams(user.id);
+    const payload = await snapshotCurrentParams(user.id, off);
     const { error } = await supabase
       .from("parameter_profiles")
       .update({ payload: payload as unknown as never })
       .eq("id", id);
     if (error) throw new Error(error.message);
     await refresh();
-  }, [refresh]);
+  }, [refresh, offering]);
 
   const rename = useCallback(async (id: string, name: string) => {
     const { error } = await supabase.from("parameter_profiles").update({ name }).eq("id", id);

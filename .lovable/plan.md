@@ -1,96 +1,73 @@
-# Replicar padrão Smart ITO em Profissionais Alocados
+## Diagnóstico atual
 
-Objetivo: padronizar a oferta **Profissionais Alocados** para usar exatamente os mesmos componentes visuais e funcionais de **Smart ITO**, mantendo namespace de dados isolado.
+- `parameter_profiles` já tem `offering_slug`, mas a tela `/perfis-parametros` filtra somente `smart-ito` e o snapshot grava chaves das **duas** ofertas no mesmo registro (o perfil "Base Zero - Selbetti Padrão" mistura `ito.smart-ito.*` + `prof.fin.*`).
+- `useParameterProfiles.PARAM_KEYS` é uma lista única — não há separação por oferta.
+- `app_defaults` não guarda nenhuma referência ao perfil que originou os valores; não há como saber qual perfil é o "padrão em uso".
 
-## 1. Navegação — padrão Smart ITO (SortableNav)
+## Mudanças
 
-Substituir o `TopNav` atual (chips agrupados) pelo mesmo padrão `SortableNav` do Smart ITO:
-- Botões com drag handle (GripVertical), ícone, label e ChevronDown
-- Agrupamentos via DropdownMenu (Configurações, Seleção)
-- Responsivo (mobile/icon/short/full)
-- BUMenu à esquerda + ThemeToggle/UserMenu à direita
+### 1. Banco (nova migração)
 
-Criar `src/components/ProfSortableNav.tsx` reaproveitando o layout de `SortableNav.tsx` mas com slots/páginas da oferta Profissionais Alocados.
+- Adicionar em `app_defaults`:
+  - `source_profile_id uuid REFERENCES parameter_profiles(id) ON DELETE SET NULL` (nullable)
+  - `source_profile_name text` (nullable, snapshot do nome no momento da aplicação)
+- Nova tabela singleton `app_default_profile` (1 linha por `offering_slug`):
+  - `offering_slug text PRIMARY KEY`
+  - `profile_id uuid REFERENCES parameter_profiles(id) ON DELETE SET NULL`
+  - `profile_name text NOT NULL`
+  - `applied_at timestamptz`, `applied_by uuid`
+  - RLS: leitura `authenticated`; escrita só admin (`public.is_admin`)
+  - GRANT SELECT para `authenticated`, ALL para `service_role`
 
-## 2. Botão "Precificações" (Salvar / Restaurar / Visualizar)
+### 2. `src/lib/paramKeys.ts` (novo) + refator de `useParameterProfiles`
 
-Criar `src/components/profissionais/PrecificacoesProfMenu.tsx` espelhando `SavePresetButton`:
-- **Salvar**: abre dialog com Cliente/Validade/Observações; emite `CustomEvent("prof:save-cotacao")` capturado pelo `PainelResultado` (que detém o perfil selecionado e os cálculos). Se nenhum perfil estiver selecionado, exibe toast.
-- **Restaurar**: submenu lista as últimas cotações; ao clicar, navega para `/profissionais-alocados/cotacoes` com `?open=<id>` (abre Sheet de detalhe).
-- **Visualizar**: navega para `/profissionais-alocados/cotacoes`.
+- Separar em dois arrays: `SMART_ITO_PARAM_KEYS` e `BODYSHOP_PARAM_KEYS`.
+  - Smart ITO: chaves `ito.smart-ito.*` (calculator, n1team, n2team, fieldteams, gestao-ti, escopo)
+  - BodyShop: `prof.fin.state.v1`, `prof.fin.comissaoTiers.v1`, `ito.smart-ito.prof.financeiro.codigoProduto`, `ito.smart-ito.prof.financeiro.cidadeIss` (mover namespace para `bodyshop.*` causaria migração de dados — manter nome atual, apenas classificar como "bodyshop")
+- `useParameterProfiles({ offering })` passa a aceitar a oferta como filtro:
+  - `save(name, offering)` snapshota só as chaves daquela oferta e grava `offering_slug` correspondente.
+  - `apply` aplica somente as chaves do payload (já é o que faz).
+  - `refresh` filtra por `offering` se informado, senão traz todos.
+- `snapshotCurrentParams(userId, offering)` passa a aceitar oferta.
 
-Adicionar ao header do `ProfissionaisLayout`.
+### 3. Tela `/perfis-parametros`
 
-## 3. Tela "Cotações Salvas" no padrão Smart ITO
+- Header indica origem (Smart ITO ou BodyShop) com tabs.
+- Cada tab usa o hook filtrado pela oferta correspondente. O botão "Salvar" grava no `offering_slug` da tab ativa.
+- `from` da rota (state) define qual tab abre por padrão.
+- Badge mostrando "Padrão do sistema" no perfil que estiver vinculado em `app_default_profile`.
 
-Reescrever `src/pages/profissionais/CotacoesSalvas.tsx` no padrão de `src/pages/Precificacoes.tsx`:
-- `Table` com colunas: Código, Cliente, Cargo/Nível/Área, Origem, Validade, Status, Valor Venda, Ações
-- Ações: Visualizar (Sheet de detalhe), Exportar (.txt), Excluir (AlertDialog)
-- Cards de KPIs no topo (Total / Válidas / Valor médio do mês) — mantidos
-- Filtros mantidos em uma barra acima
+### 4. Migração de dados do perfil legado
 
-Mantém integração com `useCotacoes(scope="profissionais")`.
+- Para "Base Zero - Selbetti Padrão": criar dois perfis (um por oferta), dividindo o payload pelas chaves. Manter o original ou marcá-lo deprecated? **Opção escolhida:** dividir em dois (`... · Smart ITO` e `... · BodyShop`) via INSERT, manter o original intacto para histórico (admin pode apagar manualmente depois).
 
-## 4. Configurações Financeiras idênticas ao Smart ITO
+### 5. Painel `Administração › Parâmetros padrão` (`DefaultsAdminTab`)
 
-Criar três telas autônomas usando os mesmos componentes do Smart ITO:
+- Cabeçalho novo "Perfil padrão em uso" por oferta:
+  - Mostra nome do perfil ativo (de `app_default_profile`) ou "Nenhum perfil vinculado" (caso `app_defaults` tenha sido populado via "Salvar Status").
+  - Botão "Definir perfil padrão" → dialog lista perfis daquela oferta → ao confirmar:
+    1. Lê `payload` do perfil
+    2. Upsert em `app_defaults` para cada chave (com `source_profile_id`, `source_profile_name`)
+    3. Upsert em `app_default_profile`
+    4. Toast + reload
+- Coluna existente "Última alteração" passa a mostrar também "Origem: <perfil>" quando houver `source_profile_name`.
 
-- `/profissionais-alocados/financeiro` → cópia de `ConfiguracoesFinanceiras.tsx` (Resultado da Operação)
-- `/profissionais-alocados/financeiro/impostos` → cópia de `ConfiguracoesImpostos.tsx` (com lista de Códigos de Produto para Faturamento + município ISS + componentes do markup divisor)
-- `/profissionais-alocados/financeiro/comissoes` → cópia de `ConfiguracoesComissoes.tsx` (tabela progressiva de comissão por faixa de rentabilidade)
+### 6. `SaveDefaultsButton` ("Salvar Status")
 
-### Detalhes técnicos
+- Continua funcionando, mas limpa `source_profile_id`/`source_profile_name` (NULL) e remove a linha de `app_default_profile` da oferta correspondente — sinalizando que o padrão atual é "ad hoc" e não veio de um perfil.
 
-- Reaproveitar componentes existentes (`ProdutosImpostoManager`, `CIDADES_ISS`, `getIssPercByCidade`, `DEFAULT_COMISSAO_TIERS`, `comissaoFromRent`) — são genéricos.
-- Substituir dependência de `useITSMContext` por um novo hook **`useProfFinanceiroState`** que expõe a mesma API (state, update, comissaoTiers, setComissaoTiers, results.composicaoPreco, custoTotalOperacao) mas:
-  - Persiste em `app_defaults` na chave `profissionais.financial.state` e `profissionais.financial.comissaoTiers`
-  - Calcula composição usando um "custo de exemplo" configurável (R$ 10.000 padrão) já que não há equipes Smart ITO acopladas — o custo real virá do salário do profissional na hora da precificação
-- Refatorar `ConfiguracoesImpostos`, `ConfiguracoesComissoes` e `ConfiguracoesFinanceiras` para aceitarem um prop opcional `scope: "smart-ito" | "profissionais"` ou criar versões espelho em `src/pages/profissionais/financeiro/`. **Decisão:** criar versões espelho em `src/pages/profissionais/financeiro/` que importam os mesmos blocos JSX, parametrizadas por hook (sem duplicação de UI). Implementação: extrair o corpo de cada tela Smart ITO em componentes `FinanceiroResultadoView`, `FinanceiroImpostosView`, `FinanceiroComissoesView` que recebem o hook como prop.
-- `FinanceiroSubNav` ganha prop `basePath` para apontar para `/financeiro/...` ou `/profissionais-alocados/financeiro/...`.
+## Fora de escopo
 
-### Integração com cálculo de venda
-
-O `PainelResultado` passa a usar o `state` do novo hook para extrair `pisPerc + cofinsPerc + issPerc + irpjCsllPerc + encFinancPerc + comissaoPerc + lucroPerc` como markup divisor — mesmo cálculo do Smart ITO. O atual `useFinanceiroProfissionais` é descontinuado em favor do novo hook unificado.
-
-## 5. Rotas
-
-Adicionar em `App.tsx`:
-```
-/profissionais-alocados/financeiro              → FinanceiroResultadoProf
-/profissionais-alocados/financeiro/impostos     → FinanceiroImpostosProf
-/profissionais-alocados/financeiro/comissoes    → FinanceiroComissoesProf
-```
-
-Todas protegidas por `permission="page.prof.financeiro"`.
-
-## 6. Memória de regra
-
-Salvar `mem://design/precificacao-nav-pattern` registrando que toda ferramenta de precificação nova deve usar o padrão `SortableNav` + botão **Precificações** (Salvar/Restaurar/Visualizar).
+- Não mexer no `useActivePresetSession` (precificações abertas em aba) — sistema diferente, já isolado.
+- Não renomear chaves `prof.fin.*` para `bodyshop.*` (evita migração arriscada de localStorage e de perfis existentes); apenas reclassificá-las.
 
 ## Arquivos afetados
 
-**Novos**
-- `src/components/ProfSortableNav.tsx`
-- `src/components/profissionais/PrecificacoesProfMenu.tsx`
-- `src/components/financeiro/FinanceiroResultadoView.tsx`
-- `src/components/financeiro/FinanceiroImpostosView.tsx`
-- `src/components/financeiro/FinanceiroComissoesView.tsx`
-- `src/hooks/useProfFinanceiroState.ts`
-- `src/pages/profissionais/financeiro/Resultado.tsx`
-- `src/pages/profissionais/financeiro/Impostos.tsx`
-- `src/pages/profissionais/financeiro/Comissoes.tsx`
-
-**Editados**
-- `src/pages/profissionais/Layout.tsx` (nav + botão Precificações)
-- `src/pages/profissionais/CotacoesSalvas.tsx` (padrão tabela)
-- `src/pages/profissionais/PainelResultado.tsx` (usa novo hook + listener "prof:save-cotacao")
-- `src/pages/ConfiguracoesFinanceiras.tsx`, `ConfiguracoesImpostos.tsx`, `ConfiguracoesComissoes.tsx` (extraem views)
-- `src/components/itsm/FinanceiroSubNav.tsx` (prop `basePath`)
-- `src/App.tsx` (rotas novas)
-- `mem://index.md` + novo arquivo de memória
-
-## Observações
-
-- O `useFinanceiroProfissionais.ts` atual será substituído (mantido temporariamente até a migração estar pronta para evitar quebra).
-- Sem migração de banco — `app_defaults` já existe e as chaves novas (`profissionais.financial.state`, `profissionais.financial.comissaoTiers`) usam-no diretamente.
-- A tabela de Códigos de Produto é compartilhada (mesmo `useCodigosProdutoImposto`); não há necessidade de duplicar dados.
+- **Migração nova** `supabase/migrations/<ts>_app_defaults_source_profile.sql`
+- **Insert de dados** dividindo o perfil "Base Zero - Selbetti Padrão"
+- `src/lib/paramKeys.ts` (novo)
+- `src/hooks/useParameterProfiles.ts` (refatorado, aceita `offering`)
+- `src/components/SaveDefaultsButton.tsx` (limpa vínculo)
+- `src/components/admin/DefaultsAdminTab.tsx` (cabeçalho + dialog "Definir padrão")
+- `src/pages/PerfisParametros.tsx` (tabs por oferta, badge "Padrão")
+- `src/integrations/supabase/types.ts` será regenerado pela migração
