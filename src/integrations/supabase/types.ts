@@ -14,26 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_default_profile: {
+        Row: {
+          applied_at: string
+          applied_by: string | null
+          offering_slug: string
+          profile_id: string | null
+          profile_name: string
+        }
+        Insert: {
+          applied_at?: string
+          applied_by?: string | null
+          offering_slug: string
+          profile_id?: string | null
+          profile_name: string
+        }
+        Update: {
+          applied_at?: string
+          applied_by?: string | null
+          offering_slug?: string
+          profile_id?: string | null
+          profile_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_default_profile_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "parameter_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_defaults: {
         Row: {
           key: string
+          source_profile_id: string | null
+          source_profile_name: string | null
           updated_at: string
           updated_by: string | null
           value: Json
         }
         Insert: {
           key: string
+          source_profile_id?: string | null
+          source_profile_name?: string | null
           updated_at?: string
           updated_by?: string | null
           value: Json
         }
         Update: {
           key?: string
+          source_profile_id?: string | null
+          source_profile_name?: string | null
           updated_at?: string
           updated_by?: string | null
           value?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "app_defaults_source_profile_id_fkey"
+            columns: ["source_profile_id"]
+            isOneToOne: false
+            referencedRelation: "parameter_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       app_defaults_history: {
         Row: {
