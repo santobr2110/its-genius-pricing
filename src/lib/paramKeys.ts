@@ -27,6 +27,14 @@ export const SMART_ITO_PARAM_KEYS: string[] = SMART_ITO_RAW.map(
   (k) => SMART_ITO_NS + k,
 );
 
+// Chaves Smart ITO gravadas sem namespace (compatibilidade histórica:
+// página `/financeiro/impostos`).
+const SMART_ITO_UNNAMESPACED = [
+  "financeiro.codigoProduto",
+  "financeiro.cidadeIss",
+] as const;
+SMART_ITO_PARAM_KEYS.push(...SMART_ITO_UNNAMESPACED);
+
 // ---- BodyShop (Profissionais Alocados) ----
 // Chaves namespeadas por SMART_ITO_NS por razões históricas (usePersistentState),
 // mas são parâmetros do BodyShop.
