@@ -112,6 +112,8 @@ export default function PerfisParametros() {
         <div className="mx-auto flex h-12 max-w-[1600px] items-center gap-2 px-4">
           <BackHomeButton />
           <Link to={homeLink} className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
+          <BackHomeButton to={homeLink} />
+          <Link to={homeLink} className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
             <Calculator className="h-5 w-5 text-primary shrink-0" />
             <h1 className="text-sm font-bold text-foreground truncate">{headerTitle}</h1>
           </Link>
