@@ -27,7 +27,7 @@ export default function PerfisParametros() {
   const headerTitle = "Perfis de Parâmetros";
   const initialTab: ParamOffering = from === "profissionais" ? "profissionais-alocados" : "smart-ito";
   const [tab, setTab] = useState<ParamOffering>(initialTab);
-  const { profiles, loading, save, overwrite, rename, remove, apply, refresh } = useParameterProfiles({ offering: tab });
+  const { profiles, loading, save, overwrite, rename, remove, apply } = useParameterProfiles({ offering: tab });
 
   // Carrega quais perfis estão marcados como padrão do sistema (uma linha por oferta).
   const [defaultProfileIds, setDefaultProfileIds] = useState<Record<string, string | null>>({});
