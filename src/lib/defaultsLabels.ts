@@ -13,6 +13,11 @@ const RAW: Record<string, string> = {
   "escopo:proposicao": "Escopo — Proposição",
   "escopo:restricoesGerais": "Escopo — Restrições Gerais",
   "escopo:itensAdicionais": "Escopo — Itens Adicionais",
+  // BodyShop (sem namespace por razões históricas)
+  "prof.fin.state.v1": "Financeiro BodyShop",
+  "prof.fin.comissaoTiers.v1": "Tiers de Comissão BodyShop",
+  "prof.financeiro.codigoProduto": "Código de Produto (BodyShop)",
+  "prof.financeiro.cidadeIss": "Cidade ISS (BodyShop)",
 };
 
 export function labelForDefaultKey(key: string): string {
@@ -25,6 +30,11 @@ export function labelForDefaultKey(key: string): string {
 }
 
 export function offeringForDefaultKey(key: string): string {
+  // Chaves do BodyShop ficam fora do namespace `ito.smart-ito.*` por
+  // razões históricas (gravadas direto em localStorage).
+  if (key.startsWith("prof.fin.") || key.startsWith("prof.financeiro.")) {
+    return "ITO · BodyShop";
+  }
   const m = key.match(/^(ito|datacenter|cloud|observabilidade)\.([^.]+)\./);
   if (!m) return "Legado (sem namespace)";
   const group = m[1].toUpperCase();
