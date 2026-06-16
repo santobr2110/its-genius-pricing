@@ -21,10 +21,12 @@ import { Input } from "@/components/ui/input";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useParameterProfiles, type ParameterProfile } from "@/hooks/useParameterProfiles";
+import type { ParamOffering } from "@/lib/paramKeys";
 
 export default function ParametrosMenu({ scope = "ito" }: { scope?: "ito" | "profissionais" }) {
   const location = useLocation();
-  const { profiles, loading, save, apply, refresh } = useParameterProfiles({ autoLoad: false });
+  const offering: ParamOffering = scope === "profissionais" ? "profissionais-alocados" : "smart-ito";
+  const { profiles, loading, save, apply, refresh } = useParameterProfiles({ autoLoad: false, offering });
   const [saveOpen, setSaveOpen] = useState(false);
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [name, setName] = useState("");
