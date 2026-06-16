@@ -15,7 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { labelForDefaultKey, offeringForDefaultKey } from "@/lib/defaultsLabels";
+import { labelForDefaultKey } from "@/lib/defaultsLabels";
 import { OFFERING_LABEL, type ParamOffering } from "@/lib/paramKeys";
 import { stripClientProfileFields } from "@/lib/clientProfileFields";
 
@@ -99,6 +99,56 @@ export default function DefaultsAdminTab() {
   const defaultByOffering = (slug: ParamOffering) =>
     defaultProfiles.find((d) => d.offering_slug === slug) ?? null;
 
+  const classifyOffering = (key: string): ParamOffering | "outros" => {
+    if (key.startsWith("prof.fin.") || key.startsWith("prof.financeiro.")) {
+      return "profissionais-alocados";
+    }
+    if (key.startsWith("ito.smart-ito.")) return "smart-ito";
+    return "outros";
+  };
+  const rowsByOffering: Record<ParamOffering | "outros", DefaultRow[]> = {
+    "smart-ito": [],
+    "profissionais-alocados": [],
+    outros: [],
+  };
+  rows.forEach((r) => rowsByOffering[classifyOffering(r.key)].push(r));
+
+  const renderRows = (list: DefaultRow[]) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Parâmetro</TableHead>
+          <TableHead>Origem</TableHead>
+          <TableHead>Última alteração</TableHead>
+          <TableHead>Por</TableHead>
+          <TableHead className="text-right">Ações</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {list.map((r) => (
+          <TableRow key={r.key}>
+            <TableCell className="text-sm font-medium">{labelForDefaultKey(r.key)}</TableCell>
+            <TableCell className="text-xs">
+              {r.source_profile_name
+                ? <Badge variant="secondary" className="text-[10px]">{r.source_profile_name}</Badge>
+                : <span className="text-muted-foreground">ad hoc</span>}
+            </TableCell>
+            <TableCell className="text-xs">{formatDate(r.updated_at)}</TableCell>
+            <TableCell className="text-xs">{r.updated_by ? (authors[r.updated_by] ?? r.updated_by.slice(0, 8)) : "—"}</TableCell>
+            <TableCell className="text-right space-x-1">
+              <Button variant="ghost" size="sm" className="gap-1 h-8" onClick={() => setViewRow(r)}>
+                <Eye className="h-3.5 w-3.5" /> Ver
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-1 h-8" onClick={() => setHistoryKey(r.key)}>
+                <History className="h-3.5 w-3.5" /> Histórico
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
   return (
     <>
     <Card className="mt-4">
@@ -142,7 +192,7 @@ export default function DefaultsAdminTab() {
           Valores aplicados como ponto de partida para todos os usuários. Toda alteração é versionada — você pode reverter para qualquer versão anterior.
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         {loading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
@@ -150,41 +200,22 @@ export default function DefaultsAdminTab() {
         ) : rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhum parâmetro salvo ainda.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Parâmetro</TableHead>
-                <TableHead>Oferta</TableHead>
-                <TableHead>Origem</TableHead>
-                <TableHead>Última alteração</TableHead>
-                <TableHead>Por</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.key}>
-                  <TableCell className="text-sm font-medium">{labelForDefaultKey(r.key)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{offeringForDefaultKey(r.key)}</TableCell>
-                  <TableCell className="text-xs">
-                    {r.source_profile_name
-                      ? <Badge variant="secondary" className="text-[10px]">{r.source_profile_name}</Badge>
-                      : <span className="text-muted-foreground">ad hoc</span>}
-                  </TableCell>
-                  <TableCell className="text-xs">{formatDate(r.updated_at)}</TableCell>
-                  <TableCell className="text-xs">{r.updated_by ? (authors[r.updated_by] ?? r.updated_by.slice(0, 8)) : "—"}</TableCell>
-                  <TableCell className="text-right space-x-1">
-                    <Button variant="ghost" size="sm" className="gap-1 h-8" onClick={() => setViewRow(r)}>
-                      <Eye className="h-3.5 w-3.5" /> Ver
-                    </Button>
-                    <Button variant="ghost" size="sm" className="gap-1 h-8" onClick={() => setHistoryKey(r.key)}>
-                      <History className="h-3.5 w-3.5" /> Histórico
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <>
+            {(["smart-ito", "profissionais-alocados"] as ParamOffering[]).map((slug) => (
+              rowsByOffering[slug].length > 0 && (
+                <div key={slug} className="space-y-2">
+                  <h3 className="text-sm font-semibold text-foreground">{OFFERING_LABEL[slug]}</h3>
+                  {renderRows(rowsByOffering[slug])}
+                </div>
+              )
+            ))}
+            {rowsByOffering.outros.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold text-muted-foreground">Outros</h3>
+                {renderRows(rowsByOffering.outros)}
+              </div>
+            )}
+          </>
         )}
       </CardContent>
 
