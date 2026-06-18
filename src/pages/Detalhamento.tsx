@@ -633,7 +633,14 @@ export default function Detalhamento() {
           ].filter((b) => b.horas > 0),
         };
       }
-      return { metricas, recursos, horasN3 };
+      const rotinasGrupos: RotinaGrupoSlide[] = [];
+      if (rotinasMonitor.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas Técnicas Preventivas — Smart Monitor (${rotinasMonitor.length})`,
+          items: rotinasMonitor.map(rotinaToSlide),
+        });
+      }
+      return { metricas, recursos, horasN3, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined };
     };
 
     const flowExtras = () => {
@@ -661,7 +668,14 @@ export default function Detalhamento() {
           ].filter((b) => b.horas > 0),
         };
       }
-      return { metricas, recursos, horasN3 };
+      const rotinasGrupos: RotinaGrupoSlide[] = [];
+      if (rotinasFlow.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas Técnicas Preventivas — Smart Flow (${rotinasFlow.length})`,
+          items: rotinasFlow.map(rotinaToSlide),
+        });
+      }
+      return { metricas, recursos, horasN3, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined };
     };
 
     const operationExtras = () => {
@@ -759,6 +773,10 @@ export default function Detalhamento() {
       const metricas = fExtras.metricas; // Flow é mandatório
       // Horas N3 / Automação: prioriza Flow; se Monitor tiver horas, mescla.
       const horasN3 = fExtras.horasN3 ?? mExtras.horasN3;
+      const rotinasGruposMerged = [
+        ...(fExtras.rotinasGrupos ?? []),
+        ...(mExtras.rotinasGrupos ?? []),
+      ];
       camadas.push({
         key: "flow",
         titulo: escopoFlowDisplay.titulo,
@@ -771,6 +789,7 @@ export default function Detalhamento() {
         metricas,
         recursos,
         horasN3,
+        rotinasGrupos: rotinasGruposMerged.length ? rotinasGruposMerged : undefined,
       });
     } else {
       if (monitorVisible) pushCamada("monitor", valorMonitor, valorMonitorParts, monitorExtras());
