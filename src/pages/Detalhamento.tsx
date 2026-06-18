@@ -490,11 +490,12 @@ export default function Detalhamento() {
   const valorPerformance = state.tierPerformance
     ? toSell(results.custoN3) + toSell(gmudPerformanceData.totals.custo)
     : 0;
-  // Rotinas Gerenciais Selbetti (oferta "Todos") são cobradas em separado e
-  // somam na camada dominante — alinhado a SmartTiersPanel e à composição do
-  // PV em Configurações Financeiras.
+  // Rotinas Gerenciais Selbetti são cobradas em separado dentro da oferta
+  // vinculada de cada rotina (não mais na camada dominante).
+  const gerenciaisDe = (camada: "Monitor" | "Flow" | "Operation" | "Performance") =>
+    rotinasGerenciais.filter((r) => (r as any).oferta === camada);
   const custoRotinasGerenciais = sumCusto(rotinasGerenciais);
-  const valorRotinasGerenciais = dominantTierKey ? toSell(custoRotinasGerenciais) : 0;
+  const valorRotinasGerenciais = toSell(custoRotinasGerenciais);
   const investimentoTotal =
     valorMonitor + valorFlow + valorOperation + valorPerformance + valorRotinasGerenciais;
 
