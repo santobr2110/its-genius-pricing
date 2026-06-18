@@ -14,6 +14,7 @@ import {
   ROTINAS_DEFAULT,
   rotinaMultiplicador,
   COMPLEX_FLAG_KEYS,
+  normalizeLegacyRotina,
   type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
@@ -31,10 +32,11 @@ import { useEffect, useMemo, useState } from "react";
 // unitárias por ambiente, independente da oferta (Operation/Performance) ou
 // complexidade (Padrão/Complexo). Gateia pelo inventário de Servidores.
 function normalizeOsRotina(r: Rotina): Rotina {
-  const grupo = r.grupo.toLowerCase();
+  const normalized = normalizeLegacyRotina(r);
+  const grupo = normalized.grupo.toLowerCase();
   const isOs = grupo.includes("sistema operacional");
-  if (!isOs) return r;
-  return { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
+  if (!isOs) return normalized;
+  return { ...normalized, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
 }
 
 // Input numérico que aceita frações (ex.: 0,8 / 0.5) preservando o que o
@@ -101,6 +103,7 @@ export default function SmartTiersPanel() {
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   // Distribuição percentual das horas N3 / Automação entre as 3 funções (TAM / Owner / Livre).
   // Os dois "cortes" definem os limites: [0..corteTam] = TAM, [corteTam..corteOwner] = Owner, [corteOwner..100] = Livre.
@@ -179,7 +182,7 @@ export default function SmartTiersPanel() {
     : null;
 
   const rotinasOperation = useMemo(() => {
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.oferta === "Operation" && !r.gerencial)
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
@@ -219,11 +222,11 @@ export default function SmartTiersPanel() {
       { demanda: 0, cac: 0, custo: 0, venda: 0 },
     );
     return { items, totals };
-  }, [rotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda]);
 
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.oferta === "Performance" && !r.gerencial && (r.complexidade ?? "Padrão") === complexidade)
       .filter((r) =>
         n3OptionalScenario
@@ -268,18 +271,18 @@ export default function SmartTiersPanel() {
   const rotinasPerfPadrao = useMemo(
     () => buildPerformance("Padrão"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda],
   );
   const rotinasPerfComplexo = useMemo(
     () => buildPerformance("Complexo"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda],
   );
 
   // Builder genérico para rotinas vinculadas a uma camada específica
   // (Monitor / Flow / Enterprise) — apenas rotinas técnicas preventivas.
   const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.oferta === camada && !r.gerencial)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
@@ -310,18 +313,18 @@ export default function SmartTiersPanel() {
   const rotinasMonitor = useMemo(
     () => buildLayerRotinas("Monitor"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda],
   );
   const rotinasFlow = useMemo(
     () => buildLayerRotinas("Flow"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda],
   );
 
-  // Rotinas Gerenciais Selbetti (oferta "Todos") — precificadas em separado
+  // Rotinas Gerenciais Selbetti — precificadas em separado
   // e exibidas apenas na camada dominante. Não consomem as horas dos sliders.
   const rotinasGerenciais = useMemo(() => {
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.gerencial)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
@@ -348,7 +351,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda]);
   // Gerenciais agora são atribuídas à oferta vinculada de cada rotina,
   // não mais somadas todas na camada dominante.
   const gerenciaisEmCamada = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") => {
@@ -403,7 +406,7 @@ export default function SmartTiersPanel() {
     if (!state.tierFieldOperation || n3OptionalScenario) {
       return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
     }
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.grupo.toLowerCase().includes("microinform"))
       .filter((r) => (r.oferta === "Performance" ? state.tierPerformance : true))
       .map((r) => {
@@ -442,7 +445,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda]);
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
