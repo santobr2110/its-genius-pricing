@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileEdit, X, Save, Loader2, Check } from "lucide-react";
 import { usePricingPresets } from "@/hooks/usePricingPresets";
-import { snapshotCurrentParams } from "@/hooks/useParameterProfiles";
+import { snapshotCurrentPricingParams } from "@/hooks/useParameterProfiles";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -47,7 +47,9 @@ export default function ActivePresetBanner() {
   const handleSaveAs = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const allParams = user ? await snapshotCurrentParams(user.id) : undefined;
+      const allParams = user
+        ? await snapshotCurrentPricingParams(user.id, { calculator: state, n1Team, n2Team })
+        : undefined;
       const p = await save(newName, state, n1Team, n2Team, undefined, undefined, allParams);
       toast.success(`"${p.name}" salva como nova precificação.`);
       setSaveAsOpen(false);
