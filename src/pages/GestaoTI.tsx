@@ -741,21 +741,16 @@ export default function GestaoTI() {
                 }
                 return (
                   <TabsContent key={oferta} value={oferta} className="space-y-6 mt-4">
-                    {oferta === "Todos" && (
-                      <div className="rounded-lg border border-amber-300 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-800 p-3">
-                        <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
-                          Rotinas Gerenciais Selbetti
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-1">
-                          Estas rotinas são <strong>precificadas em separado</strong> e cobradas do
-                          cliente, mas <strong>não abatem</strong> do total de horas selecionadas
-                          pelos sliders das camadas (Automação/Manutenção, Acionamento N3, Owner,
-                          etc.). Informe manualmente a quantidade de horas consumidas no mês em
-                          "Horas/exec" — o custo é calculado por valor/hora N3 × horas × demanda.
-                          O quadro aparece somente na camada mais alta ativada na tela principal.
-                        </p>
-                      </div>
-                    )}
+                    <div className="rounded-lg border border-muted bg-muted/30 p-3">
+                      <p className="text-[11px] text-muted-foreground">
+                        <strong>Plano de rotinas:</strong> qualquer rotina pode ter horas por execução.
+                        Com horas: o atendimento é por N3 (descontando das horas N3 contratadas) e
+                        custo = demanda × horas × valor/hora N3. Sem horas: entra no funil de
+                        rotinas (N1/N2/N3 conforme a Escala). Marque <em>Gerencial Selbetti</em>
+                        para cobrar à parte (sem descontar das horas contratadas) — a rotina é
+                        atribuída à oferta selecionada.
+                      </p>
+                    </div>
                     {renderGrupos(filtered)}
                   </TabsContent>
                 );
