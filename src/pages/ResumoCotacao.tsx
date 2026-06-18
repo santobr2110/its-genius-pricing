@@ -208,7 +208,7 @@ export default function ResumoCotacao() {
         ? { ...rRaw, oferta: "Operation", gerencial: true }
         : rRaw;
       if (!r.gerencial || r.oferta !== tier) continue;
-      const mult = (require("@/data/rotinas") as any).rotinaMultiplicador(r, inv, cflags);
+      const mult = rotinaMultiplicador(r, inv, cflags);
       const demanda = r.chamadosMes * mult;
       if (demanda <= 0) continue;
       const horas = r.horasExecucao ?? 1;
