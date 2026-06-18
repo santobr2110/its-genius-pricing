@@ -180,7 +180,7 @@ export default function SmartTiersPanel() {
 
   const rotinasOperation = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Operation")
+      .filter((r) => r.oferta === "Operation" && !r.gerencial)
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
       // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
@@ -199,7 +199,9 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const custo = r.horasExecucao && r.horasExecucao > 0
+          ? demanda * r.horasExecucao * state.valorHoraN3 * fatorAuto
+          : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
       })
@@ -220,9 +222,8 @@ export default function SmartTiersPanel() {
   }, [rotinas, state, results, fatorVenda]);
 
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
-    const isComplex = complexidade === "Complexo";
     const items = rotinas
-      .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
+      .filter((r) => r.oferta === "Performance" && !r.gerencial && (r.complexidade ?? "Padrão") === complexidade)
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
@@ -238,8 +239,8 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const usaHoras = isComplex;
-        const horas = r.horasExecucao ?? 4;
+        const usaHoras = !!(r.horasExecucao && r.horasExecucao > 0);
+        const horas = r.horasExecucao ?? 0;
         const horasMes = usaHoras ? demanda * horas : 0;
         const custo = usaHoras
           ? horasMes * state.valorHoraN3 * fatorAuto
@@ -260,7 +261,7 @@ export default function SmartTiersPanel() {
       },
       { demanda: 0, horasMes: 0, cac: 0, custo: 0, venda: 0 },
     );
-    return { items, totals, isComplex };
+    return { items, totals };
   };
 
   const rotinasPerfPadrao = useMemo(
@@ -278,7 +279,7 @@ export default function SmartTiersPanel() {
   // (Monitor / Flow / Enterprise) — apenas rotinas técnicas preventivas.
   const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
     const items = rotinas
-      .filter((r) => r.oferta === camada)
+      .filter((r) => r.oferta === camada && !r.gerencial)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -286,7 +287,9 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const custo = r.horasExecucao && r.horasExecucao > 0
+          ? demanda * r.horasExecucao * state.valorHoraN3 * fatorAuto
+          : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
       })
