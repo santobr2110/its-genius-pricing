@@ -894,14 +894,17 @@ export default function SmartTiersPanel() {
                 </div>
               );
             })()}
-            {dominantTierKey === "Monitor" && rotinasGerenciais.items.length > 0 && (
-              <LayerRoutineTable
-                titulo="Rotinas Gerenciais Selbetti"
-                items={rotinasGerenciais.items}
-                totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
-              />
-            )}
+            {(() => {
+              const g = gerenciaisEmCamada("Monitor");
+              return g.items.length > 0 ? (
+                <LayerRoutineTable
+                  titulo="Rotinas Gerenciais Selbetti"
+                  items={g.items}
+                  totals={g.totals}
+                  descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
+                />
+              ) : null;
+            })()}
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Monitor (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smTotalVenda)}</span>
