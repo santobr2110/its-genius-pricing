@@ -96,26 +96,10 @@ function EscalaRotinasPanel() {
   const total = state.percRotinaN1 + state.percRotinaN2 + state.percRotinaN3;
   const setLevel = (key: "percRotinaN1" | "percRotinaN2" | "percRotinaN3", value: number) => {
     const v = Math.max(0, Math.min(100, Math.round(value)));
-    const others: ("percRotinaN1" | "percRotinaN2" | "percRotinaN3")[] = (
-      ["percRotinaN1", "percRotinaN2", "percRotinaN3"] as const
-    ).filter((k) => k !== key);
-    const remaining = 100 - v;
-    const sumOthers = state[others[0]] + state[others[1]];
-    let a = 0;
-    let b = 0;
-    if (sumOthers > 0) {
-      a = Math.round((state[others[0]] / sumOthers) * remaining);
-      b = remaining - a;
-    } else {
-      a = Math.round(remaining / 2);
-      b = remaining - a;
-    }
     update(key, v);
-    update(others[0], a);
-    update(others[1], b);
   };
-  // Buffer local: permite digitar livremente sem rebalanceio a cada tecla.
-  // Só comita (e redistribui) no blur ou Enter.
+  // Buffer local: permite digitar livremente sem alterar automaticamente os demais níveis.
+  // Cada campo é salvo de forma independente no blur ou Enter.
   const [draft, setDraft] = useState<Record<string, string>>({});
   const displayValue = (key: "percRotinaN1" | "percRotinaN2" | "percRotinaN3") =>
     draft[key] !== undefined ? draft[key] : String(state[key]);
@@ -177,9 +161,7 @@ function GmudDistribuicaoPanel() {
   const total = (state.percGmudN2 || 0) + (state.percGmudN3 || 0);
   const setLevel = (key: "percGmudN2" | "percGmudN3", value: number) => {
     const v = Math.max(0, Math.min(100, Math.round(value)));
-    const other = key === "percGmudN2" ? "percGmudN3" : "percGmudN2";
     update(key, v);
-    update(other, 100 - v);
   };
   const [draft, setDraft] = useState<Record<string, string>>({});
   const displayValue = (key: "percGmudN2" | "percGmudN3") =>
@@ -266,7 +248,7 @@ export default function GestaoTI() {
   useEffect(() => {
     let changed = false;
     const next = rotinas.map((r) => {
-      let patch: Partial<Rotina> = {};
+      const patch: Partial<Rotina> = {};
       if (r.grupo === "BACKUP") {
         patch.grupo = "Backup";
         changed = true;
