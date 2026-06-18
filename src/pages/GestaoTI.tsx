@@ -936,6 +936,8 @@ function RotinaGroupCards({
   rotinas,
   onUpdate,
   onRemove,
+  onRenameGroup,
+  onRemoveGroup,
   inventario,
   complexFlags,
   showComplexidadeMove = false,
@@ -944,6 +946,8 @@ function RotinaGroupCards({
   rotinas: Rotina[];
   onUpdate: (id: string, patch: Partial<Rotina>) => void;
   onRemove?: (id: string) => void;
+  onRenameGroup?: (oldName: string, newName: string) => void;
+  onRemoveGroup?: (nome: string) => void;
   inventario: InventarioCounts;
   complexFlags: ComplexFlags;
   showComplexidadeMove?: boolean;
@@ -954,18 +958,112 @@ function RotinaGroupCards({
     0,
   );
   const totalCac = rotinas.reduce((s, r) => s + r.cac, 0);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(grupo);
+  const [confirmDel, setConfirmDel] = useState(false);
 
   return (
     <div className="rounded-lg border bg-card">
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-b bg-muted/30">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold">{grupo}</h3>
-          <Badge variant="outline">{rotinas.length}</Badge>
+          {editing ? (
+            <>
+              <Input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                className="h-7 text-sm w-56"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    onRenameGroup?.(grupo, draft);
+                    setEditing(false);
+                  } else if (e.key === "Escape") {
+                    setDraft(grupo);
+                    setEditing(false);
+                  }
+                }}
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7"
+                onClick={() => {
+                  onRenameGroup?.(grupo, draft);
+                  setEditing(false);
+                }}
+              >
+                <Check className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7"
+                onClick={() => {
+                  setDraft(grupo);
+                  setEditing(false);
+                }}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-sm font-semibold">{grupo}</h3>
+              <Badge variant="outline">{rotinas.length}</Badge>
+              {onRenameGroup && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setDraft(grupo);
+                    setEditing(true);
+                  }}
+                  title="Renomear grupo"
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+              )}
+              {onRemoveGroup && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                  onClick={() => setConfirmDel(true)}
+                  title="Excluir grupo"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </>
+          )}
         </div>
         <div className="text-xs text-muted-foreground">
           {totalChamados.toFixed(1)} freq/mês • {totalDemanda.toFixed(1)} chamados/mês • CAC {totalCac.toFixed(2)}
         </div>
       </div>
+      <Dialog open={confirmDel} onOpenChange={setConfirmDel}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir grupo "{grupo}"?</DialogTitle>
+            <DialogDescription>
+              Esta ação removerá {rotinas.length} rotina(s) deste grupo e não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDel(false)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                onRemoveGroup?.(grupo);
+                setConfirmDel(false);
+              }}
+            >
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-3">
         {rotinas.map((r) => {
           const isComplexPerf = r.oferta === "Performance" && r.complexidade === "Complexo";
