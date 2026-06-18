@@ -5,12 +5,15 @@ import {
   type InventarioCounts,
   rotinaMultiplicador,
   COMPLEX_FLAG_KEYS,
+  normalizeLegacyRotina,
 } from "@/data/rotinas";
 import { type Gmud, bucketGmuds, computeGmud } from "@/data/gmuds";
 
 // Mesma normalização aplicada em SmartTiersPanel/Detalhamento para rotinas
-// de Sistema Operacional (tratadas como unitárias por ambiente).
-function normalizeOsRotina(r: Rotina): Rotina {
+// de Sistema Operacional (tratadas como unitárias por ambiente) +
+// migração de rotinas legadas com oferta "Todos".
+function normalizeOsRotina(rRaw: Rotina): Rotina {
+  const r = normalizeLegacyRotina(rRaw);
   const grupo = r.grupo.toLowerCase();
   const isOs = grupo.includes("sistema operacional");
   if (!isOs) return r;
@@ -83,13 +86,14 @@ export function computeExtrasOperacionais(
     : state.tierMonitor ? "Monitor"
     : null;
 
-  // === Rotinas Gerenciais Selbetti (oferta "Todos") ===
+  // === Rotinas Gerenciais Selbetti ===
   // Só são cobradas quando existe uma camada dominante (alguma camada ativa).
   let custoRotinasGerenciais = 0;
   if (dominantTierKey) {
-    for (const r of rotinas) {
-      if (r.oferta !== "Todos") continue;
-      const rotina = normalizeOsRotina(r);
+    for (const rRaw of rotinas) {
+      const r = normalizeLegacyRotina(rRaw);
+      if (!r.gerencial) continue;
+      const rotina = normalizeOsRotina(rRaw);
       const mult = rotinaMultiplicador(rotina, inv, complexFlags);
       const demanda = r.chamadosMes * mult;
       if (demanda <= 0) continue;
@@ -102,18 +106,18 @@ export function computeExtrasOperacionais(
   // === Rotinas Field Service de Microinformática ===
   let custoRotinasField = 0;
   if (state.tierFieldOperation && !n3OptionalScenario) {
-    for (const r of rotinas) {
+    for (const rRaw of rotinas) {
+      const r = normalizeLegacyRotina(rRaw);
       if (!r.grupo.toLowerCase().includes("microinform")) continue;
       if (r.oferta === "Performance" && !state.tierPerformance) continue;
-      if (r.oferta === "Todos") continue;
-      const rotina = normalizeOsRotina(r);
+      if (r.gerencial) continue;
+      const rotina = normalizeOsRotina(rRaw);
       const mult = rotinaMultiplicador(rotina, inv, complexFlags);
       const demanda = r.chamadosMes * mult;
       if (demanda <= 0) continue;
       const fa = r.automacao ? fatorAutoPerc : 1;
-      if (r.oferta === "Performance" && (r.complexidade ?? "Padrão") === "Complexo") {
-        const horas = r.horasExecucao ?? 4;
-        custoRotinasField += demanda * horas * state.valorHoraN3 * fa;
+      if (r.horasExecucao && r.horasExecucao > 0) {
+        custoRotinasField += demanda * r.horasExecucao * state.valorHoraN3 * fa;
       } else {
         custoRotinasField += demanda * custoPorChamadoMix * fa;
       }
