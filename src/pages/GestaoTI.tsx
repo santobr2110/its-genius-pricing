@@ -248,7 +248,7 @@ export default function GestaoTI() {
   useEffect(() => {
     let changed = false;
     const next = rotinas.map((r) => {
-      let patch: Partial<Rotina> = {};
+      const patch: Partial<Rotina> = {};
       if (r.grupo === "BACKUP") {
         patch.grupo = "Backup";
         changed = true;
