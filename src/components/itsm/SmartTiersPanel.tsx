@@ -103,6 +103,7 @@ export default function SmartTiersPanel() {
   const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   // Distribuição percentual das horas N3 / Automação entre as 3 funções (TAM / Owner / Livre).
   // Os dois "cortes" definem os limites: [0..corteTam] = TAM, [corteTam..corteOwner] = Owner, [corteOwner..100] = Livre.
@@ -181,7 +182,7 @@ export default function SmartTiersPanel() {
     : null;
 
   const rotinasOperation = useMemo(() => {
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.oferta === "Operation" && !r.gerencial)
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
@@ -221,11 +222,11 @@ export default function SmartTiersPanel() {
       { demanda: 0, cac: 0, custo: 0, venda: 0 },
     );
     return { items, totals };
-  }, [rotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda]);
 
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.oferta === "Performance" && !r.gerencial && (r.complexidade ?? "Padrão") === complexidade)
       .filter((r) =>
         n3OptionalScenario
@@ -270,12 +271,12 @@ export default function SmartTiersPanel() {
   const rotinasPerfPadrao = useMemo(
     () => buildPerformance("Padrão"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda],
   );
   const rotinasPerfComplexo = useMemo(
     () => buildPerformance("Complexo"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda],
   );
 
   // Builder genérico para rotinas vinculadas a uma camada específica
