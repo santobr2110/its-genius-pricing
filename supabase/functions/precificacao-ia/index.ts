@@ -23,6 +23,9 @@ Deno.serve(async (req) => {
     if (!descricao || typeof descricao !== "string") {
       return new Response(JSON.stringify({ error: "descricao é obrigatória" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    if (descricao.length > 10000) {
+      return new Response(JSON.stringify({ error: "descricao muito longa (máx 10000 caracteres)" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const { data: kb } = await supabase
       .from("base_conhecimento")
@@ -73,7 +76,7 @@ Retorne EXCLUSIVAMENTE um JSON válido, sem texto adicional, com a estrutura:
   "indice_aderencia": number      // 0..100
 }`;
 
-    const userPrompt = `### TABELA DE CARGOS E SALÁRIOS\n${cargosTxt.slice(0, 20000)}\n\n### DESCRITIVOS DE CARGOS\n${descTxt.slice(0, 20000)}\n\n### DESCRIÇÃO DA VAGA\n${descricao}`;
+    const userPrompt = `### TABELA DE CARGOS E SALÁRIOS\n${cargosTxt.slice(0, 20000)}\n\n### DESCRITIVOS DE CARGOS\n${descTxt.slice(0, 20000)}\n\n### DESCRIÇÃO DA VAGA\n${descricao.slice(0, 10000)}`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -95,7 +98,8 @@ Retorne EXCLUSIVAMENTE um JSON válido, sem texto adicional, com a estrutura:
     if (aiResp.status === 402) return new Response(JSON.stringify({ error: "Créditos esgotados. Adicione créditos no workspace." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     if (!aiResp.ok) {
       const txt = await aiResp.text();
-      return new Response(JSON.stringify({ error: `Erro na IA: ${txt}` }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      console.error("AI gateway error", aiResp.status, txt);
+      return new Response(JSON.stringify({ error: "Erro ao processar IA. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const aiJson = await aiResp.json();
@@ -110,6 +114,7 @@ Retorne EXCLUSIVAMENTE um JSON válido, sem texto adicional, com a estrutura:
 
     return new Response(JSON.stringify(parsed), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    console.error("precificacao-ia error", e);
+    return new Response(JSON.stringify({ error: "Erro interno. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
