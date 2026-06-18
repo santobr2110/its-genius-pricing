@@ -423,7 +423,6 @@ export default function GestaoTI() {
       Operation:   { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
       Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
       Enterprise:  { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
-      Todos:       { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
     };
     let automatizadosCount = 0;
     let automatizadosChamados = 0;
