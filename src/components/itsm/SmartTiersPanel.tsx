@@ -1647,22 +1647,25 @@ export default function SmartTiersPanel() {
               venda={gmudPerformance.venda}
               toSell={toSell}
             />
-            {dominantTierKey === "Performance" && rotinasGerenciais.items.length > 0 && (
-              <LayerRoutineTable
-                titulo="Rotinas Gerenciais Selbetti"
-                items={rotinasGerenciais.items}
-                totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
-              />
-            )}
+            {(() => {
+              const g = gerenciaisEmCamada("Performance");
+              return g.items.length > 0 ? (
+                <LayerRoutineTable
+                  titulo="Rotinas Gerenciais Selbetti"
+                  items={g.items}
+                  totals={g.totals}
+                  descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
+                />
+              ) : null;
+            })()}
             <CompositionFooter
               title="Total Smart Performance (venda)"
               total={smPerformanceVenda}
               parts={[
                 { label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`, value: toSell(results.custoN3) },
                 ...(gmudPerformance.venda > 0 ? [{ label: "GMUDs (Performance)", value: gmudPerformance.venda }] : []),
-                ...(dominantTierKey === "Performance" && rotinasGerenciais.totals.venda > 0
-                  ? [{ label: "Rotinas Gerenciais Selbetti", value: rotinasGerenciais.totals.venda }]
+                ...(gerenciaisVendaIn("Performance") > 0
+                  ? [{ label: "Rotinas Gerenciais Selbetti", value: gerenciaisVendaIn("Performance") }]
                   : []),
               ]}
             />
