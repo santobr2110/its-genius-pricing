@@ -14,6 +14,7 @@ import {
   ROTINAS_DEFAULT,
   rotinaMultiplicador,
   COMPLEX_FLAG_KEYS,
+  normalizeLegacyRotina,
   type ComplexFlags,
   type Rotina,
 } from "@/data/rotinas";
@@ -31,10 +32,11 @@ import { useEffect, useMemo, useState } from "react";
 // unitárias por ambiente, independente da oferta (Operation/Performance) ou
 // complexidade (Padrão/Complexo). Gateia pelo inventário de Servidores.
 function normalizeOsRotina(r: Rotina): Rotina {
-  const grupo = r.grupo.toLowerCase();
+  const normalized = normalizeLegacyRotina(r);
+  const grupo = normalized.grupo.toLowerCase();
   const isOs = grupo.includes("sistema operacional");
-  if (!isOs) return r;
-  return { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
+  if (!isOs) return normalized;
+  return { ...normalized, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
 }
 
 // Input numérico que aceita frações (ex.: 0,8 / 0.5) preservando o que o
