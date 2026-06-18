@@ -203,9 +203,27 @@ export interface Rotina {
   /** Apenas relevante para Performance + Complexo: vincula a rotina a uma
    *  flag de complexidade do inventário do cliente (1 execução quando ativa). */
   complexFlag?: ComplexFlagKey;
-  /** Horas previstas por execução. Usado para calcular custo de rotinas
-   *  Performance em Ambiente Complexo (custo = horas * valor/hora N3). */
+  /** Horas previstas por execução. Pode ser informada em qualquer rotina.
+   *  Quando definida (> 0), a rotina passa a ser atendida por N3:
+   *  custo = demanda * horas * valor/hora N3 * fatorAutomação, e as horas
+   *  são descontadas do pool N3 contratado — exceto para rotinas marcadas
+   *  como `gerencial`, que são cobradas em separado sem consumir o pool. */
   horasExecucao?: number;
+  /** Quando true, a rotina é uma "Gerencial Selbetti": cobrada à parte na
+   *  oferta vinculada (`oferta`) e NÃO desconta horas N3 contratadas. */
+  gerencial?: boolean;
+}
+
+/**
+ * Normaliza rotinas legadas (gravadas com `oferta: "Todos"` antes do
+ * remodelamento das Gerenciais Selbetti) para o novo formato:
+ * `{ oferta: "Operation", gerencial: true }`.
+ */
+export function normalizeLegacyRotina<T extends { oferta: string; gerencial?: boolean }>(r: T): T {
+  if ((r.oferta as string) === "Todos") {
+    return { ...r, oferta: "Operation" as unknown as T["oferta"], gerencial: true };
+  }
+  return r;
 }
 
 const r = (
