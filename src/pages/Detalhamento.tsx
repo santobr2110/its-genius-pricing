@@ -1100,7 +1100,7 @@ export default function Detalhamento() {
               <RoutineList items={rotinasMonitor} accent="bronze" />
             </>
           )}
-          {dominantTierKey === "Monitor" && rotinasGerenciais.length > 0 && (
+          {gerenciaisDe("Monitor").length > 0 && (
             <>
               <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
@@ -1260,7 +1260,7 @@ export default function Detalhamento() {
               <RoutineList items={rotinasFlow} accent="steel" />
             </>
           )}
-          {dominantTierKey === "Flow" && rotinasGerenciais.length > 0 && (
+          {gerenciaisDe("Flow").length > 0 && (
             <>
               <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
@@ -1303,7 +1303,7 @@ export default function Detalhamento() {
               <RoutineList items={rotinasOp} accent="silver" />
             </>
           )}
-          {dominantTierKey === "Operation" && rotinasGerenciais.length > 0 && (
+          {gerenciaisDe("Operation").length > 0 && (
             <>
               <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
@@ -1423,7 +1423,7 @@ export default function Detalhamento() {
               <RoutineList items={rotinasPerfComplexo} accent="gold" complexo />
             </>
           )}
-          {dominantTierKey === "Performance" && rotinasGerenciais.length > 0 && (
+          {gerenciaisDe("Performance").length > 0 && (
             <>
               <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
