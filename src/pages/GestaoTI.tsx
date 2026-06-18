@@ -430,6 +430,7 @@ export default function GestaoTI() {
     let automatizadosDemanda = 0;
     rotinas.forEach((r) => {
       const t = byOferta[r.oferta];
+      if (!t) return;
       const mult = rotinaMultiplicador(r, inventario, complexFlags);
       const demanda = r.chamadosMes * mult;
       t.count += 1;
