@@ -3,8 +3,7 @@ export type Oferta =
   | "Flow"
   | "Operation"
   | "Performance"
-  | "Enterprise"
-  | "Todos";
+  | "Enterprise";
 
 /** Ordem oficial das ofertas para exibição em selects/tabs. */
 export const OFERTAS_ALL: Oferta[] = [
@@ -13,29 +12,20 @@ export const OFERTAS_ALL: Oferta[] = [
   "Operation",
   "Performance",
   "Enterprise",
-  "Todos",
 ];
 
-/**
- * Rótulo de exibição da oferta. A oferta "Todos" é apresentada ao usuário
- * como "Gerenciais Selbetti" — rotinas precificadas separadamente que não
- * consomem as horas selecionadas nos sliders das camadas.
- */
+/** Rótulo de exibição da oferta. */
 export const OFERTA_LABELS: Record<Oferta, string> = {
   Monitor: "Monitor",
   Flow: "Flow",
   Operation: "Operation",
   Performance: "Performance",
   Enterprise: "Enterprise",
-  Todos: "Gerenciais Selbetti",
 };
 
-/**
- * Verifica se uma rotina se aplica a uma oferta-alvo.
- * Rotinas com oferta "Todos" aplicam-se a todas as camadas.
- */
+/** Verifica se uma rotina se aplica a uma oferta-alvo. */
 export function rotinaAplicaA(r: { oferta: Oferta }, alvo: Oferta): boolean {
-  return r.oferta === alvo || r.oferta === "Todos";
+  return r.oferta === alvo;
 }
 export type Complexidade = "Padrão" | "Complexo";
 export const COMPLEXIDADES: Complexidade[] = ["Padrão", "Complexo"];
