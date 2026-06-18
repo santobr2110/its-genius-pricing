@@ -184,8 +184,41 @@ export default function ResumoCotacao() {
     : calcState.tierFlow ? "Flow"
     : calcState.tierMonitor ? "Monitor"
     : null;
+  // Soma do custo das rotinas Gerenciais Selbetti vinculadas à oferta `tier`.
+  const gerenciaisCustoIn = (tier: "Monitor" | "Flow" | "Operation" | "Performance"): number => {
+    let total = 0;
+    const inv = {
+      qtdUsuarios: calcState.qtdUsuarios, qtdEquipamentos: calcState.qtdEquipamentos,
+      qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
+      qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
+    };
+    const cflags = {
+      complexVirtualizacaoCluster: calcState.complexVirtualizacaoCluster,
+      complexBancoDadosHA: calcState.complexBancoDadosHA,
+      complexFirewallHA: calcState.complexFirewallHA,
+      complexMultiSites: calcState.complexMultiSites,
+      complexSiteBackup: calcState.complexSiteBackup,
+      complexHibridoCloudOnPrem: calcState.complexHibridoCloudOnPrem,
+      complexOperacao24x7: calcState.complexOperacao24x7,
+      complexErpMercado: calcState.complexErpMercado,
+    } as any;
+    const fa0 = Math.max(0, Math.min(100, calcState.percCustoRotinaAutomatizada ?? 100)) / 100;
+    for (const rRaw of rotinas) {
+      const r: any = (rRaw as any).oferta === "Todos"
+        ? { ...rRaw, oferta: "Operation", gerencial: true }
+        : rRaw;
+      if (!r.gerencial || r.oferta !== tier) continue;
+      const mult = (require("@/data/rotinas") as any).rotinaMultiplicador(r, inv, cflags);
+      const demanda = r.chamadosMes * mult;
+      if (demanda <= 0) continue;
+      const horas = r.horasExecucao ?? 1;
+      const fa = r.automacao ? fa0 : 1;
+      total += demanda * horas * calcState.valorHoraN3 * fa;
+    }
+    return total;
+  };
   const addDominantGerenciais = (tier: typeof dominantTierKey, custo: number) =>
-    custo + (dominantTierKey === tier ? extrasResumo.custoRotinasGerenciais : 0);
+    custo + (tier ? gerenciaisCustoIn(tier) : 0);
 
   // Horas N3 — Tamanho, Owner e Livre (cortes Smart Performance)
   const [corteTam, corteOwner] = n3Cortes;
