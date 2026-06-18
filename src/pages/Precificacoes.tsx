@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,12 @@ import { SMART_ITO_NS } from "@/lib/offerings";
 import { ROTINAS_DEFAULT, type Rotina } from "@/data/rotinas";
 import { GMUDS_DEFAULT, type Gmud } from "@/data/gmuds";
 import { openPresetInNewTab } from "@/lib/activePreset";
+import {
+  loadDefaultProfilePayload,
+  mergeCalculatorWithParameterPayload,
+  mergePresetParamsForPricing,
+} from "@/lib/presetPricingParams";
+import type { ParamPayload } from "@/hooks/useParameterProfiles";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +61,15 @@ export default function Precificacoes() {
     salesforceCode: "",
   });
   const [saving, setSaving] = useState(false);
+  const [defaultParams, setDefaultParams] = useState<ParamPayload | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadDefaultProfilePayload().then((payload) => {
+      if (!cancelled) setDefaultParams(payload);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const handleLoad = (p: PricingPreset) => {
     if (typeof window !== "undefined") {
@@ -167,12 +182,13 @@ export default function Precificacoes() {
                     <TableCell className="text-right font-mono text-xs">
                       {(() => {
                         try {
-                          const base = computeITSMResults(p.calculator);
-                          const params = (p.allParams || {}) as Record<string, unknown>;
+                          const params = mergePresetParamsForPricing(p.calculator, p.allParams, defaultParams);
+                          const effectiveCalculator = mergeCalculatorWithParameterPayload(p.calculator, params);
+                          const base = computeITSMResults(effectiveCalculator);
                           const rotinas = (params[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? ROTINAS_DEFAULT;
                           const gmuds = (params[`${SMART_ITO_NS}gestao-ti:gmuds`] as Gmud[] | undefined) ?? GMUDS_DEFAULT;
-                          const extras = computeExtrasOperacionais(p.calculator, base, rotinas, gmuds);
-                          const unified = recomputeComposicaoComExtras(p.calculator, base, extras.custoTotal);
+                          const extras = computeExtrasOperacionais(effectiveCalculator, base, rotinas, gmuds);
+                          const unified = recomputeComposicaoComExtras(effectiveCalculator, base, extras.custoTotal);
                           const v = unified.composicaoPreco?.precoVenda || 0;
                           return v > 0 ? formatBRL(v) : <span className="text-muted-foreground italic">—</span>;
                         } catch {
