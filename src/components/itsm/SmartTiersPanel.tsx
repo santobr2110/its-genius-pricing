@@ -222,6 +222,7 @@ export default function SmartTiersPanel() {
   }, [rotinas, state, results, fatorVenda]);
 
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
+    const isComplex = complexidade === "Complexo";
     const items = rotinas
       .filter((r) => r.oferta === "Performance" && !r.gerencial && (r.complexidade ?? "Padrão") === complexidade)
       .filter((r) =>
@@ -261,7 +262,7 @@ export default function SmartTiersPanel() {
       },
       { demanda: 0, horasMes: 0, cac: 0, custo: 0, venda: 0 },
     );
-    return { items, totals };
+    return { items, totals, isComplex };
   };
 
   const rotinasPerfPadrao = useMemo(
