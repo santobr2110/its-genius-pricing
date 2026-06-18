@@ -318,7 +318,7 @@ export default function SmartTiersPanel() {
   // e exibidas apenas na camada dominante. Não consomem as horas dos sliders.
   const rotinasGerenciais = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Todos")
+      .filter((r) => r.gerencial)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -329,7 +329,7 @@ export default function SmartTiersPanel() {
         const horas = r.horasExecucao ?? 1;
         const custo = demanda * horas * state.valorHoraN3 * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, oferta: r.oferta, automacao: r.automacao, demanda, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -345,8 +345,23 @@ export default function SmartTiersPanel() {
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotinas, state, results, fatorVenda]);
+  // Gerenciais agora são atribuídas à oferta vinculada de cada rotina,
+  // não mais somadas todas na camada dominante.
+  const gerenciaisEmCamada = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") => {
+    const items = rotinasGerenciais.items.filter((i) => i.oferta === camada);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+  };
   const gerenciaisVendaIn = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") =>
-    dominantTierKey === camada ? rotinasGerenciais.totals.venda : 0;
+    gerenciaisEmCamada(camada).totals.venda;
 
   // Horas equivalentes consumidas pelas rotinas em cada camada
   const horasRotinasMonitor = state.valorHoraN3 > 0 ? rotinasMonitor.totals.custo / state.valorHoraN3 : 0;
