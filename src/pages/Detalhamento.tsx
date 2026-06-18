@@ -321,7 +321,7 @@ export default function Detalhamento() {
         const fa = r.automacao ? fatorAutoPerc : 1;
         const horas = r.horasExecucao ?? 1;
         const custo = demanda * horas * state.valorHoraN3 * fa;
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, oferta: r.oferta, demanda, mult, custo };
       })
       .filter(i => i.demanda > 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
