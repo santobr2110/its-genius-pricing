@@ -300,7 +300,7 @@ export default function Detalhamento() {
   // Rotinas técnicas preventivas vinculadas às camadas Monitor / Flow.
   const filterLayerRoutines = (camada: "Monitor" | "Flow") =>
     normalizedRotinas
-      .filter(r => r.oferta === camada)
+      .filter(r => r.oferta === camada && !r.gerencial)
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -341,6 +341,7 @@ export default function Detalhamento() {
     if (!state.tierFieldOperation || n3OptionalScenario) return [];
     return normalizedRotinas
       .filter(r => r.grupo.toLowerCase().includes("microinform"))
+      .filter(r => !r.gerencial)
       .filter(r => (r.oferta === "Performance" ? state.tierPerformance : true))
       .map(r => {
         const rotina = normalizeOsRotina(r);
