@@ -1102,11 +1102,11 @@ export default function Detalhamento() {
           )}
           {gerenciaisDe("Monitor").length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({gerenciaisDe("Monitor").length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Precificadas em separado — não abatem das horas contratadas para atuação técnica.
               </p>
-              <RoutineList items={rotinasGerenciais} accent="bronze" />
+              <RoutineList items={gerenciaisDe("Monitor")} accent="bronze" />
             </>
           )}
         </TierBlock>
@@ -1262,11 +1262,11 @@ export default function Detalhamento() {
           )}
           {gerenciaisDe("Flow").length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({gerenciaisDe("Flow").length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Precificadas em separado — não abatem das horas contratadas para atuação técnica.
               </p>
-              <RoutineList items={rotinasGerenciais} accent="steel" />
+              <RoutineList items={gerenciaisDe("Flow")} accent="steel" />
             </>
           )}
         </TierBlock>
@@ -1305,11 +1305,11 @@ export default function Detalhamento() {
           )}
           {gerenciaisDe("Operation").length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({gerenciaisDe("Operation").length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Precificadas em separado — não abatem das horas contratadas para atuação técnica.
               </p>
-              <RoutineList items={rotinasGerenciais} accent="silver" />
+              <RoutineList items={gerenciaisDe("Operation")} accent="silver" />
             </>
           )}
 
@@ -1425,11 +1425,11 @@ export default function Detalhamento() {
           )}
           {gerenciaisDe("Performance").length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({rotinasGerenciais.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Gerenciais Selbetti ({gerenciaisDe("Performance").length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Precificadas em separado — não abatem das horas contratadas para atuação técnica.
               </p>
-              <RoutineList items={rotinasGerenciais} accent="gold" />
+              <RoutineList items={gerenciaisDe("Performance")} accent="gold" />
             </>
           )}
 
