@@ -1,73 +1,52 @@
-## Diagnóstico atual
+# Mudança no plano de rotinas
 
-- `parameter_profiles` já tem `offering_slug`, mas a tela `/perfis-parametros` filtra somente `smart-ito` e o snapshot grava chaves das **duas** ofertas no mesmo registro (o perfil "Base Zero - Selbetti Padrão" mistura `ito.smart-ito.*` + `prof.fin.*`).
-- `useParameterProfiles.PARAM_KEYS` é uma lista única — não há separação por oferta.
-- `app_defaults` não guarda nenhuma referência ao perfil que originou os valores; não há como saber qual perfil é o "padrão em uso".
+## Objetivo
+1. Permitir que **qualquer rotina** (não só Performance/Complexo) tenha `horasExecucao` opcional.
+   - Com horas → atendimento pelo N3, descontando das horas N3 contratadas e contabilizando volume.
+   - Sem horas → entra no funil normal (N1/N2/N3 conforme distribuição de rotinas), sem descontar das horas contratadas.
+2. **Rotinas Gerenciais Selbetti** deixam de ser automáticas em todas as ofertas:
+   - Viram uma **categoria adicional** (flag `gerencial: true`) que é vinculada a **uma oferta específica** escolhida pelo usuário.
+   - Sempre contabilizadas para cobrança (horas × valor/hora N3 × fator de automação), porém **não descontam** das horas contratadas pelo cliente.
 
-## Mudanças
+## Mudanças no modelo (`src/data/rotinas.ts`)
+- Remover `"Todos"` de `Oferta` e de `OFERTAS_ALL` (oferta passa a ser uma das 5 reais: Monitor, Flow, Operation, Performance, Enterprise).
+- Remover `OFERTA_LABELS["Todos"]` e a função `rotinaAplicaA` (ou simplificar para `r.oferta === alvo`).
+- Adicionar `gerencial?: boolean` em `Rotina`. Quando `true`, a rotina é tratada como "Gerencial Selbetti" vinculada à `oferta` informada.
+- `horasExecucao?: number` permanece, mas agora válido para **qualquer** rotina (não apenas Performance/Complexo).
+- Migrar dados padrão: rotinas que antes eram `oferta: "Todos"` mantêm `gerencial: true` e recebem oferta default (ex.: Operation) — usuário pode reatribuir.
+- Manter `complexFlag` apenas para Performance/Complexo (gating de execução por flag do ambiente).
 
-### 1. Banco (nova migração)
+## Cálculo (`src/lib/extrasOperacionais.ts`, `useITSMCalculator`, etc.)
+Para cada rotina ativa (multiplicador > 0):
+- **Demanda mensal** = `chamadosMes × multiplicador` (mantém-se sempre, para contagem de volume).
+- **Se `horasExecucao` definido (> 0)** → custo da rotina = `demanda × horas × valorHoraN3 × fatorAutomação`.
+  - Horas consumidas são **somadas em `horasAtendimentoN3`** (descontam das horas N3 contratadas) — exceto quando `gerencial = true`.
+  - Quando `gerencial = true`: o custo é somado em `custoRotinasGerenciais` (cobrado separadamente na camada dominante) e **não** desconta horas contratadas.
+- **Se sem horas** → entra no funil de rotinas (distribuição `percRotinaN1/N2/N3`) como volume de chamados, custeada pelo custo/chamado de cada nível (com fator de automação no custo) — comportamento atual para rotinas sem horas.
 
-- Adicionar em `app_defaults`:
-  - `source_profile_id uuid REFERENCES parameter_profiles(id) ON DELETE SET NULL` (nullable)
-  - `source_profile_name text` (nullable, snapshot do nome no momento da aplicação)
-- Nova tabela singleton `app_default_profile` (1 linha por `offering_slug`):
-  - `offering_slug text PRIMARY KEY`
-  - `profile_id uuid REFERENCES parameter_profiles(id) ON DELETE SET NULL`
-  - `profile_name text NOT NULL`
-  - `applied_at timestamptz`, `applied_by uuid`
-  - RLS: leitura `authenticated`; escrita só admin (`public.is_admin`)
-  - GRANT SELECT para `authenticated`, ALL para `service_role`
+## UI — `src/pages/GestaoTI.tsx`
+- Remover oferta "Todos" dos selects.
+- Adicionar **toggle "Gerencial Selbetti"** na linha/edição da rotina (independente da oferta) — quando marcado, a rotina aparece destacada e segue regra de "não desconta horas".
+- Campo **Horas/execução** disponível para todas as rotinas (input opcional; vazio/0 = sem horas).
+- Manter campo `complexFlag` apenas quando Performance + Complexo.
+- Drawer de criação (`AddRotinaDrawer`): mesma lógica.
 
-### 2. `src/lib/paramKeys.ts` (novo) + refator de `useParameterProfiles`
+## UI de exibição (Detalhamento, SmartTiersPanel, RelatorioDemanda, ResumoCotacao)
+- Substituir todos os filtros `r.oferta === "Todos"` por `r.gerencial === true` (filtro adicional por oferta vinculada).
+- Quadro "Rotinas Gerenciais Selbetti" passa a ser exibido **na oferta vinculada** da rotina (não mais na camada dominante automaticamente).
+- `extrasResumo.custoRotinasGerenciais` agora é somado por oferta, não atribuído à dominante.
 
-- Separar em dois arrays: `SMART_ITO_PARAM_KEYS` e `BODYSHOP_PARAM_KEYS`.
-  - Smart ITO: chaves `ito.smart-ito.*` (calculator, n1team, n2team, fieldteams, gestao-ti, escopo)
-  - BodyShop: `prof.fin.state.v1`, `prof.fin.comissaoTiers.v1`, `ito.smart-ito.prof.financeiro.codigoProduto`, `ito.smart-ito.prof.financeiro.cidadeIss` (mover namespace para `bodyshop.*` causaria migração de dados — manter nome atual, apenas classificar como "bodyshop")
-- `useParameterProfiles({ offering })` passa a aceitar a oferta como filtro:
-  - `save(name, offering)` snapshota só as chaves daquela oferta e grava `offering_slug` correspondente.
-  - `apply` aplica somente as chaves do payload (já é o que faz).
-  - `refresh` filtra por `offering` se informado, senão traz todos.
-- `snapshotCurrentParams(userId, offering)` passa a aceitar oferta.
+## Migração de dados em memória
+- Persistência local (`usePersistentState` chave de rotinas): adicionar um passo de migração que converte rotinas com `oferta === "Todos"` em `{ oferta: "Operation", gerencial: true }`.
 
-### 3. Tela `/perfis-parametros`
+## Arquivos impactados
+- `src/data/rotinas.ts` — tipos, defaults, helpers.
+- `src/pages/GestaoTI.tsx` — UI de edição/criação, multiplicadores e somatórios.
+- `src/lib/extrasOperacionais.ts` — recálculo de custos.
+- `src/hooks/useITSMCalculator.ts` — integração das horas das rotinas em `horasAtendimentoN3`/funil.
+- `src/components/itsm/SmartTiersPanel.tsx`, `src/pages/Detalhamento.tsx`, `src/pages/RelatorioDemanda.tsx`, `src/pages/ResumoCotacao.tsx` — exibição.
 
-- Header indica origem (Smart ITO ou BodyShop) com tabs.
-- Cada tab usa o hook filtrado pela oferta correspondente. O botão "Salvar" grava no `offering_slug` da tab ativa.
-- `from` da rota (state) define qual tab abre por padrão.
-- Badge mostrando "Padrão do sistema" no perfil que estiver vinculado em `app_default_profile`.
-
-### 4. Migração de dados do perfil legado
-
-- Para "Base Zero - Selbetti Padrão": criar dois perfis (um por oferta), dividindo o payload pelas chaves. Manter o original ou marcá-lo deprecated? **Opção escolhida:** dividir em dois (`... · Smart ITO` e `... · BodyShop`) via INSERT, manter o original intacto para histórico (admin pode apagar manualmente depois).
-
-### 5. Painel `Administração › Parâmetros padrão` (`DefaultsAdminTab`)
-
-- Cabeçalho novo "Perfil padrão em uso" por oferta:
-  - Mostra nome do perfil ativo (de `app_default_profile`) ou "Nenhum perfil vinculado" (caso `app_defaults` tenha sido populado via "Salvar Status").
-  - Botão "Definir perfil padrão" → dialog lista perfis daquela oferta → ao confirmar:
-    1. Lê `payload` do perfil
-    2. Upsert em `app_defaults` para cada chave (com `source_profile_id`, `source_profile_name`)
-    3. Upsert em `app_default_profile`
-    4. Toast + reload
-- Coluna existente "Última alteração" passa a mostrar também "Origem: <perfil>" quando houver `source_profile_name`.
-
-### 6. `SaveDefaultsButton` ("Salvar Status")
-
-- Continua funcionando, mas limpa `source_profile_id`/`source_profile_name` (NULL) e remove a linha de `app_default_profile` da oferta correspondente — sinalizando que o padrão atual é "ad hoc" e não veio de um perfil.
-
-## Fora de escopo
-
-- Não mexer no `useActivePresetSession` (precificações abertas em aba) — sistema diferente, já isolado.
-- Não renomear chaves `prof.fin.*` para `bodyshop.*` (evita migração arriscada de localStorage e de perfis existentes); apenas reclassificá-las.
-
-## Arquivos afetados
-
-- **Migração nova** `supabase/migrations/<ts>_app_defaults_source_profile.sql`
-- **Insert de dados** dividindo o perfil "Base Zero - Selbetti Padrão"
-- `src/lib/paramKeys.ts` (novo)
-- `src/hooks/useParameterProfiles.ts` (refatorado, aceita `offering`)
-- `src/components/SaveDefaultsButton.tsx` (limpa vínculo)
-- `src/components/admin/DefaultsAdminTab.tsx` (cabeçalho + dialog "Definir padrão")
-- `src/pages/PerfisParametros.tsx` (tabs por oferta, badge "Padrão")
-- `src/integrations/supabase/types.ts` será regenerado pela migração
+## Pontos a confirmar
+1. Para rotinas **gerenciais com horas**, o custo é cobrado pelo `valorHoraN3` (como hoje) — confirmar.
+2. Para rotinas **não-gerenciais sem horas**, mantemos o comportamento atual de entrar no funil de rotinas pelo `percRotinaN1/N2/N3` — confirmar.
+3. A oferta default para migrar as rotinas hoje marcadas como "Todos" deve ser **Operation**? Ou prefere outra (ex.: Performance)?
