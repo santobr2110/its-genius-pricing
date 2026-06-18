@@ -180,7 +180,7 @@ export default function SmartTiersPanel() {
 
   const rotinasOperation = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Operation")
+      .filter((r) => r.oferta === "Operation" && !r.gerencial)
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
       // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
@@ -199,7 +199,9 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const custo = r.horasExecucao && r.horasExecucao > 0
+          ? demanda * r.horasExecucao * state.valorHoraN3 * fatorAuto
+          : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
       })
@@ -222,7 +224,7 @@ export default function SmartTiersPanel() {
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
     const items = rotinas
-      .filter((r) => r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade)
+      .filter((r) => r.oferta === "Performance" && !r.gerencial && (r.complexidade ?? "Padrão") === complexidade)
       .filter((r) =>
         n3OptionalScenario
           ? r.grupo.toLowerCase().includes("microinform")
@@ -238,8 +240,8 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const usaHoras = isComplex;
-        const horas = r.horasExecucao ?? 4;
+        const usaHoras = !!(r.horasExecucao && r.horasExecucao > 0);
+        const horas = r.horasExecucao ?? 0;
         const horasMes = usaHoras ? demanda * horas : 0;
         const custo = usaHoras
           ? horasMes * state.valorHoraN3 * fatorAuto
@@ -278,7 +280,7 @@ export default function SmartTiersPanel() {
   // (Monitor / Flow / Enterprise) — apenas rotinas técnicas preventivas.
   const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
     const items = rotinas
-      .filter((r) => r.oferta === camada)
+      .filter((r) => r.oferta === camada && !r.gerencial)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -286,7 +288,9 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
+        const custo = r.horasExecucao && r.horasExecucao > 0
+          ? demanda * r.horasExecucao * state.valorHoraN3 * fatorAuto
+          : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
       })
@@ -318,7 +322,7 @@ export default function SmartTiersPanel() {
   // e exibidas apenas na camada dominante. Não consomem as horas dos sliders.
   const rotinasGerenciais = useMemo(() => {
     const items = rotinas
-      .filter((r) => r.oferta === "Todos")
+      .filter((r) => r.gerencial)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -329,7 +333,7 @@ export default function SmartTiersPanel() {
         const horas = r.horasExecucao ?? 1;
         const custo = demanda * horas * state.valorHoraN3 * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, oferta: r.oferta, automacao: r.automacao, demanda, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -345,8 +349,23 @@ export default function SmartTiersPanel() {
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rotinas, state, results, fatorVenda]);
+  // Gerenciais agora são atribuídas à oferta vinculada de cada rotina,
+  // não mais somadas todas na camada dominante.
+  const gerenciaisEmCamada = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") => {
+    const items = rotinasGerenciais.items.filter((i) => i.oferta === camada);
+    const totals = items.reduce(
+      (acc, i) => {
+        acc.demanda += i.demanda;
+        acc.custo += i.custo;
+        acc.venda += i.venda;
+        return acc;
+      },
+      { demanda: 0, custo: 0, venda: 0 },
+    );
+    return { items, totals };
+  };
   const gerenciaisVendaIn = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") =>
-    dominantTierKey === camada ? rotinasGerenciais.totals.venda : 0;
+    gerenciaisEmCamada(camada).totals.venda;
 
   // Horas equivalentes consumidas pelas rotinas em cada camada
   const horasRotinasMonitor = state.valorHoraN3 > 0 ? rotinasMonitor.totals.custo / state.valorHoraN3 : 0;
@@ -879,14 +898,17 @@ export default function SmartTiersPanel() {
                 </div>
               );
             })()}
-            {dominantTierKey === "Monitor" && rotinasGerenciais.items.length > 0 && (
-              <LayerRoutineTable
-                titulo="Rotinas Gerenciais Selbetti"
-                items={rotinasGerenciais.items}
-                totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
-              />
-            )}
+            {(() => {
+              const g = gerenciaisEmCamada("Monitor");
+              return g.items.length > 0 ? (
+                <LayerRoutineTable
+                  titulo="Rotinas Gerenciais Selbetti"
+                  items={g.items}
+                  totals={g.totals}
+                  descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
+                />
+              ) : null;
+            })()}
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Monitor (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(smTotalVenda)}</span>
@@ -1097,14 +1119,17 @@ export default function SmartTiersPanel() {
                 totals={rotinasFlow.totals}
               />
             )}
-            {dominantTierKey === "Flow" && rotinasGerenciais.items.length > 0 && (
-              <LayerRoutineTable
-                titulo="Rotinas Gerenciais Selbetti"
-                items={rotinasGerenciais.items}
-                totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
-              />
-            )}
+            {(() => {
+              const g = gerenciaisEmCamada("Flow");
+              return g.items.length > 0 ? (
+                <LayerRoutineTable
+                  titulo="Rotinas Gerenciais Selbetti"
+                  items={g.items}
+                  totals={g.totals}
+                  descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
+                />
+              ) : null;
+            })()}
             <div className="flex justify-between border-t pt-2">
               <span className="text-xs font-semibold">Total Smart Flow (venda)</span>
               <span className="text-sm font-bold text-primary">{formatBRL(sflTotalVenda)}</span>
@@ -1455,14 +1480,17 @@ export default function SmartTiersPanel() {
               venda={gmudOperation.venda}
               toSell={toSell}
             />
-            {dominantTierKey === "Operation" && rotinasGerenciais.items.length > 0 && (
-              <LayerRoutineTable
-                titulo="Rotinas Gerenciais Selbetti"
-                items={rotinasGerenciais.items}
-                totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
-              />
-            )}
+            {(() => {
+              const g = gerenciaisEmCamada("Operation");
+              return g.items.length > 0 ? (
+                <LayerRoutineTable
+                  titulo="Rotinas Gerenciais Selbetti"
+                  items={g.items}
+                  totals={g.totals}
+                  descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
+                />
+              ) : null;
+            })()}
             <CompositionFooter
               title="Total Smart Operation (venda)"
               total={smOperationVenda}
@@ -1475,8 +1503,8 @@ export default function SmartTiersPanel() {
                 },
                 ...(fsVenda > 0 ? [{ label: "Field Service de Microinformática", value: fsVenda }] : []),
                 ...(gmudOperation.venda > 0 ? [{ label: "GMUDs (Operation)", value: gmudOperation.venda }] : []),
-                ...(dominantTierKey === "Operation" && rotinasGerenciais.totals.venda > 0
-                  ? [{ label: "Rotinas Gerenciais Selbetti", value: rotinasGerenciais.totals.venda }]
+                ...(gerenciaisVendaIn("Operation") > 0
+                  ? [{ label: "Rotinas Gerenciais Selbetti", value: gerenciaisVendaIn("Operation") }]
                   : []),
               ]}
             />
@@ -1623,22 +1651,25 @@ export default function SmartTiersPanel() {
               venda={gmudPerformance.venda}
               toSell={toSell}
             />
-            {dominantTierKey === "Performance" && rotinasGerenciais.items.length > 0 && (
-              <LayerRoutineTable
-                titulo="Rotinas Gerenciais Selbetti"
-                items={rotinasGerenciais.items}
-                totals={rotinasGerenciais.totals}
-                descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
-              />
-            )}
+            {(() => {
+              const g = gerenciaisEmCamada("Performance");
+              return g.items.length > 0 ? (
+                <LayerRoutineTable
+                  titulo="Rotinas Gerenciais Selbetti"
+                  items={g.items}
+                  totals={g.totals}
+                  descricao="Precificadas em separado — não consomem as horas contratadas para atuação técnica."
+                />
+              ) : null;
+            })()}
             <CompositionFooter
               title="Total Smart Performance (venda)"
               total={smPerformanceVenda}
               parts={[
                 { label: `Atendimento N3 (${formatNumber(state.horasN3Mensais)}h)`, value: toSell(results.custoN3) },
                 ...(gmudPerformance.venda > 0 ? [{ label: "GMUDs (Performance)", value: gmudPerformance.venda }] : []),
-                ...(dominantTierKey === "Performance" && rotinasGerenciais.totals.venda > 0
-                  ? [{ label: "Rotinas Gerenciais Selbetti", value: rotinasGerenciais.totals.venda }]
+                ...(gerenciaisVendaIn("Performance") > 0
+                  ? [{ label: "Rotinas Gerenciais Selbetti", value: gerenciaisVendaIn("Performance") }]
                   : []),
               ]}
             />

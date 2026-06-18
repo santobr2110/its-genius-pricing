@@ -80,7 +80,6 @@ const OFERTAS: Oferta[] = [
   "Operation",
   "Performance",
   "Enterprise",
-  "Todos",
 ];
 
 function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
@@ -247,7 +246,13 @@ export default function GestaoTI() {
   // Migração: normaliza grupo "BACKUP" → "Backup" e abrangencia para enum em dados antigos
   useEffect(() => {
     let changed = false;
-    const next = rotinas.map((r) => {
+    const next = rotinas.map((rRaw) => {
+      // Migração: rotinas legadas com oferta "Todos" viram gerencial vinculadas a Operation
+      let r = rRaw as Rotina & { oferta: string };
+      if ((r.oferta as string) === "Todos") {
+        r = { ...r, oferta: "Operation", gerencial: true };
+        changed = true;
+      }
       const patch: Partial<Rotina> = {};
       if (r.grupo === "BACKUP") {
         patch.grupo = "Backup";
@@ -270,7 +275,7 @@ export default function GestaoTI() {
       }
       return Object.keys(patch).length ? { ...r, ...patch } : r;
     });
-    if (changed) setRotinas(next);
+    if (changed) setRotinas(next as Rotina[]);
   }, []);
   const [gmuds, setGmuds] = usePersistentState<Gmud[]>(
     "gestao-ti:gmuds",
@@ -326,6 +331,7 @@ export default function GestaoTI() {
     automacao: boolean;
     frequencia: Frequencia;
     horasExecucao?: number;
+    gerencial?: boolean;
   }) => {
     const chamadosMes = FREQ_TO_CHAMADOS[data.frequencia];
     const nova: Rotina = {
@@ -346,10 +352,8 @@ export default function GestaoTI() {
           ? data.complexFlag
           : undefined,
       horasExecucao:
-        (data.oferta === "Performance" && data.complexidade === "Complexo") ||
-        data.oferta === "Todos"
-          ? data.horasExecucao ?? 4
-          : undefined,
+        data.horasExecucao && data.horasExecucao > 0 ? data.horasExecucao : undefined,
+      gerencial: data.gerencial || undefined,
     };
     setRotinas((prev) => [...prev, nova]);
   };
@@ -419,7 +423,6 @@ export default function GestaoTI() {
       Operation:   { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
       Performance: { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
       Enterprise:  { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
-      Todos:       { count: 0, chamados: 0, cac: 0, chamadosAuto: 0, chamadosManual: 0, countAuto: 0, countManual: 0, demanda: 0, demandaAuto: 0, demandaManual: 0 },
     };
     let automatizadosCount = 0;
     let automatizadosChamados = 0;
@@ -738,21 +741,16 @@ export default function GestaoTI() {
                 }
                 return (
                   <TabsContent key={oferta} value={oferta} className="space-y-6 mt-4">
-                    {oferta === "Todos" && (
-                      <div className="rounded-lg border border-amber-300 bg-amber-50/60 dark:bg-amber-950/20 dark:border-amber-800 p-3">
-                        <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
-                          Rotinas Gerenciais Selbetti
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-1">
-                          Estas rotinas são <strong>precificadas em separado</strong> e cobradas do
-                          cliente, mas <strong>não abatem</strong> do total de horas selecionadas
-                          pelos sliders das camadas (Automação/Manutenção, Acionamento N3, Owner,
-                          etc.). Informe manualmente a quantidade de horas consumidas no mês em
-                          "Horas/exec" — o custo é calculado por valor/hora N3 × horas × demanda.
-                          O quadro aparece somente na camada mais alta ativada na tela principal.
-                        </p>
-                      </div>
-                    )}
+                    <div className="rounded-lg border border-muted bg-muted/30 p-3">
+                      <p className="text-[11px] text-muted-foreground">
+                        <strong>Plano de rotinas:</strong> qualquer rotina pode ter horas por execução.
+                        Com horas: o atendimento é por N3 (descontando das horas N3 contratadas) e
+                        custo = demanda × horas × valor/hora N3. Sem horas: entra no funil de
+                        rotinas (N1/N2/N3 conforme a Escala). Marque <em>Gerencial Selbetti</em>
+                        para cobrar à parte (sem descontar das horas contratadas) — a rotina é
+                        atribuída à oferta selecionada.
+                      </p>
+                    </div>
                     {renderGrupos(filtered)}
                   </TabsContent>
                 );
@@ -957,8 +955,8 @@ function RotinaGroupCards({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-3">
         {rotinas.map((r) => {
           const isComplexPerf = r.oferta === "Performance" && r.complexidade === "Complexo";
-          const isTodos = r.oferta === "Todos";
-          const showHoras = isComplexPerf || isTodos;
+          const isGerencial = !!r.gerencial;
+          // Campo de horas está sempre disponível (opcional para qualquer rotina).
           const mult = rotinaMultiplicador(r, inventario, complexFlags);
           const demanda = r.chamadosMes * mult;
           const semDemanda = mult === 0;
@@ -999,6 +997,11 @@ function RotinaGroupCards({
                   {r.automacao && (
                     <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
                       Automatizada
+                    </Badge>
+                  )}
+                  {isGerencial && (
+                    <Badge variant="outline" className="text-[10px] border-amber-500/60 text-amber-700 dark:text-amber-300">
+                      Gerencial
                     </Badge>
                   )}
                   {semDemanda && (
@@ -1118,26 +1121,31 @@ function RotinaGroupCards({
                   <p className="text-[10px] text-muted-foreground">CAC</p>
                   <p className="text-sm font-semibold tabular-nums">{r.cac.toFixed(2)}</p>
                 </div>
-                {showHoras && (
-                  <div>
-                    <Label className="text-[10px] text-muted-foreground">Horas/exec</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={0.5}
-                      value={r.horasExecucao ?? (isTodos ? 1 : 4)}
-                      onChange={(e) =>
-                        onUpdate(r.id, { horasExecucao: parseFloat(e.target.value) || 0 })
-                      }
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                )}
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Horas/exec</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    placeholder="—"
+                    value={r.horasExecucao ?? ""}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      onUpdate(r.id, {
+                        horasExecucao: Number.isFinite(v) && v > 0 ? v : undefined,
+                      });
+                    }}
+                    className="h-7 text-xs"
+                  />
+                  <p className="text-[9px] text-muted-foreground">
+                    {r.horasExecucao ? "via N3" : "via funil"}
+                  </p>
+                </div>
               </div>
 
               {/* Rodapé: ações */}
               <div className="flex items-center justify-between pt-1 border-t">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 flex-wrap">
                   <Switch
                     checked={r.automacao}
                     onCheckedChange={(v) => onUpdate(r.id, { automacao: v })}
@@ -1145,6 +1153,15 @@ function RotinaGroupCards({
                   <span className="text-[10px] text-muted-foreground">
                     {r.automacao ? "Automação" : "Manual"}
                   </span>
+                  <div className="flex items-center gap-1.5 pl-2 border-l">
+                    <Switch
+                      checked={isGerencial}
+                      onCheckedChange={(v) => onUpdate(r.id, { gerencial: v || undefined })}
+                    />
+                    <span className="text-[10px] text-muted-foreground" title="Cobrada em separado e não desconta horas N3 contratadas">
+                      Gerencial
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   {showComplexidadeMove && (
@@ -1204,6 +1221,7 @@ function NovaRotinaDialog({
     automacao: boolean;
     frequencia: Frequencia;
     horasExecucao?: number;
+    gerencial?: boolean;
   }) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -1219,11 +1237,11 @@ function NovaRotinaDialog({
   const [automacao, setAutomacao] = useState(false);
   const [frequencia, setFrequencia] = useState<Frequencia>("Mensal");
   const [horasExecucao, setHorasExecucao] = useState<number>(4);
+  const [usaHoras, setUsaHoras] = useState<boolean>(false);
+  const [gerencial, setGerencial] = useState<boolean>(false);
 
   const isPerf = oferta === "Performance";
   const isComplexo = isPerf && complexidade === "Complexo";
-  const isTodos = oferta === "Todos";
-  const showHoras = isComplexo || isTodos;
   const grupoFinal = grupoMode === "novo" ? novoGrupo : grupo;
   const podeSalvar = grupoFinal.trim().length > 0 && rotina.trim().length > 0;
 
@@ -1240,6 +1258,8 @@ function NovaRotinaDialog({
     setAutomacao(false);
     setFrequencia("Mensal");
     setHorasExecucao(4);
+    setUsaHoras(false);
+    setGerencial(false);
   };
 
   const salvar = () => {
@@ -1254,7 +1274,8 @@ function NovaRotinaDialog({
       complexFlag: isComplexo ? complexFlag : undefined,
       automacao,
       frequencia,
-      horasExecucao: showHoras ? horasExecucao : undefined,
+      horasExecucao: usaHoras && horasExecucao > 0 ? horasExecucao : undefined,
+      gerencial: gerencial || undefined,
     });
     reset();
     setOpen(false);
@@ -1420,23 +1441,37 @@ function NovaRotinaDialog({
             </div>
           </div>
 
-          {showHoras && (
-            <div className="space-y-1">
-              <Label className="text-xs">
-                {isTodos
-                  ? "Horas por execução (cobradas em separado — NÃO consomem horas dos sliders)"
-                  : "Horas por execução (custo via valor/hora N3)"}
-              </Label>
-              <Input
-                type="number"
-                min={0}
-                step={0.5}
-                value={horasExecucao}
-                onChange={(e) => setHorasExecucao(parseFloat(e.target.value) || 0)}
-                className="h-9 text-sm"
-              />
+          <div className="rounded-md border p-2 space-y-2">
+            <div className="flex items-center gap-2">
+              <Switch checked={usaHoras} onCheckedChange={setUsaHoras} />
+              <Label className="text-xs">Lançar horas (atendimento por N3)</Label>
             </div>
-          )}
+            {usaHoras && (
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Horas por execução</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={horasExecucao}
+                  onChange={(e) => setHorasExecucao(parseFloat(e.target.value) || 0)}
+                  className="h-9 text-sm"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Custo = demanda × horas × valor/hora N3. Sem horas, entra no funil de rotinas (N1/N2/N3).
+                </p>
+              </div>
+            )}
+            <div className="flex items-center gap-2 pt-1 border-t">
+              <Switch checked={gerencial} onCheckedChange={setGerencial} />
+              <Label className="text-xs">Gerencial Selbetti</Label>
+            </div>
+            {gerencial && (
+              <p className="text-[10px] text-muted-foreground">
+                Cobrada em separado dentro da oferta selecionada e <strong>não desconta</strong> horas N3 contratadas.
+              </p>
+            )}
+          </div>
 
           <p className="text-[11px] text-muted-foreground">
             Freq/mês: {FREQ_TO_CHAMADOS[frequencia]} • CAC: {(FREQ_TO_CHAMADOS[frequencia] * CAC_FACTOR).toFixed(2)}
