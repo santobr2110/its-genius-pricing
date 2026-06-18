@@ -257,9 +257,8 @@ export default function Detalhamento() {
 
   const rotinaCusto = (r: Rotina, demanda: number) => {
     const fa = r.automacao ? fatorAutoPerc : 1;
-    if (r.oferta === "Performance" && (r.complexidade ?? "Padrão") === "Complexo") {
-      const horas = r.horasExecucao ?? 4;
-      return demanda * horas * state.valorHoraN3 * fa;
+    if (r.horasExecucao && r.horasExecucao > 0) {
+      return demanda * r.horasExecucao * state.valorHoraN3 * fa;
     }
     return demanda * custoPorChamadoMix * fa;
   };
@@ -267,8 +266,8 @@ export default function Detalhamento() {
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
     rotinas
       .filter(r => {
-        // Rotinas "Todos" (Gerenciais Selbetti) são listadas em quadro próprio.
-        if (r.oferta === "Todos") return false;
+        // Rotinas Gerenciais Selbetti são listadas em quadro próprio.
+        if (r.gerencial) return false;
         if (oferta === "Operation") return r.oferta === "Operation";
         return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
       })
@@ -311,10 +310,10 @@ export default function Detalhamento() {
   const rotinasMonitor = useMemo(() => filterLayerRoutines("Monitor"), [rotinas, state]);
   const rotinasFlow = useMemo(() => filterLayerRoutines("Flow"), [rotinas, state]);
 
-  // Rotinas Gerenciais Selbetti (oferta "Todos") — quadro próprio na camada dominante.
+  // Rotinas Gerenciais Selbetti — quadro próprio dentro da oferta vinculada de cada rotina.
   const rotinasGerenciais = useMemo(() =>
     rotinas
-      .filter(r => r.oferta === "Todos")
+      .filter(r => r.gerencial)
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
