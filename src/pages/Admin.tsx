@@ -435,7 +435,7 @@ function CreateUserDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Senha temporária (mín 8)</Label>
-            <Input type="text" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>Perfil</Label>
@@ -495,7 +495,7 @@ function PasswordDialog({ user, onClose }: { user: UserRow | null; onClose: () =
         </DialogHeader>
         <div className="space-y-1.5">
           <Label>Nova senha (mín 8)</Label>
-          <Input value={pw} onChange={(e) => setPw(e.target.value)} />
+          <Input type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
