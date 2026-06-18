@@ -8,6 +8,7 @@ import {
 } from "./usePersistentState";
 import { PARAM_KEYS, type ParamPayload } from "./useParameterProfiles";
 import type { PricingPreset } from "./usePricingPresets";
+import { loadDefaultProfilePayload, mergePresetParamsForPricing } from "@/lib/presetPricingParams";
 
 export const PRESET_LOCAL_WRITE_EVENT = "itsm:preset-local-write";
 
@@ -83,22 +84,36 @@ export function useActivePresetSession(): ActivePresetStatus {
       allParams?: ParamPayload;
     };
 
+    const defaultParams = await loadDefaultProfilePayload();
+
     // Constrói o conjunto de entradas (chave namespeada → valor).
     const entries: Array<[string, unknown]> = [];
 
     // Preferência: allParams (snapshot completo) — formato moderno
     if (payload.allParams && Object.keys(payload.allParams).length) {
-      for (const [k, v] of Object.entries(payload.allParams)) {
+      const mergedParams = mergePresetParamsForPricing(
+        payload.calculator as PricingPreset["calculator"] | undefined,
+        payload.allParams,
+        defaultParams,
+      );
+      for (const [k, v] of Object.entries(mergedParams)) {
         entries.push([k, v]);
       }
     } else {
       // Fallback: presets antigos que só guardam calculator/n1/n2/escopo
-      if (payload.calculator !== undefined) entries.push([SMART_ITO_NS + "itsm:calculator:v1", payload.calculator]);
-      if (payload.n1Team !== undefined) entries.push([SMART_ITO_NS + "itsm:n1team:v1", payload.n1Team]);
-      if (payload.n2Team !== undefined) entries.push([SMART_ITO_NS + "itsm:n2team:v1", payload.n2Team]);
-      if (payload.escopo?.proposicao !== undefined) entries.push([SMART_ITO_NS + "escopo:proposicao", payload.escopo.proposicao]);
-      if (payload.escopo?.restricoesGerais !== undefined) entries.push([SMART_ITO_NS + "escopo:restricoesGerais", payload.escopo.restricoesGerais]);
-      if (payload.escopo?.itensAdicionais !== undefined) entries.push([SMART_ITO_NS + "escopo:itensAdicionais", payload.escopo.itensAdicionais]);
+      const fallbackParams: ParamPayload = {};
+      if (payload.calculator !== undefined) fallbackParams[SMART_ITO_NS + "itsm:calculator:v1"] = payload.calculator;
+      if (payload.n1Team !== undefined) fallbackParams[SMART_ITO_NS + "itsm:n1team:v1"] = payload.n1Team;
+      if (payload.n2Team !== undefined) fallbackParams[SMART_ITO_NS + "itsm:n2team:v1"] = payload.n2Team;
+      if (payload.escopo?.proposicao !== undefined) fallbackParams[SMART_ITO_NS + "escopo:proposicao"] = payload.escopo.proposicao;
+      if (payload.escopo?.restricoesGerais !== undefined) fallbackParams[SMART_ITO_NS + "escopo:restricoesGerais"] = payload.escopo.restricoesGerais;
+      if (payload.escopo?.itensAdicionais !== undefined) fallbackParams[SMART_ITO_NS + "escopo:itensAdicionais"] = payload.escopo.itensAdicionais;
+      const mergedParams = mergePresetParamsForPricing(
+        payload.calculator as PricingPreset["calculator"] | undefined,
+        fallbackParams,
+        defaultParams,
+      );
+      for (const [k, v] of Object.entries(mergedParams)) entries.push([k, v]);
     }
 
     if (typeof window !== "undefined") {
