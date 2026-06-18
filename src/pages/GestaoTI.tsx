@@ -1221,6 +1221,7 @@ function NovaRotinaDialog({
     automacao: boolean;
     frequencia: Frequencia;
     horasExecucao?: number;
+    gerencial?: boolean;
   }) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -1236,11 +1237,11 @@ function NovaRotinaDialog({
   const [automacao, setAutomacao] = useState(false);
   const [frequencia, setFrequencia] = useState<Frequencia>("Mensal");
   const [horasExecucao, setHorasExecucao] = useState<number>(4);
+  const [usaHoras, setUsaHoras] = useState<boolean>(false);
+  const [gerencial, setGerencial] = useState<boolean>(false);
 
   const isPerf = oferta === "Performance";
   const isComplexo = isPerf && complexidade === "Complexo";
-  const isTodos = oferta === "Todos";
-  const showHoras = isComplexo || isTodos;
   const grupoFinal = grupoMode === "novo" ? novoGrupo : grupo;
   const podeSalvar = grupoFinal.trim().length > 0 && rotina.trim().length > 0;
 
@@ -1257,6 +1258,8 @@ function NovaRotinaDialog({
     setAutomacao(false);
     setFrequencia("Mensal");
     setHorasExecucao(4);
+    setUsaHoras(false);
+    setGerencial(false);
   };
 
   const salvar = () => {
@@ -1271,7 +1274,8 @@ function NovaRotinaDialog({
       complexFlag: isComplexo ? complexFlag : undefined,
       automacao,
       frequencia,
-      horasExecucao: showHoras ? horasExecucao : undefined,
+      horasExecucao: usaHoras && horasExecucao > 0 ? horasExecucao : undefined,
+      gerencial: gerencial || undefined,
     });
     reset();
     setOpen(false);
@@ -1437,23 +1441,37 @@ function NovaRotinaDialog({
             </div>
           </div>
 
-          {showHoras && (
-            <div className="space-y-1">
-              <Label className="text-xs">
-                {isTodos
-                  ? "Horas por execução (cobradas em separado — NÃO consomem horas dos sliders)"
-                  : "Horas por execução (custo via valor/hora N3)"}
-              </Label>
-              <Input
-                type="number"
-                min={0}
-                step={0.5}
-                value={horasExecucao}
-                onChange={(e) => setHorasExecucao(parseFloat(e.target.value) || 0)}
-                className="h-9 text-sm"
-              />
+          <div className="rounded-md border p-2 space-y-2">
+            <div className="flex items-center gap-2">
+              <Switch checked={usaHoras} onCheckedChange={setUsaHoras} />
+              <Label className="text-xs">Lançar horas (atendimento por N3)</Label>
             </div>
-          )}
+            {usaHoras && (
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">Horas por execução</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  value={horasExecucao}
+                  onChange={(e) => setHorasExecucao(parseFloat(e.target.value) || 0)}
+                  className="h-9 text-sm"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Custo = demanda × horas × valor/hora N3. Sem horas, entra no funil de rotinas (N1/N2/N3).
+                </p>
+              </div>
+            )}
+            <div className="flex items-center gap-2 pt-1 border-t">
+              <Switch checked={gerencial} onCheckedChange={setGerencial} />
+              <Label className="text-xs">Gerencial Selbetti</Label>
+            </div>
+            {gerencial && (
+              <p className="text-[10px] text-muted-foreground">
+                Cobrada em separado dentro da oferta selecionada e <strong>não desconta</strong> horas N3 contratadas.
+              </p>
+            )}
+          </div>
 
           <p className="text-[11px] text-muted-foreground">
             Freq/mês: {FREQ_TO_CHAMADOS[frequencia]} • CAC: {(FREQ_TO_CHAMADOS[frequencia] * CAC_FACTOR).toFixed(2)}
