@@ -501,8 +501,16 @@ export default function SmartTiersPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
 
+  // Custo de ferramenta de endpoint (entra em custoTotalOperacao do calculador
+  // quando Smart Operation está ativo). Precisa ser refletido aqui para que o
+  // "Valor Total de Venda" das Camadas bata exatamente com o preço de venda
+  // calculado no Resumo de Cotação e na Listagem de Precificações.
+  const custoEndpointTooling =
+    (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0);
   const smOperationVenda = state.tierOperation
-    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)) + fsVenda + gmudOperation.venda + gerenciaisVendaIn("Operation")
+    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0))
+      + toSell(custoEndpointTooling)
+      + fsVenda + gmudOperation.venda + gerenciaisVendaIn("Operation")
     : 0;
   const smPerformanceVenda = state.tierPerformance
     ? toSell(results.custoN3) + gmudPerformance.venda + gerenciaisVendaIn("Performance")
