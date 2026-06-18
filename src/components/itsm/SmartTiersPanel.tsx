@@ -282,7 +282,7 @@ export default function SmartTiersPanel() {
   // Builder genérico para rotinas vinculadas a uma camada específica
   // (Monitor / Flow / Enterprise) — apenas rotinas técnicas preventivas.
   const buildLayerRotinas = (camada: "Monitor" | "Flow" | "Enterprise") => {
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.oferta === camada && !r.gerencial)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
@@ -313,18 +313,18 @@ export default function SmartTiersPanel() {
   const rotinasMonitor = useMemo(
     () => buildLayerRotinas("Monitor"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda],
   );
   const rotinasFlow = useMemo(
     () => buildLayerRotinas("Flow"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda],
   );
 
-  // Rotinas Gerenciais Selbetti (oferta "Todos") — precificadas em separado
+  // Rotinas Gerenciais Selbetti — precificadas em separado
   // e exibidas apenas na camada dominante. Não consomem as horas dos sliders.
   const rotinasGerenciais = useMemo(() => {
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.gerencial)
       .map((r) => {
         const rotina = normalizeOsRotina(r);
@@ -351,7 +351,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda]);
   // Gerenciais agora são atribuídas à oferta vinculada de cada rotina,
   // não mais somadas todas na camada dominante.
   const gerenciaisEmCamada = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") => {
@@ -406,7 +406,7 @@ export default function SmartTiersPanel() {
     if (!state.tierFieldOperation || n3OptionalScenario) {
       return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
     }
-    const items = rotinas
+    const items = normalizedRotinas
       .filter((r) => r.grupo.toLowerCase().includes("microinform"))
       .filter((r) => (r.oferta === "Performance" ? state.tierPerformance : true))
       .map((r) => {
@@ -445,7 +445,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda]);
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
