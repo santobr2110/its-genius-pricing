@@ -955,8 +955,8 @@ function RotinaGroupCards({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-3">
         {rotinas.map((r) => {
           const isComplexPerf = r.oferta === "Performance" && r.complexidade === "Complexo";
-          const isTodos = r.oferta === "Todos";
-          const showHoras = isComplexPerf || isTodos;
+          const isGerencial = !!r.gerencial;
+          // Campo de horas está sempre disponível (opcional para qualquer rotina).
           const mult = rotinaMultiplicador(r, inventario, complexFlags);
           const demanda = r.chamadosMes * mult;
           const semDemanda = mult === 0;
@@ -997,6 +997,11 @@ function RotinaGroupCards({
                   {r.automacao && (
                     <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
                       Automatizada
+                    </Badge>
+                  )}
+                  {isGerencial && (
+                    <Badge variant="outline" className="text-[10px] border-amber-500/60 text-amber-700 dark:text-amber-300">
+                      Gerencial
                     </Badge>
                   )}
                   {semDemanda && (
@@ -1116,26 +1121,31 @@ function RotinaGroupCards({
                   <p className="text-[10px] text-muted-foreground">CAC</p>
                   <p className="text-sm font-semibold tabular-nums">{r.cac.toFixed(2)}</p>
                 </div>
-                {showHoras && (
-                  <div>
-                    <Label className="text-[10px] text-muted-foreground">Horas/exec</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={0.5}
-                      value={r.horasExecucao ?? (isTodos ? 1 : 4)}
-                      onChange={(e) =>
-                        onUpdate(r.id, { horasExecucao: parseFloat(e.target.value) || 0 })
-                      }
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                )}
+                <div>
+                  <Label className="text-[10px] text-muted-foreground">Horas/exec</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    placeholder="—"
+                    value={r.horasExecucao ?? ""}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      onUpdate(r.id, {
+                        horasExecucao: Number.isFinite(v) && v > 0 ? v : undefined,
+                      });
+                    }}
+                    className="h-7 text-xs"
+                  />
+                  <p className="text-[9px] text-muted-foreground">
+                    {r.horasExecucao ? "via N3" : "via funil"}
+                  </p>
+                </div>
               </div>
 
               {/* Rodapé: ações */}
               <div className="flex items-center justify-between pt-1 border-t">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 flex-wrap">
                   <Switch
                     checked={r.automacao}
                     onCheckedChange={(v) => onUpdate(r.id, { automacao: v })}
@@ -1143,6 +1153,15 @@ function RotinaGroupCards({
                   <span className="text-[10px] text-muted-foreground">
                     {r.automacao ? "Automação" : "Manual"}
                   </span>
+                  <div className="flex items-center gap-1.5 pl-2 border-l">
+                    <Switch
+                      checked={isGerencial}
+                      onCheckedChange={(v) => onUpdate(r.id, { gerencial: v || undefined })}
+                    />
+                    <span className="text-[10px] text-muted-foreground" title="Cobrada em separado e não desconta horas N3 contratadas">
+                      Gerencial
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-1">
                   {showComplexidadeMove && (
