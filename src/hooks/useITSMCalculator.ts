@@ -636,10 +636,21 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     }
     const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
 
-    const custoTotalOperacao = custoN1 + custoN2 + custoN3 +
+    // Gate dos custos por camada ativa (mesma regra do SmartTiersPanel.totalSelecionado):
+    // - N1 + N2 só entram quando Smart Operation está ativo
+    // - N3 (pool contratado) entra quando Operation OU Performance está ativo
+    // - Endpoint tooling + Field Service entram apenas dentro do Smart Operation
+    // Sem esse gate, cenários só com Smart Monitor/Flow incluíam toda a equipe N1/N2/N3
+    // no custo total da operação, divergindo do preço exibido nas Camadas de Oferta.
+    const includeN1N2 = state.tierOperation;
+    const includeN3 = state.tierOperation || state.tierPerformance;
+    const includeOperationExtras = state.tierOperation;
+    const custoTotalOperacao =
+      (includeN1N2 ? custoN1 + custoN2 : 0) +
+      (includeN3 ? custoN3 : 0) +
       smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys +
       flCustoMonit + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys +
-      custoEndpointTooling + custoFieldTotal;
+      (includeOperationExtras ? custoEndpointTooling + custoFieldTotal : 0);
     // ===== Composição do preço de venda (Markup Divisor único) =====
     // PV = Custo / (1 - Σ% / 100), onde Σ% = PIS+COFINS+ISS+Comissão+IRPJ/CSLL+Enc.Financ.+Lucro
     // Cada componente em R$ = PV × (% do componente / 100).
