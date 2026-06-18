@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ServerCog, Sparkles, GitBranch, Plus, Trash2, ArrowLeftRight } from "lucide-react";
+import { Pencil, Check, X } from "lucide-react";
 import BackHomeButton from "@/components/BackHomeButton";
 import SortableNav from "@/components/SortableNav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -362,6 +363,16 @@ export default function GestaoTI() {
     setRotinas((prev) => prev.filter((r) => r.id !== id));
   };
 
+  const renameGrupo = (oldName: string, newName: string) => {
+    const nn = newName.trim();
+    if (!nn || nn === oldName) return;
+    setRotinas((prev) => prev.map((r) => (r.grupo === oldName ? { ...r, grupo: nn } : r)));
+  };
+
+  const removeGrupo = (nome: string) => {
+    setRotinas((prev) => prev.filter((r) => r.grupo !== nome));
+  };
+
   const grupoNomesExistentes = useMemo(
     () => Array.from(new Set(rotinas.map((r) => r.grupo))).sort((a, b) => a.localeCompare(b, "pt-BR")),
     [rotinas],
@@ -700,6 +711,8 @@ export default function GestaoTI() {
                       rotinas={grupos[grupo]}
                       onUpdate={updateRotina}
                       onRemove={removeRotina}
+                      onRenameGroup={renameGrupo}
+                      onRemoveGroup={removeGrupo}
                       inventario={inventario}
                       complexFlags={complexFlags}
                       showComplexidadeMove={oferta === "Performance"}
