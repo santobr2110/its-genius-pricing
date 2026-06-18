@@ -11,8 +11,15 @@ import {
   CALCULATOR_KEY,
   CLIENT_PROFILE_CALCULATOR_FIELDS,
 } from "@/lib/clientProfileFields";
+import { SMART_ITO_NS } from "@/lib/offerings";
+import { getActivePresetId } from "@/lib/activePreset";
+import type { ITSMState } from "./useITSMCalculator";
+import type { N1TeamState } from "./useN1TeamState";
+import type { N2TeamState } from "./useN2TeamState";
 
 const GROUP_SLUG = "ito";
+const N1_TEAM_KEY = SMART_ITO_NS + "itsm:n1team:v1";
+const N2_TEAM_KEY = SMART_ITO_NS + "itsm:n2team:v1";
 
 // Mantido por compatibilidade com código que ainda importa de useParameterProfiles.
 export const PARAM_KEYS = ALL_PARAM_KEYS;
@@ -25,6 +32,28 @@ export interface ParameterProfile {
   createdAt: number;
   updatedAt: number;
   payload: ParamPayload;
+}
+
+function withPresetPrefix(key: string, presetId: string): string {
+  return key.replace(
+    /^(ito\.|datacenter\.|cloud\.|observabilidade\.)([^.]+\.)/,
+    (_m, a, b) => `${a}${b}preset.${presetId}.`,
+  );
+}
+
+function readLocalParamValue(key: string): unknown | undefined {
+  if (typeof window === "undefined") return undefined;
+  const activePresetId = getActivePresetId();
+  const read = (storage: Storage, storageKey: string) => {
+    const raw = storage.getItem(storageKey);
+    if (raw == null) return undefined;
+    try { return JSON.parse(raw) as unknown; } catch { return undefined; }
+  };
+  if (activePresetId) {
+    const presetValue = read(window.sessionStorage, withPresetPrefix(key, activePresetId));
+    if (presetValue !== undefined) return presetValue;
+  }
+  return read(window.localStorage, key);
 }
 
 interface DbRow {
@@ -45,8 +74,8 @@ function fromRow(r: DbRow): ParameterProfile {
   };
 }
 
-/** Lê o valor atual de cada chave do usuário (nuvem → localStorage). */
-export async function snapshotCurrentParams(
+/** Lê o valor atual de cada chave do usuário (tela/local → nuvem). */
+async function snapshotStoredParams(
   userId: string,
   offering?: ParamOffering,
 ): Promise<ParamPayload> {
@@ -59,18 +88,35 @@ export async function snapshotCurrentParams(
     .in("key", keys);
   const cloud = new Map((data ?? []).map((r) => [r.key as string, r.value]));
   for (const k of keys) {
-    if (cloud.has(k)) {
-      out[k] = cloud.get(k);
-    } else if (typeof window !== "undefined") {
-      const raw = window.localStorage.getItem(k);
-      if (raw != null) {
-        try { out[k] = JSON.parse(raw); } catch { /* ignore */ }
-      }
-    }
+    const local = readLocalParamValue(k);
+    if (local !== undefined) out[k] = local;
+    else if (cloud.has(k)) out[k] = cloud.get(k);
   }
+  return out;
+}
+
+/** Lê o valor atual de cada chave para salvar Perfil de Parâmetros. */
+export async function snapshotCurrentParams(
+  userId: string,
+  offering?: ParamOffering,
+): Promise<ParamPayload> {
+  const out = await snapshotStoredParams(userId, offering);
   // Remove campos de "Perfil de Cliente" / inputs pontuais do calculator
   // antes de retornar — eles não fazem parte do snapshot de parâmetros.
   return stripClientProfileFields(out);
+}
+
+/** Snapshot para precificação: mantém exatamente os inputs da tela. */
+export async function snapshotCurrentPricingParams(
+  userId: string,
+  current: { calculator?: ITSMState; n1Team?: N1TeamState; n2Team?: N2TeamState },
+  offering: ParamOffering = "smart-ito",
+): Promise<ParamPayload> {
+  const out = await snapshotStoredParams(userId, offering);
+  if (current.calculator) out[CALCULATOR_KEY] = current.calculator;
+  if (current.n1Team) out[N1_TEAM_KEY] = current.n1Team;
+  if (current.n2Team) out[N2_TEAM_KEY] = current.n2Team;
+  return out;
 }
 
 /** Aplica um payload de parâmetros: nuvem + localStorage + notifica hooks. */
