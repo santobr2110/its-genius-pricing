@@ -197,6 +197,7 @@ export default function Detalhamento() {
   };
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
   const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
@@ -266,7 +267,7 @@ export default function Detalhamento() {
   };
 
   const filterRoutines = (oferta: "Operation" | "Performance", complexidade?: "Padrão" | "Complexo") =>
-    rotinas
+    normalizedRotinas
       .filter(r => {
         // Rotinas Gerenciais Selbetti são listadas em quadro próprio.
         if (r.gerencial) return false;
@@ -292,13 +293,13 @@ export default function Detalhamento() {
       })
       .filter(i => i.demanda > 0);
 
-  const rotinasOp = useMemo(() => filterRoutines("Operation"), [rotinas, state]);
-  const rotinasPerfPadrao = useMemo(() => filterRoutines("Performance", "Padrão"), [rotinas, state]);
-  const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [rotinas, state]);
+  const rotinasOp = useMemo(() => filterRoutines("Operation"), [normalizedRotinas, state]);
+  const rotinasPerfPadrao = useMemo(() => filterRoutines("Performance", "Padrão"), [normalizedRotinas, state]);
+  const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [normalizedRotinas, state]);
 
   // Rotinas técnicas preventivas vinculadas às camadas Monitor / Flow.
   const filterLayerRoutines = (camada: "Monitor" | "Flow") =>
-    rotinas
+    normalizedRotinas
       .filter(r => r.oferta === camada)
       .map(r => {
         const rotina = normalizeOsRotina(r);
@@ -309,12 +310,12 @@ export default function Detalhamento() {
       })
       .filter(i => i.demanda > 0);
 
-  const rotinasMonitor = useMemo(() => filterLayerRoutines("Monitor"), [rotinas, state]);
-  const rotinasFlow = useMemo(() => filterLayerRoutines("Flow"), [rotinas, state]);
+  const rotinasMonitor = useMemo(() => filterLayerRoutines("Monitor"), [normalizedRotinas, state]);
+  const rotinasFlow = useMemo(() => filterLayerRoutines("Flow"), [normalizedRotinas, state]);
 
   // Rotinas Gerenciais Selbetti — quadro próprio dentro da oferta vinculada de cada rotina.
   const rotinasGerenciais = useMemo(() =>
-    rotinas
+    normalizedRotinas
       .filter(r => r.gerencial)
       .map(r => {
         const rotina = normalizeOsRotina(r);
@@ -327,7 +328,7 @@ export default function Detalhamento() {
       })
       .filter(i => i.demanda > 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rotinas, state],
+    [normalizedRotinas, state],
   );
   const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | null =
     state.tierPerformance ? "Performance"
@@ -338,7 +339,7 @@ export default function Detalhamento() {
 
   const rotinasField = useMemo(() => {
     if (!state.tierFieldOperation || n3OptionalScenario) return [];
-    return rotinas
+    return normalizedRotinas
       .filter(r => r.grupo.toLowerCase().includes("microinform"))
       .filter(r => (r.oferta === "Performance" ? state.tierPerformance : true))
       .map(r => {
@@ -350,7 +351,7 @@ export default function Detalhamento() {
       })
       .filter(i => i.demanda > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rotinas, state]);
+  }, [normalizedRotinas, state]);
 
   const sumCusto = (arr: { custo: number }[]) => arr.reduce((a, b) => a + b.custo, 0);
   const custoRotinasOp = sumCusto(rotinasOp);
