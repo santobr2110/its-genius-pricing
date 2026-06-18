@@ -22,6 +22,7 @@ import { Link } from "react-router-dom";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import {
   ROTINAS_DEFAULT, rotinaMultiplicador, COMPLEX_FLAG_KEYS,
+  normalizeLegacyRotina,
   type ComplexFlags, type Rotina,
 } from "@/data/rotinas";
 import {
@@ -50,9 +51,10 @@ import {
 import { GitBranch, PackagePlus } from "lucide-react";
 
 function normalizeOsRotina(r: Rotina): Rotina {
-  const isOs = r.grupo.toLowerCase().includes("sistema operacional");
-  if (!isOs) return r;
-  return { ...r, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
+  const normalized = normalizeLegacyRotina(r);
+  const isOs = normalized.grupo.toLowerCase().includes("sistema operacional");
+  if (!isOs) return normalized;
+  return { ...normalized, ativo: "Servidor", unidade: "Servidor (Ambiente)", abrangencia: "Ambiente" };
 }
 
 const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon: string; bar: string; badge: string; check: string; glow: string; valueGrad: string; blob1: string; blob2: string }> = {
