@@ -80,7 +80,6 @@ const OFERTAS: Oferta[] = [
   "Operation",
   "Performance",
   "Enterprise",
-  "Todos",
 ];
 
 function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
@@ -247,7 +246,13 @@ export default function GestaoTI() {
   // Migração: normaliza grupo "BACKUP" → "Backup" e abrangencia para enum em dados antigos
   useEffect(() => {
     let changed = false;
-    const next = rotinas.map((r) => {
+    const next = rotinas.map((rRaw) => {
+      // Migração: rotinas legadas com oferta "Todos" viram gerencial vinculadas a Operation
+      let r = rRaw as Rotina & { oferta: string };
+      if ((r.oferta as string) === "Todos") {
+        r = { ...r, oferta: "Operation", gerencial: true };
+        changed = true;
+      }
       const patch: Partial<Rotina> = {};
       if (r.grupo === "BACKUP") {
         patch.grupo = "Backup";
@@ -270,7 +275,7 @@ export default function GestaoTI() {
       }
       return Object.keys(patch).length ? { ...r, ...patch } : r;
     });
-    if (changed) setRotinas(next);
+    if (changed) setRotinas(next as Rotina[]);
   }, []);
   const [gmuds, setGmuds] = usePersistentState<Gmud[]>(
     "gestao-ti:gmuds",
@@ -326,6 +331,7 @@ export default function GestaoTI() {
     automacao: boolean;
     frequencia: Frequencia;
     horasExecucao?: number;
+    gerencial?: boolean;
   }) => {
     const chamadosMes = FREQ_TO_CHAMADOS[data.frequencia];
     const nova: Rotina = {
@@ -346,10 +352,8 @@ export default function GestaoTI() {
           ? data.complexFlag
           : undefined,
       horasExecucao:
-        (data.oferta === "Performance" && data.complexidade === "Complexo") ||
-        data.oferta === "Todos"
-          ? data.horasExecucao ?? 4
-          : undefined,
+        data.horasExecucao && data.horasExecucao > 0 ? data.horasExecucao : undefined,
+      gerencial: data.gerencial || undefined,
     };
     setRotinas((prev) => [...prev, nova]);
   };
