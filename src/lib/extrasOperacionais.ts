@@ -33,7 +33,7 @@ export interface ExtrasOperacionais {
  * mas que compõem o valor de venda das camadas Smart e do Relatório de Proposição:
  *  - GMUDs (Operation + Performance)
  *  - Rotinas de Field Service de Microinformática (oferta vinculada à camada)
- *  - Rotinas Gerenciais Selbetti (oferta "Todos") — quando há camada dominante
+ *  - Rotinas Gerenciais Selbetti — apenas quando a oferta vinculada está ativa
  *
  * Rotinas Operation/Performance/Monitor/Flow consomem horas do pool N3 já
  * pago (custoN3) — não são cobradas em separado, então NÃO entram aqui.
@@ -78,29 +78,28 @@ export function computeExtrasOperacionais(
     (inv.qtdUsuarios || 0) + (inv.qtdEquipamentos || 0) > 0;
   const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
 
-  const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise" | null =
-    state.tierEnterprise ? "Enterprise"
-    : state.tierPerformance ? "Performance"
-    : state.tierOperation ? "Operation"
-    : state.tierFlow ? "Flow"
-    : state.tierMonitor ? "Monitor"
-    : null;
+  const ofertaAtiva = (oferta: Rotina["oferta"]) => {
+    if (oferta === "Monitor") return state.tierMonitor;
+    if (oferta === "Flow") return state.tierFlow;
+    if (oferta === "Operation") return state.tierOperation;
+    if (oferta === "Performance") return state.tierPerformance;
+    if (oferta === "Enterprise") return state.tierEnterprise;
+    return false;
+  };
 
   // === Rotinas Gerenciais Selbetti ===
-  // Só são cobradas quando existe uma camada dominante (alguma camada ativa).
+  // Só são cobradas quando a camada vinculada na própria rotina está ativa.
   let custoRotinasGerenciais = 0;
-  if (dominantTierKey) {
-    for (const rRaw of rotinas) {
-      const r = normalizeLegacyRotina(rRaw);
-      if (!r.gerencial) continue;
-      const rotina = normalizeOsRotina(rRaw);
-      const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-      const demanda = r.chamadosMes * mult;
-      if (demanda <= 0) continue;
-      const fa = r.automacao ? fatorAutoPerc : 1;
-      const horas = r.horasExecucao ?? 1;
-      custoRotinasGerenciais += demanda * horas * state.valorHoraN3 * fa;
-    }
+  for (const rRaw of rotinas) {
+    const r = normalizeLegacyRotina(rRaw);
+    if (!r.gerencial || !ofertaAtiva(r.oferta)) continue;
+    const rotina = normalizeOsRotina(rRaw);
+    const mult = rotinaMultiplicador(rotina, inv, complexFlags);
+    const demanda = r.chamadosMes * mult;
+    if (demanda <= 0) continue;
+    const fa = r.automacao ? fatorAutoPerc : 1;
+    const horas = r.horasExecucao ?? 1;
+    custoRotinasGerenciais += demanda * horas * state.valorHoraN3 * fa;
   }
 
   // === Rotinas Field Service de Microinformática ===
