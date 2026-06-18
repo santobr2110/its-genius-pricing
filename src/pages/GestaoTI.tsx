@@ -114,6 +114,21 @@ function EscalaRotinasPanel() {
     update(others[0], a);
     update(others[1], b);
   };
+  // Buffer local: permite digitar livremente sem rebalanceio a cada tecla.
+  // Só comita (e redistribui) no blur ou Enter.
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const displayValue = (key: "percRotinaN1" | "percRotinaN2" | "percRotinaN3") =>
+    draft[key] !== undefined ? draft[key] : String(state[key]);
+  const commit = (key: "percRotinaN1" | "percRotinaN2" | "percRotinaN3") => {
+    const raw = draft[key];
+    if (raw === undefined) return;
+    const n = parseInt(raw, 10);
+    if (!Number.isNaN(n)) setLevel(key, n);
+    setDraft((d) => {
+      const { [key]: _omit, ...rest } = d;
+      return rest;
+    });
+  };
   return (
     <div className="mb-4 rounded-lg border bg-muted/30 p-3">
       <div className="flex items-center justify-between mb-2">
@@ -137,8 +152,16 @@ function EscalaRotinasPanel() {
               type="number"
               min={0}
               max={100}
-              value={state[key]}
-              onChange={(e) => setLevel(key, parseInt(e.target.value) || 0)}
+              value={displayValue(key)}
+              onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}
+              onBlur={() => commit(key)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commit(key);
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
               className="h-8 text-sm"
             />
             <span className="text-xs text-muted-foreground">%</span>
@@ -157,6 +180,19 @@ function GmudDistribuicaoPanel() {
     const other = key === "percGmudN2" ? "percGmudN3" : "percGmudN2";
     update(key, v);
     update(other, 100 - v);
+  };
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const displayValue = (key: "percGmudN2" | "percGmudN3") =>
+    draft[key] !== undefined ? draft[key] : String(state[key]);
+  const commit = (key: "percGmudN2" | "percGmudN3") => {
+    const raw = draft[key];
+    if (raw === undefined) return;
+    const n = parseInt(raw, 10);
+    if (!Number.isNaN(n)) setLevel(key, n);
+    setDraft((d) => {
+      const { [key]: _omit, ...rest } = d;
+      return rest;
+    });
   };
   return (
     <div className="rounded-lg border bg-muted/30 p-3">
@@ -180,8 +216,16 @@ function GmudDistribuicaoPanel() {
               type="number"
               min={0}
               max={100}
-              value={state[key]}
-              onChange={(e) => setLevel(key, parseInt(e.target.value) || 0)}
+              value={displayValue(key)}
+              onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}
+              onBlur={() => commit(key)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commit(key);
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
               className="h-8 text-sm"
             />
             <span className="text-xs text-muted-foreground">%</span>
