@@ -102,6 +102,27 @@ export default function Detalhamento() {
   // duplicações) e preservando os recursos, inventário e valores do Flow
   // como mandatórios.
   const unifiedMonitorFlow = monitorVisible && flowVisible;
+  // Hierarquia das camadas Smart. Rotinas preventivas (não gerenciais) também
+  // são cumulativas entre as camadas: uma rotina de Monitor permanece quando
+  // apenas Flow/Operation/Performance estiver ativo, e cada rotina é exibida
+  // uma única vez — na camada displayable mais baixa cuja ordem seja ≥ à
+  // oferta vinculada da rotina.
+  const PREVENT_TIER_ORDER = { Monitor: 1, Flow: 2, Operation: 3, Performance: 4 } as const;
+  type PreventTier = keyof typeof PREVENT_TIER_ORDER;
+  const displayableForPrevent: PreventTier[] = [];
+  // Bloco Monitor só é renderizado quando monitorVisible && !unifiedMonitorFlow.
+  if (monitorVisible && !flowVisible) displayableForPrevent.push("Monitor");
+  if (flowVisible) displayableForPrevent.push("Flow");
+  if (state.tierOperation) displayableForPrevent.push("Operation");
+  if (state.tierPerformance) displayableForPrevent.push("Performance");
+  const preventBucket = (oferta: string | undefined): PreventTier | null => {
+    if (!oferta || !(oferta in PREVENT_TIER_ORDER)) return null;
+    const min = PREVENT_TIER_ORDER[oferta as PreventTier];
+    for (const t of displayableForPrevent) {
+      if (PREVENT_TIER_ORDER[t] >= min) return t;
+    }
+    return null;
+  };
   const dedupLines = (lines: string[]): string[] => {
     const seen = new Set<string>();
     const out: string[] = [];
