@@ -184,7 +184,35 @@ export default function ResumoCotacao() {
     : calcState.tierFlow ? "Flow"
     : calcState.tierMonitor ? "Monitor"
     : null;
-  // Soma do custo das rotinas Gerenciais Selbetti vinculadas à oferta `tier`.
+  // Rotinas Gerenciais são CUMULATIVAS entre as camadas: uma gerencial vinculada
+  // a Monitor permanece ativa em Flow/Operation/Performance; vinculada a Flow
+  // permanece em Operation/Performance; e assim por diante. Cada gerencial é
+  // cobrada UMA única vez, na camada ativa mais baixa cuja ordem ≥ à oferta
+  // vinculada da rotina (bucket de exibição/cobrança).
+  const tierOrder: Record<"Monitor" | "Flow" | "Operation" | "Performance", number> = {
+    Monitor: 1, Flow: 2, Operation: 3, Performance: 4,
+  };
+  const activeGerencialTiers = (
+    [
+      // Quando Smart Flow está ativo, ele consolida o Smart Monitor (a linha
+      // de Monitor não é exibida separadamente). Para que as gerenciais de
+      // Monitor sejam de fato cobradas, neste caso elas precisam cair no
+      // bucket do Flow — então não consideramos Monitor como bucket ativo.
+      [!!calcState.tierMonitor && !calcState.tierFlow, "Monitor"],
+      [!!calcState.tierFlow, "Flow"],
+      [!!calcState.tierOperation, "Operation"],
+      [!!calcState.tierPerformance, "Performance"],
+    ] as Array<[boolean, "Monitor" | "Flow" | "Operation" | "Performance"]>
+  )
+    .filter(([a]) => a)
+    .map(([, t]) => t)
+    .sort((a, b) => tierOrder[a] - tierOrder[b]);
+  const gerencialBucket = (oferta: "Monitor" | "Flow" | "Operation" | "Performance") => {
+    const min = tierOrder[oferta];
+    for (const t of activeGerencialTiers) if (tierOrder[t] >= min) return t;
+    return null;
+  };
+  // Soma do custo das rotinas Gerenciais Selbetti alocadas ao bucket `tier`.
   const gerenciaisCustoIn = (tier: "Monitor" | "Flow" | "Operation" | "Performance"): number => {
     let total = 0;
     const inv = {
@@ -207,7 +235,9 @@ export default function ResumoCotacao() {
       const r: any = (rRaw as any).oferta === "Todos"
         ? { ...rRaw, oferta: "Operation", gerencial: true }
         : rRaw;
-      if (!r.gerencial || r.oferta !== tier) continue;
+      if (!r.gerencial) continue;
+      const bucket = gerencialBucket(r.oferta as any);
+      if (bucket !== tier) continue;
       const mult = rotinaMultiplicador(r, inv, cflags);
       const demanda = r.chamadosMes * mult;
       if (demanda <= 0) continue;
