@@ -1126,7 +1126,7 @@ export default function Detalhamento() {
           </ul>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <Stat label="Total de ativos" value={formatNumber(sm.ativos)} />
-            <Stat label={"Chamados Reativos\u00a0"} value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
+            <Stat label="Chamados de monitoramento" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre monitor" value={`${state.percAlocacaoN1Monitor}%`} />
           </div>
 
@@ -1210,7 +1210,7 @@ export default function Detalhamento() {
           )}
           {rotinasMonitor.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"}— Smart Monitor ({rotinasMonitor.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Monitor ({rotinasMonitor.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Consumidas pelas horas de Automação / Manutenção do Smart Monitor.
               </p>
@@ -1261,7 +1261,7 @@ export default function Detalhamento() {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <Stat label="Ativos integrados" value={formatNumber(sf.ativos)} />
-            <Stat label={"Chamados Reativos\u00a0"} value={`${formatNumber(sf.chamadosAtivos, 1)}/mês`} />
+            <Stat label="Chamados de monitoramento" value={`${formatNumber(sf.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre Flow" value={`${state.percAlocacaoN1Flow}%`} />
           </div>
           {(() => {
@@ -1370,7 +1370,7 @@ export default function Detalhamento() {
           />
           {rotinasFlow.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"}— Smart Flow ({rotinasFlow.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Flow ({rotinasFlow.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Consumidas pelas horas de Automação / Manutenção do Smart Flow.
               </p>
@@ -1409,14 +1409,14 @@ export default function Detalhamento() {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
-            <Stat label={"Chamados Reativos\u00a0" + "N1"} value={`${formatNumber(results.volumeN1, 1)} ch/mês`} />
-            <Stat label={"Chamados Reativos\u00a0" + "N2"} value={`${formatNumber(results.volumeN2, 1)} ch/mês`} />
+            <Stat label="Volume N1" value={`${formatNumber(results.volumeN1, 1)} ch/mês`} />
+            <Stat label="Volume N2" value={`${formatNumber(results.volumeN2, 1)} ch/mês`} />
             <Stat label="Custo/chamado N1" value={formatBRL(results.custoPorChamadoN1)} />
           </div>
 
           {rotinasOp.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"}— Smart Operation ({rotinasOp.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Operation ({rotinasOp.length})</SubTitle>
               <RoutineList items={rotinasOp} accent="silver" />
             </>
           )}
@@ -1489,7 +1489,7 @@ export default function Detalhamento() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Stat label="Equipamentos cobertos" value={formatNumber(state.qtdEquipamentos)} />
-                <Stat label={"Chamados Reativos\u00a0" + "Field"} value={`${formatNumber(fs.volumeUsuariosEscalado, 1)}/mês`} />
+                <Stat label="Chamados escalados ao Field" value={`${formatNumber(fs.volumeUsuariosEscalado, 1)}/mês`} />
               </div>
               {fs.overflowAtivo && (
                 <div className="rounded-lg border border-amber-300 bg-amber-100/40 dark:bg-amber-900/20 p-3 text-xs">
@@ -1529,14 +1529,14 @@ export default function Detalhamento() {
 
           {rotinasPerfPadrao.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"}— Smart Performance · Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Performance · Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
               <RoutineList items={rotinasPerfPadrao} accent="gold" />
             </>
           )}
 
           {algumComplexAtivo && rotinasPerfComplexo.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"}— Smart Performance · Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Performance · Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
               <RoutineList items={rotinasPerfComplexo} accent="gold" complexo />
             </>
           )}
@@ -2155,7 +2155,7 @@ function N3HoursBox({
             <Clock className="h-4 w-4 text-primary" strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-sm font-extrabold whitespace-pre-line text-balance">{"Horas N3\n(h/mês)"}</p>
+            <p className="text-sm font-extrabold">Horas N3 / Automação contratadas</p>
             <p className="text-[11px] text-muted-foreground">{formatNumber(total)}h/mês × {formatBRL(valorHora)}/h <span className="text-[9px] uppercase tracking-wider">(venda)</span></p>
           </div>
         </div>
