@@ -1529,7 +1529,7 @@ export default function Detalhamento() {
 
           {rotinasPerfPadrao.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"} — Smart Performance · Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"}— Smart Performance · Ambiente Padrão ({rotinasPerfPadrao.length})</SubTitle>
               <RoutineList items={rotinasPerfPadrao} accent="gold" />
             </>
           )}
