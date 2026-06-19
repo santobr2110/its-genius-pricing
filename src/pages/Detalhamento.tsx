@@ -534,7 +534,10 @@ export default function Detalhamento() {
   };
   const activeTiersOrdered = (
     [
-      [monitorVisible, "Monitor"],
+      // Quando Monitor e Flow estão ativos simultaneamente, o bloco Monitor
+      // é ocultado (unifiedMonitorFlow). Nesse caso, as gerenciais de Monitor
+      // devem cair no próximo bucket displayable (Flow), e não em Monitor.
+      [monitorVisible && !flowVisible, "Monitor"],
       [flowVisible, "Flow"],
       [state.tierOperation, "Operation"],
       [state.tierPerformance, "Performance"],
