@@ -1416,7 +1416,7 @@ export default function Detalhamento() {
 
           {rotinasOp.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Operation ({rotinasOp.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"} — Smart Operation ({rotinasOp.length})</SubTitle>
               <RoutineList items={rotinasOp} accent="silver" />
             </>
           )}
