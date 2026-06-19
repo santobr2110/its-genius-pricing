@@ -292,8 +292,15 @@ export default function Detalhamento() {
       .filter(r => {
         // Rotinas Gerenciais Selbetti são listadas em quadro próprio.
         if (r.gerencial) return false;
-        if (oferta === "Operation") return r.oferta === "Operation";
-        return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
+        const bucket = preventBucket(r.oferta);
+        if (oferta === "Operation") return bucket === "Operation";
+        if (bucket !== "Performance") return false;
+        // Rotinas oferta=Performance respeitam complexidade própria.
+        // Monitor/Flow que sobem para Performance entram no bloco Padrão.
+        if (r.oferta === "Performance") {
+          return (r.complexidade ?? "Padrão") === complexidade;
+        }
+        return complexidade === "Padrão";
       })
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
@@ -319,9 +326,11 @@ export default function Detalhamento() {
   const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [normalizedRotinas, state]);
 
   // Rotinas técnicas preventivas vinculadas às camadas Monitor / Flow.
+  // Cumulativas: rotina oferta=Monitor aparece em Flow quando Monitor não está
+  // displayable; a alocação usa o bucket displayable mais baixo ≥ à oferta.
   const filterLayerRoutines = (camada: "Monitor" | "Flow") =>
     normalizedRotinas
-      .filter(r => r.oferta === camada && !r.gerencial)
+      .filter(r => !r.gerencial && preventBucket(r.oferta) === camada)
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
