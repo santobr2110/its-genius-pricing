@@ -545,10 +545,10 @@ export default function ResumoCotacao() {
               <tr style={{ backgroundColor: "#f8fafc" }}>
                 <th className="border border-slate-300 px-2 py-2 text-left font-bold">Item</th>
                 <th className="border border-slate-300 px-2 py-2 text-left font-bold">Camada da Oferta</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold">Reativos (ch/mês)</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold">Rotinas Preventivas (ch/mês)</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold">GMUDs (ch/mês)</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold">Horas N3</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-pre-line">Reativos{"\u00a0"}\n(ch/mês)</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-pre-line">RotinasPreventivas{"\u00a0"}\n(ch/mês)</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-pre-line">GMUDs{"\u00a0"}\n(ch/mês)</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-pre-line">Horas N3\n(h/mês)</th>
                 <th className="border border-slate-300 px-2 py-2 text-right font-bold">Investimento Mensal</th>
               </tr>
             </thead>
