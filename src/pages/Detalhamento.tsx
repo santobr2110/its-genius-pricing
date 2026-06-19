@@ -1261,7 +1261,7 @@ export default function Detalhamento() {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <Stat label="Ativos integrados" value={formatNumber(sf.ativos)} />
-            <Stat label="Chamados de monitoramento" value={`${formatNumber(sf.chamadosAtivos, 1)}/mês`} />
+            <Stat label={"Chamados Reativos\u00a0"} value={`${formatNumber(sf.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre Flow" value={`${state.percAlocacaoN1Flow}%`} />
           </div>
           {(() => {
