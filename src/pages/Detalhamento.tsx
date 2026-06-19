@@ -682,6 +682,13 @@ export default function Detalhamento() {
           items: rotinasMonitor.map(rotinaToSlide),
         });
       }
+      const gerMonitor = gerenciaisDe("Monitor");
+      if (gerMonitor.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas Gerenciais Selbetti — Smart Monitor (${gerMonitor.length})`,
+          items: gerMonitor.map(rotinaToSlide),
+        });
+      }
       return { metricas, recursos, horasN3, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined };
     };
 
@@ -717,6 +724,13 @@ export default function Detalhamento() {
           items: rotinasFlow.map(rotinaToSlide),
         });
       }
+      const gerFlow = gerenciaisDe("Flow");
+      if (gerFlow.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas Gerenciais Selbetti — Smart Flow (${gerFlow.length})`,
+          items: gerFlow.map(rotinaToSlide),
+        });
+      }
       return { metricas, recursos, horasN3, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined };
     };
 
@@ -731,6 +745,13 @@ export default function Detalhamento() {
         rotinasGrupos.push({
           titulo: `Rotinas preventivas básicas (${rotinasOp.length})`,
           items: rotinasOp.map(rotinaToSlide),
+        });
+      }
+      const gerOperation = gerenciaisDe("Operation");
+      if (gerOperation.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas Gerenciais Selbetti — Smart Operation (${gerOperation.length})`,
+          items: gerOperation.map(rotinaToSlide),
         });
       }
       let horasN3: HorasN3Slide | undefined;
@@ -782,6 +803,13 @@ export default function Detalhamento() {
         rotinasGrupos.push({
           titulo: `Rotinas Performance — Ambiente Complexo (${rotinasPerfComplexo.length})`,
           items: rotinasPerfComplexo.map(rotinaToSlide),
+        });
+      }
+      const gerPerformance = gerenciaisDe("Performance");
+      if (gerPerformance.length > 0) {
+        rotinasGrupos.push({
+          titulo: `Rotinas Gerenciais Selbetti — Smart Performance (${gerPerformance.length})`,
+          items: gerPerformance.map(rotinaToSlide),
         });
       }
       let horasN3: HorasN3Slide | undefined;
