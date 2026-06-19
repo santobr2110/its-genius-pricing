@@ -494,11 +494,52 @@ export default function Detalhamento() {
   const valorPerformance = state.tierPerformance
     ? toSell(results.custoN3) + toSell(gmudPerformanceData.totals.custo)
     : 0;
-  // Rotinas Gerenciais Selbetti são cobradas em separado dentro da oferta
-  // vinculada de cada rotina (não mais na camada dominante).
+  // Rotinas Gerenciais Selbetti são cobradas em separado e são CUMULATIVAS entre
+  // as camadas: uma gerencial de Monitor permanece ativa em Flow/Operation/
+  // Performance; de Flow permanece em Operation/Performance; etc. Cada gerencial
+  // é exibida e cobrada em uma única camada — a camada ativa mais baixa cuja
+  // ordem seja ≥ à oferta vinculada da rotina (display bucket).
+  const tierOrder: Record<"Monitor" | "Flow" | "Operation" | "Performance", number> = {
+    Monitor: 1, Flow: 2, Operation: 3, Performance: 4,
+  };
+  const activeTiersOrdered = (
+    [
+      [monitorVisible, "Monitor"],
+      [flowVisible, "Flow"],
+      [state.tierOperation, "Operation"],
+      [state.tierPerformance, "Performance"],
+    ] as Array<[boolean, "Monitor" | "Flow" | "Operation" | "Performance"]>
+  )
+    .filter(([active]) => active)
+    .map(([, t]) => t)
+    .sort((a, b) => tierOrder[a] - tierOrder[b]);
+  const gerencialBucket = (oferta: "Monitor" | "Flow" | "Operation" | "Performance") => {
+    const min = tierOrder[oferta];
+    for (const t of activeTiersOrdered) {
+      if (tierOrder[t] >= min) return t;
+    }
+    return null;
+  };
   const gerenciaisDe = (camada: "Monitor" | "Flow" | "Operation" | "Performance") =>
-    rotinasGerenciais.filter((r) => (r as any).oferta === camada);
-  const custoRotinasGerenciais = sumCusto(rotinasGerenciais);
+    rotinasGerenciais.filter((r) => {
+      const oferta = (r as any).oferta as "Monitor" | "Flow" | "Operation" | "Performance";
+      return gerencialBucket(oferta) === camada;
+    });
+  // Quando Monitor e Flow estão unificados em um único bloco, todas as
+  // gerenciais de Monitor + Flow são apresentadas dentro do bloco Flow.
+  const gerenciaisUnificadasMonitorFlow = unifiedMonitorFlow
+    ? rotinasGerenciais.filter((r) => {
+        const oferta = (r as any).oferta as "Monitor" | "Flow" | "Operation" | "Performance";
+        return oferta === "Monitor" || oferta === "Flow";
+      })
+    : [];
+  // Somatório de gerenciais efetivamente cobradas (apenas as que caem em
+  // alguma camada ativa via cascata cumulativa).
+  const rotinasGerenciaisCobradas = rotinasGerenciais.filter((r) => {
+    const oferta = (r as any).oferta as "Monitor" | "Flow" | "Operation" | "Performance";
+    return gerencialBucket(oferta) !== null;
+  });
+  const custoRotinasGerenciais = sumCusto(rotinasGerenciaisCobradas);
   const valorRotinasGerenciais = toSell(custoRotinasGerenciais);
   const investimentoTotal =
     valorMonitor + valorFlow + valorOperation + valorPerformance + valorRotinasGerenciais;
