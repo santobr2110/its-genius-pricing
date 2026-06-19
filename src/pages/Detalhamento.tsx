@@ -1210,7 +1210,7 @@ export default function Detalhamento() {
           )}
           {rotinasMonitor.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Monitor ({rotinasMonitor.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"} — Smart Monitor ({rotinasMonitor.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Consumidas pelas horas de Automação / Manutenção do Smart Monitor.
               </p>
