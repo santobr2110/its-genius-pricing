@@ -1370,7 +1370,7 @@ export default function Detalhamento() {
           />
           {rotinasFlow.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Flow ({rotinasFlow.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"} — Smart Flow ({rotinasFlow.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
                 Consumidas pelas horas de Automação / Manutenção do Smart Flow.
               </p>
