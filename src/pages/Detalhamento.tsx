@@ -102,6 +102,27 @@ export default function Detalhamento() {
   // duplicações) e preservando os recursos, inventário e valores do Flow
   // como mandatórios.
   const unifiedMonitorFlow = monitorVisible && flowVisible;
+  // Hierarquia das camadas Smart. Rotinas preventivas (não gerenciais) também
+  // são cumulativas entre as camadas: uma rotina de Monitor permanece quando
+  // apenas Flow/Operation/Performance estiver ativo, e cada rotina é exibida
+  // uma única vez — na camada displayable mais baixa cuja ordem seja ≥ à
+  // oferta vinculada da rotina.
+  const PREVENT_TIER_ORDER = { Monitor: 1, Flow: 2, Operation: 3, Performance: 4 } as const;
+  type PreventTier = keyof typeof PREVENT_TIER_ORDER;
+  const displayableForPrevent: PreventTier[] = [];
+  // Bloco Monitor só é renderizado quando monitorVisible && !unifiedMonitorFlow.
+  if (monitorVisible && !flowVisible) displayableForPrevent.push("Monitor");
+  if (flowVisible) displayableForPrevent.push("Flow");
+  if (state.tierOperation) displayableForPrevent.push("Operation");
+  if (state.tierPerformance) displayableForPrevent.push("Performance");
+  const preventBucket = (oferta: string | undefined): PreventTier | null => {
+    if (!oferta || !(oferta in PREVENT_TIER_ORDER)) return null;
+    const min = PREVENT_TIER_ORDER[oferta as PreventTier];
+    for (const t of displayableForPrevent) {
+      if (PREVENT_TIER_ORDER[t] >= min) return t;
+    }
+    return null;
+  };
   const dedupLines = (lines: string[]): string[] => {
     const seen = new Set<string>();
     const out: string[] = [];
@@ -271,8 +292,15 @@ export default function Detalhamento() {
       .filter(r => {
         // Rotinas Gerenciais Selbetti são listadas em quadro próprio.
         if (r.gerencial) return false;
-        if (oferta === "Operation") return r.oferta === "Operation";
-        return r.oferta === "Performance" && (r.complexidade ?? "Padrão") === complexidade;
+        const bucket = preventBucket(r.oferta);
+        if (oferta === "Operation") return bucket === "Operation";
+        if (bucket !== "Performance") return false;
+        // Rotinas oferta=Performance respeitam complexidade própria.
+        // Monitor/Flow que sobem para Performance entram no bloco Padrão.
+        if (r.oferta === "Performance") {
+          return (r.complexidade ?? "Padrão") === complexidade;
+        }
+        return complexidade === "Padrão";
       })
       // Sem infra (apenas service desk): apenas microinformática.
       // Com infra + service desk: todas as rotinas (incluindo microinformática).
@@ -298,9 +326,11 @@ export default function Detalhamento() {
   const rotinasPerfComplexo = useMemo(() => filterRoutines("Performance", "Complexo"), [normalizedRotinas, state]);
 
   // Rotinas técnicas preventivas vinculadas às camadas Monitor / Flow.
+  // Cumulativas: rotina oferta=Monitor aparece em Flow quando Monitor não está
+  // displayable; a alocação usa o bucket displayable mais baixo ≥ à oferta.
   const filterLayerRoutines = (camada: "Monitor" | "Flow") =>
     normalizedRotinas
-      .filter(r => r.oferta === camada && !r.gerencial)
+      .filter(r => !r.gerencial && preventBucket(r.oferta) === camada)
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
