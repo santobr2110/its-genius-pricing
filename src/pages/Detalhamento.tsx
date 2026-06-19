@@ -2155,7 +2155,7 @@ function N3HoursBox({
             <Clock className="h-4 w-4 text-primary" strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-sm font-extrabold">Horas N3 / Automação contratadas</p>
+            <p className="text-sm font-extrabold">Horas N3\n(h/mês)</p>
             <p className="text-[11px] text-muted-foreground">{formatNumber(total)}h/mês × {formatBRL(valorHora)}/h <span className="text-[9px] uppercase tracking-wider">(venda)</span></p>
           </div>
         </div>
