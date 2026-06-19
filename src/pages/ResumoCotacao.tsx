@@ -194,7 +194,11 @@ export default function ResumoCotacao() {
   };
   const activeGerencialTiers = (
     [
-      [!!calcState.tierMonitor, "Monitor"],
+      // Quando Smart Flow está ativo, ele consolida o Smart Monitor (a linha
+      // de Monitor não é exibida separadamente). Para que as gerenciais de
+      // Monitor sejam de fato cobradas, neste caso elas precisam cair no
+      // bucket do Flow — então não consideramos Monitor como bucket ativo.
+      [!!calcState.tierMonitor && !calcState.tierFlow, "Monitor"],
       [!!calcState.tierFlow, "Flow"],
       [!!calcState.tierOperation, "Operation"],
       [!!calcState.tierPerformance, "Performance"],
