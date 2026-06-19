@@ -1409,8 +1409,8 @@ export default function Detalhamento() {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
-            <Stat label="Volume N1" value={`${formatNumber(results.volumeN1, 1)} ch/mês`} />
-            <Stat label="Volume N2" value={`${formatNumber(results.volumeN2, 1)} ch/mês`} />
+            <Stat label={"Chamados Reativos\u00a0" + "N1"} value={`${formatNumber(results.volumeN1, 1)} ch/mês`} />
+            <Stat label={"Chamados Reativos\u00a0" + "N2"} value={`${formatNumber(results.volumeN2, 1)} ch/mês`} />
             <Stat label="Custo/chamado N1" value={formatBRL(results.custoPorChamadoN1)} />
           </div>
 
