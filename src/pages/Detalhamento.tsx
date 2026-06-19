@@ -525,14 +525,6 @@ export default function Detalhamento() {
       const oferta = (r as any).oferta as "Monitor" | "Flow" | "Operation" | "Performance";
       return gerencialBucket(oferta) === camada;
     });
-  // Quando Monitor e Flow estão unificados em um único bloco, todas as
-  // gerenciais de Monitor + Flow são apresentadas dentro do bloco Flow.
-  const gerenciaisUnificadasMonitorFlow = unifiedMonitorFlow
-    ? rotinasGerenciais.filter((r) => {
-        const oferta = (r as any).oferta as "Monitor" | "Flow" | "Operation" | "Performance";
-        return oferta === "Monitor" || oferta === "Flow";
-      })
-    : [];
   // Somatório de gerenciais efetivamente cobradas (apenas as que caem em
   // alguma camada ativa via cascata cumulativa).
   const rotinasGerenciaisCobradas = rotinasGerenciais.filter((r) => {
