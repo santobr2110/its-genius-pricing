@@ -1536,7 +1536,7 @@ export default function Detalhamento() {
 
           {algumComplexAtivo && rotinasPerfComplexo.length > 0 && (
             <>
-              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"} — Smart Performance · Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
+              <SubTitle className="mt-4">Rotinas Preventivas{"\u00a0"}— Smart Performance · Ambiente Complexo ({rotinasPerfComplexo.length})</SubTitle>
               <RoutineList items={rotinasPerfComplexo} accent="gold" complexo />
             </>
           )}
