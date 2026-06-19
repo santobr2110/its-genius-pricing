@@ -1126,7 +1126,7 @@ export default function Detalhamento() {
           </ul>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <Stat label="Total de ativos" value={formatNumber(sm.ativos)} />
-            <Stat label="Chamados de monitoramento" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
+            <Stat label="Chamados Reativos{"\u00a0"}" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
             <Stat label="Alocação N1 sobre monitor" value={`${state.percAlocacaoN1Monitor}%`} />
           </div>
 
