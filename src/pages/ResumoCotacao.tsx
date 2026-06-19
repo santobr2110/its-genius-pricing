@@ -548,7 +548,7 @@ export default function ResumoCotacao() {
                 <th className="border border-slate-300 px-2 py-2 text-right font-bold">Reativos (ch/mês)</th>
                 <th className="border border-slate-300 px-2 py-2 text-right font-bold">Rotinas Preventivas (ch/mês)</th>
                 <th className="border border-slate-300 px-2 py-2 text-right font-bold">GMUDs (ch/mês)</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold">Horas N3 / TMA / Owner</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold">Horas N3</th>
                 <th className="border border-slate-300 px-2 py-2 text-right font-bold">Investimento Mensal</th>
               </tr>
             </thead>
@@ -580,7 +580,7 @@ export default function ResumoCotacao() {
                   )}
                 </Fragment>
               ))}
-              {horasN3 > 0 && (() => {
+              {horasN3 > 0 && calcState.tierPerformance && (() => {
                 const horasAtend = computed.horasAtendimentoN3 || 0;
                 const horasTam = (horasN3 * pctTam) / 100;
                 const horasOwner = (horasN3 * pctOwner) / 100;
