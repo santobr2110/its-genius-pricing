@@ -589,7 +589,7 @@ export default function ResumoCotacao() {
                 return (
                   <tr>
                     <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
-                      <span className="font-semibold">Distribuição das Horas N3 ({formatNumber(horasN3)}h/mês):</span>{" "}
+                      <span className="font-semibold">Distribuição das Horas N3{"\n"}({formatNumber(horasN3)}h/mês):</span>{" "}
                       Chamados N3 {formatNumber(horasAtend)}h ({pct(horasAtend).toFixed(0)}%) ·{" "}
                       TAM {formatNumber(horasTam)}h ({pctTam}%) ·{" "}
                       Owner {formatNumber(horasOwner)}h ({pctOwner}%) ·{" "}
