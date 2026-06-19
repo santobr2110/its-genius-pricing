@@ -540,16 +540,16 @@ export default function ResumoCotacao() {
           </div>
 
           {/* Resumo da oferta */}
-          <table className="w-full text-xs border-collapse" style={{ color: "#000" }}>
+          <table className="w-full text-[10px] border-collapse" style={{ color: "#000" }}>
             <thead>
               <tr style={{ backgroundColor: "#f8fafc" }}>
-                <th className="border border-slate-300 px-2 py-2 text-left font-bold">Item</th>
-                <th className="border border-slate-300 px-2 py-2 text-left font-bold">Camada da Oferta</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-pre-wrap">Reativos{"\u00a0"}\n(ch/mês)</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-pre-wrap">Rotinas Preventivas{"\u00a0"}\n(ch/mês)</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-pre-wrap">GMUDs{"\u00a0"}\n(ch/mês)</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold">Horas N3</th>
-                <th className="border border-slate-300 px-2 py-2 text-right font-bold">Investimento Mensal</th>
+                <th className="border border-slate-300 px-2 py-2 text-left font-bold whitespace-nowrap">Item</th>
+                <th className="border border-slate-300 px-2 py-2 text-left font-bold whitespace-nowrap">Camada da Oferta</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-nowrap">Chamados Reativos</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-nowrap">Rotinas Preventivas</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-nowrap">Janelas de Gmud</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-nowrap">Horas N3</th>
+                <th className="border border-slate-300 px-2 py-2 text-right font-bold whitespace-nowrap">Investimento Mensal</th>
               </tr>
             </thead>
             <tbody>
