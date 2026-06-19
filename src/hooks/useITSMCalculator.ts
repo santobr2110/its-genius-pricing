@@ -540,6 +540,15 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       Math.max(0, state.volumeChamadosAtivosManual || 0) +
       Math.max(0, state.volumeChamadosUsuariosManual || 0);
     const smChamados = effectiveDemandSource === "manual" ? manualVolume : smChamadosInv;
+    // Volume de chamados usado especificamente para o cálculo de "Alocação N1"
+    // em Smart Monitor e Smart Flow. Quando o usuário escolhe "Volume informado"
+    // mas ainda não preencheu (manualVolume = 0), recaímos no volume calculado
+    // pelo inventário para que o custo de alocação proporcional NÃO desapareça
+    // silenciosamente — mantendo coerência entre as duas camadas.
+    const smChamadosN1Aloc =
+      effectiveDemandSource === "manual" && manualVolume > 0
+        ? manualVolume
+        : smChamadosInv;
     // Smart Monitor: mínimo de 10 itens cobrados pelo valor unitário;
     // a partir do 11º cada item adicional acrescenta o valor unitário.
     const smAtivosBillable = Math.max(10, smAtivos);
@@ -554,7 +563,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       : 0;
     // Smart Monitor só cobra alocação de N1 quando opera sozinho.
     const smCustoN1Aloc = monitorBilling
-      ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
+      ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamadosN1Aloc
       : 0;
     // N3 opcional dentro do Smart Monitor (horas mensais avulsas) — desabilitado em camadas superiores
     const smHorasN3 = monitorBilling ? Math.max(0, state.horasN3Monitor || 0) : 0;
@@ -581,7 +590,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       ? flProxyIni + Math.max(0, flQtdProxys - 1) * flProxyAdd
       : 0;
     const flCustoN1Aloc = flowActive && !state.tierOperation
-      ? (Math.max(0, state.percAlocacaoN1Flow || 0) / 100) * custoPorChamadoN1 * smChamados
+      ? (Math.max(0, state.percAlocacaoN1Flow || 0) / 100) * custoPorChamadoN1 * smChamadosN1Aloc
       : 0;
     const flHorasN3 = flowActive && !flowAdvanced ? Math.max(0, state.horasN3Flow || 0) : 0;
     const flCustoN3 = flHorasN3 * state.valorHoraN3;
