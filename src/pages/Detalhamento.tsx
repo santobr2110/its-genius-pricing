@@ -1489,7 +1489,7 @@ export default function Detalhamento() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Stat label="Equipamentos cobertos" value={formatNumber(state.qtdEquipamentos)} />
-                <Stat label="Chamados escalados ao Field" value={`${formatNumber(fs.volumeUsuariosEscalado, 1)}/mês`} />
+                <Stat label={"Chamados Reativos\u00a0" + "Field"} value={`${formatNumber(fs.volumeUsuariosEscalado, 1)}/mês`} />
               </div>
               {fs.overflowAtivo && (
                 <div className="rounded-lg border border-amber-300 bg-amber-100/40 dark:bg-amber-900/20 p-3 text-xs">
