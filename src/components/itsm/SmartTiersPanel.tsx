@@ -74,11 +74,11 @@ function AppliedProfilePill() {
   if (!info) return null;
   return (
     <div
-      className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+      className="flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs text-muted-foreground"
       title="Perfil de parâmetros aplicado"
     >
       <Sliders className="h-3.5 w-3.5 shrink-0" />
-      <span className="whitespace-nowrap">Perfil:</span>
+      <span className="whitespace-nowrap font-semibold text-foreground">Perfil:</span>
       <span className="font-semibold text-foreground whitespace-nowrap">{info.name}</span>
     </div>
   );
@@ -662,7 +662,7 @@ export default function SmartTiersPanel() {
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <AppliedProfilePill />
             <div
-              className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs"
+              className="flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs"
               title="Rentabilidade aplicada"
             >
               <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap m-0">
