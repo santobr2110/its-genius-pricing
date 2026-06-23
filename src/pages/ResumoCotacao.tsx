@@ -81,6 +81,8 @@ export default function ResumoCotacao() {
   const [rotinasLive] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [gmudsLive] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  const [horasMelhoriaOpLive] = usePersistentState<number>("gestao-ti:smartOp:horasMelhoria", 0);
+  const [horasMelhoriaPerfLive] = usePersistentState<number>("gestao-ti:smartPerf:horasMelhoria", 0);
 
   const commercial = snapshot?.commercial ?? null;
 
@@ -91,6 +93,8 @@ export default function ResumoCotacao() {
   const rotinas: Rotina[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? rotinasLive;
   const gmuds: Gmud[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:gmuds`] as Gmud[] | undefined) ?? gmudsLive;
   const n3Cortes: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3Cortes`] as [number, number] | undefined) ?? n3CortesLive;
+  const horasMelhoriaOpSnap: number = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartOp:horasMelhoria`] as number | undefined) ?? horasMelhoriaOpLive;
+  const horasMelhoriaPerfSnap: number = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:horasMelhoria`] as number | undefined) ?? horasMelhoriaPerfLive;
 
   // Resultados unificados (base + extras de rotinas/gmuds) — mesma fórmula do contexto.
   // Quando há um preset ativo, o contexto já hidratou o estado e aplicou os
