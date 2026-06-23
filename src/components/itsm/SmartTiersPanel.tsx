@@ -212,11 +212,13 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = r.horasExecucao && r.horasExecucao > 0
-          ? demanda * r.horasExecucao * state.valorHoraN3 * fatorAuto
+        const usaHoras = !!(r.horasExecucao && r.horasExecucao > 0);
+        const horasMes = usaHoras ? demanda * (r.horasExecucao || 0) * fatorAuto : 0;
+        const custo = usaHoras
+          ? horasMes * state.valorHoraN3
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
@@ -224,12 +226,13 @@ export default function SmartTiersPanel() {
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
+        acc.horasMes += i.horasMes;
         acc.cac += i.cac;
         acc.custo += i.custo;
         acc.venda += i.venda;
         return acc;
       },
-      { demanda: 0, cac: 0, custo: 0, venda: 0 },
+      { demanda: 0, horasMes: 0, cac: 0, custo: 0, venda: 0 },
     );
     return { items, totals };
   }, [normalizedRotinas, state, results, fatorVenda]);
@@ -1433,6 +1436,42 @@ export default function SmartTiersPanel() {
                     </div>
                   );
                 })()}
+                {rotinasOperation.totals.horasMes > 0 && (
+                  <details className="rounded border border-rose-500/30 bg-rose-500/5 px-2 py-1">
+                    <summary className="cursor-pointer text-[11px] font-semibold text-rose-700 dark:text-rose-300">
+                      🔍 Ver rotinas que geram as {formatNumber(horasRotinasOperationN3, 1)}h de N3 (Operation)
+                    </summary>
+                    <table className="w-full text-[10px] mt-1.5">
+                      <thead className="text-muted-foreground">
+                        <tr>
+                          <th className="text-left py-0.5">Rotina</th>
+                          <th className="text-right py-0.5 w-14">Exec/mês</th>
+                          <th className="text-right py-0.5 w-14">h/exec</th>
+                          <th className="text-right py-0.5 w-16">Horas/mês</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rotinasOperation.items
+                          .filter((i) => i.horasMes > 0)
+                          .sort((a, b) => b.horasMes - a.horasMes)
+                          .map((i) => (
+                            <tr key={i.id} className="border-t border-rose-500/20">
+                              <td className="py-0.5"><span className="text-muted-foreground">{i.grupo} · </span>{i.rotina}</td>
+                              <td className="text-right tabular-nums py-0.5">{i.demanda.toFixed(1)}</td>
+                              <td className="text-right tabular-nums py-0.5">{i.demanda > 0 ? (i.horasMes / i.demanda).toFixed(2) : "—"}</td>
+                              <td className="text-right tabular-nums font-semibold py-0.5">{i.horasMes.toFixed(2)}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                      <tfoot className="border-t border-rose-500/40">
+                        <tr>
+                          <td className="py-0.5 font-bold" colSpan={3}>Total</td>
+                          <td className="text-right tabular-nums font-bold py-0.5">{rotinasOperation.totals.horasMes.toFixed(2)}h</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </details>
+                )}
               </div>
             </div>
             )}
@@ -1841,6 +1880,48 @@ export default function SmartTiersPanel() {
                     </div>
                   );
                 })()}
+                {(rotinasPerfPadrao.totals.horasMes + rotinasPerfComplexo.totals.horasMes + rotinasOperation.totals.horasMes) > 0 && (
+                  <details className="rounded border border-rose-500/30 bg-rose-500/5 px-2 py-1">
+                    <summary className="cursor-pointer text-[11px] font-semibold text-rose-700 dark:text-rose-300">
+                      🔍 Ver rotinas que geram as {formatNumber(horasRotinasN3, 1)}h de N3 (Operation + Performance)
+                    </summary>
+                    <table className="w-full text-[10px] mt-1.5">
+                      <thead className="text-muted-foreground">
+                        <tr>
+                          <th className="text-left py-0.5">Camada / Rotina</th>
+                          <th className="text-right py-0.5 w-14">Exec/mês</th>
+                          <th className="text-right py-0.5 w-14">h/exec</th>
+                          <th className="text-right py-0.5 w-16">Horas/mês</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          ...rotinasOperation.items.filter((i) => i.horasMes > 0).map((i) => ({ ...i, camada: "Operation" })),
+                          ...rotinasPerfPadrao.items.filter((i) => i.horasMes > 0).map((i) => ({ ...i, camada: "Perf · Padrão" })),
+                          ...rotinasPerfComplexo.items.filter((i) => i.horasMes > 0).map((i) => ({ ...i, camada: "Perf · Complexo" })),
+                        ]
+                          .sort((a, b) => b.horasMes - a.horasMes)
+                          .map((i) => (
+                            <tr key={`${i.camada}-${i.id}`} className="border-t border-rose-500/20">
+                              <td className="py-0.5">
+                                <span className="text-[9px] px-1 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300 mr-1">{i.camada}</span>
+                                <span className="text-muted-foreground">{i.grupo} · </span>{i.rotina}
+                              </td>
+                              <td className="text-right tabular-nums py-0.5">{i.demanda.toFixed(1)}</td>
+                              <td className="text-right tabular-nums py-0.5">{i.demanda > 0 ? (i.horasMes / i.demanda).toFixed(2) : "—"}</td>
+                              <td className="text-right tabular-nums font-semibold py-0.5">{i.horasMes.toFixed(2)}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                      <tfoot className="border-t border-rose-500/40">
+                        <tr>
+                          <td className="py-0.5 font-bold" colSpan={3}>Total</td>
+                          <td className="text-right tabular-nums font-bold py-0.5">{(rotinasOperation.totals.horasMes + rotinasPerfPadrao.totals.horasMes + rotinasPerfComplexo.totals.horasMes).toFixed(2)}h</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </details>
+                )}
               </div>
             </div>
             )}
