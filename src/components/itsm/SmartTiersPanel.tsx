@@ -27,6 +27,22 @@ import {
 } from "@/data/gmuds";
 import { GitBranch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Sliders } from "lucide-react";
+import { APPLIED_PROFILE_CHANGED_EVENT, getAppliedProfile, type AppliedProfileInfo } from "@/lib/appliedProfile";
+
+function useAppliedProfileBadge(): AppliedProfileInfo | null {
+  const [info, setInfo] = useState<AppliedProfileInfo | null>(() => getAppliedProfile("smart-ito"));
+  useEffect(() => {
+    const handler = () => setInfo(getAppliedProfile("smart-ito"));
+    window.addEventListener(APPLIED_PROFILE_CHANGED_EVENT, handler);
+    window.addEventListener("storage", handler);
+    return () => {
+      window.removeEventListener(APPLIED_PROFILE_CHANGED_EVENT, handler);
+      window.removeEventListener("storage", handler);
+    };
+  }, []);
+  return info;
+}
 
 // Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
 // unitárias por ambiente, independente da oferta (Operation/Performance) ou
