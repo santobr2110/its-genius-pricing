@@ -212,11 +212,13 @@ export default function SmartTiersPanel() {
         const fatorAuto = r.automacao
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
-        const custo = r.horasExecucao && r.horasExecucao > 0
-          ? demanda * r.horasExecucao * state.valorHoraN3 * fatorAuto
+        const usaHoras = !!(r.horasExecucao && r.horasExecucao > 0);
+        const horasMes = usaHoras ? demanda * (r.horasExecucao || 0) * fatorAuto : 0;
+        const custo = usaHoras
+          ? horasMes * state.valorHoraN3
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => b.venda - a.venda);
