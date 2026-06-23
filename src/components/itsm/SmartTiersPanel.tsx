@@ -1288,6 +1288,9 @@ export default function SmartTiersPanel() {
                   Venda calculada com custo médio por chamado ponderado pela escala de rotinas
                   (N1 {state.percRotinaN1}% · N2 {state.percRotinaN2}% · N3 {state.percRotinaN3}%) e divisor de markup/impostos.
                 </p>
+                <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1">
+                  ⓘ Este valor é informativo — as rotinas consomem horas do pool N3 contratado (slider abaixo) e <strong>já estão inclusas</strong> no Total Smart Operation. Não soma de novo.
+                </p>
               </div>
             )}
 
