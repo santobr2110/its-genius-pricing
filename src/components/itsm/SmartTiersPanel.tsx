@@ -655,9 +655,12 @@ export default function SmartTiersPanel() {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <CardTitle className="text-sm font-semibold">Camadas de Oferta</CardTitle>
-            <p className="text-xs text-muted-foreground">{"\n"}</p>
+          <div
+            className="flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs"
+          >
+            <CardTitle className="text-xs font-semibold text-foreground whitespace-nowrap m-0">
+              Camadas de Oferta
+            </CardTitle>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <AppliedProfilePill />
