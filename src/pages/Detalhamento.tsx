@@ -2321,7 +2321,7 @@ function N3HoursBox({
 function DistCard({
   color, pct, horas, valor, titulo, subtitulo, desc, alerta,
 }: {
-  color: "emerald" | "sky" | "violet" | "amber" | "rose";
+  color: "emerald" | "sky" | "violet" | "amber" | "rose" | "indigo";
   pct: number; horas: number; valor: number;
   titulo: string; subtitulo: string; desc: string; alerta?: boolean;
 }) {
@@ -2331,6 +2331,7 @@ function DistCard({
     violet:  { bg: "from-violet-50 to-fuchsia-100/50 dark:from-violet-950/40 dark:to-fuchsia-900/20",   border: "border-violet-300/60 dark:border-violet-700/60",   dot: "bg-gradient-to-br from-violet-500 to-fuchsia-600",  text: "text-violet-700 dark:text-violet-300" },
     amber:   { bg: "from-amber-50 to-orange-100/50 dark:from-amber-950/40 dark:to-orange-900/20",       border: "border-amber-300/60 dark:border-amber-700/60",     dot: "bg-gradient-to-br from-amber-400 to-orange-500",    text: "text-amber-700 dark:text-amber-300" },
     rose:    { bg: "from-rose-50 to-rose-100/50 dark:from-rose-950/40 dark:to-rose-900/20",             border: "border-rose-300/60 dark:border-rose-700/60",       dot: "bg-gradient-to-br from-rose-400 to-rose-600",       text: "text-rose-700 dark:text-rose-300" },
+    indigo:  { bg: "from-indigo-50 to-indigo-100/50 dark:from-indigo-950/40 dark:to-indigo-900/20",     border: "border-indigo-300/60 dark:border-indigo-700/60",   dot: "bg-gradient-to-br from-indigo-400 to-indigo-600",   text: "text-indigo-700 dark:text-indigo-300" },
   }[color];
   const dimmed = pct === 0 && !alerta;
   return (
