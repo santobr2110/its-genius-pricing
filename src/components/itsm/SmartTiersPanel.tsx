@@ -1658,9 +1658,14 @@ export default function SmartTiersPanel() {
                     )}
                     <div className="bg-gradient-to-r from-emerald-400 to-emerald-500" style={{ width: `${pctTam}%` }} />
                     <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctOwner}%` }} />
-                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${pctLivre}%` }} />
+                    {pctMelhoriaPerf > 0 && (
+                      <div className="bg-gradient-to-r from-indigo-400 to-indigo-600" style={{ width: `${Math.min(100, pctMelhoriaPerf)}%` }} />
+                    )}
+                    {pctTecnicasPerf > 0 && (
+                      <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${Math.min(100, pctTecnicasPerf)}%` }} />
+                    )}
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-3">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-semibold text-emerald-700 dark:text-emerald-300">TAM</span>
@@ -1691,9 +1696,26 @@ export default function SmartTiersPanel() {
                         thumbClassName="h-6 w-6 border-sky-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
                       />
                     </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-300">Melhoria</span>
+                        <span className="tabular-nums text-muted-foreground">
+                          {formatNumber(horasMelhoriaPerfClamped, 1)}h / {formatNumber(horasLivre, 1)}h
+                        </span>
+                      </div>
+                      <Slider
+                        value={[horasMelhoriaPerfClamped]}
+                        onValueChange={([v]) => setHorasMelhoriaPerf(v)}
+                        min={0}
+                        max={Math.max(1, Math.ceil(horasLivre))}
+                        step={1}
+                        rangeClassName="bg-indigo-500"
+                        thumbClassName="h-6 w-6 border-indigo-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 text-[11px]">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-[11px]">
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">Chamados · {pctChamadosN3.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(horasChamadosN3, 1)}h</div>
@@ -1710,9 +1732,13 @@ export default function SmartTiersPanel() {
                     <div className="text-muted-foreground">Owner · {pctOwner}%</div>
                     <div className="font-semibold">{formatNumber(horasOwner)}h</div>
                   </div>
+                  <div className="rounded bg-indigo-500/10 border border-indigo-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Melhoria · {pctMelhoriaPerf.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(horasMelhoriaPerfClamped, 1)}h</div>
+                  </div>
                   <div className={`rounded px-1.5 py-1 border ${livreEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
-                    <div className="text-muted-foreground">Horas Técnicas · {pctLivreReal.toFixed(0)}%</div>
-                    <div className={`font-semibold ${livreEstourado ? "text-destructive" : ""}`}>{formatNumber(horasLivre, 1)}h</div>
+                    <div className="text-muted-foreground">Horas Técnicas · {pctTecnicasPerf.toFixed(0)}%</div>
+                    <div className={`font-semibold ${livreEstourado ? "text-destructive" : ""}`}>{formatNumber(horasTecnicasPerf, 1)}h</div>
                   </div>
                 </div>
               </div>
