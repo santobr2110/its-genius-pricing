@@ -1436,7 +1436,7 @@ export default function SmartTiersPanel() {
                     </div>
                   );
                 })()}
-                {rotinasOperation.totals.horasMes > 0 && (
+                {horasRotinasOperationN3 > 0 && (
                   <details className="rounded border border-rose-500/30 bg-rose-500/5 px-2 py-1">
                     <summary className="cursor-pointer text-[11px] font-semibold text-rose-700 dark:text-rose-300">
                       🔍 Ver rotinas que geram as {formatNumber(horasRotinasOperationN3, 1)}h de N3 (Operation)
@@ -1446,30 +1446,38 @@ export default function SmartTiersPanel() {
                         <tr>
                           <th className="text-left py-0.5">Rotina</th>
                           <th className="text-right py-0.5 w-14">Exec/mês</th>
-                          <th className="text-right py-0.5 w-14">h/exec</th>
+                          <th className="text-right py-0.5 w-14">Tipo</th>
                           <th className="text-right py-0.5 w-16">Horas/mês</th>
                         </tr>
                       </thead>
                       <tbody>
                         {rotinasOperation.items
-                          .filter((i) => i.horasMes > 0)
-                          .sort((a, b) => b.horasMes - a.horasMes)
+                          .map((i) => {
+                            const horasEq = state.valorHoraN3 > 0 ? i.custo / state.valorHoraN3 : 0;
+                            const tipo = i.horasMes > 0 ? `${(i.horasMes / i.demanda).toFixed(2)}h/exec` : "ch ponderado";
+                            return { ...i, horasEq, tipo };
+                          })
+                          .filter((i) => i.horasEq > 0)
+                          .sort((a, b) => b.horasEq - a.horasEq)
                           .map((i) => (
                             <tr key={i.id} className="border-t border-rose-500/20">
                               <td className="py-0.5"><span className="text-muted-foreground">{i.grupo} · </span>{i.rotina}</td>
                               <td className="text-right tabular-nums py-0.5">{i.demanda.toFixed(1)}</td>
-                              <td className="text-right tabular-nums py-0.5">{i.demanda > 0 ? (i.horasMes / i.demanda).toFixed(2) : "—"}</td>
-                              <td className="text-right tabular-nums font-semibold py-0.5">{i.horasMes.toFixed(2)}</td>
+                              <td className="text-right tabular-nums py-0.5 text-[9px]">{i.tipo}</td>
+                              <td className="text-right tabular-nums font-semibold py-0.5">{i.horasEq.toFixed(2)}</td>
                             </tr>
                           ))}
                       </tbody>
                       <tfoot className="border-t border-rose-500/40">
                         <tr>
                           <td className="py-0.5 font-bold" colSpan={3}>Total</td>
-                          <td className="text-right tabular-nums font-bold py-0.5">{rotinasOperation.totals.horasMes.toFixed(2)}h</td>
+                          <td className="text-right tabular-nums font-bold py-0.5">{horasRotinasOperationN3.toFixed(2)}h</td>
                         </tr>
                       </tfoot>
                     </table>
+                    <p className="text-[9px] text-muted-foreground italic mt-1">
+                      "ch ponderado" = rotina sem h/execução definida; custo apurado pelo custo médio de chamado (mix N1/N2/N3) e convertido em horas equivalentes pela taxa N3.
+                    </p>
                   </details>
                 )}
               </div>
@@ -1880,7 +1888,7 @@ export default function SmartTiersPanel() {
                     </div>
                   );
                 })()}
-                {(rotinasPerfPadrao.totals.horasMes + rotinasPerfComplexo.totals.horasMes + rotinasOperation.totals.horasMes) > 0 && (
+                {horasRotinasN3 > 0 && (
                   <details className="rounded border border-rose-500/30 bg-rose-500/5 px-2 py-1">
                     <summary className="cursor-pointer text-[11px] font-semibold text-rose-700 dark:text-rose-300">
                       🔍 Ver rotinas que geram as {formatNumber(horasRotinasN3, 1)}h de N3 (Operation + Performance)
@@ -1890,17 +1898,23 @@ export default function SmartTiersPanel() {
                         <tr>
                           <th className="text-left py-0.5">Camada / Rotina</th>
                           <th className="text-right py-0.5 w-14">Exec/mês</th>
-                          <th className="text-right py-0.5 w-14">h/exec</th>
+                          <th className="text-right py-0.5 w-14">Tipo</th>
                           <th className="text-right py-0.5 w-16">Horas/mês</th>
                         </tr>
                       </thead>
                       <tbody>
                         {[
-                          ...rotinasOperation.items.filter((i) => i.horasMes > 0).map((i) => ({ ...i, camada: "Operation" })),
-                          ...rotinasPerfPadrao.items.filter((i) => i.horasMes > 0).map((i) => ({ ...i, camada: "Perf · Padrão" })),
-                          ...rotinasPerfComplexo.items.filter((i) => i.horasMes > 0).map((i) => ({ ...i, camada: "Perf · Complexo" })),
+                          ...rotinasOperation.items.map((i) => ({ ...i, camada: "Operation" })),
+                          ...rotinasPerfPadrao.items.map((i) => ({ ...i, camada: "Perf · Padrão" })),
+                          ...rotinasPerfComplexo.items.map((i) => ({ ...i, camada: "Perf · Complexo" })),
                         ]
-                          .sort((a, b) => b.horasMes - a.horasMes)
+                          .map((i) => {
+                            const horasEq = state.valorHoraN3 > 0 ? i.custo / state.valorHoraN3 : 0;
+                            const tipo = i.horasMes > 0 ? `${(i.horasMes / i.demanda).toFixed(2)}h/exec` : "ch ponderado";
+                            return { ...i, horasEq, tipo };
+                          })
+                          .filter((i) => i.horasEq > 0)
+                          .sort((a, b) => b.horasEq - a.horasEq)
                           .map((i) => (
                             <tr key={`${i.camada}-${i.id}`} className="border-t border-rose-500/20">
                               <td className="py-0.5">
@@ -1908,18 +1922,21 @@ export default function SmartTiersPanel() {
                                 <span className="text-muted-foreground">{i.grupo} · </span>{i.rotina}
                               </td>
                               <td className="text-right tabular-nums py-0.5">{i.demanda.toFixed(1)}</td>
-                              <td className="text-right tabular-nums py-0.5">{i.demanda > 0 ? (i.horasMes / i.demanda).toFixed(2) : "—"}</td>
-                              <td className="text-right tabular-nums font-semibold py-0.5">{i.horasMes.toFixed(2)}</td>
+                              <td className="text-right tabular-nums py-0.5 text-[9px]">{i.tipo}</td>
+                              <td className="text-right tabular-nums font-semibold py-0.5">{i.horasEq.toFixed(2)}</td>
                             </tr>
                           ))}
                       </tbody>
                       <tfoot className="border-t border-rose-500/40">
                         <tr>
                           <td className="py-0.5 font-bold" colSpan={3}>Total</td>
-                          <td className="text-right tabular-nums font-bold py-0.5">{(rotinasOperation.totals.horasMes + rotinasPerfPadrao.totals.horasMes + rotinasPerfComplexo.totals.horasMes).toFixed(2)}h</td>
+                          <td className="text-right tabular-nums font-bold py-0.5">{horasRotinasN3.toFixed(2)}h</td>
                         </tr>
                       </tfoot>
                     </table>
+                    <p className="text-[9px] text-muted-foreground italic mt-1">
+                      "ch ponderado" = rotina sem h/execução definida; custo apurado pelo custo médio de chamado (mix N1/N2/N3) e convertido em horas equivalentes pela taxa N3.
+                    </p>
                   </details>
                 )}
               </div>
