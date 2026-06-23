@@ -22,6 +22,7 @@ import { Link, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useParameterProfiles, type ParameterProfile } from "@/hooks/useParameterProfiles";
 import type { ParamOffering } from "@/lib/paramKeys";
+import { setAppliedProfile } from "@/lib/appliedProfile";
 
 export default function ParametrosMenu({ scope = "ito" }: { scope?: "ito" | "profissionais" }) {
   const location = useLocation();
@@ -51,6 +52,7 @@ export default function ParametrosMenu({ scope = "ito" }: { scope?: "ito" | "pro
     setBusy(true);
     try {
       await apply(p);
+      setAppliedProfile(offering, { id: p.id, name: p.name });
       toast.success(`Perfil "${p.name}" restaurado.`);
       setConfirm(null);
       setRestoreOpen(false);

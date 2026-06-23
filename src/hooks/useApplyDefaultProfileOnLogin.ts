@@ -6,6 +6,7 @@ import {
 } from "@/lib/paramKeys";
 import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 import { isPresetActive } from "@/lib/activePreset";
+import { setAppliedProfile } from "@/lib/appliedProfile";
 
 const OFFERINGS: ParamOffering[] = ["smart-ito", "profissionais-alocados"];
 
@@ -57,13 +58,15 @@ export function useApplyDefaultProfileOnLogin() {
 
           const { data: profile } = await supabase
             .from("parameter_profiles")
-            .select("payload")
+            .select("payload, name")
             .eq("id", dp.profile_id)
             .maybeSingle();
 
           const payload = (profile?.payload ?? null) as Record<string, unknown> | null;
           if (payload && Object.keys(payload).length > 0) {
             await applyParamsPayload(payload);
+            const name = (profile as { name?: string } | null)?.name;
+            if (name) setAppliedProfile(offering, { id: dp.profile_id, name });
           }
           if (typeof window !== "undefined") window.localStorage.setItem(flag, "1");
         } catch {

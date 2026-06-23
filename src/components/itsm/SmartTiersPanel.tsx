@@ -27,6 +27,37 @@ import {
 } from "@/data/gmuds";
 import { GitBranch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { Sliders } from "lucide-react";
+import { APPLIED_PROFILE_CHANGED_EVENT, getAppliedProfile, type AppliedProfileInfo } from "@/lib/appliedProfile";
+
+function useAppliedProfileBadge(): AppliedProfileInfo | null {
+  const [info, setInfo] = useState<AppliedProfileInfo | null>(() => getAppliedProfile("smart-ito"));
+  useEffect(() => {
+    const handler = () => setInfo(getAppliedProfile("smart-ito"));
+    window.addEventListener(APPLIED_PROFILE_CHANGED_EVENT, handler);
+    window.addEventListener("storage", handler);
+    return () => {
+      window.removeEventListener(APPLIED_PROFILE_CHANGED_EVENT, handler);
+      window.removeEventListener("storage", handler);
+    };
+  }, []);
+  return info;
+}
+
+function AppliedProfilePill() {
+  const info = useAppliedProfileBadge();
+  if (!info) return null;
+  return (
+    <div
+      className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-2.5 py-1.5 text-[11px] text-muted-foreground"
+      title="Perfil de parâmetros aplicado"
+    >
+      <Sliders className="h-3 w-3" />
+      <span className="whitespace-nowrap">Perfil:</span>
+      <span className="font-semibold text-foreground truncate max-w-[180px]">{info.name}</span>
+    </div>
+  );
+}
 
 // Normaliza rotinas de Sistema Operacional (Linux/Windows) para tratá-las como
 // unitárias por ambiente, independente da oferta (Operation/Performance) ou
@@ -603,7 +634,9 @@ export default function SmartTiersPanel() {
             <CardTitle className="text-sm font-semibold">Camadas de Oferta</CardTitle>
             <p className="text-xs text-muted-foreground">Selecione as camadas que comporão a precificação.</p>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <AppliedProfilePill />
+            <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5">
             <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap">
               Rentabilidade
             </Label>
@@ -621,6 +654,7 @@ export default function SmartTiersPanel() {
             <span className="text-[11px] text-muted-foreground whitespace-nowrap pl-2 border-l border-border/60">
               Comissão: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
             </span>
+            </div>
           </div>
         </div>
       </CardHeader>
