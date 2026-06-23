@@ -74,12 +74,12 @@ function AppliedProfilePill() {
   if (!info) return null;
   return (
     <div
-      className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-2.5 py-1.5 text-[11px] text-muted-foreground"
+      className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
       title="Perfil de parâmetros aplicado"
     >
-      <Sliders className="h-3 w-3" />
+      <Sliders className="h-3.5 w-3.5 shrink-0" />
       <span className="whitespace-nowrap">Perfil:</span>
-      <span className="font-semibold text-foreground truncate max-w-[180px]">{info.name}</span>
+      <span className="font-semibold text-foreground whitespace-nowrap">{info.name}</span>
     </div>
   );
 }
