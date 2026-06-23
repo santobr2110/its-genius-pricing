@@ -588,7 +588,9 @@ export default function ResumoCotacao() {
                 const horasAtend = computed.horasAtendimentoN3 || 0;
                 const horasTam = (horasN3 * pctTam) / 100;
                 const horasOwner = (horasN3 * pctOwner) / 100;
-                const horasLivre = Math.max(0, horasN3 - horasAtend - horasTam - horasOwner);
+                const sobra = Math.max(0, horasN3 - horasAtend - horasTam - horasOwner);
+                const horasMelhoria = Math.max(0, Math.min(sobra, horasMelhoriaPerfSnap || 0));
+                const horasTecnicas = Math.max(0, sobra - horasMelhoria);
                 const pct = (h: number) => (horasN3 > 0 ? (h / horasN3) * 100 : 0);
                 return (
                   <tr>
@@ -597,7 +599,25 @@ export default function ResumoCotacao() {
                       Chamados N3 {formatNumber(horasAtend)}h ({pct(horasAtend).toFixed(0)}%) ·{" "}
                       TAM {formatNumber(horasTam)}h ({pctTam}%) ·{" "}
                       Owner {formatNumber(horasOwner)}h ({pctOwner}%) ·{" "}
-                      Horas técnicas {formatNumber(horasLivre)}h ({pct(horasLivre).toFixed(0)}%)
+                      Horas de Melhoria {formatNumber(horasMelhoria)}h ({pct(horasMelhoria).toFixed(0)}%) ·{" "}
+                      Horas Técnicas {formatNumber(horasTecnicas)}h ({pct(horasTecnicas).toFixed(0)}%)
+                    </td>
+                  </tr>
+                );
+              })()}
+              {horasN3 > 0 && calcState.tierOperation && !calcState.tierPerformance && (() => {
+                const horasAtend = computed.horasAtendimentoN3 || 0;
+                const sobra = Math.max(0, horasN3 - horasAtend);
+                const horasMelhoria = Math.max(0, Math.min(sobra, horasMelhoriaOpSnap || 0));
+                const horasTecnicas = Math.max(0, sobra - horasMelhoria);
+                const pct = (h: number) => (horasN3 > 0 ? (h / horasN3) * 100 : 0);
+                return (
+                  <tr>
+                    <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
+                      <span className="font-semibold">Distribuição das Horas N3 ({formatNumber(horasN3)}h/mês):</span>{" "}
+                      Chamados N3 {formatNumber(horasAtend)}h ({pct(horasAtend).toFixed(0)}%) ·{" "}
+                      Horas de Melhoria {formatNumber(horasMelhoria)}h ({pct(horasMelhoria).toFixed(0)}%) ·{" "}
+                      Horas Técnicas {formatNumber(horasTecnicas)}h ({pct(horasTecnicas).toFixed(0)}%)
                     </td>
                   </tr>
                 );
