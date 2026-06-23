@@ -2093,7 +2093,6 @@ function GmudReportTable({
             <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">Frequência</th>
             <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Ch/mês</th>
             <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Horas N3 / Automação</th>
-            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">Valor</th>
           </tr>
         </thead>
         <tbody>
@@ -2107,7 +2106,6 @@ function GmudReportTable({
               <td className="px-3 py-2 text-muted-foreground">{g.frequencia}</td>
               <td className="px-3 py-2 text-right tabular-nums">{g.chamadosMes.toFixed(2)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{g.horasN3.toFixed(2)}</td>
-              <td className="px-3 py-2 text-right tabular-nums font-semibold">{formatBRL(toSell(g.custo))}</td>
             </tr>
           ))}
         </tbody>
@@ -2116,7 +2114,6 @@ function GmudReportTable({
             <td className="px-3 py-2 font-bold uppercase tracking-wider text-[10px]" colSpan={3}>Total</td>
             <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.chamados.toFixed(2)}</td>
             <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.horasN3.toFixed(2)}</td>
-            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{formatBRL(toSell(totals.custo))}</td>
           </tr>
         </tfoot>
       </table>
