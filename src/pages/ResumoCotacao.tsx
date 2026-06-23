@@ -81,6 +81,8 @@ export default function ResumoCotacao() {
   const [rotinasLive] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [gmudsLive] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  const [horasMelhoriaOpLive] = usePersistentState<number>("gestao-ti:smartOp:horasMelhoria", 0);
+  const [horasMelhoriaPerfLive] = usePersistentState<number>("gestao-ti:smartPerf:horasMelhoria", 0);
 
   const commercial = snapshot?.commercial ?? null;
 
@@ -91,6 +93,8 @@ export default function ResumoCotacao() {
   const rotinas: Rotina[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? rotinasLive;
   const gmuds: Gmud[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:gmuds`] as Gmud[] | undefined) ?? gmudsLive;
   const n3Cortes: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3Cortes`] as [number, number] | undefined) ?? n3CortesLive;
+  const horasMelhoriaOpSnap: number = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartOp:horasMelhoria`] as number | undefined) ?? horasMelhoriaOpLive;
+  const horasMelhoriaPerfSnap: number = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:horasMelhoria`] as number | undefined) ?? horasMelhoriaPerfLive;
 
   // Resultados unificados (base + extras de rotinas/gmuds) — mesma fórmula do contexto.
   // Quando há um preset ativo, o contexto já hidratou o estado e aplicou os
@@ -584,7 +588,9 @@ export default function ResumoCotacao() {
                 const horasAtend = computed.horasAtendimentoN3 || 0;
                 const horasTam = (horasN3 * pctTam) / 100;
                 const horasOwner = (horasN3 * pctOwner) / 100;
-                const horasLivre = Math.max(0, horasN3 - horasAtend - horasTam - horasOwner);
+                const sobra = Math.max(0, horasN3 - horasAtend - horasTam - horasOwner);
+                const horasMelhoria = Math.max(0, Math.min(sobra, horasMelhoriaPerfSnap || 0));
+                const horasTecnicas = Math.max(0, sobra - horasMelhoria);
                 const pct = (h: number) => (horasN3 > 0 ? (h / horasN3) * 100 : 0);
                 return (
                   <tr>
@@ -593,7 +599,25 @@ export default function ResumoCotacao() {
                       Chamados N3 {formatNumber(horasAtend)}h ({pct(horasAtend).toFixed(0)}%) ·{" "}
                       TAM {formatNumber(horasTam)}h ({pctTam}%) ·{" "}
                       Owner {formatNumber(horasOwner)}h ({pctOwner}%) ·{" "}
-                      Horas técnicas {formatNumber(horasLivre)}h ({pct(horasLivre).toFixed(0)}%)
+                      Horas de Melhoria {formatNumber(horasMelhoria)}h ({pct(horasMelhoria).toFixed(0)}%) ·{" "}
+                      Horas Técnicas {formatNumber(horasTecnicas)}h ({pct(horasTecnicas).toFixed(0)}%)
+                    </td>
+                  </tr>
+                );
+              })()}
+              {horasN3 > 0 && calcState.tierOperation && !calcState.tierPerformance && (() => {
+                const horasAtend = computed.horasAtendimentoN3 || 0;
+                const sobra = Math.max(0, horasN3 - horasAtend);
+                const horasMelhoria = Math.max(0, Math.min(sobra, horasMelhoriaOpSnap || 0));
+                const horasTecnicas = Math.max(0, sobra - horasMelhoria);
+                const pct = (h: number) => (horasN3 > 0 ? (h / horasN3) * 100 : 0);
+                return (
+                  <tr>
+                    <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
+                      <span className="font-semibold">Distribuição das Horas N3 ({formatNumber(horasN3)}h/mês):</span>{" "}
+                      Chamados N3 {formatNumber(horasAtend)}h ({pct(horasAtend).toFixed(0)}%) ·{" "}
+                      Horas de Melhoria {formatNumber(horasMelhoria)}h ({pct(horasMelhoria).toFixed(0)}%) ·{" "}
+                      Horas Técnicas {formatNumber(horasTecnicas)}h ({pct(horasTecnicas).toFixed(0)}%)
                     </td>
                   </tr>
                 );

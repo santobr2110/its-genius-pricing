@@ -130,6 +130,16 @@ export default function SmartTiersPanel() {
   const horasChamadosN3 = results.horasAtendimentoN3 || 0;
   const pctChamadosN3 = horasTotaisN3 > 0 ? (horasChamadosN3 / horasTotaisN3) * 100 : 0;
 
+  // Horas de Melhoria (subdivide o resíduo "Horas Técnicas" sem alterar custos)
+  const [horasMelhoriaOp, setHorasMelhoriaOp] = usePersistentState<number>(
+    "gestao-ti:smartOp:horasMelhoria",
+    0,
+  );
+  const [horasMelhoriaPerf, setHorasMelhoriaPerf] = usePersistentState<number>(
+    "gestao-ti:smartPerf:horasMelhoria",
+    0,
+  );
+
   const inv = {
     qtdUsuarios: state.qtdUsuarios,
     qtdEquipamentos: state.qtdEquipamentos,
@@ -398,6 +408,35 @@ export default function SmartTiersPanel() {
   const pctRotinasN3Op = horasTotaisN3 > 0 ? (horasRotinasOperationN3 / horasTotaisN3) * 100 : 0;
   const pctLivreOperation = horasTotaisN3 > 0 ? (horasLivreOperation / horasTotaisN3) * 100 : 0;
   const livreOperationEstourado = horasChamadosN3 + horasRotinasOperationN3 > horasTotaisN3;
+
+  // Subdivisão do resíduo entre "Horas de Melhoria" (configurável) e "Horas Técnicas" (sobra final).
+  // Operation: prioridade Chamados → Rotinas → Melhoria → Técnicas
+  const horasMelhoriaOpClamped = Math.max(0, Math.min(horasLivreOperation, Math.round(horasMelhoriaOp || 0)));
+  const horasTecnicasOperation = Math.max(0, horasLivreOperation - horasMelhoriaOpClamped);
+  const pctMelhoriaOp = horasTotaisN3 > 0 ? (horasMelhoriaOpClamped / horasTotaisN3) * 100 : 0;
+  const pctTecnicasOp = horasTotaisN3 > 0 ? (horasTecnicasOperation / horasTotaisN3) * 100 : 0;
+
+  // Performance: prioridade Chamados → Rotinas → TAM → Owner → Melhoria → Técnicas
+  const horasMelhoriaPerfClamped = Math.max(0, Math.min(horasLivre, Math.round(horasMelhoriaPerf || 0)));
+  const horasTecnicasPerf = Math.max(0, horasLivre - horasMelhoriaPerfClamped);
+  const pctMelhoriaPerf = horasTotaisN3 > 0 ? (horasMelhoriaPerfClamped / horasTotaisN3) * 100 : 0;
+  const pctTecnicasPerf = horasTotaisN3 > 0 ? (horasTecnicasPerf / horasTotaisN3) * 100 : 0;
+
+  // Re-clampa horas de Melhoria quando a sobra muda (evita slider em valor inválido).
+  useEffect(() => {
+    if ((horasMelhoriaOp || 0) > horasLivreOperation) {
+      setHorasMelhoriaOp(horasLivreOperation);
+    } else if ((horasMelhoriaOp || 0) < 0) {
+      setHorasMelhoriaOp(0);
+    }
+  }, [horasLivreOperation]);
+  useEffect(() => {
+    if ((horasMelhoriaPerf || 0) > horasLivre) {
+      setHorasMelhoriaPerf(horasLivre);
+    } else if ((horasMelhoriaPerf || 0) < 0) {
+      setHorasMelhoriaPerf(0);
+    }
+  }, [horasLivre]);
 
   // Rotinas de Field Service de Microinformática (Microinformática) — agregam Operation + Performance
   // num único bloco exibido dentro da composição de Field Service de Microinformática.
@@ -1295,11 +1334,33 @@ export default function SmartTiersPanel() {
                   {pctRotinasN3Op > 0 && (
                     <div className="bg-gradient-to-r from-rose-400 to-rose-500" style={{ width: `${Math.min(100, pctRotinasN3Op)}%` }} />
                   )}
-                  {pctLivreOperation > 0 && (
-                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${Math.min(100, pctLivreOperation)}%` }} />
+                  {pctMelhoriaOp > 0 && (
+                    <div className="bg-gradient-to-r from-indigo-400 to-indigo-600" style={{ width: `${Math.min(100, pctMelhoriaOp)}%` }} />
+                  )}
+                  {pctTecnicasOp > 0 && (
+                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${Math.min(100, pctTecnicasOp)}%` }} />
                   )}
                 </div>
-                <div className="grid grid-cols-3 gap-1 text-[11px]">
+                {horasLivreOperation > 0 && (
+                  <div className="space-y-1.5 rounded border bg-muted/20 p-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-semibold text-indigo-700 dark:text-indigo-300">Horas de Melhoria</span>
+                      <span className="tabular-nums text-muted-foreground">
+                        {formatNumber(horasMelhoriaOpClamped, 1)}h / {formatNumber(horasLivreOperation, 1)}h disponíveis
+                      </span>
+                    </div>
+                    <Slider
+                      value={[horasMelhoriaOpClamped]}
+                      onValueChange={([v]) => setHorasMelhoriaOp(v)}
+                      min={0}
+                      max={Math.max(1, Math.ceil(horasLivreOperation))}
+                      step={1}
+                      rangeClassName="bg-indigo-500"
+                      thumbClassName="h-6 w-6 border-indigo-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-1 text-[11px]">
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">Chamados N3 · {pctChamadosN3Op.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(horasChamadosN3, 1)}h</div>
@@ -1308,9 +1369,13 @@ export default function SmartTiersPanel() {
                     <div className="text-muted-foreground">Rotinas · {pctRotinasN3Op.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(horasRotinasOperationN3, 1)}h</div>
                   </div>
+                  <div className="rounded bg-indigo-500/10 border border-indigo-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Horas de Melhoria · {pctMelhoriaOp.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(horasMelhoriaOpClamped, 1)}h</div>
+                  </div>
                   <div className={`rounded px-1.5 py-1 border ${livreOperationEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
-                    <div className="text-muted-foreground">Horas Técnicas · {pctLivreOperation.toFixed(0)}%</div>
-                    <div className={`font-semibold ${livreOperationEstourado ? "text-destructive" : ""}`}>{formatNumber(horasLivreOperation, 1)}h</div>
+                    <div className="text-muted-foreground">Horas Técnicas · {pctTecnicasOp.toFixed(0)}%</div>
+                    <div className={`font-semibold ${livreOperationEstourado ? "text-destructive" : ""}`}>{formatNumber(horasTecnicasOperation, 1)}h</div>
                   </div>
                 </div>
                 {livreOperationEstourado && (
@@ -1319,7 +1384,7 @@ export default function SmartTiersPanel() {
                   </p>
                 )}
                 <p className="text-[10px] text-muted-foreground">
-                  Horas Técnicas = Horas contratadas − Chamados N3 (funil) − Rotinas Operation
+                  Prioridade: Chamados N3 → Rotinas → Horas de Melhoria → Horas Técnicas (sobra)
                 </p>
               </div>
             </div>
@@ -1593,9 +1658,14 @@ export default function SmartTiersPanel() {
                     )}
                     <div className="bg-gradient-to-r from-emerald-400 to-emerald-500" style={{ width: `${pctTam}%` }} />
                     <div className="bg-gradient-to-r from-sky-400 to-sky-500" style={{ width: `${pctOwner}%` }} />
-                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${pctLivre}%` }} />
+                    {pctMelhoriaPerf > 0 && (
+                      <div className="bg-gradient-to-r from-indigo-400 to-indigo-600" style={{ width: `${Math.min(100, pctMelhoriaPerf)}%` }} />
+                    )}
+                    {pctTecnicasPerf > 0 && (
+                      <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${Math.min(100, pctTecnicasPerf)}%` }} />
+                    )}
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-3">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-semibold text-emerald-700 dark:text-emerald-300">TAM</span>
@@ -1626,9 +1696,26 @@ export default function SmartTiersPanel() {
                         thumbClassName="h-6 w-6 border-sky-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
                       />
                     </div>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-indigo-700 dark:text-indigo-300">Melhoria</span>
+                        <span className="tabular-nums text-muted-foreground">
+                          {formatNumber(horasMelhoriaPerfClamped, 1)}h / {formatNumber(horasLivre, 1)}h
+                        </span>
+                      </div>
+                      <Slider
+                        value={[horasMelhoriaPerfClamped]}
+                        onValueChange={([v]) => setHorasMelhoriaPerf(v)}
+                        min={0}
+                        max={Math.max(1, Math.ceil(horasLivre))}
+                        step={1}
+                        rangeClassName="bg-indigo-500"
+                        thumbClassName="h-6 w-6 border-indigo-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 text-[11px]">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-[11px]">
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">Chamados · {pctChamadosN3.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(horasChamadosN3, 1)}h</div>
@@ -1645,9 +1732,13 @@ export default function SmartTiersPanel() {
                     <div className="text-muted-foreground">Owner · {pctOwner}%</div>
                     <div className="font-semibold">{formatNumber(horasOwner)}h</div>
                   </div>
+                  <div className="rounded bg-indigo-500/10 border border-indigo-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Melhoria · {pctMelhoriaPerf.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(horasMelhoriaPerfClamped, 1)}h</div>
+                  </div>
                   <div className={`rounded px-1.5 py-1 border ${livreEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
-                    <div className="text-muted-foreground">Horas Técnicas · {pctLivreReal.toFixed(0)}%</div>
-                    <div className={`font-semibold ${livreEstourado ? "text-destructive" : ""}`}>{formatNumber(horasLivre, 1)}h</div>
+                    <div className="text-muted-foreground">Horas Técnicas · {pctTecnicasPerf.toFixed(0)}%</div>
+                    <div className={`font-semibold ${livreEstourado ? "text-destructive" : ""}`}>{formatNumber(horasTecnicasPerf, 1)}h</div>
                   </div>
                 </div>
               </div>
