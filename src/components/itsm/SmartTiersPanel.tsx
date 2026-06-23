@@ -130,6 +130,16 @@ export default function SmartTiersPanel() {
   const horasChamadosN3 = results.horasAtendimentoN3 || 0;
   const pctChamadosN3 = horasTotaisN3 > 0 ? (horasChamadosN3 / horasTotaisN3) * 100 : 0;
 
+  // Horas de Melhoria (subdivide o resíduo "Horas Técnicas" sem alterar custos)
+  const [horasMelhoriaOp, setHorasMelhoriaOp] = usePersistentState<number>(
+    "gestao-ti:smartOp:horasMelhoria",
+    0,
+  );
+  const [horasMelhoriaPerf, setHorasMelhoriaPerf] = usePersistentState<number>(
+    "gestao-ti:smartPerf:horasMelhoria",
+    0,
+  );
+
   const inv = {
     qtdUsuarios: state.qtdUsuarios,
     qtdEquipamentos: state.qtdEquipamentos,
