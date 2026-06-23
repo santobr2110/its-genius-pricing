@@ -226,12 +226,13 @@ export default function SmartTiersPanel() {
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
+        acc.horasMes += i.horasMes;
         acc.cac += i.cac;
         acc.custo += i.custo;
         acc.venda += i.venda;
         return acc;
       },
-      { demanda: 0, cac: 0, custo: 0, venda: 0 },
+      { demanda: 0, horasMes: 0, cac: 0, custo: 0, venda: 0 },
     );
     return { items, totals };
   }, [normalizedRotinas, state, results, fatorVenda]);
