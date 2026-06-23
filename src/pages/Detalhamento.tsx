@@ -319,7 +319,8 @@ export default function Detalhamento() {
         const custo = rotinaCusto(r, demanda);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
       })
-      .filter(i => i.demanda > 0);
+      .filter(i => i.demanda > 0)
+      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
 
   const rotinasOp = useMemo(() => filterRoutines("Operation"), [normalizedRotinas, state]);
   const rotinasPerfPadrao = useMemo(() => filterRoutines("Performance", "Padrão"), [normalizedRotinas, state]);
@@ -338,7 +339,8 @@ export default function Detalhamento() {
         const custo = rotinaCusto(r, demanda);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
       })
-      .filter(i => i.demanda > 0);
+      .filter(i => i.demanda > 0)
+      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
 
   const rotinasMonitor = useMemo(() => filterLayerRoutines("Monitor"), [normalizedRotinas, state]);
   const rotinasFlow = useMemo(() => filterLayerRoutines("Flow"), [normalizedRotinas, state]);
