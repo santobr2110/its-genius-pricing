@@ -619,7 +619,9 @@ export default function SmartTiersPanel() {
             <CardTitle className="text-sm font-semibold">Camadas de Oferta</CardTitle>
             <p className="text-xs text-muted-foreground">Selecione as camadas que comporão a precificação.</p>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <AppliedProfilePill />
+            <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5">
             <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap">
               Rentabilidade
             </Label>
@@ -637,6 +639,7 @@ export default function SmartTiersPanel() {
             <span className="text-[11px] text-muted-foreground whitespace-nowrap pl-2 border-l border-border/60">
               Comissão: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
             </span>
+            </div>
           </div>
         </div>
       </CardHeader>
