@@ -2132,12 +2132,13 @@ function GmudReportTable({
 }
 
 function N3HoursBox({
-  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, distribuicao,
+  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, horasMelhoria = 0, distribuicao,
 }: {
   total: number; consumidas: number; previstas: number;
   chamadosN3: number; tempoMedio: number; valorHora: number;
   modo: "operation" | "performance";
   horasRotinas?: number;
+  horasMelhoria?: number;
   distribuicao?: { tam: number; owner: number; livre: number };
 }) {
   const pctConsumido = total > 0 ? Math.min(100, (consumidas / total) * 100) : 0;
@@ -2186,8 +2187,10 @@ function N3HoursBox({
       </div>
 
       {modo === "operation" && (() => {
-        const horasLivreOp = Math.max(0, total - consumidas - horasRotinas);
+        const horasMelhoriaClamp = Math.max(0, Math.min(horasMelhoria, Math.max(0, total - consumidas - horasRotinas)));
+        const horasLivreOp = Math.max(0, total - consumidas - horasRotinas - horasMelhoriaClamp);
         const pctLivreOp = total > 0 ? (horasLivreOp / total) * 100 : 0;
+        const pctMelhoriaOp = total > 0 ? (horasMelhoriaClamp / total) * 100 : 0;
         const estourado = consumidas + horasRotinas > total;
         return (
           <div className="space-y-3 pt-1">
@@ -2206,6 +2209,11 @@ function N3HoursBox({
                   {pctRotinas >= 10 && `Rotinas ${pctRotinas.toFixed(0)}%`}
                 </div>
               )}
+              {pctMelhoriaOp > 0 && (
+                <div className="bg-gradient-to-r from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${Math.min(100, pctMelhoriaOp)}%` }}>
+                  {pctMelhoriaOp >= 10 && `Melhoria ${pctMelhoriaOp.toFixed(0)}%`}
+                </div>
+              )}
               {pctLivreOp > 0 && (
                 <div className="bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctLivreOp}%` }}>
                   {pctLivreOp >= 8 && `Horas Técnicas ${pctLivreOp.toFixed(0)}%`}
@@ -2213,15 +2221,20 @@ function N3HoursBox({
               )}
             </div>
             <p className="text-[10px] text-muted-foreground italic">
-              Horas Técnicas = Total contratado − Chamados N3 (funil) − Rotinas Operation
+              Horas Técnicas = Total contratado − Chamados N3 (funil) − Rotinas Operation − Horas de Melhoria
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className={`grid grid-cols-1 ${horasMelhoriaClamp > 0 ? "sm:grid-cols-4" : "sm:grid-cols-3"} gap-2`}>
               <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
                 titulo="Chamados" subtitulo="Atendimento reativo N3"
                 desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
               <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
                 titulo="Rotinas" subtitulo="Rotinas Operation"
                 desc="Horas consumidas pelas rotinas preventivas básicas, já cobradas dentro do pool de horas N3." />
+              {horasMelhoriaClamp > 0 && (
+                <DistCard color="indigo" pct={pctMelhoriaOp} horas={horasMelhoriaClamp} valor={horasMelhoriaClamp * valorHora}
+                  titulo="Melhoria" subtitulo="Horas de Melhoria"
+                  desc="Horas reservadas para evoluções e melhorias contínuas no ambiente." />
+              )}
               <DistCard color="violet" pct={pctLivreOp} horas={horasLivreOp} valor={horasLivreOp * valorHora}
                 titulo="Horas Técnicas" subtitulo="Saldo disponível"
                 desc="Horas remanescentes para projetos, mudanças e demandas pontuais." alerta={estourado} />
