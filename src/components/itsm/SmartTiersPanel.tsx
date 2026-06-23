@@ -661,24 +661,27 @@ export default function SmartTiersPanel() {
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <AppliedProfilePill />
-            <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5">
-            <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap">
-              Rentabilidade
-            </Label>
-            <Input
-              id="tiers-rent"
-              type="number"
-              step={0.01}
-              min={0}
-              max={100}
-              value={state.lucroPerc ?? 0}
-              onChange={(e) => update("lucroPerc", parseFloat(e.target.value) || 0)}
-              className="h-7 w-20 text-right tabular-nums"
-            />
-            <span className="text-xs font-semibold text-foreground">%</span>
-            <span className="text-[11px] text-muted-foreground whitespace-nowrap pl-2 border-l border-border/60">
-              Comissão: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
-            </span>
+            <div
+              className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs"
+              title="Rentabilidade aplicada"
+            >
+              <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap m-0">
+                Rentabilidade:
+              </Label>
+              <Input
+                id="tiers-rent"
+                type="number"
+                step={0.01}
+                min={0}
+                max={100}
+                value={state.lucroPerc ?? 0}
+                onChange={(e) => update("lucroPerc", parseFloat(e.target.value) || 0)}
+                className="h-6 w-16 text-right tabular-nums text-xs px-2"
+              />
+              <span className="font-semibold text-foreground">%</span>
+              <span className="text-muted-foreground whitespace-nowrap pl-2 ml-1 border-l border-border/60">
+                Comissão: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
+              </span>
             </div>
           </div>
         </div>
