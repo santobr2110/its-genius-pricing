@@ -1356,8 +1356,8 @@ export default function SmartTiersPanel() {
                     <Slider
                       value={[horasMelhoriaOpClamped]}
                       onValueChange={([v]) => setHorasMelhoriaOp(v)}
-                      min={0}
-                      max={Math.max(1, Math.ceil(horasLivreOperation))}
+                      min={melhoriaOpHardMin}
+                      max={Math.max(melhoriaOpHardMin + 1, Math.ceil(melhoriaOpHardMax))}
                       step={1}
                       rangeClassName="bg-indigo-500"
                       thumbClassName="h-6 w-6 border-indigo-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
@@ -1710,8 +1710,8 @@ export default function SmartTiersPanel() {
                       <Slider
                         value={[horasMelhoriaPerfClamped]}
                         onValueChange={([v]) => setHorasMelhoriaPerf(v)}
-                        min={0}
-                        max={Math.max(1, Math.ceil(horasLivre))}
+                        min={melhoriaPerfHardMin}
+                        max={Math.max(melhoriaPerfHardMin + 1, Math.ceil(melhoriaPerfHardMax))}
                         step={1}
                         rangeClassName="bg-indigo-500"
                         thumbClassName="h-6 w-6 border-indigo-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
