@@ -1,52 +1,76 @@
-# Mudança no plano de rotinas
 
 ## Objetivo
-1. Permitir que **qualquer rotina** (não só Performance/Complexo) tenha `horasExecucao` opcional.
-   - Com horas → atendimento pelo N3, descontando das horas N3 contratadas e contabilizando volume.
-   - Sem horas → entra no funil normal (N1/N2/N3 conforme distribuição de rotinas), sem descontar das horas contratadas.
-2. **Rotinas Gerenciais Selbetti** deixam de ser automáticas em todas as ofertas:
-   - Viram uma **categoria adicional** (flag `gerencial: true`) que é vinculada a **uma oferta específica** escolhida pelo usuário.
-   - Sempre contabilizadas para cobrança (horas × valor/hora N3 × fator de automação), porém **não descontam** das horas contratadas pelo cliente.
 
-## Mudanças no modelo (`src/data/rotinas.ts`)
-- Remover `"Todos"` de `Oferta` e de `OFERTAS_ALL` (oferta passa a ser uma das 5 reais: Monitor, Flow, Operation, Performance, Enterprise).
-- Remover `OFERTA_LABELS["Todos"]` e a função `rotinaAplicaA` (ou simplificar para `r.oferta === alvo`).
-- Adicionar `gerencial?: boolean` em `Rotina`. Quando `true`, a rotina é tratada como "Gerencial Selbetti" vinculada à `oferta` informada.
-- `horasExecucao?: number` permanece, mas agora válido para **qualquer** rotina (não apenas Performance/Complexo).
-- Migrar dados padrão: rotinas que antes eram `oferta: "Todos"` mantêm `gerencial: true` e recebem oferta default (ex.: Operation) — usuário pode reatribuir.
-- Manter `complexFlag` apenas para Performance/Complexo (gating de execução por flag do ambiente).
+Quebrar o bloco "Horas Técnicas" (sobra do pool N3) em duas faixas: **Horas de Melhoria** (nova) e **Horas Técnicas** (resíduo). Sem alterar o total contratado nem o preço — apenas redistribuição visual e analítica.
 
-## Cálculo (`src/lib/extrasOperacionais.ts`, `useITSMCalculator`, etc.)
-Para cada rotina ativa (multiplicador > 0):
-- **Demanda mensal** = `chamadosMes × multiplicador` (mantém-se sempre, para contagem de volume).
-- **Se `horasExecucao` definido (> 0)** → custo da rotina = `demanda × horas × valorHoraN3 × fatorAutomação`.
-  - Horas consumidas são **somadas em `horasAtendimentoN3`** (descontam das horas N3 contratadas) — exceto quando `gerencial = true`.
-  - Quando `gerencial = true`: o custo é somado em `custoRotinasGerenciais` (cobrado separadamente na camada dominante) e **não** desconta horas contratadas.
-- **Se sem horas** → entra no funil de rotinas (distribuição `percRotinaN1/N2/N3`) como volume de chamados, custeada pelo custo/chamado de cada nível (com fator de automação no custo) — comportamento atual para rotinas sem horas.
+## Regras de alocação (prioridade)
 
-## UI — `src/pages/GestaoTI.tsx`
-- Remover oferta "Todos" dos selects.
-- Adicionar **toggle "Gerencial Selbetti"** na linha/edição da rotina (independente da oferta) — quando marcado, a rotina aparece destacada e segue regra de "não desconta horas".
-- Campo **Horas/execução** disponível para todas as rotinas (input opcional; vazio/0 = sem horas).
-- Manter campo `complexFlag` apenas quando Performance + Complexo.
-- Drawer de criação (`AddRotinaDrawer`): mesma lógica.
+- **Operation:** Chamados → Rotinas → **Horas de Melhoria** → Horas Técnicas (resíduo).
+- **Performance:** Chamados → Rotinas → TAM → Owner → **Horas de Melhoria** → Horas Técnicas (resíduo).
 
-## UI de exibição (Detalhamento, SmartTiersPanel, RelatorioDemanda, ResumoCotacao)
-- Substituir todos os filtros `r.oferta === "Todos"` por `r.gerencial === true` (filtro adicional por oferta vinculada).
-- Quadro "Rotinas Gerenciais Selbetti" passa a ser exibido **na oferta vinculada** da rotina (não mais na camada dominante automaticamente).
-- `extrasResumo.custoRotinasGerenciais` agora é somado por oferta, não atribuído à dominante.
+O slider novo controla **quanto da sobra após as faixas obrigatórias** vira "Melhoria". O que ainda restar permanece como "Horas Técnicas". Se não houver sobra, ambas ficam em 0 (alerta de estouro continua nas mesmas condições atuais).
 
-## Migração de dados em memória
-- Persistência local (`usePersistentState` chave de rotinas): adicionar um passo de migração que converte rotinas com `oferta === "Todos"` em `{ oferta: "Operation", gerencial: true }`.
+## Estado e persistência
 
-## Arquivos impactados
-- `src/data/rotinas.ts` — tipos, defaults, helpers.
-- `src/pages/GestaoTI.tsx` — UI de edição/criação, multiplicadores e somatórios.
-- `src/lib/extrasOperacionais.ts` — recálculo de custos.
-- `src/hooks/useITSMCalculator.ts` — integração das horas das rotinas em `horasAtendimentoN3`/funil.
-- `src/components/itsm/SmartTiersPanel.tsx`, `src/pages/Detalhamento.tsx`, `src/pages/RelatorioDemanda.tsx`, `src/pages/ResumoCotacao.tsx` — exibição.
+Dois novos sliders persistidos via `usePersistentState` (não entram no `ITSMContext`/cálculo de custo — são apenas visualizações da distribuição):
 
-## Pontos a confirmar
-1. Para rotinas **gerenciais com horas**, o custo é cobrado pelo `valorHoraN3` (como hoje) — confirmar.
-2. Para rotinas **não-gerenciais sem horas**, mantemos o comportamento atual de entrar no funil de rotinas pelo `percRotinaN1/N2/N3` — confirmar.
-3. A oferta default para migrar as rotinas hoje marcadas como "Todos" deve ser **Operation**? Ou prefere outra (ex.: Performance)?
+- `gestao-ti:smartOp:horasMelhoria` (horas absolutas, 0..sobraOperation)
+- `gestao-ti:smartPerf:horasMelhoria` (horas absolutas, 0..sobraPerformance)
+
+Clamp automático quando a sobra cai (`useEffect` ajustando o valor para `min(atual, sobra)`), garantindo que o slider nunca trave em valor inválido.
+
+## UI — `src/components/itsm/SmartTiersPanel.tsx`
+
+### Operation (linha de quadros atual: 3 cards em uma linha)
+Reorganizar em **grid 2x2** (Chamados/Rotinas na primeira linha; Melhoria/Técnicas na segunda).
+Adicionar slider "Horas de Melhoria" abaixo dos quadros, com max = sobra disponível.
+Barra horizontal segmentada passa a ter 4 segmentos coloridos.
+
+### Performance (linha atual: 5 quadros)
+Reorganizar em **grid 3x2** (Chamados/Rotinas/TAM em cima; Owner/Melhoria/Técnicas embaixo).
+Manter os sliders TAM e Owner lado a lado (como hoje) e adicionar o slider "Horas de Melhoria" ao lado, em coluna própria — três sliders em grid 3 colunas.
+Barra segmentada com 6 cores.
+
+### Robustez de interação
+- Sliders usam `value={[clamp(min,max,val)]}` e `onValueChange` único.
+- Quando `max` muda dinamicamente, `useEffect` re-clampa o estado uma única vez.
+- Evitar re-render loops: sliders ficam controlados, sem `defaultValue`.
+
+## Cálculo — `src/hooks/useITSMCalculator.ts`
+
+Adicionar ao retorno do hook campos derivados (sem alterar preço):
+
+```
+n3Distribuicao: {
+  chamados, rotinas, tam, owner, melhoria, tecnicas, total
+}
+```
+
+Calculado a partir de `horasN3Mensais`, `horasAtendimentoN3`, rotinas N3 (já existentes no painel — mover lógica do panel para o hook), e os percentuais TAM/Owner + horas de Melhoria lidas via parâmetros recebidos por novo argumento opcional do hook **ou** via leitura direta de localStorage no Resumo/PPT (preferimos novo argumento: `useITSMCalculator({ horasMelhoriaOp, horasMelhoriaPerf, pctTam, pctOwner })`).
+
+Como o cálculo de rotinas N3 hoje vive só no `SmartTiersPanel`, manteremos a derivação **lá** e exporemos via `ITSMContext` um helper read-only `n3Breakdown` (objeto memoizado) consumido pelos relatórios e PPT.
+
+## Relatório — `src/pages/ResumoCotacao.tsx`
+
+Bloco "Distribuição das Horas N3" (linhas 583–...) já só aparece com Performance. Acrescentar:
+
+- Operation: bloco análogo com 4 segmentos (Chamados/Rotinas/Melhoria/Técnicas), exibido quando `tierOperation && !tierPerformance && horasN3 > 0`.
+- Performance: substituir "Livre" pela dupla "Melhoria + Técnicas" (6 segmentos).
+
+Sem mudança em colunas ou totais — apenas a faixa de detalhamento abaixo.
+
+## PPTs — `src/lib/exportarApresentacao.ts` e `exportarApresentacaoModelo2.ts`
+
+Localizar slides que descrevem a distribuição de N3 (procurar por `TAM`, `Owner`, `Livre`, `Horas Técnicas`) e substituir "Livre/Horas Técnicas" por duas linhas: "Horas de Melhoria" e "Horas Técnicas", com as horas correspondentes. Mesmo comportamento condicional por camada.
+
+## Garantias
+
+- Total contratado (`horasN3Mensais`) inalterado.
+- Custos, preço de venda, composição financeira inalterados (Melhoria/Técnicas são apenas particionamento do resíduo já contabilizado).
+- Mensagem de estouro continua quando soma das faixas obrigatórias > total.
+
+## Verificação
+
+1. Build/typecheck automático.
+2. Inspecionar `ResumoCotacao` na rota `/ito` com Operation e com Performance ativos para conferir distribuição.
+3. Conferir totais idênticos antes/depois (preço mensal não muda).
