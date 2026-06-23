@@ -490,6 +490,8 @@ export default function TaxasDemanda() {
               { label: "Smart Flow — Acionamento N3", minKey: "horasN3FlowMin", maxKey: "horasN3FlowMax" },
               { label: "Smart Operation", minKey: "horasN3OperationMin", maxKey: "horasN3OperationMax" },
               { label: "Smart Performance", minKey: "horasN3PerformanceMin", maxKey: "horasN3PerformanceMax" },
+              { label: "Smart Operation — Horas de Melhoria", minKey: "horasMelhoriaOpMin", maxKey: "horasMelhoriaOpMax" },
+              { label: "Smart Performance — Horas de Melhoria", minKey: "horasMelhoriaPerfMin", maxKey: "horasMelhoriaPerfMax" },
             ] as const).map((row) => (
               <div key={row.label} className="grid grid-cols-1 md:grid-cols-[1fr_140px_140px] gap-3 items-center p-3 rounded-lg border bg-card">
                 <p className="text-sm font-semibold text-foreground">{row.label}</p>
