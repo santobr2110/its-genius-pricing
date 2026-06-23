@@ -155,7 +155,7 @@ export default function Detalhamento() {
     bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento da infraestrutura" },
     steel:   { name: "ITO Smart Flow",        tagline: "Monitoramento integrado ao ITSM com atendentes dedicados" },
     silver:  { name: "ITO Smart Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
-    gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3 / Automação" },
+    gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
     diamond: { name: "ITO Smart Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
   };
   const dominantOffer = dominantColor ? DOMINANT_OFFER[dominantColor] : null;
@@ -424,7 +424,7 @@ export default function Detalhamento() {
   );
 
   // Rotinas Performance consomem horas do pool N3 contratado (slider).
-  // O custo das rotinas é abatido das horas N3 / Automação (sem cobrar em separado).
+  // O custo das rotinas é abatido das horas N3 (sem cobrar em separado).
   // Rotinas Operation seguem o mesmo princípio (absorvidas pelo pool N3 contratado).
   const horasRotinasOpN3 = state.valorHoraN3 > 0
     ? custoRotinasOp / state.valorHoraN3
@@ -574,8 +574,8 @@ export default function Detalhamento() {
     ? [
         { label: "Monitoramento de ativos", value: toSell(sm.custoMonitoramento) },
         { label: "N1 alocado (triagem)", value: toSell(sm.custoN1Alocado) },
-        ...(sm.custoN3Manut > 0 ? [{ label: "Automação / Manutenção (N3)", value: toSell(sm.custoN3Manut) }] : []),
-        ...(sm.custoN3 > 0 ? [{ label: "Acionamento N3 (horas opcionais)", value: toSell(sm.custoN3) }] : []),
+        ...(sm.custoN3Manut > 0 ? [{ label: "Manutenção e Automação (N3)", value: toSell(sm.custoN3Manut) }] : []),
+        ...(sm.custoN3 > 0 ? [{ label: "Atendimento N3 (horas opcionais)", value: toSell(sm.custoN3) }] : []),
         ...(sm.custoAtendentes > 0
           ? [{ label: `Atendentes no ITSM (${sm.qtdAtendentes}x)`, value: toSell(sm.custoAtendentes) }]
           : []),
@@ -589,7 +589,7 @@ export default function Detalhamento() {
         { label: "Monitoramento integrado ao ITSM", value: toSell(sf.custoMonitoramento) },
         ...(sf.custoN1Alocado > 0 ? [{ label: "N1 alocado (triagem)", value: toSell(sf.custoN1Alocado) }] : []),
         ...(sf.custoN3Manut > 0 ? [{ label: "Horas de automação (N3)", value: toSell(sf.custoN3Manut) }] : []),
-        ...(sf.custoN3 > 0 ? [{ label: "Acionamento N3 (horas opcionais)", value: toSell(sf.custoN3) }] : []),
+        ...(sf.custoN3 > 0 ? [{ label: "Atendimento N3 (horas opcionais)", value: toSell(sf.custoN3) }] : []),
         ...(sf.custoAtendentes > 0
           ? [{ label: `Atendentes no ITSM (${sf.qtdAtendentes}x)`, value: toSell(sf.custoAtendentes) }]
           : []),
@@ -695,8 +695,8 @@ export default function Detalhamento() {
           valorHora: valorHoraN3Venda,
           modo: "monitor",
           blocos: [
-            { titulo: "Automação / Manutenção", horas: hManut, valor: toSell(sm.custoN3Manut), descricao: "Ajustes, automações e tunings da plataforma de monitoramento." },
-            { titulo: "Acionamento N3", horas: hAcion, valor: toSell(sm.custoN3), descricao: "Horas para tratamento de incidentes detectados." },
+            { titulo: "Manutenção e Automação", horas: hManut, valor: toSell(sm.custoN3Manut), descricao: "Ajustes, automações e tunings da plataforma de monitoramento." },
+            { titulo: "Atendimento N3", horas: hAcion, valor: toSell(sm.custoN3), descricao: "Horas para tratamento de incidentes detectados." },
           ].filter((b) => b.horas > 0),
         };
       }
@@ -737,8 +737,8 @@ export default function Detalhamento() {
           valorHora: valorHoraN3Venda,
           modo: "flow",
           blocos: [
-            { titulo: "Automação (N3)", horas: hManut, valor: toSell(sf.custoN3Manut), descricao: "Tratamento contínuo e automações de eventos." },
-            { titulo: "Acionamento N3", horas: hAcion, valor: toSell(sf.custoN3), descricao: "Horas técnicas sob demanda." },
+            { titulo: "Manutenção e Automação", horas: hManut, valor: toSell(sf.custoN3Manut), descricao: "Tratamento contínuo e automações de eventos." },
+            { titulo: "Atendimento N3", horas: hAcion, valor: toSell(sf.custoN3), descricao: "Horas técnicas sob demanda." },
           ].filter((b) => b.horas > 0),
         };
       }
@@ -866,7 +866,7 @@ export default function Detalhamento() {
       const fExtras = flowExtras();
       const recursos = [...(fExtras.recursos ?? []), ...(mExtras.recursos ?? [])];
       const metricas = fExtras.metricas; // Flow é mandatório
-      // Horas N3 / Automação: prioriza Flow; se Monitor tiver horas, mescla.
+      // Horas N3: prioriza Flow; se Monitor tiver horas, mescla.
       const horasN3 = fExtras.horasN3 ?? mExtras.horasN3;
       const rotinasGruposMerged = [
         ...(fExtras.rotinasGrupos ?? []),
@@ -1173,7 +1173,7 @@ export default function Detalhamento() {
             const pctAcion = hTotal > 0 ? (hAcion / hTotal) * 100 : 0;
             return (
               <div className="mt-4">
-                <SubTitle>Consumo das horas N3 / Automação</SubTitle>
+                <SubTitle>Consumo das horas N3 / Manutenção e Automação</SubTitle>
                 <div className="rounded border bg-background/70 p-3 text-xs space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
@@ -1191,12 +1191,12 @@ export default function Detalhamento() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
-                    <div className="text-muted-foreground text-[10px]">Automação / Manutenção · {pctManut.toFixed(0)}%</div>
+                    <div className="text-muted-foreground text-[10px]">Manutenção e Manutenção e Automação · {pctManut.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sm.custoN3Manut * fatorVenda)}</div>
                     <div className="text-[10px] text-muted-foreground">Ajustes e tunings do monitoramento.</div>
                   </div>
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-1.5">
-                    <div className="text-muted-foreground text-[10px]">Acionamento N3 · {pctAcion.toFixed(0)}%</div>
+                    <div className="text-muted-foreground text-[10px]">Atendimento N3 · {pctAcion.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sm.custoN3 * fatorVenda)}</div>
                     <div className="text-[10px] text-muted-foreground">Tratamento de incidentes detectados.</div>
                   </div>
@@ -1212,7 +1212,7 @@ export default function Detalhamento() {
             <>
               <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Monitor ({rotinasMonitor.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
-                Consumidas pelas horas de Automação / Manutenção do Smart Monitor.
+                Consumidas pelas horas de Manutenção e Automação do Smart Monitor.
               </p>
               <RoutineList items={rotinasMonitor} accent="bronze" />
             </>
@@ -1329,7 +1329,7 @@ export default function Detalhamento() {
             const pctAcion = hTotal > 0 ? (hAcion / hTotal) * 100 : 0;
             return (
               <div className="mt-4">
-                <SubTitle>Consumo das horas N3 / Automação</SubTitle>
+                <SubTitle>Consumo das horas N3 / Manutenção e Automação</SubTitle>
                 <div className="rounded border bg-background/70 p-3 text-xs space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
@@ -1347,12 +1347,12 @@ export default function Detalhamento() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
-                      <div className="text-muted-foreground text-[10px]">Automação · {pctManut.toFixed(0)}%</div>
+                      <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
                       <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sf.custoN3Manut * fatorVenda)}</div>
                       <div className="text-[10px] text-muted-foreground">Tratamento contínuo e automações de eventos.</div>
                     </div>
                     <div className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-1.5">
-                      <div className="text-muted-foreground text-[10px]">Acionamento N3 · {pctAcion.toFixed(0)}%</div>
+                      <div className="text-muted-foreground text-[10px]">Atendimento N3 · {pctAcion.toFixed(0)}%</div>
                       <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sf.custoN3 * fatorVenda)}</div>
                       <div className="text-[10px] text-muted-foreground">Horas técnicas sob demanda.</div>
                     </div>
@@ -1372,7 +1372,7 @@ export default function Detalhamento() {
             <>
               <SubTitle className="mt-4">Rotinas Técnicas Preventivas — Smart Flow ({rotinasFlow.length})</SubTitle>
               <p className="text-[11px] text-muted-foreground mb-2">
-                Consumidas pelas horas de Automação / Manutenção do Smart Flow.
+                Consumidas pelas horas de Manutenção e Automação do Smart Flow.
               </p>
               <RoutineList items={rotinasFlow} accent="steel" />
             </>
@@ -1680,7 +1680,7 @@ export default function Detalhamento() {
                 // Acesso ao ITSM é exclusivo do Smart Flow
                 return flowVisible;
               case "hora-n3":
-                // Horas N3 / Automação avulsas só com Operation ou Performance ativos
+                // Horas N3 avulsas só com Operation ou Performance ativos
                 return state.tierOperation || state.tierPerformance;
               case "tam":
               case "owner":
@@ -2092,7 +2092,7 @@ function GmudReportTable({
             <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Tipo</th>
             <th className="text-left px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-24">Frequência</th>
             <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Ch/mês</th>
-            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Horas N3 / Automação</th>
+            <th className="text-right px-3 py-2 font-bold uppercase tracking-wider text-[10px] w-20">Horas N3</th>
           </tr>
         </thead>
         <tbody>
@@ -2152,7 +2152,7 @@ function N3HoursBox({
             <Clock className="h-4 w-4 text-primary" strokeWidth={2.5} />
           </div>
           <div>
-            <p className="text-sm font-extrabold">Horas N3 / Automação contratadas</p>
+            <p className="text-sm font-extrabold">Horas N3 contratadas</p>
             <p className="text-[11px] text-muted-foreground">{formatNumber(total)}h/mês × {formatBRL(valorHora)}/h <span className="text-[9px] uppercase tracking-wider">(venda)</span></p>
           </div>
         </div>
@@ -2183,7 +2183,7 @@ function N3HoursBox({
           <div className="space-y-3 pt-1">
             <div className="flex items-center gap-2">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-foreground/80">Divisão de uso das horas N3 / Automação</p>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-foreground/80">Divisão de uso das horas N3</p>
             </div>
             <div className="flex h-7 w-full rounded-full overflow-hidden shadow-inner border bg-muted">
               {pctChamados > 0 && (
@@ -2211,7 +2211,7 @@ function N3HoursBox({
                 desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
               <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
                 titulo="Rotinas" subtitulo="Rotinas Operation"
-                desc="Horas consumidas pelas rotinas preventivas básicas, já cobradas dentro do pool de horas N3 / Automação." />
+                desc="Horas consumidas pelas rotinas preventivas básicas, já cobradas dentro do pool de horas N3." />
               <DistCard color="violet" pct={pctLivreOp} horas={horasLivreOp} valor={horasLivreOp * valorHora}
                 titulo="Horas Técnicas" subtitulo="Saldo disponível"
                 desc="Horas remanescentes para projetos, mudanças e demandas pontuais." alerta={estourado} />
@@ -2229,7 +2229,7 @@ function N3HoursBox({
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-foreground/80">Divisão de uso das horas N3 / Automação</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-foreground/80">Divisão de uso das horas N3</p>
           </div>
 
           {/* Barra segmentada — chamados + TAM + Owner + Livre */}
@@ -2272,7 +2272,7 @@ function N3HoursBox({
               desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
             <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
               titulo="Rotinas" subtitulo="Rotinas Performance"
-              desc="Horas consumidas pelas rotinas preventivas Padrão/Complexo, já cobradas dentro do pool de horas N3 / Automação." />
+              desc="Horas consumidas pelas rotinas preventivas Padrão/Complexo, já cobradas dentro do pool de horas N3." />
             <DistCard color="emerald" pct={pctTam} horas={horasTam} valor={horasTam * valorHora}
               titulo="TAM" subtitulo="Technical Account Manager"
               desc="Acompanhamento técnico, governança do contrato e relacionamento com o cliente." />
@@ -2286,7 +2286,7 @@ function N3HoursBox({
 
           {livreNegativo && (
             <div className="rounded-lg border-2 border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px]">
-              <strong className="text-destructive">⚠ Horas Técnicas zeradas:</strong> a soma de Chamados + Rotinas + TAM + Owner já consome todas as horas N3 / Automação contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
+              <strong className="text-destructive">⚠ Horas Técnicas zeradas:</strong> a soma de Chamados + Rotinas + TAM + Owner já consome todas as horas N3 contratadas. Considere ampliar o pacote ou reduzir os percentuais de TAM/Owner.
             </div>
           )}
         </div>
