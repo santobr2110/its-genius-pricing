@@ -1373,13 +1373,13 @@ export default function SmartTiersPanel() {
                     <div className="text-muted-foreground">Rotinas · {pctRotinasN3Op.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(horasRotinasOperationN3, 1)}h</div>
                   </div>
-                  <div className="rounded bg-indigo-500/10 border border-indigo-500/30 px-1.5 py-1">
+                  <div className={`rounded px-1.5 py-1 border transition-all ${horasMelhoriaOpClamped > 0 ? "bg-indigo-500/20 border-indigo-500/60 ring-2 ring-indigo-400/50 shadow-sm" : "bg-indigo-500/10 border-indigo-500/30"}`}>
                     <div className="text-muted-foreground">Horas de Melhoria · {pctMelhoriaOp.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(horasMelhoriaOpClamped, 1)}h</div>
+                    <div className={`font-semibold tabular-nums ${horasMelhoriaOpClamped > 0 ? "text-indigo-700 dark:text-indigo-300 text-sm" : ""}`}>{formatNumber(horasMelhoriaOpClamped, 1)}h</div>
                   </div>
-                  <div className={`rounded px-1.5 py-1 border ${livreOperationEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
+                  <div className={`rounded px-1.5 py-1 border transition-all ${livreOperationEstourado ? "bg-destructive/10 border-destructive/40" : horasTecnicasOperation > 0 ? "bg-violet-500/20 border-violet-500/60 ring-2 ring-violet-400/50 shadow-sm" : "bg-violet-500/10 border-violet-500/30"}`}>
                     <div className="text-muted-foreground">Horas Técnicas · {pctTecnicasOp.toFixed(0)}%</div>
-                    <div className={`font-semibold ${livreOperationEstourado ? "text-destructive" : ""}`}>{formatNumber(horasTecnicasOperation, 1)}h</div>
+                    <div className={`font-semibold tabular-nums ${livreOperationEstourado ? "text-destructive" : horasTecnicasOperation > 0 ? "text-violet-700 dark:text-violet-300 text-sm" : ""}`}>{formatNumber(horasTecnicasOperation, 1)}h</div>
                   </div>
                 </div>
                 {livreOperationEstourado && (
@@ -1736,13 +1736,13 @@ export default function SmartTiersPanel() {
                     <div className="text-muted-foreground">Owner · {pctOwner}%</div>
                     <div className="font-semibold">{formatNumber(horasOwner)}h</div>
                   </div>
-                  <div className="rounded bg-indigo-500/10 border border-indigo-500/30 px-1.5 py-1">
+                  <div className={`rounded px-1.5 py-1 border transition-all ${horasMelhoriaPerfClamped > 0 ? "bg-indigo-500/20 border-indigo-500/60 ring-2 ring-indigo-400/50 shadow-sm" : "bg-indigo-500/10 border-indigo-500/30"}`}>
                     <div className="text-muted-foreground">Melhoria · {pctMelhoriaPerf.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(horasMelhoriaPerfClamped, 1)}h</div>
+                    <div className={`font-semibold tabular-nums ${horasMelhoriaPerfClamped > 0 ? "text-indigo-700 dark:text-indigo-300 text-sm" : ""}`}>{formatNumber(horasMelhoriaPerfClamped, 1)}h</div>
                   </div>
-                  <div className={`rounded px-1.5 py-1 border ${livreEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
+                  <div className={`rounded px-1.5 py-1 border transition-all ${livreEstourado ? "bg-destructive/10 border-destructive/40" : horasTecnicasPerf > 0 ? "bg-violet-500/20 border-violet-500/60 ring-2 ring-violet-400/50 shadow-sm" : "bg-violet-500/10 border-violet-500/30"}`}>
                     <div className="text-muted-foreground">Horas Técnicas · {pctTecnicasPerf.toFixed(0)}%</div>
-                    <div className={`font-semibold ${livreEstourado ? "text-destructive" : ""}`}>{formatNumber(horasTecnicasPerf, 1)}h</div>
+                    <div className={`font-semibold tabular-nums ${livreEstourado ? "text-destructive" : horasTecnicasPerf > 0 ? "text-violet-700 dark:text-violet-300 text-sm" : ""}`}>{formatNumber(horasTecnicasPerf, 1)}h</div>
                   </div>
                 </div>
               </div>
