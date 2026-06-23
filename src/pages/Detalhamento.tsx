@@ -1191,7 +1191,7 @@ export default function Detalhamento() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
-                    <div className="text-muted-foreground text-[10px]">Manutenção e Manutenção e Automação · {pctManut.toFixed(0)}%</div>
+                    <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sm.custoN3Manut * fatorVenda)}</div>
                     <div className="text-[10px] text-muted-foreground">Ajustes e tunings do monitoramento.</div>
                   </div>
