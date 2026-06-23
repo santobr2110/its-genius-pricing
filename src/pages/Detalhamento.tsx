@@ -1456,6 +1456,7 @@ export default function Detalhamento() {
               valorHora={valorHoraN3Venda}
               modo="operation"
               horasRotinas={horasRotinasOpN3}
+              horasMelhoria={horasMelhoriaOp}
             />
           )}
 
