@@ -1785,6 +1785,56 @@ export default function SmartTiersPanel() {
                     <div className={`font-semibold tabular-nums ${livreEstourado ? "text-destructive" : horasTecnicasPerf > 0 ? "text-violet-700 dark:text-violet-300 text-sm" : ""}`}>{formatNumber(horasTecnicasPerf, 1)}h</div>
                   </div>
                 </div>
+                {/* Valor isolado do pool N3 (Performance) */}
+                {horasTotaisN3 > 0 && (() => {
+                  const vHora = toSell(state.valorHoraN3);
+                  const vTotal = horasTotaisN3 * vHora;
+                  const vChamados = horasChamadosN3 * vHora;
+                  const vRotinas = horasRotinasN3 * vHora;
+                  const vTam = horasTam * vHora;
+                  const vOwner = horasOwner * vHora;
+                  const vMelhoria = horasMelhoriaPerfClamped * vHora;
+                  const vTecnicas = horasTecnicasPerf * vHora;
+                  return (
+                    <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 p-2 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Valor isolado do pool N3 (venda)
+                        </span>
+                        <span className="text-xs font-extrabold text-primary tabular-nums">{formatBRL(vTotal)}</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-[10px]">
+                        <div className="flex justify-between rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5">
+                          <span className="text-muted-foreground">Chamados</span>
+                          <span className="font-semibold tabular-nums">{formatBRL(vChamados)}</span>
+                        </div>
+                        <div className="flex justify-between rounded bg-rose-500/10 border border-rose-500/30 px-1.5 py-0.5">
+                          <span className="text-muted-foreground">Rotinas</span>
+                          <span className="font-semibold tabular-nums">{formatBRL(vRotinas)}</span>
+                        </div>
+                        <div className="flex justify-between rounded bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5">
+                          <span className="text-muted-foreground">TAM</span>
+                          <span className="font-semibold tabular-nums">{formatBRL(vTam)}</span>
+                        </div>
+                        <div className="flex justify-between rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-0.5">
+                          <span className="text-muted-foreground">Owner</span>
+                          <span className="font-semibold tabular-nums">{formatBRL(vOwner)}</span>
+                        </div>
+                        <div className={`flex justify-between rounded px-1.5 py-0.5 border ${horasMelhoriaPerfClamped > 0 ? "bg-indigo-500/20 border-indigo-500/60 ring-1 ring-indigo-400/50" : "bg-indigo-500/10 border-indigo-500/30"}`}>
+                          <span className="text-muted-foreground">Melhoria</span>
+                          <span className={`font-semibold tabular-nums ${horasMelhoriaPerfClamped > 0 ? "text-indigo-700 dark:text-indigo-300" : ""}`}>{formatBRL(vMelhoria)}</span>
+                        </div>
+                        <div className={`flex justify-between rounded px-1.5 py-0.5 border ${horasTecnicasPerf > 0 ? "bg-violet-500/20 border-violet-500/60 ring-1 ring-violet-400/50" : "bg-violet-500/10 border-violet-500/30"}`}>
+                          <span className="text-muted-foreground">Técnicas</span>
+                          <span className={`font-semibold tabular-nums ${horasTecnicasPerf > 0 ? "text-violet-700 dark:text-violet-300" : ""}`}>{formatBRL(vTecnicas)}</span>
+                        </div>
+                      </div>
+                      <p className="text-[9px] text-muted-foreground italic">
+                        Corresponde à linha "Atendimento N3" do total Performance — exibido isolado para análise.
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             )}
