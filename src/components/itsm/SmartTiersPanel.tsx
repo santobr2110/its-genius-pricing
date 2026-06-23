@@ -411,32 +411,36 @@ export default function SmartTiersPanel() {
 
   // Subdivisão do resíduo entre "Horas de Melhoria" (configurável) e "Horas Técnicas" (sobra final).
   // Operation: prioridade Chamados → Rotinas → Melhoria → Técnicas
-  const horasMelhoriaOpClamped = Math.max(0, Math.min(horasLivreOperation, Math.round(horasMelhoriaOp || 0)));
+  const melhoriaOpHardMax = Math.max(0, Math.min(horasLivreOperation, state.horasMelhoriaOpMax ?? horasLivreOperation));
+  const melhoriaOpHardMin = Math.max(0, Math.min(melhoriaOpHardMax, state.horasMelhoriaOpMin ?? 0));
+  const horasMelhoriaOpClamped = Math.max(melhoriaOpHardMin, Math.min(melhoriaOpHardMax, Math.round(horasMelhoriaOp || 0)));
   const horasTecnicasOperation = Math.max(0, horasLivreOperation - horasMelhoriaOpClamped);
   const pctMelhoriaOp = horasTotaisN3 > 0 ? (horasMelhoriaOpClamped / horasTotaisN3) * 100 : 0;
   const pctTecnicasOp = horasTotaisN3 > 0 ? (horasTecnicasOperation / horasTotaisN3) * 100 : 0;
 
   // Performance: prioridade Chamados → Rotinas → TAM → Owner → Melhoria → Técnicas
-  const horasMelhoriaPerfClamped = Math.max(0, Math.min(horasLivre, Math.round(horasMelhoriaPerf || 0)));
+  const melhoriaPerfHardMax = Math.max(0, Math.min(horasLivre, state.horasMelhoriaPerfMax ?? horasLivre));
+  const melhoriaPerfHardMin = Math.max(0, Math.min(melhoriaPerfHardMax, state.horasMelhoriaPerfMin ?? 0));
+  const horasMelhoriaPerfClamped = Math.max(melhoriaPerfHardMin, Math.min(melhoriaPerfHardMax, Math.round(horasMelhoriaPerf || 0)));
   const horasTecnicasPerf = Math.max(0, horasLivre - horasMelhoriaPerfClamped);
   const pctMelhoriaPerf = horasTotaisN3 > 0 ? (horasMelhoriaPerfClamped / horasTotaisN3) * 100 : 0;
   const pctTecnicasPerf = horasTotaisN3 > 0 ? (horasTecnicasPerf / horasTotaisN3) * 100 : 0;
 
   // Re-clampa horas de Melhoria quando a sobra muda (evita slider em valor inválido).
   useEffect(() => {
-    if ((horasMelhoriaOp || 0) > horasLivreOperation) {
-      setHorasMelhoriaOp(horasLivreOperation);
-    } else if ((horasMelhoriaOp || 0) < 0) {
-      setHorasMelhoriaOp(0);
+    if ((horasMelhoriaOp || 0) > melhoriaOpHardMax) {
+      setHorasMelhoriaOp(melhoriaOpHardMax);
+    } else if ((horasMelhoriaOp || 0) < melhoriaOpHardMin) {
+      setHorasMelhoriaOp(melhoriaOpHardMin);
     }
-  }, [horasLivreOperation]);
+  }, [melhoriaOpHardMin, melhoriaOpHardMax]);
   useEffect(() => {
-    if ((horasMelhoriaPerf || 0) > horasLivre) {
-      setHorasMelhoriaPerf(horasLivre);
-    } else if ((horasMelhoriaPerf || 0) < 0) {
-      setHorasMelhoriaPerf(0);
+    if ((horasMelhoriaPerf || 0) > melhoriaPerfHardMax) {
+      setHorasMelhoriaPerf(melhoriaPerfHardMax);
+    } else if ((horasMelhoriaPerf || 0) < melhoriaPerfHardMin) {
+      setHorasMelhoriaPerf(melhoriaPerfHardMin);
     }
-  }, [horasLivre]);
+  }, [melhoriaPerfHardMin, melhoriaPerfHardMax]);
 
   // Rotinas de Field Service de Microinformática (Microinformática) — agregam Operation + Performance
   // num único bloco exibido dentro da composição de Field Service de Microinformática.
