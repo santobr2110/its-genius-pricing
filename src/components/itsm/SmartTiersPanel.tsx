@@ -1365,13 +1365,13 @@ export default function SmartTiersPanel() {
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-1 text-[11px]">
-                  <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
+                  <div className={`rounded px-1.5 py-1 border transition-all ${horasChamadosN3 > 0 ? "bg-amber-500/20 border-amber-500/60 ring-2 ring-amber-400/50 shadow-sm" : "bg-amber-500/10 border-amber-500/30"}`}>
                     <div className="text-muted-foreground">Chamados N3 · {pctChamadosN3Op.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(horasChamadosN3, 1)}h</div>
+                    <div className={`font-semibold tabular-nums ${horasChamadosN3 > 0 ? "text-amber-700 dark:text-amber-300 text-sm" : ""}`}>{formatNumber(horasChamadosN3, 1)}h</div>
                   </div>
-                  <div className="rounded bg-rose-500/10 border border-rose-500/30 px-1.5 py-1">
+                  <div className={`rounded px-1.5 py-1 border transition-all ${horasRotinasOperationN3 > 0 ? "bg-rose-500/20 border-rose-500/60 ring-2 ring-rose-400/50 shadow-sm" : "bg-rose-500/10 border-rose-500/30"}`}>
                     <div className="text-muted-foreground">Rotinas · {pctRotinasN3Op.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(horasRotinasOperationN3, 1)}h</div>
+                    <div className={`font-semibold tabular-nums ${horasRotinasOperationN3 > 0 ? "text-rose-700 dark:text-rose-300 text-sm" : ""}`}>{formatNumber(horasRotinasOperationN3, 1)}h</div>
                   </div>
                   <div className={`rounded px-1.5 py-1 border transition-all ${horasMelhoriaOpClamped > 0 ? "bg-indigo-500/20 border-indigo-500/60 ring-2 ring-indigo-400/50 shadow-sm" : "bg-indigo-500/10 border-indigo-500/30"}`}>
                     <div className="text-muted-foreground">Horas de Melhoria · {pctMelhoriaOp.toFixed(0)}%</div>
@@ -1760,21 +1760,21 @@ export default function SmartTiersPanel() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-[11px]">
-                  <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
+                  <div className={`rounded px-1.5 py-1 border transition-all ${horasChamadosN3 > 0 ? "bg-amber-500/20 border-amber-500/60 ring-2 ring-amber-400/50 shadow-sm" : "bg-amber-500/10 border-amber-500/30"}`}>
                     <div className="text-muted-foreground">Chamados · {pctChamadosN3.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(horasChamadosN3, 1)}h</div>
+                    <div className={`font-semibold tabular-nums ${horasChamadosN3 > 0 ? "text-amber-700 dark:text-amber-300 text-sm" : ""}`}>{formatNumber(horasChamadosN3, 1)}h</div>
                   </div>
-                  <div className="rounded bg-rose-500/10 border border-rose-500/30 px-1.5 py-1">
+                  <div className={`rounded px-1.5 py-1 border transition-all ${horasRotinasN3 > 0 ? "bg-rose-500/20 border-rose-500/60 ring-2 ring-rose-400/50 shadow-sm" : "bg-rose-500/10 border-rose-500/30"}`}>
                     <div className="text-muted-foreground">Rotinas · {pctRotinasN3.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(horasRotinasN3, 1)}h</div>
+                    <div className={`font-semibold tabular-nums ${horasRotinasN3 > 0 ? "text-rose-700 dark:text-rose-300 text-sm" : ""}`}>{formatNumber(horasRotinasN3, 1)}h</div>
                   </div>
-                  <div className="rounded bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-1">
+                  <div className={`rounded px-1.5 py-1 border transition-all ${horasTam > 0 ? "bg-emerald-500/20 border-emerald-500/60 ring-2 ring-emerald-400/50 shadow-sm" : "bg-emerald-500/10 border-emerald-500/30"}`}>
                     <div className="text-muted-foreground">TAM · {pctTam}%</div>
-                    <div className="font-semibold">{formatNumber(horasTam)}h</div>
+                    <div className={`font-semibold tabular-nums ${horasTam > 0 ? "text-emerald-700 dark:text-emerald-300 text-sm" : ""}`}>{formatNumber(horasTam)}h</div>
                   </div>
-                  <div className="rounded bg-sky-500/10 border border-sky-500/30 px-1.5 py-1">
+                  <div className={`rounded px-1.5 py-1 border transition-all ${horasOwner > 0 ? "bg-sky-500/20 border-sky-500/60 ring-2 ring-sky-400/50 shadow-sm" : "bg-sky-500/10 border-sky-500/30"}`}>
                     <div className="text-muted-foreground">Owner · {pctOwner}%</div>
-                    <div className="font-semibold">{formatNumber(horasOwner)}h</div>
+                    <div className={`font-semibold tabular-nums ${horasOwner > 0 ? "text-sky-700 dark:text-sky-300 text-sm" : ""}`}>{formatNumber(horasOwner)}h</div>
                   </div>
                   <div className={`rounded px-1.5 py-1 border transition-all ${horasMelhoriaPerfClamped > 0 ? "bg-indigo-500/20 border-indigo-500/60 ring-2 ring-indigo-400/50 shadow-sm" : "bg-indigo-500/10 border-indigo-500/30"}`}>
                     <div className="text-muted-foreground">Melhoria · {pctMelhoriaPerf.toFixed(0)}%</div>
