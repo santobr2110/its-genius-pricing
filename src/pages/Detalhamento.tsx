@@ -639,6 +639,15 @@ export default function Detalhamento() {
   const horasAtendN3 = results.horasAtendimentoN3;
   const horasPrev = Math.max(0, horasTotaisN3 - horasAtendN3);
 
+  // Horas de Melhoria — configuradas no painel Smart Tiers (persistidas em
+  // localStorage). Subdividem o resíduo "Horas Técnicas" do bucket Operation
+  // sem alterar o custo total. Replicamos o mesmo clamp usado no painel.
+  const [horasMelhoriaOpRaw] = usePersistentState<number>("gestao-ti:smartOp:horasMelhoria", 0);
+  const horasLivreOpDetalhe = Math.max(0, (state.horasN3Mensais || 0) - horasAtendN3 - horasRotinasOpN3);
+  const melhoriaOpHardMax = Math.max(0, Math.min(horasLivreOpDetalhe, state.horasMelhoriaOpMax ?? horasLivreOpDetalhe));
+  const melhoriaOpHardMin = Math.max(0, Math.min(melhoriaOpHardMax, state.horasMelhoriaOpMin ?? 0));
+  const horasMelhoriaOp = Math.max(melhoriaOpHardMin, Math.min(melhoriaOpHardMax, Math.round(horasMelhoriaOpRaw || 0)));
+
   // ============================================================
   // Exportação de Apresentação (.pptx)
   // Monta payload com camadas ativas, composições e itens adicionais
