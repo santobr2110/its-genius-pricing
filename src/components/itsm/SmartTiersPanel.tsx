@@ -1334,11 +1334,33 @@ export default function SmartTiersPanel() {
                   {pctRotinasN3Op > 0 && (
                     <div className="bg-gradient-to-r from-rose-400 to-rose-500" style={{ width: `${Math.min(100, pctRotinasN3Op)}%` }} />
                   )}
-                  {pctLivreOperation > 0 && (
-                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${Math.min(100, pctLivreOperation)}%` }} />
+                  {pctMelhoriaOp > 0 && (
+                    <div className="bg-gradient-to-r from-indigo-400 to-indigo-600" style={{ width: `${Math.min(100, pctMelhoriaOp)}%` }} />
+                  )}
+                  {pctTecnicasOp > 0 && (
+                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500" style={{ width: `${Math.min(100, pctTecnicasOp)}%` }} />
                   )}
                 </div>
-                <div className="grid grid-cols-3 gap-1 text-[11px]">
+                {horasLivreOperation > 0 && (
+                  <div className="space-y-1.5 rounded border bg-muted/20 p-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-semibold text-indigo-700 dark:text-indigo-300">Horas de Melhoria</span>
+                      <span className="tabular-nums text-muted-foreground">
+                        {formatNumber(horasMelhoriaOpClamped, 1)}h / {formatNumber(horasLivreOperation, 1)}h disponíveis
+                      </span>
+                    </div>
+                    <Slider
+                      value={[horasMelhoriaOpClamped]}
+                      onValueChange={([v]) => setHorasMelhoriaOp(v)}
+                      min={0}
+                      max={Math.max(1, Math.ceil(horasLivreOperation))}
+                      step={1}
+                      rangeClassName="bg-indigo-500"
+                      thumbClassName="h-6 w-6 border-indigo-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-1 text-[11px]">
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-1">
                     <div className="text-muted-foreground">Chamados N3 · {pctChamadosN3Op.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(horasChamadosN3, 1)}h</div>
@@ -1347,9 +1369,13 @@ export default function SmartTiersPanel() {
                     <div className="text-muted-foreground">Rotinas · {pctRotinasN3Op.toFixed(0)}%</div>
                     <div className="font-semibold">{formatNumber(horasRotinasOperationN3, 1)}h</div>
                   </div>
+                  <div className="rounded bg-indigo-500/10 border border-indigo-500/30 px-1.5 py-1">
+                    <div className="text-muted-foreground">Horas de Melhoria · {pctMelhoriaOp.toFixed(0)}%</div>
+                    <div className="font-semibold">{formatNumber(horasMelhoriaOpClamped, 1)}h</div>
+                  </div>
                   <div className={`rounded px-1.5 py-1 border ${livreOperationEstourado ? "bg-destructive/10 border-destructive/40" : "bg-violet-500/10 border-violet-500/30"}`}>
-                    <div className="text-muted-foreground">Horas Técnicas · {pctLivreOperation.toFixed(0)}%</div>
-                    <div className={`font-semibold ${livreOperationEstourado ? "text-destructive" : ""}`}>{formatNumber(horasLivreOperation, 1)}h</div>
+                    <div className="text-muted-foreground">Horas Técnicas · {pctTecnicasOp.toFixed(0)}%</div>
+                    <div className={`font-semibold ${livreOperationEstourado ? "text-destructive" : ""}`}>{formatNumber(horasTecnicasOperation, 1)}h</div>
                   </div>
                 </div>
                 {livreOperationEstourado && (
@@ -1358,7 +1384,7 @@ export default function SmartTiersPanel() {
                   </p>
                 )}
                 <p className="text-[10px] text-muted-foreground">
-                  Horas Técnicas = Horas contratadas − Chamados N3 (funil) − Rotinas Operation
+                  Prioridade: Chamados N3 → Rotinas → Horas de Melhoria → Horas Técnicas (sobra)
                 </p>
               </div>
             </div>
