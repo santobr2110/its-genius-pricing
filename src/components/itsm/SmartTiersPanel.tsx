@@ -221,7 +221,7 @@ export default function SmartTiersPanel() {
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
-      .sort((a, b) => b.venda - a.venda);
+      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
 
     const totals = items.reduce(
       (acc, i) => {
@@ -266,7 +266,7 @@ export default function SmartTiersPanel() {
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horas, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
-      .sort((a, b) => b.venda - a.venda);
+      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
@@ -311,7 +311,7 @@ export default function SmartTiersPanel() {
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
       })
       .filter((i) => i.demanda > 0)
-      .sort((a, b) => b.venda - a.venda);
+      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
@@ -352,7 +352,7 @@ export default function SmartTiersPanel() {
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, oferta: r.oferta, automacao: r.automacao, demanda, custo, venda };
       })
       .filter((i) => i.demanda > 0)
-      .sort((a, b) => b.venda - a.venda);
+      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
@@ -478,7 +478,7 @@ export default function SmartTiersPanel() {
         };
       })
       .filter((i) => i.demanda > 0)
-      .sort((a, b) => b.venda - a.venda);
+      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
