@@ -67,6 +67,11 @@ export interface ITSMState {
   horasN3OperationMax: number;
   horasN3PerformanceMin: number;
   horasN3PerformanceMax: number;
+  // Limites de Horas de Melhoria (subdivisão da sobra de N3) por camada
+  horasMelhoriaOpMin: number;
+  horasMelhoriaOpMax: number;
+  horasMelhoriaPerfMin: number;
+  horasMelhoriaPerfMax: number;
   // Monitoramento — Atendentes no ITSM (Smart Monitor)
   qtdAtendentesMonitor: number;
   qtdAtendentesMonitorMin: number;
