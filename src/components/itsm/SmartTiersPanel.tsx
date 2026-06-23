@@ -1436,7 +1436,6 @@ export default function SmartTiersPanel() {
                     </div>
                   );
                 })()}
-                {rotinasOperation.totals.horasMes > 0 && (
                 {horasRotinasOperationN3 > 0 && (
                   <details className="rounded border border-rose-500/30 bg-rose-500/5 px-2 py-1">
                     <summary className="cursor-pointer text-[11px] font-semibold text-rose-700 dark:text-rose-300">
