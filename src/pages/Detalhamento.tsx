@@ -648,6 +648,18 @@ export default function Detalhamento() {
   const melhoriaOpHardMin = Math.max(0, Math.min(melhoriaOpHardMax, state.horasMelhoriaOpMin ?? 0));
   const horasMelhoriaOp = Math.max(melhoriaOpHardMin, Math.min(melhoriaOpHardMax, Math.round(horasMelhoriaOpRaw || 0)));
 
+  // Mesma lógica para o bucket Performance (TAM + Owner + Rotinas + Chamados → resíduo).
+  const [horasMelhoriaPerfRaw] = usePersistentState<number>("gestao-ti:smartPerf:horasMelhoria", 0);
+  const horasTamPerfDetalhe = ((state.horasN3Mensais || 0) * pctTam) / 100;
+  const horasOwnerPerfDetalhe = ((state.horasN3Mensais || 0) * pctOwner) / 100;
+  const horasLivrePerfDetalhe = Math.max(
+    0,
+    (state.horasN3Mensais || 0) - horasAtendN3 - horasRotinasN3 - horasTamPerfDetalhe - horasOwnerPerfDetalhe,
+  );
+  const melhoriaPerfHardMax = Math.max(0, Math.min(horasLivrePerfDetalhe, state.horasMelhoriaPerfMax ?? horasLivrePerfDetalhe));
+  const melhoriaPerfHardMin = Math.max(0, Math.min(melhoriaPerfHardMax, state.horasMelhoriaPerfMin ?? 0));
+  const horasMelhoriaPerf = Math.max(melhoriaPerfHardMin, Math.min(melhoriaPerfHardMax, Math.round(horasMelhoriaPerfRaw || 0)));
+
   // ============================================================
   // Exportação de Apresentação (.pptx)
   // Monta payload com camadas ativas, composições e itens adicionais
@@ -1577,6 +1589,7 @@ export default function Detalhamento() {
               valorHora={valorHoraN3Venda}
               modo="performance"
               horasRotinas={horasRotinasN3}
+              horasMelhoria={horasMelhoriaPerf}
               distribuicao={{ tam: pctTam, owner: pctOwner, livre: pctLivre }}
             />
           )}
@@ -2146,11 +2159,15 @@ function N3HoursBox({
   const horasTam = distribuicao ? (total * distribuicao.tam) / 100 : 0;
   const horasOwner = distribuicao ? (total * distribuicao.owner) / 100 : 0;
   // Livre = sobra após chamados + TAM + Owner
-  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner) : 0;
+  const horasMelhoriaPerfClamp = distribuicao
+    ? Math.max(0, Math.min(horasMelhoria, Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner)))
+    : 0;
+  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner - horasMelhoriaPerfClamp) : 0;
   const pctChamados = total > 0 ? (consumidas / total) * 100 : 0;
   const pctRotinas = total > 0 ? (horasRotinas / total) * 100 : 0;
   const pctTam = distribuicao?.tam ?? 0;
   const pctOwner = distribuicao?.owner ?? 0;
+  const pctMelhoriaPerf = total > 0 ? (horasMelhoriaPerfClamp / total) * 100 : 0;
   const pctLivre = total > 0 ? (horasLivre / total) * 100 : 0;
   const valorTotalVenda = total * valorHora;
   const livreNegativo = !!distribuicao && (consumidas + horasRotinas + horasTam + horasOwner) > total;
@@ -2277,6 +2294,11 @@ function N3HoursBox({
                 {pctOwner >= 8 && `Owner ${pctOwner}%`}
               </div>
             )}
+            {pctMelhoriaPerf > 0 && (
+              <div className="bg-gradient-to-r from-indigo-400 to-indigo-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${Math.min(100, pctMelhoriaPerf)}%` }}>
+                {pctMelhoriaPerf >= 8 && `Melhoria ${pctMelhoriaPerf.toFixed(0)}%`}
+              </div>
+            )}
             {pctLivre > 0 && (
               <div className="bg-gradient-to-r from-violet-500 to-fuchsia-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctLivre}%` }}>
                 {pctLivre >= 8 && `Horas Técnicas ${pctLivre.toFixed(0)}%`}
@@ -2285,11 +2307,11 @@ function N3HoursBox({
           </div>
 
           <p className="text-[10px] text-muted-foreground italic">
-            Horas Técnicas = Total contratado − Chamados N3 − Rotinas Performance − Horas TAM − Horas Owner
+            Horas Técnicas = Total contratado − Chamados N3 − Rotinas Performance − Horas TAM − Horas Owner − Horas de Melhoria
           </p>
 
           {/* Cards detalhados */}
-          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+          <div className={`grid grid-cols-1 ${horasMelhoriaPerfClamp > 0 ? "sm:grid-cols-6" : "sm:grid-cols-5"} gap-2`}>
             <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
               titulo="Chamados" subtitulo="Atendimento reativo N3"
               desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
@@ -2302,6 +2324,11 @@ function N3HoursBox({
             <DistCard color="sky" pct={pctOwner} horas={horasOwner} valor={horasOwner * valorHora}
               titulo="Owner" subtitulo="Especialista dedicado"
               desc="Execução das rotinas preventivas e melhorias contínuas no ambiente." />
+            {horasMelhoriaPerfClamp > 0 && (
+              <DistCard color="indigo" pct={pctMelhoriaPerf} horas={horasMelhoriaPerfClamp} valor={horasMelhoriaPerfClamp * valorHora}
+                titulo="Melhoria" subtitulo="Horas de Melhoria"
+                desc="Horas reservadas para evoluções e melhorias contínuas no ambiente." />
+            )}
             <DistCard color="violet" pct={pctLivre} horas={horasLivre} valor={horasLivre * valorHora}
               titulo="Horas Técnicas" subtitulo="Saldo disponível"
               desc="Horas remanescentes para projetos, mudanças e demandas pontuais." alerta={livreNegativo} />
