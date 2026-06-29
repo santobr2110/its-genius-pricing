@@ -48,8 +48,8 @@ export async function fetchAppliedProfileFromDb(
       .eq("user_id", user.id)
       .eq("key", metaKey(offering))
       .maybeSingle();
-    const value = data?.value as AppliedProfileInfo | null;
-    if (value?.id && value?.name) return value;
+    const value = data?.value as unknown as AppliedProfileInfo | null;
+    if (value && typeof value === "object" && value.id && value.name) return value;
   } catch { /* ignore */ }
   return null;
 }
