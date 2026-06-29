@@ -18,6 +18,7 @@ import { useParameterProfiles, ParameterProfile } from "@/hooks/useParameterProf
 import { keysForOffering, OFFERING_LABEL, type ParamOffering } from "@/lib/paramKeys";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { setAppliedProfile } from "@/lib/appliedProfile";
 
 export default function PerfisParametros() {
   const location = useLocation();
@@ -76,6 +77,7 @@ export default function PerfisParametros() {
     setBusy(true);
     try {
       await apply(confirmApply);
+      setAppliedProfile(tab, { id: confirmApply.id, name: confirmApply.name });
       toast({ title: "Perfil aplicado", description: `"${confirmApply.name}" restaurado nos parâmetros atuais.` });
       setConfirmApply(null);
     }
