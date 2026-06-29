@@ -6,7 +6,7 @@ import {
 } from "@/lib/paramKeys";
 import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 import { isPresetActive } from "@/lib/activePreset";
-import { setAppliedProfile } from "@/lib/appliedProfile";
+import { getAppliedProfile, fetchAppliedProfileFromDb, setAppliedProfile } from "@/lib/appliedProfile";
 
 const OFFERINGS: ParamOffering[] = ["smart-ito", "profissionais-alocados"];
 
@@ -51,7 +51,24 @@ export function useApplyDefaultProfileOnLogin() {
             .limit(1);
 
           if (existing && existing.length > 0) {
-            // Usuário já tem parâmetros próprios — não sobrescrever.
+            // Usuário já tem parâmetros próprios — não sobrescrever os
+            // valores, mas garante que o "perfil ativo" exibido reflita
+            // algo coerente (backfill com o default se não houver registro).
+            const hasLocal = getAppliedProfile(offering);
+            if (!hasLocal) {
+              const remote = await fetchAppliedProfileFromDb(offering);
+              if (!remote) {
+                const { data: prof } = await supabase
+                  .from("parameter_profiles")
+                  .select("id, name")
+                  .eq("id", dp.profile_id)
+                  .maybeSingle();
+                const name = (prof as { name?: string } | null)?.name;
+                if (name) setAppliedProfile(offering, { id: dp.profile_id, name });
+              } else {
+                setAppliedProfile(offering, remote);
+              }
+            }
             if (typeof window !== "undefined") window.localStorage.setItem(flag, "1");
             continue;
           }
