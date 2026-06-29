@@ -34,7 +34,6 @@ import {
   getAppliedProfile,
   type AppliedProfileInfo,
 } from "@/lib/appliedProfile";
-import { supabase } from "@/integrations/supabase/client";
 
 function useAppliedProfileBadge(): AppliedProfileInfo | null {
   const [info, setInfo] = useState<AppliedProfileInfo | null>(() => getAppliedProfile("smart-ito"));
