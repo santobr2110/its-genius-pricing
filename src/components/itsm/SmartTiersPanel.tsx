@@ -28,7 +28,12 @@ import {
 import { GitBranch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Sliders } from "lucide-react";
-import { APPLIED_PROFILE_CHANGED_EVENT, getAppliedProfile, type AppliedProfileInfo } from "@/lib/appliedProfile";
+import {
+  APPLIED_PROFILE_CHANGED_EVENT,
+  fetchAppliedProfileFromDb,
+  getAppliedProfile,
+  type AppliedProfileInfo,
+} from "@/lib/appliedProfile";
 import { supabase } from "@/integrations/supabase/client";
 
 function useAppliedProfileBadge(): AppliedProfileInfo | null {
@@ -42,27 +47,14 @@ function useAppliedProfileBadge(): AppliedProfileInfo | null {
       window.removeEventListener("storage", handler);
     };
   }, []);
-  // Fallback: se nada gravado localmente, exibe o Perfil padrão da oferta.
+  // Se localStorage estiver vazio (ex.: outro dispositivo), lê do banco
+  // qual foi o último perfil aplicado por este usuário.
   useEffect(() => {
     if (info) return;
     let cancelled = false;
     (async () => {
-      try {
-        const { data: dp } = await supabase
-          .from("app_default_profile")
-          .select("profile_id")
-          .eq("offering_slug", "smart-ito")
-          .maybeSingle();
-        if (!dp?.profile_id || cancelled) return;
-        const { data: prof } = await supabase
-          .from("parameter_profiles")
-          .select("id, name")
-          .eq("id", dp.profile_id)
-          .maybeSingle();
-        if (!cancelled && prof?.id && prof?.name) {
-          setInfo({ id: prof.id as string, name: prof.name as string });
-        }
-      } catch { /* ignore */ }
+      const remote = await fetchAppliedProfileFromDb("smart-ito");
+      if (!cancelled && remote) setInfo(remote);
     })();
     return () => { cancelled = true; };
   }, [info]);
