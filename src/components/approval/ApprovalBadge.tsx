@@ -44,16 +44,16 @@ export default function ApprovalBadge({ approval, canRequest, disabledReason }: 
   };
 
   return (
-    <div className="flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs">
-      <span className="text-xs font-semibold text-foreground whitespace-nowrap">Aprovação:</span>
-      <Badge variant={variant as any} className="gap-1 text-[10px]">
-        <Icon className="h-3 w-3" /> {approval.statusLabel}
+    <div className="flex min-h-10 w-full min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+      <span className="shrink-0 text-xs font-semibold text-foreground">Aprovação:</span>
+      <Badge variant={variant as any} className="min-w-0 gap-1 text-[10px]">
+        <Icon className="h-3 w-3 shrink-0" /> <span className="min-w-0 break-words">{approval.statusLabel}</span>
       </Badge>
       {!approval.requiresApproval ? null : status === "approved" ? null : (
         <>
           <Button
             size="sm" variant="outline"
-            className="h-7 gap-1 text-[11px]"
+            className="h-7 shrink-0 gap-1 text-[11px]"
             disabled={submitting || !canRequest}
             title={!canRequest ? (disabledReason ?? "Indisponível") : "Solicitar aprovação"}
             onClick={handleRequest}
@@ -64,7 +64,7 @@ export default function ApprovalBadge({ approval, canRequest, disabledReason }: 
         </>
       )}
       {approval.request && (
-        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setHistory(true)} title="Histórico">
+        <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => setHistory(true)} title="Histórico">
           <History className="h-3.5 w-3.5" />
         </Button>
       )}
