@@ -661,7 +661,7 @@ export default function SmartTiersPanel() {
         </div>
         <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2 md:items-stretch [&>*]:min-w-0 [&>*>div]:w-full [&>*>div]:justify-center">
           <div
-            className="flex min-h-10 w-full min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs"
+            className="flex h-10 w-full min-w-0 items-center justify-center gap-x-2 overflow-hidden rounded-lg border border-primary/30 bg-primary/5 px-3 py-0 text-xs"
             title="Rentabilidade aplicada"
           >
             <Label htmlFor="tiers-rent" className="m-0 shrink-0 text-xs font-semibold text-foreground">
