@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { formatBRL, formatNumber, computeITSMResults, type ITSMState, type ITSMResults } from "@/hooks/useITSMCalculator";
 import { computeExtrasOperacionais, recomputeComposicaoComExtras } from "@/lib/extrasOperacionais";
 import { SMART_ITO_NS } from "@/lib/offerings";
@@ -46,6 +47,12 @@ export default function ResumoCotacao() {
   const { can } = useAuth();
   const isSaved = !!activePreset.activeId;
   const canExport = can("pricing.export_pdf");
+  const approval = usePricingApproval({
+    offering: "smart-ito",
+    targetType: "pricing_preset",
+    targetId: activePreset.activeId ?? null,
+    rentPct: Number(state.lucroPerc ?? 0),
+  });
 
   const [snapshot, setSnapshot] = useState<PresetSnapshot | null>(null);
 
@@ -431,6 +438,24 @@ export default function ResumoCotacao() {
       pdf.addPage();
       pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
       heightLeft -= pdfHeight;
+    }
+    if (approval.watermark) {
+      const totalPages = pdf.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        pdf.setPage(p);
+        const gs = (pdf as any).GState ? new (pdf as any).GState({ opacity: 0.15 }) : null;
+        if (gs) (pdf as any).setGState(gs);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(72);
+        pdf.setTextColor(192, 57, 43);
+        pdf.text(approval.watermark, pdfWidth / 2, pdfHeight / 2, {
+          align: "center", baseline: "middle", angle: 30,
+        } as any);
+        if (gs) {
+          const gsReset = new (pdf as any).GState({ opacity: 1 });
+          (pdf as any).setGState(gsReset);
+        }
+      }
     }
     const code = commercial?.quote_code || "resumo-cotacao";
     pdf.save(`${code}-${new Date().toISOString().slice(0, 10)}.pdf`);

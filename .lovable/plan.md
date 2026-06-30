@@ -1,76 +1,83 @@
+# Fluxo de Aprovação de Precificações por Rentabilidade
 
-## Objetivo
+## Visão Geral
+Mecanismo de aprovação atrelado à **rentabilidade** da precificação salva. Faixas configuráveis por calculadora (offering), aprovação por **link em e-mail** (sem login), e marca d'água **"PENDENTE APROVAÇÃO"** nos relatórios exportados (PPTX e PDF) enquanto não houver aprovação completa.
 
-Quebrar o bloco "Horas Técnicas" (sobra do pool N3) em duas faixas: **Horas de Melhoria** (nova) e **Horas Técnicas** (resíduo). Sem alterar o total contratado nem o preço — apenas redistribuição visual e analítica.
+---
 
-## Regras de alocação (prioridade)
+## 1. Faixas de aprovação (configuráveis no Admin)
 
-- **Operation:** Chamados → Rotinas → **Horas de Melhoria** → Horas Técnicas (resíduo).
-- **Performance:** Chamados → Rotinas → TAM → Owner → **Horas de Melhoria** → Horas Técnicas (resíduo).
+Defaults:
+- `> 15%` → sem aprovação (especialista livre).
+- `entre 10% e 15%` → 1 aprovador: **Gestor Comercial**.
+- `< 10%` → 2 aprovadores em paralelo: **Diretor da BU** + **Diretor de Crescimento**.
 
-O slider novo controla **quanto da sobra após as faixas obrigatórias** vira "Melhoria". O que ainda restar permanece como "Horas Técnicas". Se não houver sobra, ambas ficam em 0 (alerta de estouro continua nas mesmas condições atuais).
+Em **Administração → Aprovações de Precificação**:
+- CRUD de faixas (min%, max%, papéis exigidos, modo: `qualquer` / `todos`).
+- CRUD de papéis (Gestor Comercial, Diretor BU, Diretor de Crescimento, etc.).
+- Atribuição de pessoas aos papéis.
+- Configuração **por calculadora (offering)** — começamos por Smart ITO; as demais reutilizam.
 
-## Estado e persistência
+## 2. Botão e status no painel de Rentabilidade (Smart ITO)
 
-Dois novos sliders persistidos via `usePersistentState` (não entram no `ITSMContext`/cálculo de custo — são apenas visualizações da distribuição):
+Ao lado do quadro de Rentabilidade no `SmartTiersPanel`:
+- Badge: **Não enviado / Pendente (n/N) / Aprovado / Rejeitado / Liberado (>15%)**.
+- Botão **"Solicitar aprovação"** habilitado quando a precificação foi salva e a rentabilidade exige aprovação.
+- Link "Histórico" com aprovadores, decisões, datas e comentários.
 
-- `gestao-ti:smartOp:horasMelhoria` (horas absolutas, 0..sobraOperation)
-- `gestao-ti:smartPerf:horasMelhoria` (horas absolutas, 0..sobraPerformance)
+## 3. E-mail de aprovação (Lovable Emails)
 
-Clamp automático quando a sobra cai (`useEffect` ajustando o valor para `min(atual, sobra)`), garantindo que o slider nunca trave em valor inválido.
+Para cada aprovador requerido:
+- Resumo da proposição (cliente, oferta, preço, custo, rentabilidade, validade) — derivado do Resumo de Cotação.
+- Botões **APROVAR** e **REJEITAR** com token único por aprovador (sem login).
+- Edge function pública valida token, grava decisão, recalcula status agregado (modo "todos" / "qualquer") e notifica o solicitante.
 
-## UI — `src/components/itsm/SmartTiersPanel.tsx`
+## 4. Marca d'água nos relatórios exportados (PPTX e PDF)
 
-### Operation (linha de quadros atual: 3 cards em uma linha)
-Reorganizar em **grid 2x2** (Chamados/Rotinas na primeira linha; Melhoria/Técnicas na segunda).
-Adicionar slider "Horas de Melhoria" abaixo dos quadros, com max = sobra disponível.
-Barra horizontal segmentada passa a ter 4 segmentos coloridos.
+Enquanto a precificação estiver **pendente** ou **rejeitada** e exigir aprovação:
+- **PPTX** (`exportarApresentacao.ts` e `exportarApresentacaoModelo2.ts`): em **cada slide**, adicionar um shape de texto rotacionado ~-30°, centralizado, fonte grande (~120pt), cor cinza com transparência, conteúdo **"PENDENTE APROVAÇÃO"**, posicionado por cima do conteúdo.
+- **PDF** (Resumo de Cotação e demais relatórios em PDF): renderizar texto diagonal **"PENDENTE APROVAÇÃO"** no centro de cada página, semitransparente. Implementação:
+  - Se for export via `window.print()`/HTML→PDF: CSS `@media print` com pseudo-elemento fixo (`position: fixed`, `transform: rotate(-30deg)`, `opacity: .15`, repetido em cada página via `@page`).
+  - Se for PDF gerado por biblioteca (jsPDF/pdf-lib): após escrever cada página, desenhar string rotacionada no centro com opacidade reduzida.
+- **TXT de proposta**: cabeçalho `*** PENDENTE APROVAÇÃO ***`.
+- Marca d'água sai automaticamente quando o status vira **Aprovado** ou quando rentabilidade > 15%.
 
-### Performance (linha atual: 5 quadros)
-Reorganizar em **grid 3x2** (Chamados/Rotinas/TAM em cima; Owner/Melhoria/Técnicas embaixo).
-Manter os sliders TAM e Owner lado a lado (como hoje) e adicionar o slider "Horas de Melhoria" ao lado, em coluna própria — três sliders em grid 3 colunas.
-Barra segmentada com 6 cores.
+Todas as funções de export passam a receber uma flag `watermark?: string` derivada do status da aprovação. A camada de UI que dispara o export consulta `usePricingApproval` e injeta `"PENDENTE APROVAÇÃO"` quando aplicável.
 
-### Robustez de interação
-- Sliders usam `value={[clamp(min,max,val)]}` e `onValueChange` único.
-- Quando `max` muda dinamicamente, `useEffect` re-clampa o estado uma única vez.
-- Evitar re-render loops: sliders ficam controlados, sem `defaultValue`.
+## 5. Escopo desta entrega
 
-## Cálculo — `src/hooks/useITSMCalculator.ts`
+- Smart ITO ponta a ponta (UI + backend + e-mail + marca d'água em PPTX e PDF).
+- Estrutura genérica por `offering`, reutilizável pelas demais calculadoras.
+- Admin já preparado para múltiplas calculadoras.
 
-Adicionar ao retorno do hook campos derivados (sem alterar preço):
+---
 
-```
-n3Distribuicao: {
-  chamados, rotinas, tam, owner, melhoria, tecnicas, total
-}
-```
+## Detalhes técnicos
 
-Calculado a partir de `horasN3Mensais`, `horasAtendimentoN3`, rotinas N3 (já existentes no painel — mover lógica do panel para o hook), e os percentuais TAM/Owner + horas de Melhoria lidas via parâmetros recebidos por novo argumento opcional do hook **ou** via leitura direta de localStorage no Resumo/PPT (preferimos novo argumento: `useITSMCalculator({ horasMelhoriaOp, horasMelhoriaPerf, pctTam, pctOwner })`).
+### Backend (Lovable Cloud)
+Novas tabelas (com `GRANT` + RLS):
+- `approval_roles` (slug, label).
+- `approval_role_members` (role_id, user_id).
+- `approval_tiers` (offering, min_pct, max_pct, mode `any|all`, ativo).
+- `approval_tier_roles` (tier_id, role_id).
+- `approval_requests` (cotacao_id, offering, rentabilidade_pct, tier_id, status `pending|approved|rejected|not_required`, requester_id, timestamps).
+- `approval_decisions` (request_id, role_id, approver_user_id, token_hash, decision, decided_at, comment).
 
-Como o cálculo de rotinas N3 hoje vive só no `SmartTiersPanel`, manteremos a derivação **lá** e exporemos via `ITSMContext` um helper read-only `n3Breakdown` (objeto memoizado) consumido pelos relatórios e PPT.
+RLS: admins gerenciam configuração; solicitante vê seus pedidos; aprovadores veem pedidos atribuídos; edge function usa service role para validar tokens.
 
-## Relatório — `src/pages/ResumoCotacao.tsx`
+### Edge functions
+- `request-pricing-approval` — calcula faixa, cria request + decisions com tokens únicos, dispara e-mails via `send-transactional-email`.
+- `decide-pricing-approval` — endpoint público com `?token=…&action=approve|reject`, grava decisão, recalcula status e notifica solicitante.
+- Templates: `pricing-approval-request` e `pricing-approval-result`.
+- Pré-requisitos de e-mail (`setup_email_infra` + domínio) tratados na execução.
 
-Bloco "Distribuição das Horas N3" (linhas 583–...) já só aparece com Performance. Acrescentar:
+### Frontend
+- `src/components/itsm/SmartTiersPanel.tsx`: badge + botão; hook `usePricingApproval(cotacaoId, offering, rentabilidadePct)`.
+- `src/lib/exportarApresentacao.ts`, `exportarApresentacaoModelo2.ts`: aceitar `watermark?: string`, desenhar shape diagonal em cada slide.
+- Export de PDF (Resumo de Cotação e demais): aplicar marca d'água diagonal centralizada em cada página (CSS `@media print` para HTML→PDF; chamada por página para PDF programático).
+- `src/lib/profissionais/exportProposta.ts`: cabeçalho de marca d'água no TXT.
+- Página `src/pages/admin/AprovacoesPrecificacao.tsx` com CRUD de papéis, membros e faixas por calculadora; entrada no menu Admin.
+- Rota pública `/aprovacao/:token` mostrando resultado (aprovado / rejeitado / inválido / já decidido).
 
-- Operation: bloco análogo com 4 segmentos (Chamados/Rotinas/Melhoria/Técnicas), exibido quando `tierOperation && !tierPerformance && horasN3 > 0`.
-- Performance: substituir "Livre" pela dupla "Melhoria + Técnicas" (6 segmentos).
-
-Sem mudança em colunas ou totais — apenas a faixa de detalhamento abaixo.
-
-## PPTs — `src/lib/exportarApresentacao.ts` e `exportarApresentacaoModelo2.ts`
-
-Localizar slides que descrevem a distribuição de N3 (procurar por `TAM`, `Owner`, `Livre`, `Horas Técnicas`) e substituir "Livre/Horas Técnicas" por duas linhas: "Horas de Melhoria" e "Horas Técnicas", com as horas correspondentes. Mesmo comportamento condicional por camada.
-
-## Garantias
-
-- Total contratado (`horasN3Mensais`) inalterado.
-- Custos, preço de venda, composição financeira inalterados (Melhoria/Técnicas são apenas particionamento do resíduo já contabilizado).
-- Mensagem de estouro continua quando soma das faixas obrigatórias > total.
-
-## Verificação
-
-1. Build/typecheck automático.
-2. Inspecionar `ResumoCotacao` na rota `/ito` com Operation e com Performance ativos para conferir distribuição.
-3. Conferir totais idênticos antes/depois (preço mensal não muda).
+### Não incluso nesta entrega
+- Fiação visual nas demais calculadoras (Profissionais, Field Service) — estrutura suporta, virá em entregas seguintes.

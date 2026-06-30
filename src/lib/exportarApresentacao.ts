@@ -84,6 +84,8 @@ export interface ApresentacaoPayload {
   presetName?: string;
   /** Timestamp (ms) da exportação. Exibido no slide de fechamento. */
   exportedAt?: number;
+  /** Texto da marca d'água diagonal (ex.: "PENDENTE APROVAÇÃO"). Quando definido, aplica em todos os slides. */
+  watermark?: string;
 }
 
 /* Paleta hightech verde */
@@ -1133,5 +1135,23 @@ export async function exportarApresentacao(data: ApresentacaoPayload) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")}-${new Date().toISOString().slice(0, 10)}.pptx`;
+  if (data.watermark) applyWatermarkAllSlides(pptx, data.watermark);
   await pptx.writeFile({ fileName });
+}
+
+/**
+ * Aplica uma marca d'água diagonal em todos os slides já adicionados.
+ * Usa a API interna do pptxgenjs (`pptx.slides`) — confirmada estável em 3.x.
+ */
+function applyWatermarkAllSlides(pptx: any, text: string) {
+  const slides: any[] = pptx.slides ?? [];
+  slides.forEach((slide) => {
+    slide.addText(text, {
+      x: 0, y: 1.8, w: 10, h: 2,
+      align: "center", valign: "middle",
+      fontFace: "Arial", fontSize: 80, bold: true,
+      color: "C0392B", transparency: 70,
+      rotate: -30,
+    });
+  });
 }

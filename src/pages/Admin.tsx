@@ -187,6 +187,9 @@ export default function Admin() {
               <TabsTrigger value="users">Usuários</TabsTrigger>
               <TabsTrigger value="roles">Perfis e Permissões</TabsTrigger>
               <TabsTrigger value="defaults">Parâmetros padrão</TabsTrigger>
+              <TabsTrigger value="approvals" asChild>
+                <Link to="/admin/aprovacoes">Aprovações</Link>
+              </TabsTrigger>
               <TabsTrigger value="trash">Lixeira</TabsTrigger>
             </TabsList>
             <TabsContent value="users">
