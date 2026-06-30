@@ -7,6 +7,8 @@ import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trop
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { usePricingApproval } from "@/hooks/usePricingApproval";
+import ApprovalBadge from "@/components/approval/ApprovalBadge";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
 import { usePersistentState } from "@/hooks/usePersistentState";
@@ -139,7 +141,13 @@ const TIERS: {
 ];
 
 export default function SmartTiersPanel() {
-  const { results, state, update } = useITSMContext();
+  const { results, state, update, activePreset } = useITSMContext();
+  const approval = usePricingApproval({
+    offering: "smart-ito",
+    targetType: "pricing_preset",
+    targetId: activePreset.activeId ?? null,
+    rentPct: Number(state.lucroPerc ?? 0),
+  });
   const sm = results.smartMonitor;
   const sfl = results.smartFlow;
   const totalEncargosPerc =
@@ -677,6 +685,11 @@ export default function SmartTiersPanel() {
                 Comissão: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
               </span>
             </div>
+            <ApprovalBadge
+              approval={approval}
+              canRequest={!!activePreset.activeId}
+              disabledReason={!activePreset.activeId ? "Salve a precificação primeiro" : undefined}
+            />
           </div>
         </div>
       </CardHeader>

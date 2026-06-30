@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +84,12 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 export default function Detalhamento() {
   const { state, results, activePreset } = useITSMContext();
   const isSavedPricing = !!activePreset.activeId;
+  const approval = usePricingApproval({
+    offering: "smart-ito",
+    targetType: "pricing_preset",
+    targetId: activePreset.activeId ?? null,
+    rentPct: Number(state.lucroPerc ?? 0),
+  });
   const exportDisabledReason = isSavedPricing
     ? undefined
     : "Salve a precificação para habilitar a exportação";
@@ -989,6 +996,7 @@ export default function Detalhamento() {
       investimentoTotal: investimentoTotal,
       presetName: activePreset.name ?? undefined,
       exportedAt: Date.now(),
+      watermark: approval.watermark ?? undefined,
     };
     return payload;
   };

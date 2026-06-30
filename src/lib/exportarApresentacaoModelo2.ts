@@ -1287,5 +1287,17 @@ export async function exportarApresentacaoModelo2(data: ApresentacaoPayload) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")}-${new Date().toISOString().slice(0, 10)}.pptx`;
+  if (data.watermark) {
+    const slides: any[] = (pptx as any).slides ?? [];
+    slides.forEach((slide) => {
+      slide.addText(data.watermark!, {
+        x: 0, y: 2.5, w: 13.333, h: 2.5,
+        align: "center", valign: "middle",
+        fontFace: FONT, fontSize: 100, bold: true,
+        color: "F87171", transparency: 65,
+        rotate: -30,
+      });
+    });
+  }
   await pptx.writeFile({ fileName });
 }

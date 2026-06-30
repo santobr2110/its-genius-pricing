@@ -111,6 +111,248 @@ export type Database = {
         }
         Relationships: []
       }
+      approval_decisions: {
+        Row: {
+          approver_email: string
+          approver_user_id: string
+          comment: string | null
+          created_at: string
+          decided_at: string | null
+          decision: string
+          id: string
+          request_id: string
+          role_id: string
+          token_hash: string
+        }
+        Insert: {
+          approver_email: string
+          approver_user_id: string
+          comment?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decision?: string
+          id?: string
+          request_id: string
+          role_id: string
+          token_hash: string
+        }
+        Update: {
+          approver_email?: string
+          approver_user_id?: string
+          comment?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decision?: string
+          id?: string
+          request_id?: string
+          role_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_decisions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "approval_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_decisions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "approval_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_requests: {
+        Row: {
+          cotacao_id: string | null
+          created_at: string
+          decided_at: string | null
+          id: string
+          offering: string
+          rentabilidade_pct: number
+          requester_id: string
+          status: string
+          summary: Json | null
+          target_id: string
+          target_type: string
+          tier_id: string | null
+        }
+        Insert: {
+          cotacao_id?: string | null
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          offering: string
+          rentabilidade_pct: number
+          requester_id: string
+          status?: string
+          summary?: Json | null
+          target_id: string
+          target_type?: string
+          tier_id?: string | null
+        }
+        Update: {
+          cotacao_id?: string | null
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          offering?: string
+          rentabilidade_pct?: number
+          requester_id?: string
+          status?: string
+          summary?: Json | null
+          target_id?: string
+          target_type?: string
+          tier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_requests_cotacao_id_fkey"
+            columns: ["cotacao_id"]
+            isOneToOne: false
+            referencedRelation: "cotacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_requests_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "approval_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_role_members: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          role_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_role_members_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "approval_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_roles: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      approval_tier_roles: {
+        Row: {
+          id: string
+          role_id: string
+          tier_id: string
+        }
+        Insert: {
+          id?: string
+          role_id: string
+          tier_id: string
+        }
+        Update: {
+          id?: string
+          role_id?: string
+          tier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_tier_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "approval_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_tier_roles_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "approval_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_tiers: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          label: string
+          max_pct: number | null
+          min_pct: number | null
+          mode: string
+          offering: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          label: string
+          max_pct?: number | null
+          min_pct?: number | null
+          mode?: string
+          offering: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          label?: string
+          max_pct?: number | null
+          min_pct?: number | null
+          mode?: string
+          offering?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       base_conhecimento: {
         Row: {
           atualizado_em: string
