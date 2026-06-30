@@ -67,12 +67,12 @@ function AppliedProfilePill() {
   if (!info) return null;
   return (
     <div
-      className="flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs text-muted-foreground"
+      className="flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground"
       title="Perfil de parâmetros aplicado"
     >
       <Sliders className="h-3.5 w-3.5 shrink-0" />
-      <span className="whitespace-nowrap font-semibold text-foreground">Perfil:</span>
-      <span className="font-semibold text-foreground whitespace-nowrap">{info.name}</span>
+      <span className="shrink-0 font-semibold text-foreground">Perfil ativo:</span>
+      <span className="min-w-0 break-words font-semibold text-foreground">{info.name}</span>
     </div>
   );
 }
@@ -653,14 +653,18 @@ export default function SmartTiersPanel() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold mb-3">Camadas de Oferta</CardTitle>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-stretch [&>*]:min-w-0 [&>*>div]:w-full [&>*>div]:justify-center">
-          <AppliedProfilePill />
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(180px,auto)_minmax(0,1fr)] lg:items-center">
+          <CardTitle className="text-sm font-semibold">Camadas de Oferta</CardTitle>
+          <div className="min-w-0">
+            <AppliedProfilePill />
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2 md:items-stretch [&>*]:min-w-0 [&>*>div]:w-full [&>*>div]:justify-center">
           <div
-            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs"
+            className="flex min-h-10 w-full min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs"
             title="Rentabilidade aplicada"
           >
-            <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap m-0">
+            <Label htmlFor="tiers-rent" className="m-0 shrink-0 text-xs font-semibold text-foreground">
               Rentabilidade:
             </Label>
             <Input
@@ -671,10 +675,10 @@ export default function SmartTiersPanel() {
               max={100}
               value={state.lucroPerc ?? 0}
               onChange={(e) => update("lucroPerc", parseFloat(e.target.value) || 0)}
-              className="h-6 w-16 text-right tabular-nums text-xs px-2"
+              className="h-6 w-16 shrink-0 px-2 text-right text-xs tabular-nums"
             />
-            <span className="font-semibold text-foreground">%</span>
-            <span className="text-muted-foreground whitespace-nowrap pl-2 ml-1 border-l border-border/60">
+            <span className="shrink-0 font-semibold text-foreground">%</span>
+            <span className="min-w-0 break-words border-l border-border/60 pl-2 text-muted-foreground">
               Com.: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
             </span>
           </div>
