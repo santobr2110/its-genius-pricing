@@ -653,15 +653,9 @@ export default function SmartTiersPanel() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 items-stretch">
-          <div className="flex h-10 items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs">
-            <CardTitle className="text-xs font-semibold text-foreground whitespace-nowrap m-0">
-              Camadas de Oferta
-            </CardTitle>
-          </div>
-          <div className="[&>div]:w-full [&>div]:justify-center">
-            <AppliedProfilePill />
-          </div>
+        <CardTitle className="text-sm font-semibold mb-3">Camadas de Oferta</CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-stretch [&>*]:min-w-0 [&>*>div]:w-full [&>*>div]:justify-center">
+          <AppliedProfilePill />
           <div
             className="flex h-10 items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs"
             title="Rentabilidade aplicada"
@@ -684,13 +678,11 @@ export default function SmartTiersPanel() {
               Com.: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
             </span>
           </div>
-          <div className="[&>div]:w-full [&>div]:justify-center">
-            <ApprovalBadge
-              approval={approval}
-              canRequest={!!activePreset.activeId}
-              disabledReason={!activePreset.activeId ? "Salve a precificação primeiro" : undefined}
-            />
-          </div>
+          <ApprovalBadge
+            approval={approval}
+            canRequest={!!activePreset.activeId}
+            disabledReason={!activePreset.activeId ? "Salve a precificação primeiro" : undefined}
+          />
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
