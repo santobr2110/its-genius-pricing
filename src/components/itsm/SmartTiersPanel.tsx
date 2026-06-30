@@ -195,6 +195,56 @@ export default function SmartTiersPanel() {
     0,
   );
 
+  // Quando uma camada é ativada, garante que os campos controlados por slider
+  // partam imediatamente do valor mínimo configurado (em vez de permanecerem
+  // em 0 — o que faz o cálculo ignorar o mínimo até o usuário mover o slider).
+  useEffect(() => {
+    if (!state.tierMonitor) return;
+    if ((state.horasN3MonitorManut || 0) < (state.horasN3MonitorManutMin || 0)) {
+      update("horasN3MonitorManut", state.horasN3MonitorManutMin as any);
+    }
+    if ((state.horasN3Monitor || 0) < (state.horasN3MonitorMin || 0)) {
+      update("horasN3Monitor", state.horasN3MonitorMin as any);
+    }
+    if ((state.qtdProxysMonitor || 0) < 1) {
+      update("qtdProxysMonitor", 1 as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.tierMonitor, state.horasN3MonitorManutMin, state.horasN3MonitorMin]);
+
+  useEffect(() => {
+    if (!state.tierFlow) return;
+    if ((state.horasN3FlowManut || 0) < (state.horasN3FlowManutMin || 0)) {
+      update("horasN3FlowManut", state.horasN3FlowManutMin as any);
+    }
+    if ((state.horasN3Flow || 0) < (state.horasN3FlowMin || 0)) {
+      update("horasN3Flow", state.horasN3FlowMin as any);
+    }
+    if ((state.qtdAtendentesFlow || 0) < (state.qtdAtendentesFlowMin || 0)) {
+      update("qtdAtendentesFlow", state.qtdAtendentesFlowMin as any);
+    }
+    if ((state.qtdProxysFlow || 0) < 1) {
+      update("qtdProxysFlow", 1 as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.tierFlow, state.horasN3FlowManutMin, state.horasN3FlowMin, state.qtdAtendentesFlowMin]);
+
+  useEffect(() => {
+    if (!state.tierOperation || state.tierPerformance) return;
+    if ((state.horasN3Mensais || 0) < (state.horasN3OperationMin || 0)) {
+      update("horasN3Mensais", state.horasN3OperationMin as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.tierOperation, state.tierPerformance, state.horasN3OperationMin]);
+
+  useEffect(() => {
+    if (!state.tierPerformance) return;
+    if ((state.horasN3Mensais || 0) < (state.horasN3PerformanceMin || 0)) {
+      update("horasN3Mensais", state.horasN3PerformanceMin as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.tierPerformance, state.horasN3PerformanceMin]);
+
   const inv = {
     qtdUsuarios: state.qtdUsuarios,
     qtdEquipamentos: state.qtdEquipamentos,
