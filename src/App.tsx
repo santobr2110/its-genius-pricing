@@ -24,6 +24,8 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
 import SemAcesso from "./pages/SemAcesso";
 import Admin from "./pages/Admin";
+import AprovacoesAdmin from "./pages/admin/AprovacoesAdmin";
+import AprovacaoToken from "./pages/AprovacaoToken";
 import EmBreve from "./pages/EmBreve";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
@@ -69,6 +71,8 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/sem-acesso" element={<SemAcesso />} />
               <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
+              <Route path="/admin/aprovacoes" element={<ProtectedRoute requireAdmin><AprovacoesAdmin /></ProtectedRoute>} />
+              <Route path="/aprovacao/:token" element={<AprovacaoToken />} />
               <Route path="/" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
               <Route path="/ito" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.home"><Index /></ProtectedRoute>} />
               <Route path="/detalhamento" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.detalhamento"><Detalhamento /></ProtectedRoute>} />
