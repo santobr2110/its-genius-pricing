@@ -44,7 +44,7 @@ export default function ApprovalBadge({ approval, canRequest, disabledReason }: 
   };
 
   return (
-    <div className="flex min-h-10 w-full min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+    <div className="flex h-10 w-full min-w-0 items-center justify-center gap-x-2 overflow-hidden rounded-lg border border-primary/30 bg-primary/5 px-3 py-0 text-xs">
       <span className="shrink-0 text-xs font-semibold text-foreground">Aprovação:</span>
       <Badge variant={variant as any} className="min-w-0 gap-1 text-[10px]">
         <Icon className="h-3 w-3 shrink-0" /> <span className="min-w-0 break-words">{approval.statusLabel}</span>
