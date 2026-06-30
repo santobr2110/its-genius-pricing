@@ -653,38 +653,38 @@ export default function SmartTiersPanel() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div
-            className="flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs"
-          >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 items-stretch">
+          <div className="flex h-10 items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs">
             <CardTitle className="text-xs font-semibold text-foreground whitespace-nowrap m-0">
               Camadas de Oferta
             </CardTitle>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-end">
+          <div className="[&>div]:w-full [&>div]:justify-center">
             <AppliedProfilePill />
-            <div
-              className="flex h-10 items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs"
-              title="Rentabilidade aplicada"
-            >
-              <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap m-0">
-                Rentabilidade:
-              </Label>
-              <Input
-                id="tiers-rent"
-                type="number"
-                step={0.01}
-                min={0}
-                max={100}
-                value={state.lucroPerc ?? 0}
-                onChange={(e) => update("lucroPerc", parseFloat(e.target.value) || 0)}
-                className="h-6 w-16 text-right tabular-nums text-xs px-2"
-              />
-              <span className="font-semibold text-foreground">%</span>
-              <span className="text-muted-foreground whitespace-nowrap pl-2 ml-1 border-l border-border/60">
-                Comissão: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
-              </span>
-            </div>
+          </div>
+          <div
+            className="flex h-10 items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 text-xs"
+            title="Rentabilidade aplicada"
+          >
+            <Label htmlFor="tiers-rent" className="text-xs font-semibold text-foreground whitespace-nowrap m-0">
+              Rentabilidade:
+            </Label>
+            <Input
+              id="tiers-rent"
+              type="number"
+              step={0.01}
+              min={0}
+              max={100}
+              value={state.lucroPerc ?? 0}
+              onChange={(e) => update("lucroPerc", parseFloat(e.target.value) || 0)}
+              className="h-6 w-16 text-right tabular-nums text-xs px-2"
+            />
+            <span className="font-semibold text-foreground">%</span>
+            <span className="text-muted-foreground whitespace-nowrap pl-2 ml-1 border-l border-border/60">
+              Com.: <span className="font-semibold text-primary tabular-nums">{(state.comissaoPerc ?? 0).toFixed(2)}%</span>
+            </span>
+          </div>
+          <div className="[&>div]:w-full [&>div]:justify-center">
             <ApprovalBadge
               approval={approval}
               canRequest={!!activePreset.activeId}
