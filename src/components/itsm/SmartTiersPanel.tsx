@@ -142,12 +142,6 @@ const TIERS: {
 
 export default function SmartTiersPanel() {
   const { results, state, update, activePreset } = useITSMContext();
-  const approval = usePricingApproval({
-    offering: "smart-ito",
-    targetType: "pricing_preset",
-    targetId: activePreset.activeId ?? null,
-    rentPct: Number(state.lucroPerc ?? 0),
-  });
   const sm = results.smartMonitor;
   const sfl = results.smartFlow;
   const totalEncargosPerc =
