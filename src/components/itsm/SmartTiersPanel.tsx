@@ -30,6 +30,7 @@ import {
 import { GitBranch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Sliders } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   APPLIED_PROFILE_CHANGED_EVENT,
   fetchAppliedProfileFromDb,
