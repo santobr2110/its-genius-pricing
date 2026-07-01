@@ -119,6 +119,7 @@ export default function AprovacaoToken() {
                 <Field label="Investimento total" value={fmtBRL(summary.investimento_total)} />
                 <Field label="Prazo (meses)" value={summary.meses ?? "—"} />
                 <Field label="Rentabilidade" value={fmtPct(summary.rentabilidade_pct)} />
+                <Field label="Rentabilidade líquida (R$)" value={fmtBRL(summary.rentabilidade_valor)} />
                 <Field label="Comissão" value={fmtPct(summary.comissao_pct)} />
                 <Field label="Impostos" value={fmtPct(summary.impostos_pct)} />
               </div>
