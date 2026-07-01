@@ -718,6 +718,7 @@ export default function SmartTiersPanel() {
     preco_mensal: Number(totalSelecionado.toFixed(2)),
     custo_total: Number(custoTotalMensal.toFixed(2)),
     rentabilidade_pct: Number((state.lucroPerc ?? 0).toFixed(2)),
+    rentabilidade_valor: Number((totalSelecionado * ((state.lucroPerc ?? 0) / 100)).toFixed(2)),
     comissao_pct: Number((state.comissaoPerc ?? 0).toFixed(2)),
     impostos_pct: Number(((state.pisPerc || 0) + (state.cofinsPerc || 0) + (state.issPerc || 0) + (state.irpjCsllPerc || 0)).toFixed(2)),
     meses,
