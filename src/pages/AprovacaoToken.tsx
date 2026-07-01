@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,9 +63,21 @@ export default function AprovacaoToken() {
   const summary = (info?.request?.summary ?? {}) as Record<string, any>;
   const alreadyDecided = (info?.decision?.decision ?? "pending") !== "pending" || info?.alreadyResolved;
 
+  const fmtBRL = (v: unknown) =>
+    typeof v === "number"
+      ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 2 })
+      : String(v ?? "—");
+  const fmtPct = (v: unknown) => (typeof v === "number" ? `${v.toFixed(2)}%` : String(v ?? "—"));
+  const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
+    <div className="flex flex-col">
+      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
+      <span className="font-medium">{value ?? "—"}</span>
+    </div>
+  );
+
   return (
     <div className="min-h-screen grid place-items-center p-4 bg-muted/30">
-      <Card className="max-w-xl w-full">
+      <Card className="max-w-2xl w-full">
         <CardHeader>
           <CardTitle>Aprovação de Precificação</CardTitle>
         </CardHeader>
@@ -75,12 +87,45 @@ export default function AprovacaoToken() {
             <Badge>{Number(info?.request?.rentabilidade_pct ?? 0).toFixed(2)}% rentabilidade</Badge>
             <Badge variant="secondary">{info?.request?.status}</Badge>
           </div>
-          <div className="rounded border p-3 space-y-1">
-            {summary.cliente && <div><b>Cliente:</b> {String(summary.cliente)}</div>}
-            {summary.quote_code && <div><b>Código:</b> {String(summary.quote_code)}</div>}
-            {summary.preco_mensal != null && <div><b>Preço mensal:</b> {String(summary.preco_mensal)}</div>}
-            {summary.custo_total != null && <div><b>Custo total:</b> {String(summary.custo_total)}</div>}
-            {summary.observacoes && <div className="text-muted-foreground">{String(summary.observacoes)}</div>}
+          <div className="rounded border p-4 space-y-4">
+            <div>
+              <div className="text-xs font-semibold uppercase text-muted-foreground mb-2">Dados comerciais</div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Cliente" value={summary.cliente} />
+                <Field label="Nº da Cotação" value={summary.quote_code} />
+                <Field label="Salesforce" value={summary.salesforce_code} />
+                <Field label="Prazo do contrato" value={summary.contract_term} />
+                <Field label="Account Manager" value={summary.account_manager} />
+                <Field label="Especialista BU" value={summary.bu_specialist} />
+                <Field label="Arquiteto BU" value={summary.bu_architect} />
+                <Field label="Nome da precificação" value={summary.preset_name} />
+              </div>
+            </div>
+            {Array.isArray(summary.camadas_ativas) && summary.camadas_ativas.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold uppercase text-muted-foreground mb-2">Camadas contratadas</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {summary.camadas_ativas.map((c: string) => (
+                    <Badge key={c} variant="secondary">{c}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <div className="text-xs font-semibold uppercase text-muted-foreground mb-2">Financeiro</div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Preço mensal" value={fmtBRL(summary.preco_mensal)} />
+                <Field label="Custo mensal" value={fmtBRL(summary.custo_total)} />
+                <Field label="Investimento total" value={fmtBRL(summary.investimento_total)} />
+                <Field label="Prazo (meses)" value={summary.meses ?? "—"} />
+                <Field label="Rentabilidade" value={fmtPct(summary.rentabilidade_pct)} />
+                <Field label="Comissão" value={fmtPct(summary.comissao_pct)} />
+                <Field label="Impostos" value={fmtPct(summary.impostos_pct)} />
+              </div>
+            </div>
+            {summary.observacoes && (
+              <div className="text-muted-foreground text-xs border-t pt-2">{String(summary.observacoes)}</div>
+            )}
           </div>
           <div className="text-xs text-muted-foreground">Aprovador: {info?.decision?.approver_email}</div>
 

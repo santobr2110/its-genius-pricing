@@ -30,6 +30,7 @@ import {
 import { GitBranch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Sliders } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   APPLIED_PROFILE_CHANGED_EVENT,
   fetchAppliedProfileFromDb,
@@ -142,12 +143,6 @@ const TIERS: {
 
 export default function SmartTiersPanel() {
   const { results, state, update, activePreset } = useITSMContext();
-  const approval = usePricingApproval({
-    offering: "smart-ito",
-    targetType: "pricing_preset",
-    targetId: activePreset.activeId ?? null,
-    rentPct: Number(state.lucroPerc ?? 0),
-  });
   const sm = results.smartMonitor;
   const sfl = results.smartFlow;
   const totalEncargosPerc =
@@ -671,6 +666,71 @@ export default function SmartTiersPanel() {
     : 0;
   const totalSelecionado =
     (state.tierMonitor ? smTotalVenda : 0) + (state.tierFlow ? sflTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
+
+  // ===== Metadados comerciais (para incluir no e-mail/página de aprovação) =====
+  const [commercial, setCommercial] = useState<{
+    client_name: string | null; quote_code: string | null; salesforce_code: string | null;
+    account_manager: string | null; bu_specialist: string | null; bu_architect: string | null;
+    contract_term: string | null; name: string | null;
+  } | null>(null);
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      if (!activePreset.activeId) { setCommercial(null); return; }
+      const { data } = await supabase
+        .from("pricing_presets")
+        .select("name, client_name, quote_code, salesforce_code, account_manager, bu_specialist, bu_architect, contract_term")
+        .eq("id", activePreset.activeId)
+        .maybeSingle();
+      if (!cancel) setCommercial((data as any) ?? null);
+    })();
+    return () => { cancel = true; };
+  }, [activePreset.activeId]);
+
+  const meses = (() => {
+    const m = String(commercial?.contract_term ?? "").match(/(\d+)/);
+    return m ? Number(m[1]) : 12;
+  })();
+  const camadasAtivas = [
+    state.tierMonitor && !state.tierFlow ? "Smart Monitor" : null,
+    state.tierFlow ? "Smart Flow" : null,
+    state.tierOperation ? "Smart Operation" : null,
+    state.tierPerformance ? "Smart Performance" : null,
+    (results.fieldService?.total || 0) > 0 ? "Field Service" : null,
+  ].filter(Boolean) as string[];
+  const custoTotalMensal =
+    (state.tierMonitor ? (sm?.total || 0) : 0) +
+    (state.tierFlow ? (sfl?.total || 0) : 0) +
+    (state.tierOperation ? (results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3)) : 0) +
+    (state.tierPerformance ? results.custoN3 : 0);
+
+  const approvalSummary = useMemo(() => ({
+    cliente: commercial?.client_name ?? null,
+    quote_code: commercial?.quote_code ?? null,
+    salesforce_code: commercial?.salesforce_code ?? null,
+    account_manager: commercial?.account_manager ?? null,
+    bu_specialist: commercial?.bu_specialist ?? null,
+    bu_architect: commercial?.bu_architect ?? null,
+    contract_term: commercial?.contract_term ?? null,
+    preset_name: commercial?.name ?? null,
+    offering: "Smart ITO",
+    camadas_ativas: camadasAtivas,
+    preco_mensal: Number(totalSelecionado.toFixed(2)),
+    custo_total: Number(custoTotalMensal.toFixed(2)),
+    rentabilidade_pct: Number((state.lucroPerc ?? 0).toFixed(2)),
+    comissao_pct: Number((state.comissaoPerc ?? 0).toFixed(2)),
+    impostos_pct: Number(((state.pisPerc || 0) + (state.cofinsPerc || 0) + (state.issPerc || 0) + (state.irpjCsllPerc || 0)).toFixed(2)),
+    meses,
+    investimento_total: Number((totalSelecionado * meses).toFixed(2)),
+  }), [commercial, camadasAtivas.join("|"), totalSelecionado, custoTotalMensal, state.lucroPerc, state.comissaoPerc, state.pisPerc, state.cofinsPerc, state.issPerc, state.irpjCsllPerc, meses]);
+
+  const approval = usePricingApproval({
+    offering: "smart-ito",
+    targetType: "pricing_preset",
+    targetId: activePreset.activeId ?? null,
+    rentPct: Number(state.lucroPerc ?? 0),
+    summary: approvalSummary,
+  });
 
   // Camada mais alta ativa = dominante visual nos quadros de composição
   const dominantTier =
