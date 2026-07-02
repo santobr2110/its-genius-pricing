@@ -936,6 +936,8 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_approval_approver: { Args: { _request_id: string }; Returns: boolean }
+      is_approval_requester: { Args: { _request_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
