@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
-import { Inbox, LogOut, Shield, UserCircle2 } from "lucide-react";
+import { Inbox, LogOut, Send, Shield, UserCircle2 } from "lucide-react";
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -49,6 +49,9 @@ export default function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate("/aprovacoes/minhas")} className="gap-2 text-sm">
           <Inbox className="h-4 w-4" /> Minhas Aprovações
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/solicitacoes/minhas")} className="gap-2 text-sm">
+          <Send className="h-4 w-4" /> Minhas Solicitações
         </DropdownMenuItem>
         {isAdmin && (
           <DropdownMenuItem onClick={() => navigate("/admin")} className="gap-2 text-sm">
