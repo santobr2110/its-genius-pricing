@@ -109,26 +109,52 @@ Deno.serve(async (req) => {
     const { error: decErr } = await admin.from('approval_decisions').insert(decisionsToInsert)
     if (decErr) return json({ error: decErr.message }, 500)
 
-    // Best-effort email send via send-transactional-email (no-op if not deployed)
+    // Send approval emails via Resend
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+    const FROM = 'Smart ITO <noreply@notify.selbetti.com.br>'
     let emailSent = false
-    try {
-      const senderRes = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SERVICE}` },
-        body: JSON.stringify({
-          template: 'pricing-approval-request',
-          batch: tokens.map((t) => ({
-            to: t.email,
-            data: { approverName: t.full_name ?? '', role: t.role, url: t.url, summary: summary ?? {} },
-          })),
-        }),
-      })
-      emailSent = senderRes.ok
-    } catch {
-      emailSent = false
+    const emailErrors: string[] = []
+    if (RESEND_API_KEY) {
+      const results = await Promise.all(tokens.map(async (t) => {
+        try {
+          const html = renderApprovalEmail({
+            approverName: t.full_name ?? '',
+            role: t.role,
+            url: t.url,
+            offering,
+            rentPct,
+            summary: summary ?? {},
+          })
+          const r = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+              from: FROM,
+              to: [t.email],
+              subject: `Aprovação de precificação — ${offering} (${rentPct.toFixed(2)}%)`,
+              html,
+            }),
+          })
+          if (!r.ok) {
+            const txt = await r.text().catch(() => '')
+            emailErrors.push(`${t.email}: ${r.status} ${txt}`)
+            return false
+          }
+          return true
+        } catch (e) {
+          emailErrors.push(`${t.email}: ${(e as Error).message}`)
+          return false
+        }
+      }))
+      emailSent = results.some(Boolean)
+    } else {
+      emailErrors.push('RESEND_API_KEY not configured')
     }
 
-    return json({ ok: true, requestId, approvalLinks: tokens, emailSent })
+    return json({ ok: true, requestId, approvalLinks: tokens, emailSent, emailErrors })
   } catch (e) {
     return json({ error: (e as Error).message }, 500)
   }
@@ -136,4 +162,37 @@ Deno.serve(async (req) => {
 
 function json(b: unknown, status = 200) {
   return new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+}
+
+function esc(s: unknown): string {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c] as string))
+}
+
+function fmtBRL(n: unknown): string {
+  const v = Number(n)
+  if (!Number.isFinite(v)) return '—'
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+function renderApprovalEmail(p: {
+  approverName: string; role: string; url: string; offering: string; rentPct: number; summary: any
+}): string {
+  const s = p.summary ?? {}
+  const rows: [string, string][] = []
+  if (s.cliente) rows.push(['Cliente', esc(s.cliente)])
+  if (s.numero_cotacao) rows.push(['Nº da Cotação', esc(s.numero_cotacao)])
+  if (s.preco_mensal != null) rows.push(['Preço mensal', esc(fmtBRL(s.preco_mensal))])
+  if (s.rentabilidade_valor != null) rows.push(['Rentabilidade líquida', esc(fmtBRL(s.rentabilidade_valor))])
+  rows.push(['Rentabilidade', `${p.rentPct.toFixed(2)}%`])
+  const tableRows = rows.map(([k, v]) =>
+    `<tr><td style="padding:6px 10px;color:#64748b;font-size:13px">${k}</td><td style="padding:6px 10px;font-size:13px;color:#0f172a"><strong>${v}</strong></td></tr>`
+  ).join('')
+  return `<!doctype html><html><body style="font-family:Helvetica,Arial,sans-serif;background:#ffffff;margin:0;padding:24px;color:#0f172a">
+    <div style="max-width:560px;margin:0 auto">
+      <h2 style="margin:0 0 8px">Aprovação de precificação</h2>
+      <p style="margin:0 0 16px;color:#475569">Olá${p.approverName ? ' ' + esc(p.approverName) : ''}, você foi indicado como <strong>${esc(p.role)}</strong> para aprovar a seguinte precificação (${esc(p.offering)}).</p>
+      <table style="width:100%;border-collapse:collapse;background:#f8fafc;border-radius:8px;margin:0 0 20px">${tableRows}</table>
+      <p style="margin:0 0 20px"><a href="${esc(p.url)}" style="display:inline-block;background:#0f172a;color:#ffffff;padding:12px 20px;border-radius:8px;text-decoration:none;font-size:14px">Abrir para revisar e decidir</a></p>
+      <p style="margin:0;color:#94a3b8;font-size:12px">Ou copie o link: ${esc(p.url)}</p>
+    </div></body></html>`
 }
