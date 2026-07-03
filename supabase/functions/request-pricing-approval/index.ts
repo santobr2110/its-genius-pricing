@@ -109,12 +109,12 @@ Deno.serve(async (req) => {
     const { error: decErr } = await admin.from('approval_decisions').insert(decisionsToInsert)
     if (decErr) return json({ error: decErr.message }, 500)
 
-    // Send approval emails via Resend
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-    const FROM = 'Smart ITO <noreply@notify.selbetti.com.br>'
+    // Send approval emails via Microsoft Outlook (connector gateway)
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY')
+    const OUTLOOK_API_KEY = Deno.env.get('MICROSOFT_OUTLOOK_API_KEY')
     let emailSent = false
     const emailErrors: string[] = []
-    if (RESEND_API_KEY) {
+    if (LOVABLE_API_KEY && OUTLOOK_API_KEY) {
       const results = await Promise.all(tokens.map(async (t) => {
         try {
           const html = renderApprovalEmail({
@@ -125,22 +125,25 @@ Deno.serve(async (req) => {
             rentPct,
             summary: summary ?? {},
           })
-          const r = await fetch('https://api.resend.com/emails', {
+          const r = await fetch('https://connector-gateway.lovable.dev/microsoft_outlook/me/sendMail', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${RESEND_API_KEY}`,
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              'X-Connection-Api-Key': OUTLOOK_API_KEY,
             },
             body: JSON.stringify({
-              from: FROM,
-              to: [t.email],
-              subject: `Aprovação de precificação — ${offering} (${rentPct.toFixed(2)}%)`,
-              html,
+              message: {
+                subject: `Aprovação de precificação — ${offering} (${rentPct.toFixed(2)}%)`,
+                body: { contentType: 'HTML', content: html },
+                toRecipients: [{ emailAddress: { address: t.email } }],
+              },
+              saveToSentItems: true,
             }),
           })
-          if (!r.ok) {
+          if (r.status !== 202 && !r.ok) {
             const txt = await r.text().catch(() => '')
-            emailErrors.push(`${t.email}: ${r.status} ${txt}`)
+            emailErrors.push(`${t.email}: ${r.status} ${txt.slice(0, 300)}`)
             return false
           }
           return true
@@ -151,7 +154,7 @@ Deno.serve(async (req) => {
       }))
       emailSent = results.some(Boolean)
     } else {
-      emailErrors.push('RESEND_API_KEY not configured')
+      emailErrors.push('Outlook connector not configured')
     }
 
     return json({ ok: true, requestId, approvalLinks: tokens, emailSent, emailErrors })
