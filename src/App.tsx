@@ -25,6 +25,7 @@ import AuthPage from "./pages/Auth";
 import SemAcesso from "./pages/SemAcesso";
 import Admin from "./pages/Admin";
 import AprovacoesAdmin from "./pages/admin/AprovacoesAdmin";
+import SolicitacoesAdmin from "./pages/admin/SolicitacoesAdmin";
 import AprovacaoToken from "./pages/AprovacaoToken";
 import MinhasAprovacoes from "./pages/MinhasAprovacoes";
 import MinhasSolicitacoes from "./pages/MinhasSolicitacoes";
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="/sem-acesso" element={<SemAcesso />} />
               <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
               <Route path="/admin/aprovacoes" element={<ProtectedRoute requireAdmin><AprovacoesAdmin /></ProtectedRoute>} />
+              <Route path="/admin/solicitacoes" element={<ProtectedRoute requireAdmin><SolicitacoesAdmin /></ProtectedRoute>} />
               <Route path="/aprovacao/:token" element={<AprovacaoToken />} />
               <Route path="/aprovacoes/minhas" element={<ProtectedRoute><MinhasAprovacoes /></ProtectedRoute>} />
               <Route path="/solicitacoes/minhas" element={<ProtectedRoute><MinhasSolicitacoes /></ProtectedRoute>} />
