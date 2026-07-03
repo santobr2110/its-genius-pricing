@@ -1,0 +1,1 @@
+CREATE POLICY "approval_requests_delete_admin" ON public.approval_requests FOR DELETE TO authenticated USING (public.is_admin(auth.uid()));

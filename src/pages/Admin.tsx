@@ -190,6 +190,9 @@ export default function Admin() {
               <TabsTrigger value="approvals" asChild>
                 <Link to="/admin/aprovacoes">Aprovações</Link>
               </TabsTrigger>
+              <TabsTrigger value="solicitacoes" asChild>
+                <Link to="/admin/solicitacoes">Solicitações</Link>
+              </TabsTrigger>
               <TabsTrigger value="trash">Lixeira</TabsTrigger>
             </TabsList>
             <TabsContent value="users">
