@@ -132,12 +132,9 @@ All colors MUST be HSL.
       linear-gradient(180deg, hsl(150 30% 8%) 0%, hsl(152 32% 11%) 100%);
   }
 
-  /* Modo Preto & Branco do relatório de Proposição (tela + PDF) */
+  /* Modo Preto & Branco do relatório de Proposição (tela + PDF): branco sólido, texto preto e bordas pretas. */
   .proposicao-printable.report-bw,
   .pdf-export-background.report-bw {
-    background-image: none !important;
-    background-color: #ffffff !important;
-    /* Tokens semânticos: apenas preto e branco puros */
     --background: 0 0% 100%;
     --foreground: 0 0% 0%;
     --card: 0 0% 100%;
@@ -151,84 +148,79 @@ All colors MUST be HSL.
     --muted: 0 0% 100%;
     --muted-foreground: 0 0% 0%;
     --accent: 0 0% 0%;
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 0 0% 0%;
     --border: 0 0% 0%;
     --input: 0 0% 100%;
     --ring: 0 0% 0%;
-    color: #000;
+    background: #ffffff !important;
+    color: #000000 !important;
   }
+
   .dark .proposicao-printable.report-bw,
   .dark .pdf-export-background.report-bw {
+    background: #ffffff !important;
+  }
+
+  .proposicao-printable.report-bw *,
+  .pdf-export-background.report-bw * {
     background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-color: #000000 !important;
+    opacity: 1 !important;
+    color: #000000 !important;
+  }
+
+  .proposicao-printable.report-bw [class*="bg-"],
+  .pdf-export-background.report-bw [class*="bg-"],
+  .dark .proposicao-printable.report-bw [class*="bg-"],
+  .dark .pdf-export-background.report-bw [class*="bg-"] {
     background-color: #ffffff !important;
   }
-  /* Neutraliza qualquer fundo colorido/degradê e força branco puro */
-  .proposicao-printable.report-bw .bg-card,
-  .proposicao-printable.report-bw [class*="bg-card"],
-  .dark .proposicao-printable.report-bw .bg-card,
-  .dark .proposicao-printable.report-bw [class*="bg-card"],
-  .proposicao-printable.report-bw [class*="bg-gradient"],
-  .proposicao-printable.report-bw [class*="bg-"][class*="/"],
-  .proposicao-printable.report-bw .bg-muted,
-  .proposicao-printable.report-bw .bg-secondary,
-  .proposicao-printable.report-bw .bg-accent,
-  .proposicao-printable.report-bw .bg-background {
-    background-image: none !important;
-    background-color: #ffffff !important;
-  }
-  /* Texto em gradient-clip vira preto sólido */
-  .proposicao-printable.report-bw .bg-clip-text.text-transparent {
+
+  .proposicao-printable.report-bw .bg-clip-text.text-transparent,
+  .pdf-export-background.report-bw .bg-clip-text.text-transparent {
     background: none !important;
-    background-image: none !important;
     -webkit-background-clip: border-box !important;
     background-clip: border-box !important;
-    -webkit-text-fill-color: #000 !important;
-    color: #000 !important;
-  }
-  /* Todo texto em preto puro; ícones herdam currentColor */
-  .proposicao-printable.report-bw,
-  .proposicao-printable.report-bw *:not(svg):not(path) {
+    -webkit-text-fill-color: #000000 !important;
     color: #000000 !important;
   }
-  .proposicao-printable.report-bw svg {
+
+  .proposicao-printable.report-bw svg,
+  .pdf-export-background.report-bw svg,
+  .proposicao-printable.report-bw svg *,
+  .pdf-export-background.report-bw svg * {
     color: #000000 !important;
-    fill: currentColor;
+    stroke: #000000 !important;
   }
-  /* Bordas sempre pretas para leitura em impressão */
-  .proposicao-printable.report-bw *,
-  .proposicao-printable.report-bw [class*="border"] {
-    border-color: #000000 !important;
-  }
-  /* Barras de progresso / preenchimentos: preto sólido */
-  .proposicao-printable.report-bw [class*="from-"],
-  .proposicao-printable.report-bw [class*="via-"],
-  .proposicao-printable.report-bw [class*="to-"] {
-    background-image: none !important;
-  }
-  /* Elementos com fundo preto (ex.: chips primary): texto branco para contraste */
-  .proposicao-printable.report-bw .bg-primary,
-  .proposicao-printable.report-bw .bg-primary *,
-  .proposicao-printable.report-bw [class*="bg-primary"],
-  .proposicao-printable.report-bw [class*="bg-primary"] * {
+
+  .proposicao-printable.report-bw [style*="width"][class*="bg-"],
+  .pdf-export-background.report-bw [style*="width"][class*="bg-"] {
     background-color: #000000 !important;
-    background-image: none !important;
     color: #ffffff !important;
   }
-  /* Caixas com gradiente colorido (ex.: ícones de camadas) — vira preto sólido */
-  .proposicao-printable.report-bw [class*="bg-gradient-to-"] {
-    background-color: #000000 !important;
-    background-image: none !important;
+
+  .proposicao-printable.report-bw [style*="width"][class*="bg-"] *,
+  .pdf-export-background.report-bw [style*="width"][class*="bg-"] * {
     color: #ffffff !important;
   }
-  .proposicao-printable.report-bw [class*="bg-gradient-to-"] * {
-    color: #ffffff !important;
+
+  .proposicao-printable.report-bw .report-kicker,
+  .pdf-export-background.report-bw .report-kicker {
+    min-width: 190px;
+    min-height: 24px;
+    justify-content: center;
+    line-height: 1.2;
   }
-  /* Garante que text-primary/text-accent renderize preto puro */
-  .proposicao-printable.report-bw .text-primary,
-  .proposicao-printable.report-bw .text-accent,
-  .proposicao-printable.report-bw [class*="text-primary"],
-  .proposicao-printable.report-bw [class*="text-accent"] {
+
+  .proposicao-printable.report-bw .report-kicker span,
+  .pdf-export-background.report-bw .report-kicker span {
     color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    font-size: 10px !important;
+    letter-spacing: 0 !important;
+    line-height: 1.2 !important;
   }
 }
 

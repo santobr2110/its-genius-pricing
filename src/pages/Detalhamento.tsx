@@ -189,100 +189,118 @@ export default function Detalhamento() {
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
 
-    // Constantes A4
     const A4_W = 210;
     const A4_H = 297;
     const MARGIN = 10;
     const CONTENT_W = A4_W - MARGIN * 2;
     const CONTENT_H = A4_H - MARGIN * 2;
-    const GAP = 3;
     const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-    const pageBg = bwMode ? "#ffffff" : "#0e1b14";
-
-    // Cada filho direto do main é uma "seção" que não deve ser cortada.
-    const sections = Array.from(el.children).filter(
-      (n): n is HTMLElement => n instanceof HTMLElement && n.offsetHeight > 0,
-    );
-    if (sections.length === 0) return;
+    const pageBg = bwMode ? "#ffffff" : getComputedStyle(el).backgroundColor || "#0e1b14";
 
     const onclone = (doc: Document) => {
       const printable = doc.getElementById("proposicao-printable");
       if (printable) {
         printable.classList.add("pdf-export-background");
         if (bwMode) printable.classList.add("report-bw");
+        printable.style.width = `${el.scrollWidth}px`;
+        printable.style.maxWidth = `${el.scrollWidth}px`;
       }
-      doc.querySelectorAll<HTMLElement>(".bg-clip-text.text-transparent").forEach((node) => {
-        node.style.background = "none";
-        node.style.backgroundImage = "none";
-        node.style.webkitBackgroundClip = "border-box";
-        node.style.backgroundClip = "border-box";
-        node.style.webkitTextFillColor = "";
-        node.style.color = bwMode ? "#000000" : "hsl(var(--primary))";
-      });
+      if (bwMode) {
+        doc.querySelectorAll<HTMLElement>(".text-transparent, .bg-clip-text").forEach((node) => {
+          node.classList.remove("text-transparent");
+          node.style.background = "none";
+          node.style.backgroundImage = "none";
+          node.style.webkitBackgroundClip = "border-box";
+          node.style.backgroundClip = "border-box";
+          node.style.webkitTextFillColor = "#000000";
+          node.style.color = "#000000";
+        });
+      }
     };
 
-    // Pinta o fundo da primeira página
-    pdf.setFillColor(pageBg);
-    pdf.rect(0, 0, A4_W, A4_H, "F");
-    let cursorY = MARGIN;
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: pageBg,
+      windowWidth: el.scrollWidth,
+      windowHeight: el.scrollHeight,
+      onclone,
+    });
 
-    const addPage = () => {
-      pdf.addPage();
+    const pxPerMm = canvas.width / CONTENT_W;
+    const pageHeightPx = Math.floor(CONTENT_H * pxPerMm);
+    const cssToCanvasY = canvas.height / el.scrollHeight;
+    const rootTop = el.getBoundingClientRect().top;
+    const candidateSelector = [
+      "#proposicao-printable > *",
+      "section",
+      "article",
+      "table",
+      "thead",
+      "tbody",
+      "tfoot",
+      "tr",
+      "li",
+      "[class*='rounded']",
+    ].join(",");
+    const breakPoints = Array.from(el.querySelectorAll<HTMLElement>(candidateSelector))
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        const height = rect.height;
+        if (height < 18) return null;
+        const y = Math.round((rect.bottom - rootTop) * cssToCanvasY);
+        return y > 0 && y < canvas.height ? y : null;
+      })
+      .filter((y): y is number => y !== null)
+      .sort((a, b) => a - b)
+      .filter((y, index, arr) => index === 0 || Math.abs(y - arr[index - 1]) > 8);
+
+    const chooseSliceEnd = (startPx: number) => {
+      const maxEnd = Math.min(canvas.height, startPx + pageHeightPx);
+      if (maxEnd >= canvas.height) return canvas.height;
+      const minEnd = startPx + pageHeightPx * 0.45;
+      const safeEnd = [...breakPoints]
+        .reverse()
+        .find((point) => point > startPx + 32 && point <= maxEnd - 12 && point >= minEnd);
+      return safeEnd ?? maxEnd;
+    };
+
+    const paintPage = () => {
       pdf.setFillColor(pageBg);
       pdf.rect(0, 0, A4_W, A4_H, "F");
-      cursorY = MARGIN;
     };
 
-    for (const section of sections) {
-      const canvas = await html2canvas(section, {
-        scale: 1.5,
-        useCORS: true,
-        backgroundColor: pageBg,
-        windowWidth: el.scrollWidth,
-        onclone,
-      });
-      const imgData = canvas.toDataURL("image/jpeg", 0.85);
-      const imgW = CONTENT_W;
-      const imgH = (canvas.height * imgW) / canvas.width;
+    let startPx = 0;
+    let pageIndex = 0;
+    while (startPx < canvas.height) {
+      if (pageIndex > 0) pdf.addPage();
+      paintPage();
 
-      // Se a seção couber inteira em uma página, coloca em uma única imagem
-      if (imgH <= CONTENT_H) {
-        if (cursorY + imgH > MARGIN + CONTENT_H && cursorY > MARGIN) addPage();
-        pdf.addImage(imgData, "JPEG", MARGIN, cursorY, imgW, imgH, undefined, "FAST");
-        cursorY += imgH + GAP;
-        continue;
-      }
-
-      // Seção maior que uma página: quebra por fatias, começando em página nova
-      if (cursorY > MARGIN) addPage();
-      let remaining = imgH;
-      let offset = 0;
-      while (remaining > 0) {
-        const sliceH = Math.min(CONTENT_H, remaining);
-        // desenha a imagem completa deslocada para cima e recorta pela página
-        pdf.addImage(
-          imgData,
-          "JPEG",
-          MARGIN,
-          MARGIN - offset,
-          imgW,
-          imgH,
-          undefined,
-          "FAST",
+      const endPx = chooseSliceEnd(startPx);
+      const sliceHeightPx = Math.max(1, endPx - startPx);
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceHeightPx;
+      const ctx = sliceCanvas.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = pageBg;
+        ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+        ctx.drawImage(
+          canvas,
+          0,
+          startPx,
+          canvas.width,
+          sliceHeightPx,
+          0,
+          0,
+          canvas.width,
+          sliceHeightPx,
         );
-        // máscara: cobre acima e abaixo da fatia usada
-        pdf.setFillColor(pageBg);
-        if (MARGIN - offset < MARGIN)
-          pdf.rect(0, 0, A4_W, MARGIN, "F");
-        pdf.rect(0, MARGIN + sliceH, A4_W, A4_H - (MARGIN + sliceH), "F");
-        pdf.rect(0, 0, MARGIN, A4_H, "F");
-        pdf.rect(A4_W - MARGIN, 0, MARGIN, A4_H, "F");
-
-        remaining -= sliceH;
-        offset += sliceH;
-        if (remaining > 0) addPage();
-        else cursorY = MARGIN + sliceH + GAP;
       }
+      const imgH = sliceHeightPx / pxPerMm;
+      pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", MARGIN, MARGIN, CONTENT_W, imgH, undefined, "FAST");
+      startPx = endPx;
+      pageIndex += 1;
     }
 
     pdf.save(`proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -1163,9 +1181,9 @@ export default function Detalhamento() {
         className={`proposicao-printable mx-auto max-w-5xl p-6 space-y-6 ${bwMode ? "report-bw" : ""}`}
       >
         <section className="text-center pt-2 pb-1">
-          <div className="inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
+          <div className="report-kicker inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">Proposta Comercial</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Proposta Comercial</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
             {dominantOffer ? dominantOffer.name : "Proposição de Smart ITO"}
