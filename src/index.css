@@ -214,6 +214,22 @@ All colors MUST be HSL.
     background-image: none !important;
     color: #ffffff !important;
   }
+  /* Caixas com gradiente colorido (ex.: ícones de camadas) — vira preto sólido */
+  .proposicao-printable.report-bw [class*="bg-gradient-to-"] {
+    background-color: #000000 !important;
+    background-image: none !important;
+    color: #ffffff !important;
+  }
+  .proposicao-printable.report-bw [class*="bg-gradient-to-"] * {
+    color: #ffffff !important;
+  }
+  /* Garante que text-primary/text-accent renderize preto puro */
+  .proposicao-printable.report-bw .text-primary,
+  .proposicao-printable.report-bw .text-accent,
+  .proposicao-printable.report-bw [class*="text-primary"],
+  .proposicao-printable.report-bw [class*="text-accent"] {
+    color: #000000 !important;
+  }
 }
 
 /* Remove as setas de incremento/decremento dos inputs numéricos */
