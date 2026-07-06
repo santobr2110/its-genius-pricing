@@ -131,6 +131,62 @@ All colors MUST be HSL.
       radial-gradient(at 50% 100%, hsl(150 50% 12% / 0.6) 0px, transparent 60%),
       linear-gradient(180deg, hsl(150 30% 8%) 0%, hsl(152 32% 11%) 100%);
   }
+
+  /* Modo Preto & Branco do relatório de Proposição (tela + PDF) */
+  .proposicao-printable.report-bw,
+  .pdf-export-background.report-bw {
+    /* Zera degradês/pinturas do dark e força fundo branco */
+    background-image: none !important;
+    background-color: #ffffff !important;
+    /* Sobrescreve os tokens semânticos apenas dentro do relatório */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 28%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 100%;
+    --border: 0 0% 82%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
+    color: #000;
+  }
+  .dark .proposicao-printable.report-bw,
+  .dark .pdf-export-background.report-bw {
+    background-image: none !important;
+    background-color: #ffffff !important;
+  }
+  /* Neutraliza degradês de fundo dos cards internos */
+  .proposicao-printable.report-bw .bg-card,
+  .proposicao-printable.report-bw [class*="bg-card"],
+  .dark .proposicao-printable.report-bw .bg-card,
+  .dark .proposicao-printable.report-bw [class*="bg-card"] {
+    background-image: none !important;
+    background-color: #ffffff !important;
+  }
+  /* Converte gradientes coloridos (tiers, títulos) em tons de cinza */
+  .proposicao-printable.report-bw [class*="bg-gradient"],
+  .proposicao-printable.report-bw [class*="from-"],
+  .proposicao-printable.report-bw [class*="via-"],
+  .proposicao-printable.report-bw [class*="to-"] {
+    filter: grayscale(1) contrast(1.05);
+  }
+  /* Texto em gradient-clip vira preto sólido */
+  .proposicao-printable.report-bw .bg-clip-text.text-transparent {
+    background: none !important;
+    background-image: none !important;
+    -webkit-background-clip: border-box !important;
+    background-clip: border-box !important;
+    -webkit-text-fill-color: #000 !important;
+    color: #000 !important;
+  }
 }
 
 /* Remove as setas de incremento/decremento dos inputs numéricos */
