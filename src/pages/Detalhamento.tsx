@@ -84,6 +84,8 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 export default function Detalhamento() {
   const { state, results, activePreset } = useITSMContext();
   const isSavedPricing = !!activePreset.activeId;
+  const [reportColorMode, setReportColorMode] = useState<"color" | "bw">("color");
+  const bwMode = reportColorMode === "bw";
   const approval = usePricingApproval({
     offering: "smart-ito",
     targetType: "pricing_preset",
