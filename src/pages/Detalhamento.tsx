@@ -191,19 +191,22 @@ export default function Detalhamento() {
     const canvas = await html2canvas(el, {
       scale: 1.5,
       useCORS: true,
-      backgroundColor: "#0e1b14",
+      backgroundColor: bwMode ? "#ffffff" : "#0e1b14",
       windowWidth: el.scrollWidth,
       windowHeight: el.scrollHeight,
       onclone: (doc: Document) => {
         const printable = doc.getElementById("proposicao-printable");
-        if (printable) printable.classList.add("pdf-export-background");
+        if (printable) {
+          printable.classList.add("pdf-export-background");
+          if (bwMode) printable.classList.add("report-bw");
+        }
         doc.querySelectorAll<HTMLElement>(".bg-clip-text.text-transparent").forEach((node) => {
           node.style.background = "none";
           node.style.backgroundImage = "none";
           node.style.webkitBackgroundClip = "border-box";
           node.style.backgroundClip = "border-box";
           node.style.webkitTextFillColor = "";
-          node.style.color = "hsl(var(--primary))";
+          node.style.color = bwMode ? "#000000" : "hsl(var(--primary))";
         });
       },
     });
