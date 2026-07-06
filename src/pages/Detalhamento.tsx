@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
@@ -15,7 +15,7 @@ import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
-  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown,
+  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown, Palette, Printer,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
