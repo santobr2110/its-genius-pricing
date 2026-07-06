@@ -176,13 +176,6 @@ All colors MUST be HSL.
     background-image: none !important;
     background-color: #ffffff !important;
   }
-  /* Chips/badges com fundo colorido — mantêm contorno preto sobre branco */
-  .proposicao-printable.report-bw .bg-primary,
-  .proposicao-printable.report-bw [class*="bg-primary"] {
-    background-image: none !important;
-    background-color: #000000 !important;
-    color: #ffffff !important;
-  }
   /* Texto em gradient-clip vira preto sólido */
   .proposicao-printable.report-bw .bg-clip-text.text-transparent {
     background: none !important;
@@ -211,6 +204,15 @@ All colors MUST be HSL.
   .proposicao-printable.report-bw [class*="via-"],
   .proposicao-printable.report-bw [class*="to-"] {
     background-image: none !important;
+  }
+  /* Elementos com fundo preto (ex.: chips primary): texto branco para contraste */
+  .proposicao-printable.report-bw .bg-primary,
+  .proposicao-printable.report-bw .bg-primary *,
+  .proposicao-printable.report-bw [class*="bg-primary"],
+  .proposicao-printable.report-bw [class*="bg-primary"] * {
+    background-color: #000000 !important;
+    background-image: none !important;
+    color: #ffffff !important;
   }
 }
 
