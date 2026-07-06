@@ -188,44 +188,103 @@ export default function Detalhamento() {
     if (!el) return;
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
-    const canvas = await html2canvas(el, {
-      scale: 1.5,
-      useCORS: true,
-      backgroundColor: bwMode ? "#ffffff" : "#0e1b14",
-      windowWidth: el.scrollWidth,
-      windowHeight: el.scrollHeight,
-      onclone: (doc: Document) => {
-        const printable = doc.getElementById("proposicao-printable");
-        if (printable) {
-          printable.classList.add("pdf-export-background");
-          if (bwMode) printable.classList.add("report-bw");
-        }
-        doc.querySelectorAll<HTMLElement>(".bg-clip-text.text-transparent").forEach((node) => {
-          node.style.background = "none";
-          node.style.backgroundImage = "none";
-          node.style.webkitBackgroundClip = "border-box";
-          node.style.backgroundClip = "border-box";
-          node.style.webkitTextFillColor = "";
-          node.style.color = bwMode ? "#000000" : "hsl(var(--primary))";
-        });
-      },
-    });
-    const imgData = canvas.toDataURL("image/jpeg", 0.85);
-    const pdfWidth = 210; // A4 mm
-    const pdfHeight = 297;
-    const imgWidth = pdfWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    // Constantes A4
+    const A4_W = 210;
+    const A4_H = 297;
+    const MARGIN = 10;
+    const CONTENT_W = A4_W - MARGIN * 2;
+    const CONTENT_H = A4_H - MARGIN * 2;
+    const GAP = 3;
     const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-    let heightLeft = imgHeight;
-    let position = 0;
-    pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
-    heightLeft -= pdfHeight;
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
+    const pageBg = bwMode ? "#ffffff" : "#0e1b14";
+
+    // Cada filho direto do main é uma "seção" que não deve ser cortada.
+    const sections = Array.from(el.children).filter(
+      (n): n is HTMLElement => n instanceof HTMLElement && n.offsetHeight > 0,
+    );
+    if (sections.length === 0) return;
+
+    const onclone = (doc: Document) => {
+      const printable = doc.getElementById("proposicao-printable");
+      if (printable) {
+        printable.classList.add("pdf-export-background");
+        if (bwMode) printable.classList.add("report-bw");
+      }
+      doc.querySelectorAll<HTMLElement>(".bg-clip-text.text-transparent").forEach((node) => {
+        node.style.background = "none";
+        node.style.backgroundImage = "none";
+        node.style.webkitBackgroundClip = "border-box";
+        node.style.backgroundClip = "border-box";
+        node.style.webkitTextFillColor = "";
+        node.style.color = bwMode ? "#000000" : "hsl(var(--primary))";
+      });
+    };
+
+    // Pinta o fundo da primeira página
+    pdf.setFillColor(pageBg);
+    pdf.rect(0, 0, A4_W, A4_H, "F");
+    let cursorY = MARGIN;
+
+    const addPage = () => {
       pdf.addPage();
-      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight, undefined, "FAST");
-      heightLeft -= pdfHeight;
+      pdf.setFillColor(pageBg);
+      pdf.rect(0, 0, A4_W, A4_H, "F");
+      cursorY = MARGIN;
+    };
+
+    for (const section of sections) {
+      const canvas = await html2canvas(section, {
+        scale: 1.5,
+        useCORS: true,
+        backgroundColor: pageBg,
+        windowWidth: el.scrollWidth,
+        onclone,
+      });
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
+      const imgW = CONTENT_W;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      // Se a seção couber inteira em uma página, coloca em uma única imagem
+      if (imgH <= CONTENT_H) {
+        if (cursorY + imgH > MARGIN + CONTENT_H && cursorY > MARGIN) addPage();
+        pdf.addImage(imgData, "JPEG", MARGIN, cursorY, imgW, imgH, undefined, "FAST");
+        cursorY += imgH + GAP;
+        continue;
+      }
+
+      // Seção maior que uma página: quebra por fatias, começando em página nova
+      if (cursorY > MARGIN) addPage();
+      let remaining = imgH;
+      let offset = 0;
+      while (remaining > 0) {
+        const sliceH = Math.min(CONTENT_H, remaining);
+        // desenha a imagem completa deslocada para cima e recorta pela página
+        pdf.addImage(
+          imgData,
+          "JPEG",
+          MARGIN,
+          MARGIN - offset,
+          imgW,
+          imgH,
+          undefined,
+          "FAST",
+        );
+        // máscara: cobre acima e abaixo da fatia usada
+        pdf.setFillColor(pageBg);
+        if (MARGIN - offset < MARGIN)
+          pdf.rect(0, 0, A4_W, MARGIN, "F");
+        pdf.rect(0, MARGIN + sliceH, A4_W, A4_H - (MARGIN + sliceH), "F");
+        pdf.rect(0, 0, MARGIN, A4_H, "F");
+        pdf.rect(A4_W - MARGIN, 0, MARGIN, A4_H, "F");
+
+        remaining -= sliceH;
+        offset += sliceH;
+        if (remaining > 0) addPage();
+        else cursorY = MARGIN + sliceH + GAP;
+      }
     }
+
     pdf.save(`proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
