@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
@@ -15,7 +15,7 @@ import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
-  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown,
+  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown, Palette, Printer,
 } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -84,6 +84,8 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 export default function Detalhamento() {
   const { state, results, activePreset } = useITSMContext();
   const isSavedPricing = !!activePreset.activeId;
+  const [reportColorMode, setReportColorMode] = useState<"color" | "bw">("color");
+  const bwMode = reportColorMode === "bw";
   const approval = usePricingApproval({
     offering: "smart-ito",
     targetType: "pricing_preset",
@@ -189,19 +191,22 @@ export default function Detalhamento() {
     const canvas = await html2canvas(el, {
       scale: 1.5,
       useCORS: true,
-      backgroundColor: "#0e1b14",
+      backgroundColor: bwMode ? "#ffffff" : "#0e1b14",
       windowWidth: el.scrollWidth,
       windowHeight: el.scrollHeight,
       onclone: (doc: Document) => {
         const printable = doc.getElementById("proposicao-printable");
-        if (printable) printable.classList.add("pdf-export-background");
+        if (printable) {
+          printable.classList.add("pdf-export-background");
+          if (bwMode) printable.classList.add("report-bw");
+        }
         doc.querySelectorAll<HTMLElement>(".bg-clip-text.text-transparent").forEach((node) => {
           node.style.background = "none";
           node.style.backgroundImage = "none";
           node.style.webkitBackgroundClip = "border-box";
           node.style.backgroundClip = "border-box";
           node.style.webkitTextFillColor = "";
-          node.style.color = "hsl(var(--primary))";
+          node.style.color = bwMode ? "#000000" : "hsl(var(--primary))";
         });
       },
     });
@@ -1070,7 +1075,33 @@ export default function Detalhamento() {
         </div>
       </header>
 
-      <main id="proposicao-printable" className="proposicao-printable mx-auto max-w-5xl p-6 space-y-6">
+      <main
+        id="proposicao-printable"
+        className={`proposicao-printable mx-auto max-w-5xl p-6 space-y-6 ${bwMode ? "report-bw" : ""}`}
+      >
+        <div className="flex items-center justify-end gap-2 print:hidden" data-html2canvas-ignore="true">
+          <div className="inline-flex items-center gap-1 rounded-md border bg-card/60 backdrop-blur p-1 text-xs">
+            <span className="px-2 text-muted-foreground inline-flex items-center gap-1">
+              <Palette className="h-3.5 w-3.5" /> Modo:
+            </span>
+            <Button
+              size="sm"
+              variant={bwMode ? "ghost" : "default"}
+              className="h-7 px-2 text-xs"
+              onClick={() => setReportColorMode("color")}
+            >
+              Colorido
+            </Button>
+            <Button
+              size="sm"
+              variant={bwMode ? "default" : "ghost"}
+              className="h-7 px-2 text-xs gap-1"
+              onClick={() => setReportColorMode("bw")}
+            >
+              <Printer className="h-3.5 w-3.5" /> Preto &amp; branco
+            </Button>
+          </div>
+        </div>
         <section className="text-center pt-2 pb-1">
           <div className="inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
