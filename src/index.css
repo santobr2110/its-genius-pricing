@@ -212,6 +212,29 @@ All colors MUST be HSL.
     min-height: 24px;
     justify-content: center;
     line-height: 1.2;
+    border: 0 !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .proposicao-printable.report-bw .report-kicker svg,
+  .proposicao-printable.report-bw .report-kicker span,
+  .pdf-export-background.report-bw .report-kicker svg,
+  .pdf-export-background.report-bw .report-kicker span {
+    display: none !important;
+  }
+
+  .proposicao-printable.report-bw .report-kicker::before,
+  .pdf-export-background.report-bw .report-kicker::before {
+    content: "Proposta Comercial";
+    display: block;
+    color: #000000 !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.2 !important;
+    text-transform: uppercase;
   }
 
   .proposicao-printable.report-bw .report-kicker span,
