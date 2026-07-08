@@ -106,21 +106,34 @@ export default function Detalhamento() {
   const sf = results.smartFlow;
   const fs = results.fieldService;
 
-  // Prazo do contrato (via preset ativo)
-  const [contractTerm, setContractTerm] = useState<string | null>(null);
+  // Dados de cadastro da precificação (via preset ativo)
+  type PresetCadastro = {
+    name: string | null;
+    contract_term: string | null;
+    salesforce_code: string | null;
+    quote_code: string | null;
+    client_name: string | null;
+    account_manager: string | null;
+    bu_specialist: string | null;
+    bu_architect: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+  const [presetCadastro, setPresetCadastro] = useState<PresetCadastro | null>(null);
   useEffect(() => {
     let cancel = false;
     (async () => {
-      if (!activePreset.activeId) { setContractTerm(null); return; }
+      if (!activePreset.activeId) { setPresetCadastro(null); return; }
       const { data } = await supabase
         .from("pricing_presets")
-        .select("contract_term")
+        .select("name, contract_term, salesforce_code, quote_code, client_name, account_manager, bu_specialist, bu_architect, created_at, updated_at")
         .eq("id", activePreset.activeId)
         .maybeSingle();
-      if (!cancel) setContractTerm((data as any)?.contract_term ?? null);
+      if (!cancel) setPresetCadastro((data as any) ?? null);
     })();
     return () => { cancel = true; };
   }, [activePreset.activeId]);
+  const contractTerm = presetCadastro?.contract_term ?? null;
   const mesesContrato = (() => {
     const m = String(contractTerm ?? "").match(/(\d+)/);
     return m ? Number(m[1]) : 12;
