@@ -106,21 +106,34 @@ export default function Detalhamento() {
   const sf = results.smartFlow;
   const fs = results.fieldService;
 
-  // Prazo do contrato (via preset ativo)
-  const [contractTerm, setContractTerm] = useState<string | null>(null);
+  // Dados de cadastro da precificação (via preset ativo)
+  type PresetCadastro = {
+    name: string | null;
+    contract_term: string | null;
+    salesforce_code: string | null;
+    quote_code: string | null;
+    client_name: string | null;
+    account_manager: string | null;
+    bu_specialist: string | null;
+    bu_architect: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+  };
+  const [presetCadastro, setPresetCadastro] = useState<PresetCadastro | null>(null);
   useEffect(() => {
     let cancel = false;
     (async () => {
-      if (!activePreset.activeId) { setContractTerm(null); return; }
+      if (!activePreset.activeId) { setPresetCadastro(null); return; }
       const { data } = await supabase
         .from("pricing_presets")
-        .select("contract_term")
+        .select("name, contract_term, salesforce_code, quote_code, client_name, account_manager, bu_specialist, bu_architect, created_at, updated_at")
         .eq("id", activePreset.activeId)
         .maybeSingle();
-      if (!cancel) setContractTerm((data as any)?.contract_term ?? null);
+      if (!cancel) setPresetCadastro((data as any) ?? null);
     })();
     return () => { cancel = true; };
   }, [activePreset.activeId]);
+  const contractTerm = presetCadastro?.contract_term ?? null;
   const mesesContrato = (() => {
     const m = String(contractTerm ?? "").match(/(\d+)/);
     return m ? Number(m[1]) : 12;
@@ -1210,6 +1223,47 @@ export default function Detalhamento() {
           )}
           <div className="mt-4 h-1 w-24 mx-auto rounded-full bg-gradient-to-r from-primary to-accent" />
         </section>
+
+        {/* Cabeçalho: dados de cadastro da precificação */}
+        {presetCadastro && (
+          <section className="report-section rounded-2xl border-2 border-border bg-card/60 backdrop-blur p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-1.5 w-6 rounded-full bg-gradient-to-r from-primary to-accent" />
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Identificação da Precificação
+              </h2>
+            </div>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
+              {[
+                { label: "Precificação", value: presetCadastro.name },
+                { label: "Cliente", value: presetCadastro.client_name },
+                { label: "Código Salesforce", value: presetCadastro.salesforce_code },
+                { label: "Código da cotação", value: presetCadastro.quote_code },
+                { label: "Prazo de contrato", value: presetCadastro.contract_term },
+                { label: "Gerente de contas", value: presetCadastro.account_manager },
+                { label: "Especialista BU", value: presetCadastro.bu_specialist },
+                { label: "Arquiteto BU", value: presetCadastro.bu_architect },
+                {
+                  label: "Elaborado em",
+                  value: presetCadastro.created_at
+                    ? new Date(presetCadastro.created_at).toLocaleDateString("pt-BR")
+                    : null,
+                },
+              ]
+                .filter((f) => f.value && String(f.value).trim() !== "")
+                .map((f) => (
+                  <div key={f.label} className="min-w-0">
+                    <dt className="text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                      {f.label}
+                    </dt>
+                    <dd className="text-sm font-semibold text-foreground mt-0.5 break-words">
+                      {f.value}
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+          </section>
+        )}
 
         {/* SMART MONITOR */}
         {monitorVisible && !unifiedMonitorFlow && (
