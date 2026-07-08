@@ -1156,33 +1156,9 @@ export default function Detalhamento() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-6 pt-4 flex items-center justify-end">
-        <div className="inline-flex items-center gap-1 rounded-md border bg-card/60 backdrop-blur p-1 text-xs shadow-sm">
-          <span className="px-2 text-muted-foreground inline-flex items-center gap-1">
-            <Palette className="h-3.5 w-3.5" /> Modo:
-          </span>
-          <Button
-            size="sm"
-            variant={bwMode ? "ghost" : "default"}
-            className="h-7 px-2 text-xs"
-            onClick={() => setReportColorMode("color")}
-          >
-            Colorido
-          </Button>
-          <Button
-            size="sm"
-            variant={bwMode ? "default" : "ghost"}
-            className="h-7 px-2 text-xs gap-1"
-            onClick={() => setReportColorMode("bw")}
-          >
-            <Printer className="h-3.5 w-3.5" /> Preto &amp; branco
-          </Button>
-        </div>
-      </div>
-
       <main
         id="proposicao-printable"
-        className={`proposicao-printable mx-auto max-w-5xl p-6 space-y-6 ${bwMode ? "report-bw" : ""}`}
+        className="proposicao-printable report-anexo mx-auto max-w-5xl p-6 space-y-6"
       >
         <section className="text-center pt-2 pb-1">
           <div className="report-kicker inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
