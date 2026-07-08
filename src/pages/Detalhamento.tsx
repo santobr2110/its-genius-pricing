@@ -2474,7 +2474,7 @@ function DistCard({
         <span className="text-lg font-extrabold tabular-nums">{formatNumber(horas, 1)}</span>
         <span className="text-[10px] text-muted-foreground font-semibold">h/mês</span>
       </div>
-      <p className="text-[11px] font-bold tabular-nums text-foreground/80">{formatBRL(valor)}<span className="text-[9px] text-muted-foreground font-normal">/mês</span></p>
+      <p className="text-[11px] font-bold tabular-nums text-foreground/80 report-price">{formatBRL(valor)}<span className="text-[9px] text-muted-foreground font-normal">/mês</span></p>
       <p className="text-[10px] text-muted-foreground mt-1.5 leading-snug">{desc}</p>
     </div>
   );
