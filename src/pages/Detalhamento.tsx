@@ -2017,7 +2017,7 @@ function CompositionBox({
   const theme = TIER_THEMES[color] ?? TIER_THEMES.silver;
   if (parts.length < 2 || total <= 0) return null;
   return (
-    <div className={`mt-4 rounded-xl border-2 ${theme.ring} bg-background/70 backdrop-blur-sm p-3 space-y-1.5`}>
+    <div className={`report-price mt-4 rounded-xl border-2 ${theme.ring} bg-background/70 backdrop-blur-sm p-3 space-y-1.5`}>
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
       {parts.map((p, i) => (
         <div key={i} className="flex justify-between text-[12px]">
