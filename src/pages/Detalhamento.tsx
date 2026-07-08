@@ -106,6 +106,26 @@ export default function Detalhamento() {
   const sf = results.smartFlow;
   const fs = results.fieldService;
 
+  // Prazo do contrato (via preset ativo)
+  const [contractTerm, setContractTerm] = useState<string | null>(null);
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      if (!activePreset.activeId) { setContractTerm(null); return; }
+      const { data } = await supabase
+        .from("pricing_presets")
+        .select("contract_term")
+        .eq("id", activePreset.activeId)
+        .maybeSingle();
+      if (!cancel) setContractTerm((data as any)?.contract_term ?? null);
+    })();
+    return () => { cancel = true; };
+  }, [activePreset.activeId]);
+  const mesesContrato = (() => {
+    const m = String(contractTerm ?? "").match(/(\d+)/);
+    return m ? Number(m[1]) : 12;
+  })();
+
   // Quando não há ativos de Cloud/Datacenter no inventário, o Smart Monitor
   // não faz parte da proposta (ainda que esteja marcado nas configurações).
   const hasInfraInventory =
