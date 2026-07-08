@@ -274,8 +274,12 @@ All colors MUST be HSL.
 
   /* Ícone da camada em bloco preto (contraste) com traço branco. */
   .proposicao-printable.report-anexo [data-tier-icon],
-  .pdf-export-background.report-anexo [data-tier-icon] {
+  .pdf-export-background.report-anexo [data-tier-icon],
+  .dark .proposicao-printable.report-anexo [data-tier-icon],
+  .dark .pdf-export-background.report-anexo [data-tier-icon] {
     background: #000 !important;
+    background-color: #000 !important;
+    background-image: none !important;
     color: #ffffff !important;
     border-radius: 12px !important;
     padding: 10px !important;
@@ -283,12 +287,18 @@ All colors MUST be HSL.
   .proposicao-printable.report-anexo [data-tier-icon] svg,
   .pdf-export-background.report-anexo [data-tier-icon] svg,
   .proposicao-printable.report-anexo [data-tier-icon] svg *,
-  .pdf-export-background.report-anexo [data-tier-icon] svg * {
+  .pdf-export-background.report-anexo [data-tier-icon] svg *,
+  .dark .proposicao-printable.report-anexo [data-tier-icon] svg,
+  .dark .pdf-export-background.report-anexo [data-tier-icon] svg,
+  .dark .proposicao-printable.report-anexo [data-tier-icon] svg *,
+  .dark .pdf-export-background.report-anexo [data-tier-icon] svg * {
     stroke: #ffffff !important;
     color: #ffffff !important;
   }
   .proposicao-printable.report-anexo [data-tier-icon] svg [fill="currentColor"],
-  .pdf-export-background.report-anexo [data-tier-icon] svg [fill="currentColor"] {
+  .pdf-export-background.report-anexo [data-tier-icon] svg [fill="currentColor"],
+  .dark .proposicao-printable.report-anexo [data-tier-icon] svg [fill="currentColor"],
+  .dark .pdf-export-background.report-anexo [data-tier-icon] svg [fill="currentColor"] {
     fill: #ffffff !important;
   }
 }
