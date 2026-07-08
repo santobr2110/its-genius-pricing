@@ -1531,7 +1531,7 @@ export default function Detalhamento() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <Stat label="Volume N1" value={`${formatNumber(results.volumeN1, 1)} ch/mês`} />
             <Stat label="Volume N2" value={`${formatNumber(results.volumeN2, 1)} ch/mês`} />
-            <Stat label="Custo/chamado N1" value={formatBRL(results.custoPorChamadoN1)} />
+            <div className="report-price"><Stat label="Custo/chamado N1" value={formatBRL(results.custoPorChamadoN1)} /></div>
           </div>
 
           {rotinasOp.length > 0 && (
@@ -1583,7 +1583,7 @@ export default function Detalhamento() {
                   <p className="text-[11px] text-muted-foreground italic">{escopo.fieldService.tagline}</p>
                 </div>
                 {valorFieldService > 0 && (
-                  <div className="text-right shrink-0">
+                  <div className="report-price text-right shrink-0">
                     <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
                     <p className="text-base font-extrabold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300 bg-clip-text text-transparent tabular-nums">{formatBRL(valorFieldService)}</p>
                   </div>
@@ -1604,9 +1604,9 @@ export default function Detalhamento() {
               )}
               <SubTitle>Equipe presencial alocada</SubTitle>
               <div className="grid grid-cols-3 gap-2">
-                <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} sub={formatBRL(fs.custoN1F)} />
-                <Stat label="N2F" value={`${state.fieldDirectQtdN2} prof.`} sub={formatBRL(fs.custoN2F)} />
-                <Stat label="N3F" value={`${state.fieldDirectQtdN3} prof.`} sub={formatBRL(fs.custoN3F)} />
+                <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN1F)} />
+                <Stat label="N2F" value={`${state.fieldDirectQtdN2} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN2F)} />
+                <Stat label="N3F" value={`${state.fieldDirectQtdN3} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN3F)} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Stat label="Equipamentos cobertos" value={formatNumber(state.qtdEquipamentos)} />
