@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
+import { supabase } from "@/integrations/supabase/client";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
