@@ -92,8 +92,6 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 export default function Detalhamento() {
   const { state, results, activePreset } = useITSMContext();
   const isSavedPricing = !!activePreset.activeId;
-  const [reportColorMode, setReportColorMode] = useState<"color" | "bw">("color");
-  const bwMode = reportColorMode === "bw";
   const approval = usePricingApproval({
     offering: "smart-ito",
     targetType: "pricing_preset",
@@ -203,27 +201,25 @@ export default function Detalhamento() {
     const CONTENT_W = A4_W - MARGIN * 2;
     const CONTENT_H = A4_H - MARGIN * 2;
     const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-    const pageBg = bwMode ? "#ffffff" : getComputedStyle(el).backgroundColor || "#0e1b14";
+    const pageBg = "#ffffff";
 
     const onclone = (doc: Document) => {
       const printable = doc.getElementById("proposicao-printable");
       if (printable) {
         printable.classList.add("pdf-export-background");
-        if (bwMode) printable.classList.add("report-bw");
+        printable.classList.add("report-anexo");
         printable.style.width = `${el.scrollWidth}px`;
         printable.style.maxWidth = `${el.scrollWidth}px`;
       }
-      if (bwMode) {
-        doc.querySelectorAll<HTMLElement>(".text-transparent, .bg-clip-text").forEach((node) => {
-          node.classList.remove("text-transparent");
-          node.style.background = "none";
-          node.style.backgroundImage = "none";
-          node.style.webkitBackgroundClip = "border-box";
-          node.style.backgroundClip = "border-box";
-          node.style.webkitTextFillColor = "#000000";
-          node.style.color = "#000000";
-        });
-      }
+      doc.querySelectorAll<HTMLElement>(".text-transparent, .bg-clip-text").forEach((node) => {
+        node.classList.remove("text-transparent");
+        node.style.background = "none";
+        node.style.backgroundImage = "none";
+        node.style.webkitBackgroundClip = "border-box";
+        node.style.backgroundClip = "border-box";
+        node.style.webkitTextFillColor = "#000000";
+        node.style.color = "#000000";
+      });
     };
 
     const canvas = await html2canvas(el, {
