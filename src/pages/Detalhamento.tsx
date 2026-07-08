@@ -15,8 +15,16 @@ import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
-  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown, Palette, Printer,
+  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown,
 } from "lucide-react";
+import {
+  MonitorIcon as TierMonitorIcon,
+  FlowIcon as TierFlowIcon,
+  OperationIcon as TierOperationIcon,
+  PerformanceIcon as TierPerformanceIcon,
+  EnterpriseIcon as TierEnterpriseIcon,
+  FieldServiceIcon as TierFieldIcon,
+} from "@/components/itsm/TierIcons";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
