@@ -1871,7 +1871,7 @@ export default function Detalhamento() {
           };
 
           return (
-            <Card className="border-primary/20">
+            <Card className="report-section border-primary/20">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-center gap-2">
                   <PackagePlus className="h-4 w-4 text-primary" />
@@ -1879,7 +1879,7 @@ export default function Detalhamento() {
                     Itens adicionais ao contrato
                   </p>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-snug">
+                <p className="text-[11px] text-muted-foreground leading-snug report-price">
                   Itens cobrados como adicionais ao escopo contratado. Para ativos monitorados,
                   o valor unitário considera o custo de monitoramento e os chamados previstos
                   (incidentes ponderados no funil N1/N2/N3 do contrato), com markup de margem
@@ -1891,7 +1891,7 @@ export default function Detalhamento() {
                       <tr className="border-b text-muted-foreground">
                         <th className="text-left py-1.5 px-2 font-semibold">Item</th>
                         <th className="text-left py-1.5 px-2 font-semibold">Unidade</th>
-                        <th className="text-right py-1.5 px-2 font-semibold">Valor unitário</th>
+                        <th className="text-right py-1.5 px-2 font-semibold report-price">Valor unitário</th>
                         <th className="text-left py-1.5 px-2 font-semibold">Observação</th>
                       </tr>
                     </thead>
@@ -1902,7 +1902,7 @@ export default function Detalhamento() {
                           <tr key={it.id} className="border-b border-muted-foreground/10 align-top">
                             <td className="py-1.5 px-2 font-medium text-foreground">{it.descricao}</td>
                             <td className="py-1.5 px-2 text-muted-foreground">{it.unidade}</td>
-                            <td className="py-1.5 px-2 text-right font-semibold tabular-nums">
+                            <td className="py-1.5 px-2 text-right font-semibold tabular-nums report-price">
                               {formatBRL(valor)}
                               {detalhe && (
                                 <div className="text-[10px] font-normal text-muted-foreground">{detalhe}</div>
@@ -1917,7 +1917,7 @@ export default function Detalhamento() {
                     </tbody>
                   </table>
                 </div>
-                <p className="text-[10px] text-muted-foreground italic">
+                <p className="text-[10px] text-muted-foreground italic report-price">
                   Valores mensais sugeridos. Itens marcados como “manual” usam o valor fixo
                   cadastrado em Configurações › Escopo.
                 </p>
