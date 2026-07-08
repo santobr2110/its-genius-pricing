@@ -1292,7 +1292,10 @@ export default function Detalhamento() {
             const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
             const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
             const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
+            const niveisRisco = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
+            const nivelRisco = state.criticidadeNivel ?? 2;
             return (
+              <>
               <div className="mt-3 rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Estimativa de demanda</div>
                 <div className="text-right">
@@ -1306,6 +1309,11 @@ export default function Detalhamento() {
                   </div>
                 </div>
               </div>
+              <div className="mt-2 rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Nível de geração de chamados</div>
+                <div className="text-sm font-semibold text-foreground">{niveisRisco[nivelRisco]}</div>
+              </div>
+              </>
             );
           })()}
           {!flowVisible && (
@@ -1461,7 +1469,10 @@ export default function Detalhamento() {
             const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
             const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
             const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
+            const niveisRisco = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
+            const nivelRisco = state.criticidadeNivel ?? 2;
             return (
+              <>
               <div className="mt-3 rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Estimativa de demanda</div>
                 <div className="text-right">
@@ -1475,6 +1486,11 @@ export default function Detalhamento() {
                   </div>
                 </div>
               </div>
+              <div className="mt-2 rounded border bg-background/70 p-3 flex items-center justify-between gap-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Nível de geração de chamados</div>
+                <div className="text-sm font-semibold text-foreground">{niveisRisco[nivelRisco]}</div>
+              </div>
+              </>
             );
           })()}
 
