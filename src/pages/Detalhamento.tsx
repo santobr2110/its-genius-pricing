@@ -1230,12 +1230,12 @@ export default function Detalhamento() {
             <div className="flex items-center gap-2 mb-3">
               <div className="h-1.5 w-6 rounded-full bg-gradient-to-r from-primary to-accent" />
               <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                Identificação da Precificação
+                Identificação da Proposta
               </h2>
             </div>
             <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
               {[
-                { label: "Precificação", value: presetCadastro.name },
+                { label: "Proposta", value: presetCadastro.name },
                 { label: "Cliente", value: presetCadastro.client_name },
                 { label: "Código Salesforce", value: presetCadastro.salesforce_code },
                 { label: "Código da cotação", value: presetCadastro.quote_code },
@@ -1244,10 +1244,8 @@ export default function Detalhamento() {
                 { label: "Especialista BU", value: presetCadastro.bu_specialist },
                 { label: "Arquiteto BU", value: presetCadastro.bu_architect },
                 {
-                  label: "Elaborado em",
-                  value: presetCadastro.created_at
-                    ? new Date(presetCadastro.created_at).toLocaleDateString("pt-BR")
-                    : null,
+                  label: "Emitido em",
+                  value: new Date().toLocaleDateString("pt-BR"),
                 },
               ]
                 .filter((f) => f.value && String(f.value).trim() !== "")
