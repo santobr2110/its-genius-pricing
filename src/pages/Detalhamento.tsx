@@ -1129,7 +1129,7 @@ export default function Detalhamento() {
                   title={exportDisabledReason}
                 >
                   <FileDown className="h-4 w-4" />
-                  Exportar PDF
+                  Anexo Contratual (PDF)
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleExportPresentation}
