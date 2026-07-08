@@ -219,17 +219,15 @@ All colors MUST be HSL.
 
   .proposicao-printable.report-anexo .report-kicker,
   .pdf-export-background.report-anexo .report-kicker {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    min-width: 190px;
-    min-height: 24px;
+    display: inline-block !important;
+    min-width: 0;
+    min-height: 0;
     justify-content: center;
     line-height: 1.2;
     border: 1px solid #000 !important;
     border-radius: 999px !important;
-    padding: 4px 12px !important;
-    background: transparent !important;
+    padding: 6px 16px !important;
+    background: #ffffff !important;
     white-space: nowrap !important;
   }
 
@@ -240,6 +238,7 @@ All colors MUST be HSL.
   }
   .proposicao-printable.report-anexo .report-kicker span,
   .pdf-export-background.report-anexo .report-kicker span {
+    display: inline-block !important;
     color: #000000 !important;
     -webkit-text-fill-color: #000000 !important;
     font-size: 10px !important;
@@ -274,13 +273,25 @@ All colors MUST be HSL.
 
   .proposicao-printable.report-anexo .composta-pill,
   .pdf-export-background.report-anexo .composta-pill {
-    gap: 4px !important;
+    gap: 0 !important;
     min-height: 24px !important;
     line-height: 1 !important;
     border: 1px solid #000 !important;
     border-radius: 999px !important;
-    padding: 4px 10px !important;
+    padding: 5px 10px !important;
     background: #ffffff !important;
+  }
+
+  .proposicao-printable.report-anexo .composta-dot,
+  .pdf-export-background.report-anexo .composta-dot {
+    display: inline-block !important;
+    width: 6px !important;
+    height: 6px !important;
+    min-width: 6px !important;
+    margin-right: 6px !important;
+    border: 1px solid #000 !important;
+    border-radius: 999px !important;
+    background: #000 !important;
   }
 
   .proposicao-printable.report-anexo .tier-tagline,
@@ -315,10 +326,12 @@ All colors MUST be HSL.
   /* Bloco de camada: contorno único preto, sem preenchimento. */
   .proposicao-printable.report-anexo [data-tier],
   .pdf-export-background.report-anexo [data-tier] {
-    border: 1.5px solid #000 !important;
+    border: 2px solid #000 !important;
     border-radius: 12px !important;
     background: #ffffff !important;
     padding-top: 4px !important;
+    outline: none !important;
+    transform: none !important;
   }
   .proposicao-printable.report-anexo [data-tier] > div:first-child,
   .pdf-export-background.report-anexo [data-tier] > div:first-child {

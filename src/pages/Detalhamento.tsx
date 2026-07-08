@@ -232,6 +232,7 @@ export default function Detalhamento() {
     const PAGE_W = 210;
     const MARGIN = 10;
     const CONTENT_W = PAGE_W - MARGIN * 2;
+    const SECTION_GAP = 4;
     const pageBg = "#ffffff";
 
     const applyExportCloneFixes = (doc: Document) => {
@@ -244,7 +245,35 @@ export default function Detalhamento() {
         printable.style.background = pageBg;
         printable.style.color = "#000000";
         printable.style.overflow = "visible";
+
+        // Isola o relatório dentro do clone: html2canvas considera elementos
+        // sticky/fixed sobrepostos ao alvo. Ocultar todos os irmãos da cadeia
+        // do #proposicao-printable impede que o header/banners da aplicação
+        // cubram o primeiro bloco (onde está "Proposta Comercial").
+        let current: HTMLElement | null = printable;
+        while (current && current.parentElement && current.parentElement !== doc.body) {
+          const parent = current.parentElement;
+          Array.from(parent.children).forEach((sibling) => {
+            if (sibling !== current && sibling instanceof HTMLElement) {
+              sibling.style.display = "none";
+              sibling.style.visibility = "hidden";
+              sibling.style.pointerEvents = "none";
+            }
+          });
+          current = parent;
+        }
       }
+      doc.querySelectorAll<HTMLElement>(".transition-all, .transition-transform, [class*='scale-'], [class*='rotate-']").forEach((node) => {
+        node.style.transition = "none";
+        node.style.transform = "none";
+      });
+      doc.querySelectorAll<HTMLElement>("body header").forEach((header) => {
+        if (!printable?.contains(header)) {
+          header.style.display = "none";
+          header.style.visibility = "hidden";
+          header.style.pointerEvents = "none";
+        }
+      });
       doc.querySelectorAll<HTMLElement>(".text-transparent, .bg-clip-text").forEach((node) => {
         node.classList.remove("text-transparent");
         node.style.background = "none";
@@ -280,31 +309,37 @@ export default function Detalhamento() {
           section.style.breakInside = "avoid";
           section.style.pageBreakInside = "avoid";
           section.style.overflow = "visible";
+          section.style.transform = "none";
+          section.style.boxSizing = "border-box";
+        });
+
+        printable.querySelectorAll<HTMLElement>("[data-tier]").forEach((tier) => {
+          tier.style.border = "2px solid #000000";
+          tier.style.borderRadius = "12px";
+          tier.style.background = "#ffffff";
+          tier.style.backgroundImage = "none";
+          tier.style.boxShadow = "none";
+          tier.style.outline = "none";
+          tier.querySelectorAll<HTMLElement>(".pointer-events-none").forEach((decorative) => {
+            decorative.style.display = "none";
+          });
         });
 
         // The "Proposta Comercial" kicker and the "Composta por" pills rely on
         // flex + gap, which html2canvas can collapse. Force explicit sizes and
         // no text wrapping inside each pill so the export keeps the same shape.
         printable.querySelectorAll<HTMLElement>(".report-kicker").forEach((node) => {
-          node.style.display = "inline-flex";
-          node.style.alignItems = "center";
+          node.style.display = "inline-block";
           node.style.justifyContent = "center";
-          node.style.gap = "6px";
-          node.style.padding = "4px 14px";
+          node.style.padding = "6px 16px";
           node.style.border = "1px solid #000";
           node.style.borderRadius = "999px";
           node.style.background = "#ffffff";
           node.style.lineHeight = "1.2";
           node.style.whiteSpace = "nowrap";
-          node.style.minHeight = "24px";
-          node.querySelectorAll<HTMLElement>("svg").forEach((s) => {
-            s.style.width = "14px";
-            s.style.height = "14px";
-            s.style.flex = "0 0 14px";
-            s.style.marginRight = "0";
-            s.style.verticalAlign = "middle";
-          });
+          node.style.minHeight = "0";
           node.querySelectorAll<HTMLElement>("span").forEach((s) => {
+            s.style.display = "inline-block";
             s.style.color = "#000";
             (s.style as unknown as Record<string, string>)["webkitTextFillColor"] = "#000";
             s.style.fontSize = "10px";
@@ -335,9 +370,9 @@ export default function Detalhamento() {
         printable.querySelectorAll<HTMLElement>(".composta-pill").forEach((pill) => {
           pill.style.display = "inline-flex";
           pill.style.alignItems = "center";
-          pill.style.gap = "4px";
+          pill.style.gap = "0";
           pill.style.flex = "0 0 auto";
-          pill.style.padding = "4px 10px";
+          pill.style.padding = "5px 10px";
           pill.style.border = "1px solid #000";
           pill.style.borderRadius = "999px";
           pill.style.background = "#ffffff";
@@ -346,6 +381,16 @@ export default function Detalhamento() {
           pill.style.minHeight = "24px";
           pill.style.whiteSpace = "nowrap";
           pill.style.breakInside = "avoid";
+          pill.querySelectorAll<HTMLElement>(".composta-dot").forEach((dot) => {
+            dot.style.display = "inline-block";
+            dot.style.width = "6px";
+            dot.style.height = "6px";
+            dot.style.minWidth = "6px";
+            dot.style.marginRight = "6px";
+            dot.style.border = "1px solid #000";
+            dot.style.borderRadius = "999px";
+            dot.style.background = "#000";
+          });
           pill.querySelectorAll<HTMLElement>("svg").forEach((s) => {
             s.style.width = "12px";
             s.style.height = "12px";
@@ -367,35 +412,62 @@ export default function Detalhamento() {
       }
     };
 
-    // O anexo é para assinatura digital, não para impressão. Portanto exporta
-    // o relatório inteiro em uma única página contínua, preservando o fluxo da
-    // tela e eliminando cortes arbitrários entre caixas/textos.
-    const exportWidth = Math.max(el.scrollWidth, el.clientWidth);
-    const exportHeight = Math.max(el.scrollHeight, el.clientHeight);
-    const maxCanvasHeight = 30000;
-    const renderScale = Math.max(0.75, Math.min(2, maxCanvasHeight / exportHeight));
-    const canvas = await html2canvas(el, {
-      scale: renderScale,
-      useCORS: true,
-      backgroundColor: pageBg,
-      windowWidth: exportWidth,
-      windowHeight: exportHeight,
-      scrollX: 0,
-      scrollY: -window.scrollY,
-      onclone: applyExportCloneFixes,
-    });
+    const originalScroll = { x: window.scrollX, y: window.scrollY };
+    window.scrollTo(0, 0);
 
-    if (canvas.width <= 0 || canvas.height <= 0) return;
+    try {
+      // O anexo é para assinatura digital, não para impressão. Capturamos cada
+      // bloco lógico separadamente (evita desformatar bordas/pílulas) e montamos
+      // tudo em uma única página contínua (sem quebra entre camadas).
+      const exportWidth = Math.max(el.scrollWidth, el.clientWidth);
+      const exportHeight = Math.max(el.scrollHeight, el.clientHeight);
+      const sections = Array.from(el.children).filter((node): node is HTMLElement => {
+        return node instanceof HTMLElement && node.getBoundingClientRect().height > 0;
+      });
+      const exportSections = sections.length > 0 ? sections : [el];
+      const renderedSections: { canvas: HTMLCanvasElement; heightMM: number }[] = [];
 
-    const imgW = CONTENT_W;
-    const imgH = (canvas.height * imgW) / canvas.width;
-    const pageH = imgH + MARGIN * 2;
-    const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [PAGE_W, pageH], compress: true });
-    pdf.setFillColor(pageBg);
-    pdf.rect(0, 0, PAGE_W, pageH, "F");
-    pdf.addImage(canvas.toDataURL("image/png"), "PNG", MARGIN, MARGIN, imgW, imgH, undefined, "FAST");
+      for (const section of exportSections) {
+        const sectionHeight = Math.max(section.scrollHeight, section.getBoundingClientRect().height, 1);
+        const renderScale = Math.max(1, Math.min(2, 24000 / sectionHeight));
+        const canvas = await html2canvas(section, {
+          scale: renderScale,
+          useCORS: true,
+          backgroundColor: pageBg,
+          windowWidth: exportWidth,
+          windowHeight: exportHeight,
+          scrollX: 0,
+          scrollY: 0,
+          onclone: applyExportCloneFixes,
+        });
 
-    pdf.save(`proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`);
+        if (canvas.width <= 0 || canvas.height <= 0) continue;
+        renderedSections.push({
+          canvas,
+          heightMM: (canvas.height * CONTENT_W) / canvas.width,
+        });
+      }
+
+      if (renderedSections.length === 0) return;
+
+      const contentHeight = renderedSections.reduce((sum, item) => sum + item.heightMM, 0);
+      const gapsHeight = SECTION_GAP * Math.max(0, renderedSections.length - 1);
+      const pageH = contentHeight + gapsHeight + MARGIN * 2;
+      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [PAGE_W, pageH], compress: true });
+
+      pdf.setFillColor(pageBg);
+      pdf.rect(0, 0, PAGE_W, pageH, "F");
+
+      let currentY = MARGIN;
+      renderedSections.forEach(({ canvas, heightMM }, index) => {
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", MARGIN, currentY, CONTENT_W, heightMM, undefined, "FAST");
+        currentY += heightMM + (index < renderedSections.length - 1 ? SECTION_GAP : 0);
+      });
+
+      pdf.save(`proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } finally {
+      window.scrollTo(originalScroll.x, originalScroll.y);
+    }
   };
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
@@ -1250,7 +1322,6 @@ export default function Detalhamento() {
       >
         <section data-pdf-section className="report-section text-center pt-2 pb-1">
           <div className="report-kicker inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Proposta Comercial</span>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
@@ -1268,7 +1339,7 @@ export default function Detalhamento() {
                 <span key={n} className="composta-item inline-flex items-center gap-1.5">
                   {i > 0 && <span className="composta-plus text-muted-foreground/60 text-xs">+</span>}
                   <span className="composta-pill inline-flex items-center gap-1 rounded-full border bg-card/70 backdrop-blur px-2.5 py-1 text-[11px] font-bold">
-                    <Sparkles className="h-3 w-3 text-primary" />
+                    <span className="composta-dot" aria-hidden="true" />
                     <span>{n}</span>
                   </span>
                 </span>
