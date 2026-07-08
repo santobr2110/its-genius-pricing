@@ -1715,7 +1715,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* INVESTIMENTO */}
-        <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10">
+        <Card className="report-price report-section border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
