@@ -2066,7 +2066,7 @@ function TierBlock({
     );
   }
   return (
-    <div className={`group relative overflow-hidden rounded-3xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-xl ${theme.glow} transition-all hover:shadow-2xl ${dominant ? "ring-4 ring-offset-2 ring-offset-background ring-current/30 scale-[1.005]" : ""}`}>
+    <div data-tier={color} className={`report-section group relative overflow-hidden rounded-3xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-xl ${theme.glow} transition-all hover:shadow-2xl ${dominant ? "ring-4 ring-offset-2 ring-offset-background ring-current/30 scale-[1.005]" : ""}`}>
       {/* Decorative blobs */}
       <div className={`pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full blur-3xl ${theme.blob1}`} />
       <div className={`pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full blur-3xl ${theme.blob2}`} />
@@ -2075,7 +2075,7 @@ function TierBlock({
       <div className="relative p-6 space-y-4">
         {/* Header row: icon + title + badge + value, all in one flex line — no absolute overlap */}
         <div className="flex items-start gap-4 flex-wrap">
-          <div className={`relative rounded-2xl p-3.5 shadow-lg ${theme.icon} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+          <div data-tier-icon className={`relative rounded-2xl p-3.5 shadow-lg ${theme.icon} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
             <Icon className="h-6 w-6" strokeWidth={2.25} />
             {tierIndex && (
               <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-background border-2 border-current text-[10px] font-extrabold flex items-center justify-center text-foreground">
@@ -2096,7 +2096,7 @@ function TierBlock({
             </div>
           )}
           {valor > 0 && (
-            <div className="text-right shrink-0">
+            <div className="report-price text-right shrink-0">
               <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
               <p className={`text-xl font-extrabold bg-gradient-to-r ${theme.valueGrad} bg-clip-text text-transparent tabular-nums`}>{formatBRL(valor)}</p>
             </div>
