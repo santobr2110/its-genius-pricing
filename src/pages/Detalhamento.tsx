@@ -1736,7 +1736,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* INVESTIMENTO */}
-        <Card className="report-price report-section border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10">
+        <Card className="report-section border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
@@ -1745,11 +1745,15 @@ export default function Detalhamento() {
                 </p>
                 <p className="mt-1 text-3xl md:text-4xl font-bold text-primary">{formatBRL(investimentoTotal)}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Valor mensal de contrato
+                  Valor mensal de contrato{contractTerm ? ` · Prazo: ${contractTerm}` : ""}
                 </p>
               </div>
               <div className="text-right text-xs space-y-1">
                 <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(investimentoTotal * 12)}</strong></div>
+                <div>
+                  <span className="text-muted-foreground">Total do contrato ({mesesContrato} {mesesContrato === 1 ? "mês" : "meses"}): </span>
+                  <strong>{formatBRL(investimentoTotal * mesesContrato)}</strong>
+                </div>
               </div>
             </div>
             <div className="mt-4 border-t border-primary/20 pt-3 space-y-1">
@@ -1790,8 +1794,12 @@ export default function Detalhamento() {
                 </div>
               )}
               <div className="flex justify-between border-t border-primary/30 pt-1.5 mt-1">
-                <span className="text-xs font-bold">Total</span>
+                <span className="text-xs font-bold">Total mensal</span>
                 <span className="text-sm font-extrabold text-primary tabular-nums">{formatBRL(investimentoTotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs font-bold">Total do contrato ({mesesContrato} {mesesContrato === 1 ? "mês" : "meses"})</span>
+                <span className="text-sm font-extrabold text-primary tabular-nums">{formatBRL(investimentoTotal * mesesContrato)}</span>
               </div>
             </div>
           </CardContent>
