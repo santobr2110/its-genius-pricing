@@ -1224,6 +1224,47 @@ export default function Detalhamento() {
           <div className="mt-4 h-1 w-24 mx-auto rounded-full bg-gradient-to-r from-primary to-accent" />
         </section>
 
+        {/* Cabeçalho: dados de cadastro da precificação */}
+        {presetCadastro && (
+          <section className="report-section rounded-2xl border-2 border-border bg-card/60 backdrop-blur p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-1.5 w-6 rounded-full bg-gradient-to-r from-primary to-accent" />
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Identificação da Precificação
+              </h2>
+            </div>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3">
+              {[
+                { label: "Precificação", value: presetCadastro.name },
+                { label: "Cliente", value: presetCadastro.client_name },
+                { label: "Código Salesforce", value: presetCadastro.salesforce_code },
+                { label: "Código da cotação", value: presetCadastro.quote_code },
+                { label: "Prazo de contrato", value: presetCadastro.contract_term },
+                { label: "Gerente de contas", value: presetCadastro.account_manager },
+                { label: "Especialista BU", value: presetCadastro.bu_specialist },
+                { label: "Arquiteto BU", value: presetCadastro.bu_architect },
+                {
+                  label: "Elaborado em",
+                  value: presetCadastro.created_at
+                    ? new Date(presetCadastro.created_at).toLocaleDateString("pt-BR")
+                    : null,
+                },
+              ]
+                .filter((f) => f.value && String(f.value).trim() !== "")
+                .map((f) => (
+                  <div key={f.label} className="min-w-0">
+                    <dt className="text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                      {f.label}
+                    </dt>
+                    <dd className="text-sm font-semibold text-foreground mt-0.5 break-words">
+                      {f.value}
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+          </section>
+        )}
+
         {/* SMART MONITOR */}
         {monitorVisible && !unifiedMonitorFlow && (
         <TierBlock active={monitorVisible} color="bronze" icon={TierMonitorIcon} tierIndex={1}
