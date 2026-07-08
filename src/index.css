@@ -219,6 +219,9 @@ All colors MUST be HSL.
 
   .proposicao-printable.report-anexo .report-kicker,
   .pdf-export-background.report-anexo .report-kicker {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
     min-width: 190px;
     min-height: 24px;
     justify-content: center;
@@ -227,6 +230,7 @@ All colors MUST be HSL.
     border-radius: 999px !important;
     padding: 4px 12px !important;
     background: transparent !important;
+    white-space: nowrap !important;
   }
 
   .proposicao-printable.report-anexo .report-kicker svg,
@@ -241,6 +245,52 @@ All colors MUST be HSL.
     font-size: 10px !important;
     letter-spacing: 0.18em !important;
     line-height: 1.2 !important;
+    white-space: nowrap !important;
+  }
+
+  .proposicao-printable.report-anexo .composta-list,
+  .pdf-export-background.report-anexo .composta-list {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .proposicao-printable.report-anexo .composta-label,
+  .pdf-export-background.report-anexo .composta-label,
+  .proposicao-printable.report-anexo .composta-item,
+  .pdf-export-background.report-anexo .composta-item,
+  .proposicao-printable.report-anexo .composta-pill,
+  .pdf-export-background.report-anexo .composta-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .proposicao-printable.report-anexo .composta-pill,
+  .pdf-export-background.report-anexo .composta-pill {
+    gap: 4px !important;
+    min-height: 24px !important;
+    line-height: 1 !important;
+    border: 1px solid #000 !important;
+    border-radius: 999px !important;
+    padding: 4px 10px !important;
+    background: #ffffff !important;
+  }
+
+  .proposicao-printable.report-anexo .tier-tagline,
+  .pdf-export-background.report-anexo .tier-tagline,
+  .proposicao-printable.report-anexo .report-description,
+  .pdf-export-background.report-anexo .report-description {
+    line-height: 1.45 !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    hyphens: none !important;
   }
 
   /* Ocultar todos os valores monetários no anexo contratual. */
@@ -253,10 +303,13 @@ All colors MUST be HSL.
      deve tentar caber em uma única página. */
   .proposicao-printable.report-anexo .report-section,
   .pdf-export-background.report-anexo .report-section,
+  .proposicao-printable.report-anexo [data-pdf-section],
+  .pdf-export-background.report-anexo [data-pdf-section],
   .proposicao-printable.report-anexo [data-tier],
   .pdf-export-background.report-anexo [data-tier] {
     break-inside: avoid;
     page-break-inside: avoid;
+    overflow: visible;
   }
 
   /* Bloco de camada: contorno único preto, sem preenchimento. */
