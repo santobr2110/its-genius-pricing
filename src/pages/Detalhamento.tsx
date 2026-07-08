@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
+import { supabase } from "@/integrations/supabase/client";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +105,26 @@ export default function Detalhamento() {
   const sm = results.smartMonitor;
   const sf = results.smartFlow;
   const fs = results.fieldService;
+
+  // Prazo do contrato (via preset ativo)
+  const [contractTerm, setContractTerm] = useState<string | null>(null);
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      if (!activePreset.activeId) { setContractTerm(null); return; }
+      const { data } = await supabase
+        .from("pricing_presets")
+        .select("contract_term")
+        .eq("id", activePreset.activeId)
+        .maybeSingle();
+      if (!cancel) setContractTerm((data as any)?.contract_term ?? null);
+    })();
+    return () => { cancel = true; };
+  }, [activePreset.activeId]);
+  const mesesContrato = (() => {
+    const m = String(contractTerm ?? "").match(/(\d+)/);
+    return m ? Number(m[1]) : 12;
+  })();
 
   // Quando não há ativos de Cloud/Datacenter no inventário, o Smart Monitor
   // não faz parte da proposta (ainda que esteja marcado nas configurações).
@@ -1715,7 +1736,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* INVESTIMENTO */}
-        <Card className="report-price report-section border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10">
+        <Card className="report-section border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
@@ -1724,11 +1745,15 @@ export default function Detalhamento() {
                 </p>
                 <p className="mt-1 text-3xl md:text-4xl font-bold text-primary">{formatBRL(investimentoTotal)}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Valor mensal de contrato
+                  Valor mensal de contrato{contractTerm ? ` · Prazo: ${contractTerm}` : ""}
                 </p>
               </div>
               <div className="text-right text-xs space-y-1">
                 <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(investimentoTotal * 12)}</strong></div>
+                <div>
+                  <span className="text-muted-foreground">Total do contrato ({mesesContrato} {mesesContrato === 1 ? "mês" : "meses"}): </span>
+                  <strong>{formatBRL(investimentoTotal * mesesContrato)}</strong>
+                </div>
               </div>
             </div>
             <div className="mt-4 border-t border-primary/20 pt-3 space-y-1">
@@ -1769,8 +1794,12 @@ export default function Detalhamento() {
                 </div>
               )}
               <div className="flex justify-between border-t border-primary/30 pt-1.5 mt-1">
-                <span className="text-xs font-bold">Total</span>
+                <span className="text-xs font-bold">Total mensal</span>
                 <span className="text-sm font-extrabold text-primary tabular-nums">{formatBRL(investimentoTotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-xs font-bold">Total do contrato ({mesesContrato} {mesesContrato === 1 ? "mês" : "meses"})</span>
+                <span className="text-sm font-extrabold text-primary tabular-nums">{formatBRL(investimentoTotal * mesesContrato)}</span>
               </div>
             </div>
           </CardContent>
