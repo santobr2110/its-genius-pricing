@@ -2130,12 +2130,12 @@ function Bullet({ children, color }: { children: React.ReactNode; color: string 
   );
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Stat({ label, value, sub, subClassName }: { label: string; value: string; sub?: string; subClassName?: string }) {
   return (
     <div className="rounded-xl border bg-background/80 backdrop-blur-sm px-3 py-2.5 transition-all hover:shadow-md hover:-translate-y-0.5">
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
       <p className="text-sm font-extrabold mt-0.5 tabular-nums">{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground tabular-nums">{sub}</p>}
+      {sub && <p className={`text-[10px] text-muted-foreground tabular-nums ${subClassName ?? ""}`}>{sub}</p>}
     </div>
   );
 }
