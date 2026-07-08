@@ -254,6 +254,68 @@ export default function Detalhamento() {
         node.style.webkitTextFillColor = "#000000";
         node.style.color = "#000000";
       });
+      // html2canvas frequently mis-mensures inline SVGs when width/height come
+      // only via CSS (e.g. Tailwind h-3 w-3). Copy the computed pixel size to
+      // the SVG's width/height attributes so the icons render at the right
+      // size in the PDF instead of collapsing or blowing up.
+      if (printable) {
+        const sourceSvgs = Array.from(el.querySelectorAll<SVGElement>("svg"));
+        const clonedSvgs = Array.from(printable.querySelectorAll<SVGElement>("svg"));
+        clonedSvgs.forEach((svg, i) => {
+          const src = sourceSvgs[i];
+          if (!src) return;
+          const rect = src.getBoundingClientRect();
+          const w = Math.max(1, Math.round(rect.width));
+          const h = Math.max(1, Math.round(rect.height));
+          svg.setAttribute("width", String(w));
+          svg.setAttribute("height", String(h));
+          (svg as unknown as HTMLElement).style.width = `${w}px`;
+          (svg as unknown as HTMLElement).style.height = `${h}px`;
+          (svg as unknown as HTMLElement).style.flexShrink = "0";
+          (svg as unknown as HTMLElement).style.display = "inline-block";
+          (svg as unknown as HTMLElement).style.verticalAlign = "middle";
+        });
+
+        // The "Proposta Comercial" kicker and the "Composta por" pills rely on
+        // inline-flex + gap, which html2canvas can collapse. Force explicit
+        // block-ish layout so they always render.
+        printable.querySelectorAll<HTMLElement>(".report-kicker").forEach((node) => {
+          node.style.display = "inline-block";
+          node.style.padding = "4px 14px";
+          node.style.border = "1px solid #000";
+          node.style.borderRadius = "999px";
+          node.style.background = "#ffffff";
+          node.style.lineHeight = "1.4";
+          node.querySelectorAll<HTMLElement>("svg").forEach((s) => {
+            s.style.verticalAlign = "-2px";
+            s.style.marginRight = "6px";
+          });
+          node.querySelectorAll<HTMLElement>("span").forEach((s) => {
+            s.style.color = "#000";
+            (s.style as unknown as Record<string, string>)["webkitTextFillColor"] = "#000";
+            s.style.fontSize = "10px";
+            s.style.letterSpacing = "0.18em";
+            s.style.fontWeight = "700";
+            s.style.textTransform = "uppercase";
+            s.style.verticalAlign = "middle";
+          });
+        });
+
+        // "Composta por" pills — same treatment.
+        printable.querySelectorAll<HTMLElement>(".composta-pill").forEach((pill) => {
+          pill.style.display = "inline-block";
+          pill.style.padding = "3px 10px";
+          pill.style.border = "1px solid #000";
+          pill.style.borderRadius = "999px";
+          pill.style.background = "#ffffff";
+          pill.style.marginRight = "6px";
+          pill.style.lineHeight = "1.4";
+          pill.querySelectorAll<HTMLElement>("svg").forEach((s) => {
+            s.style.verticalAlign = "-2px";
+            s.style.marginRight = "4px";
+          });
+        });
+      }
     };
 
     const canvas = await html2canvas(el, {
