@@ -1275,7 +1275,7 @@ export default function Detalhamento() {
               {componentNames.map((n, i) => (
                 <span key={n} className="inline-flex items-center gap-1.5">
                   {i > 0 && <span className="text-muted-foreground/60 text-xs">+</span>}
-                  <span className="inline-flex items-center gap-1 rounded-full border bg-card/70 backdrop-blur px-2.5 py-1 text-[11px] font-bold">
+                  <span className="composta-pill inline-flex items-center gap-1 rounded-full border bg-card/70 backdrop-blur px-2.5 py-1 text-[11px] font-bold">
                     <Sparkles className="h-3 w-3 text-primary" />
                     {n}
                   </span>
