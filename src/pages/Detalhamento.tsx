@@ -2280,10 +2280,10 @@ function N3HoursBox({
           </div>
           <div>
             <p className="text-sm font-extrabold">Horas N3 contratadas</p>
-            <p className="text-[11px] text-muted-foreground">{formatNumber(total)}h/mês × {formatBRL(valorHora)}/h <span className="text-[9px] uppercase tracking-wider">(venda)</span></p>
+            <p className="text-[11px] text-muted-foreground">{formatNumber(total)}h/mês<span className="report-price"> × {formatBRL(valorHora)}/h <span className="text-[9px] uppercase tracking-wider">(venda)</span></span></p>
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-right report-price">
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
           <p className="text-base font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tabular-nums">{formatBRL(valorTotalVenda)}</p>
         </div>
