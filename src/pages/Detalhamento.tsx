@@ -1261,7 +1261,7 @@ export default function Detalhamento() {
                       <div className="text-lg font-bold leading-tight">{formatNumber(sm.qtdAtendentes)}</div>
                       <div className="text-[11px] text-muted-foreground">acessos</div>
                     </div>
-                    <div className="text-right">
+                    <div className="report-price text-right">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
                       <div className="text-base font-bold text-primary">{formatBRL(toSell(sm.custoAtendentes))}</div>
                     </div>
@@ -1276,7 +1276,7 @@ export default function Detalhamento() {
                         {sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adicional${sm.qtdProxys - 1 > 1 ? "is" : ""}`}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="report-price text-right">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
                       <div className="text-base font-bold text-primary">{formatBRL(toSell(sm.custoProxys))}</div>
                     </div>
