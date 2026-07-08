@@ -15,8 +15,16 @@ import {
   ClipboardList, Crown,
   Clock, ListChecks, CheckCircle2, Circle, Sparkles, Server, Network,
   Database, Shield, Rocket, TrendingUp, Wrench, Star, Activity, FileDown,
-  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown, Palette, Printer,
+  Medal, Award, Trophy, Gem, Workflow, Presentation, ChevronDown,
 } from "lucide-react";
+import {
+  MonitorIcon as TierMonitorIcon,
+  FlowIcon as TierFlowIcon,
+  OperationIcon as TierOperationIcon,
+  PerformanceIcon as TierPerformanceIcon,
+  EnterpriseIcon as TierEnterpriseIcon,
+  FieldServiceIcon as TierFieldIcon,
+} from "@/components/itsm/TierIcons";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
@@ -84,8 +92,6 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 export default function Detalhamento() {
   const { state, results, activePreset } = useITSMContext();
   const isSavedPricing = !!activePreset.activeId;
-  const [reportColorMode, setReportColorMode] = useState<"color" | "bw">("color");
-  const bwMode = reportColorMode === "bw";
   const approval = usePricingApproval({
     offering: "smart-ito",
     targetType: "pricing_preset",
@@ -195,27 +201,25 @@ export default function Detalhamento() {
     const CONTENT_W = A4_W - MARGIN * 2;
     const CONTENT_H = A4_H - MARGIN * 2;
     const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-    const pageBg = bwMode ? "#ffffff" : getComputedStyle(el).backgroundColor || "#0e1b14";
+    const pageBg = "#ffffff";
 
     const onclone = (doc: Document) => {
       const printable = doc.getElementById("proposicao-printable");
       if (printable) {
         printable.classList.add("pdf-export-background");
-        if (bwMode) printable.classList.add("report-bw");
+        printable.classList.add("report-anexo");
         printable.style.width = `${el.scrollWidth}px`;
         printable.style.maxWidth = `${el.scrollWidth}px`;
       }
-      if (bwMode) {
-        doc.querySelectorAll<HTMLElement>(".text-transparent, .bg-clip-text").forEach((node) => {
-          node.classList.remove("text-transparent");
-          node.style.background = "none";
-          node.style.backgroundImage = "none";
-          node.style.webkitBackgroundClip = "border-box";
-          node.style.backgroundClip = "border-box";
-          node.style.webkitTextFillColor = "#000000";
-          node.style.color = "#000000";
-        });
-      }
+      doc.querySelectorAll<HTMLElement>(".text-transparent, .bg-clip-text").forEach((node) => {
+        node.classList.remove("text-transparent");
+        node.style.background = "none";
+        node.style.backgroundImage = "none";
+        node.style.webkitBackgroundClip = "border-box";
+        node.style.backgroundClip = "border-box";
+        node.style.webkitTextFillColor = "#000000";
+        node.style.color = "#000000";
+      });
     };
 
     const canvas = await html2canvas(el, {
@@ -1125,7 +1129,7 @@ export default function Detalhamento() {
                   title={exportDisabledReason}
                 >
                   <FileDown className="h-4 w-4" />
-                  Exportar PDF
+                  Anexo Contratual (PDF)
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleExportPresentation}
@@ -1152,33 +1156,9 @@ export default function Detalhamento() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-6 pt-4 flex items-center justify-end">
-        <div className="inline-flex items-center gap-1 rounded-md border bg-card/60 backdrop-blur p-1 text-xs shadow-sm">
-          <span className="px-2 text-muted-foreground inline-flex items-center gap-1">
-            <Palette className="h-3.5 w-3.5" /> Modo:
-          </span>
-          <Button
-            size="sm"
-            variant={bwMode ? "ghost" : "default"}
-            className="h-7 px-2 text-xs"
-            onClick={() => setReportColorMode("color")}
-          >
-            Colorido
-          </Button>
-          <Button
-            size="sm"
-            variant={bwMode ? "default" : "ghost"}
-            className="h-7 px-2 text-xs gap-1"
-            onClick={() => setReportColorMode("bw")}
-          >
-            <Printer className="h-3.5 w-3.5" /> Preto &amp; branco
-          </Button>
-        </div>
-      </div>
-
       <main
         id="proposicao-printable"
-        className={`proposicao-printable mx-auto max-w-5xl p-6 space-y-6 ${bwMode ? "report-bw" : ""}`}
+        className="proposicao-printable report-anexo mx-auto max-w-5xl p-6 space-y-6"
       >
         <section className="text-center pt-2 pb-1">
           <div className="report-kicker inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
@@ -1212,7 +1192,7 @@ export default function Detalhamento() {
 
         {/* SMART MONITOR */}
         {monitorVisible && !unifiedMonitorFlow && (
-        <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
+        <TierBlock active={monitorVisible} color="bronze" icon={TierMonitorIcon} tierIndex={1}
           dominant={dominantColor === "bronze"}
           title={escopo.monitor.titulo} tagline={escopo.monitor.tagline}
           valor={valorMonitor}>
@@ -1281,7 +1261,7 @@ export default function Detalhamento() {
                       <div className="text-lg font-bold leading-tight">{formatNumber(sm.qtdAtendentes)}</div>
                       <div className="text-[11px] text-muted-foreground">acessos</div>
                     </div>
-                    <div className="text-right">
+                    <div className="report-price text-right">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
                       <div className="text-base font-bold text-primary">{formatBRL(toSell(sm.custoAtendentes))}</div>
                     </div>
@@ -1296,7 +1276,7 @@ export default function Detalhamento() {
                         {sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adicional${sm.qtdProxys - 1 > 1 ? "is" : ""}`}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="report-price text-right">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
                       <div className="text-base font-bold text-primary">{formatBRL(toSell(sm.custoProxys))}</div>
                     </div>
@@ -1318,7 +1298,7 @@ export default function Detalhamento() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
                     <span className="font-semibold">
-                      {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
+                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}</span>
                     </span>
                   </div>
                 <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
@@ -1332,12 +1312,12 @@ export default function Detalhamento() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
                     <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sm.custoN3Manut * fatorVenda)}</div>
+                    <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(sm.custoN3Manut * fatorVenda)}</span></div>
                     <div className="text-[10px] text-muted-foreground">Ajustes e tunings do monitoramento.</div>
                   </div>
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-1.5">
                     <div className="text-muted-foreground text-[10px]">Atendimento N3 · {pctAcion.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sm.custoN3 * fatorVenda)}</div>
+                    <div className="font-semibold">{formatNumber(hAcion)}h<span className="report-price"> · {formatBRL(sm.custoN3 * fatorVenda)}</span></div>
                     <div className="text-[10px] text-muted-foreground">Tratamento de incidentes detectados.</div>
                   </div>
                 </div>
@@ -1371,7 +1351,7 @@ export default function Detalhamento() {
 
         {/* SMART FLOW */}
         {flowVisible && (
-        <TierBlock active={flowVisible} color="steel" icon={Workflow} tierIndex={2}
+        <TierBlock active={flowVisible} color="steel" icon={TierFlowIcon} tierIndex={2}
           dominant={dominantColor === "steel"}
           title={escopoFlowDisplay.titulo} tagline={escopoFlowDisplay.tagline}
           valor={unifiedMonitorFlow ? valorMonitor + valorFlow : valorFlow}>
@@ -1436,7 +1416,7 @@ export default function Detalhamento() {
                       <div className="text-lg font-bold leading-tight">{formatNumber(sf.qtdAtendentes)}</div>
                       <div className="text-[11px] text-muted-foreground">acessos</div>
                     </div>
-                    <div className="text-right">
+                    <div className="report-price text-right">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
                       <div className="text-base font-bold text-primary">{formatBRL(toSell(sf.custoAtendentes))}</div>
                     </div>
@@ -1451,7 +1431,7 @@ export default function Detalhamento() {
                         {sf.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sf.qtdProxys - 1} adicional${sf.qtdProxys - 1 > 1 ? "is" : ""}`}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="report-price text-right">
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Valor mensal</div>
                       <div className="text-base font-bold text-primary">{formatBRL(toSell(sf.custoProxys))}</div>
                     </div>
@@ -1474,7 +1454,7 @@ export default function Detalhamento() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
                     <span className="font-semibold">
-                      {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
+                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}</span>
                     </span>
                   </div>
                   <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
@@ -1488,12 +1468,12 @@ export default function Detalhamento() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
                       <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
-                      <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sf.custoN3Manut * fatorVenda)}</div>
+                      <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(sf.custoN3Manut * fatorVenda)}</span></div>
                       <div className="text-[10px] text-muted-foreground">Tratamento contínuo e automações de eventos.</div>
                     </div>
                     <div className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-1.5">
                       <div className="text-muted-foreground text-[10px]">Atendimento N3 · {pctAcion.toFixed(0)}%</div>
-                      <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sf.custoN3 * fatorVenda)}</div>
+                      <div className="font-semibold">{formatNumber(hAcion)}h<span className="report-price"> · {formatBRL(sf.custoN3 * fatorVenda)}</span></div>
                       <div className="text-[10px] text-muted-foreground">Horas técnicas sob demanda.</div>
                     </div>
                   </div>
@@ -1530,7 +1510,7 @@ export default function Detalhamento() {
         )}
 
         {/* SMART OPERATION */}
-        <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={3}
+        <TierBlock active={state.tierOperation} color="silver" icon={TierOperationIcon} tierIndex={3}
           dominant={dominantColor === "silver"}
           title={escopo.operation.titulo} tagline={escopo.operation.tagline}
           valor={valorOperation}>
@@ -1551,7 +1531,7 @@ export default function Detalhamento() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
             <Stat label="Volume N1" value={`${formatNumber(results.volumeN1, 1)} ch/mês`} />
             <Stat label="Volume N2" value={`${formatNumber(results.volumeN2, 1)} ch/mês`} />
-            <Stat label="Custo/chamado N1" value={formatBRL(results.custoPorChamadoN1)} />
+            <div className="report-price"><Stat label="Custo/chamado N1" value={formatBRL(results.custoPorChamadoN1)} /></div>
           </div>
 
           {rotinasOp.length > 0 && (
@@ -1603,7 +1583,7 @@ export default function Detalhamento() {
                   <p className="text-[11px] text-muted-foreground italic">{escopo.fieldService.tagline}</p>
                 </div>
                 {valorFieldService > 0 && (
-                  <div className="text-right shrink-0">
+                  <div className="report-price text-right shrink-0">
                     <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
                     <p className="text-base font-extrabold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300 bg-clip-text text-transparent tabular-nums">{formatBRL(valorFieldService)}</p>
                   </div>
@@ -1624,9 +1604,9 @@ export default function Detalhamento() {
               )}
               <SubTitle>Equipe presencial alocada</SubTitle>
               <div className="grid grid-cols-3 gap-2">
-                <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} sub={formatBRL(fs.custoN1F)} />
-                <Stat label="N2F" value={`${state.fieldDirectQtdN2} prof.`} sub={formatBRL(fs.custoN2F)} />
-                <Stat label="N3F" value={`${state.fieldDirectQtdN3} prof.`} sub={formatBRL(fs.custoN3F)} />
+                <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN1F)} />
+                <Stat label="N2F" value={`${state.fieldDirectQtdN2} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN2F)} />
+                <Stat label="N3F" value={`${state.fieldDirectQtdN3} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN3F)} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Stat label="Equipamentos cobertos" value={formatNumber(state.qtdEquipamentos)} />
@@ -1650,7 +1630,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART PERFORMANCE */}
-        <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
+        <TierBlock active={state.tierPerformance} color="gold" icon={TierPerformanceIcon} tierIndex={4}
           dominant={dominantColor === "gold"}
           title={escopo.performance.titulo} tagline={escopo.performance.tagline}
           valor={valorPerformance}>
@@ -1716,7 +1696,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART ENTERPRISE */}
-        <TierBlock active={state.tierEnterprise} color="diamond" icon={Crown} tierIndex={5}
+        <TierBlock active={state.tierEnterprise} color="diamond" icon={TierEnterpriseIcon} tierIndex={5}
           dominant={dominantColor === "diamond"}
           title={escopo.enterprise.titulo} tagline={escopo.enterprise.tagline} valor={0}>
           {escopo.enterprise.descricao && (
@@ -1735,7 +1715,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* INVESTIMENTO */}
-        <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10">
+        <Card className="report-price report-section border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-accent/10">
           <CardContent className="p-6">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div>
@@ -1891,7 +1871,7 @@ export default function Detalhamento() {
           };
 
           return (
-            <Card className="border-primary/20">
+            <Card className="report-section border-primary/20">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-center gap-2">
                   <PackagePlus className="h-4 w-4 text-primary" />
@@ -1899,7 +1879,7 @@ export default function Detalhamento() {
                     Itens adicionais ao contrato
                   </p>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-snug">
+                <p className="text-[11px] text-muted-foreground leading-snug report-price">
                   Itens cobrados como adicionais ao escopo contratado. Para ativos monitorados,
                   o valor unitário considera o custo de monitoramento e os chamados previstos
                   (incidentes ponderados no funil N1/N2/N3 do contrato), com markup de margem
@@ -1911,7 +1891,7 @@ export default function Detalhamento() {
                       <tr className="border-b text-muted-foreground">
                         <th className="text-left py-1.5 px-2 font-semibold">Item</th>
                         <th className="text-left py-1.5 px-2 font-semibold">Unidade</th>
-                        <th className="text-right py-1.5 px-2 font-semibold">Valor unitário</th>
+                        <th className="text-right py-1.5 px-2 font-semibold report-price">Valor unitário</th>
                         <th className="text-left py-1.5 px-2 font-semibold">Observação</th>
                       </tr>
                     </thead>
@@ -1922,7 +1902,7 @@ export default function Detalhamento() {
                           <tr key={it.id} className="border-b border-muted-foreground/10 align-top">
                             <td className="py-1.5 px-2 font-medium text-foreground">{it.descricao}</td>
                             <td className="py-1.5 px-2 text-muted-foreground">{it.unidade}</td>
-                            <td className="py-1.5 px-2 text-right font-semibold tabular-nums">
+                            <td className="py-1.5 px-2 text-right font-semibold tabular-nums report-price">
                               {formatBRL(valor)}
                               {detalhe && (
                                 <div className="text-[10px] font-normal text-muted-foreground">{detalhe}</div>
@@ -1937,7 +1917,7 @@ export default function Detalhamento() {
                     </tbody>
                   </table>
                 </div>
-                <p className="text-[10px] text-muted-foreground italic">
+                <p className="text-[10px] text-muted-foreground italic report-price">
                   Valores mensais sugeridos. Itens marcados como “manual” usam o valor fixo
                   cadastrado em Configurações › Escopo.
                 </p>
@@ -2037,7 +2017,7 @@ function CompositionBox({
   const theme = TIER_THEMES[color] ?? TIER_THEMES.silver;
   if (parts.length < 2 || total <= 0) return null;
   return (
-    <div className={`mt-4 rounded-xl border-2 ${theme.ring} bg-background/70 backdrop-blur-sm p-3 space-y-1.5`}>
+    <div className={`report-price mt-4 rounded-xl border-2 ${theme.ring} bg-background/70 backdrop-blur-sm p-3 space-y-1.5`}>
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
       {parts.map((p, i) => (
         <div key={i} className="flex justify-between text-[12px]">
@@ -2086,7 +2066,7 @@ function TierBlock({
     );
   }
   return (
-    <div className={`group relative overflow-hidden rounded-3xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-xl ${theme.glow} transition-all hover:shadow-2xl ${dominant ? "ring-4 ring-offset-2 ring-offset-background ring-current/30 scale-[1.005]" : ""}`}>
+    <div data-tier={color} className={`report-section group relative overflow-hidden rounded-3xl border-2 ${theme.ring} bg-gradient-to-br ${theme.bg} shadow-xl ${theme.glow} transition-all hover:shadow-2xl ${dominant ? "ring-4 ring-offset-2 ring-offset-background ring-current/30 scale-[1.005]" : ""}`}>
       {/* Decorative blobs */}
       <div className={`pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full blur-3xl ${theme.blob1}`} />
       <div className={`pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full blur-3xl ${theme.blob2}`} />
@@ -2095,7 +2075,7 @@ function TierBlock({
       <div className="relative p-6 space-y-4">
         {/* Header row: icon + title + badge + value, all in one flex line — no absolute overlap */}
         <div className="flex items-start gap-4 flex-wrap">
-          <div className={`relative rounded-2xl p-3.5 shadow-lg ${theme.icon} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+          <div data-tier-icon className={`relative rounded-2xl p-3.5 shadow-lg ${theme.icon} transition-transform group-hover:scale-110 group-hover:rotate-3`}>
             <Icon className="h-6 w-6" strokeWidth={2.25} />
             {tierIndex && (
               <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-background border-2 border-current text-[10px] font-extrabold flex items-center justify-center text-foreground">
@@ -2116,7 +2096,7 @@ function TierBlock({
             </div>
           )}
           {valor > 0 && (
-            <div className="text-right shrink-0">
+            <div className="report-price text-right shrink-0">
               <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
               <p className={`text-xl font-extrabold bg-gradient-to-r ${theme.valueGrad} bg-clip-text text-transparent tabular-nums`}>{formatBRL(valor)}</p>
             </div>
@@ -2150,12 +2130,12 @@ function Bullet({ children, color }: { children: React.ReactNode; color: string 
   );
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Stat({ label, value, sub, subClassName }: { label: string; value: string; sub?: string; subClassName?: string }) {
   return (
     <div className="rounded-xl border bg-background/80 backdrop-blur-sm px-3 py-2.5 transition-all hover:shadow-md hover:-translate-y-0.5">
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
       <p className="text-sm font-extrabold mt-0.5 tabular-nums">{value}</p>
-      {sub && <p className="text-[10px] text-muted-foreground tabular-nums">{sub}</p>}
+      {sub && <p className={`text-[10px] text-muted-foreground tabular-nums ${subClassName ?? ""}`}>{sub}</p>}
     </div>
   );
 }
@@ -2300,10 +2280,10 @@ function N3HoursBox({
           </div>
           <div>
             <p className="text-sm font-extrabold">Horas N3 contratadas</p>
-            <p className="text-[11px] text-muted-foreground">{formatNumber(total)}h/mês × {formatBRL(valorHora)}/h <span className="text-[9px] uppercase tracking-wider">(venda)</span></p>
+            <p className="text-[11px] text-muted-foreground">{formatNumber(total)}h/mês<span className="report-price"> × {formatBRL(valorHora)}/h <span className="text-[9px] uppercase tracking-wider">(venda)</span></span></p>
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-right report-price">
           <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
           <p className="text-base font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tabular-nums">{formatBRL(valorTotalVenda)}</p>
         </div>
@@ -2494,7 +2474,7 @@ function DistCard({
         <span className="text-lg font-extrabold tabular-nums">{formatNumber(horas, 1)}</span>
         <span className="text-[10px] text-muted-foreground font-semibold">h/mês</span>
       </div>
-      <p className="text-[11px] font-bold tabular-nums text-foreground/80">{formatBRL(valor)}<span className="text-[9px] text-muted-foreground font-normal">/mês</span></p>
+      <p className="text-[11px] font-bold tabular-nums text-foreground/80 report-price">{formatBRL(valor)}<span className="text-[9px] text-muted-foreground font-normal">/mês</span></p>
       <p className="text-[10px] text-muted-foreground mt-1.5 leading-snug">{desc}</p>
     </div>
   );

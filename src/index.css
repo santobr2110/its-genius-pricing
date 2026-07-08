@@ -132,9 +132,12 @@ All colors MUST be HSL.
       linear-gradient(180deg, hsl(150 30% 8%) 0%, hsl(152 32% 11%) 100%);
   }
 
-  /* Modo Preto & Branco do relatório de Proposição (tela + PDF): branco sólido, texto preto e bordas pretas. */
-  .proposicao-printable.report-bw,
-  .pdf-export-background.report-bw {
+  /* Relatório de Proposição — Anexo Contratual (tela + PDF).
+     Preto e branco puro, sem gradientes/sombras/opacidades, quebra de página
+     por seção, e ocultação automática de todos os valores monetários
+     através da classe utilitária .report-price. */
+  .proposicao-printable.report-anexo,
+  .pdf-export-background.report-anexo {
     --background: 0 0% 100%;
     --foreground: 0 0% 0%;
     --card: 0 0% 100%;
@@ -156,30 +159,32 @@ All colors MUST be HSL.
     color: #000000 !important;
   }
 
-  .dark .proposicao-printable.report-bw,
-  .dark .pdf-export-background.report-bw {
+  .dark .proposicao-printable.report-anexo,
+  .dark .pdf-export-background.report-anexo {
     background: #ffffff !important;
   }
 
-  .proposicao-printable.report-bw *,
-  .pdf-export-background.report-bw * {
+  .proposicao-printable.report-anexo *,
+  .pdf-export-background.report-anexo * {
     background-image: none !important;
     box-shadow: none !important;
     text-shadow: none !important;
     border-color: #000000 !important;
     opacity: 1 !important;
     color: #000000 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
-  .proposicao-printable.report-bw [class*="bg-"],
-  .pdf-export-background.report-bw [class*="bg-"],
-  .dark .proposicao-printable.report-bw [class*="bg-"],
-  .dark .pdf-export-background.report-bw [class*="bg-"] {
+  .proposicao-printable.report-anexo [class*="bg-"],
+  .pdf-export-background.report-anexo [class*="bg-"],
+  .dark .proposicao-printable.report-anexo [class*="bg-"],
+  .dark .pdf-export-background.report-anexo [class*="bg-"] {
     background-color: #ffffff !important;
   }
 
-  .proposicao-printable.report-bw .bg-clip-text.text-transparent,
-  .pdf-export-background.report-bw .bg-clip-text.text-transparent {
+  .proposicao-printable.report-anexo .bg-clip-text.text-transparent,
+  .pdf-export-background.report-anexo .bg-clip-text.text-transparent {
     background: none !important;
     -webkit-background-clip: border-box !important;
     background-clip: border-box !important;
@@ -187,63 +192,104 @@ All colors MUST be HSL.
     color: #000000 !important;
   }
 
-  .proposicao-printable.report-bw svg,
-  .pdf-export-background.report-bw svg,
-  .proposicao-printable.report-bw svg *,
-  .pdf-export-background.report-bw svg * {
+  .proposicao-printable.report-anexo svg,
+  .pdf-export-background.report-anexo svg,
+  .proposicao-printable.report-anexo svg *,
+  .pdf-export-background.report-anexo svg * {
     color: #000000 !important;
     stroke: #000000 !important;
+    fill: none !important;
+  }
+  /* Ícones sólidos precisam manter o preenchimento preto (ex.: checks internos). */
+  .proposicao-printable.report-anexo svg [fill="currentColor"],
+  .pdf-export-background.report-anexo svg [fill="currentColor"] {
+    fill: #000000 !important;
   }
 
-  .proposicao-printable.report-bw [style*="width"][class*="bg-"],
-  .pdf-export-background.report-bw [style*="width"][class*="bg-"] {
+  .proposicao-printable.report-anexo [style*="width"][class*="bg-"],
+  .pdf-export-background.report-anexo [style*="width"][class*="bg-"] {
     background-color: #000000 !important;
     color: #ffffff !important;
   }
 
-  .proposicao-printable.report-bw [style*="width"][class*="bg-"] *,
-  .pdf-export-background.report-bw [style*="width"][class*="bg-"] * {
+  .proposicao-printable.report-anexo [style*="width"][class*="bg-"] *,
+  .pdf-export-background.report-anexo [style*="width"][class*="bg-"] * {
     color: #ffffff !important;
   }
 
-  .proposicao-printable.report-bw .report-kicker,
-  .pdf-export-background.report-bw .report-kicker {
+  .proposicao-printable.report-anexo .report-kicker,
+  .pdf-export-background.report-anexo .report-kicker {
     min-width: 190px;
     min-height: 24px;
     justify-content: center;
     line-height: 1.2;
-    border: 0 !important;
-    border-radius: 0 !important;
-    padding: 0 !important;
+    border: 1px solid #000 !important;
+    border-radius: 999px !important;
+    padding: 4px 12px !important;
     background: transparent !important;
   }
 
-  .proposicao-printable.report-bw .report-kicker svg,
-  .proposicao-printable.report-bw .report-kicker span,
-  .pdf-export-background.report-bw .report-kicker svg,
-  .pdf-export-background.report-bw .report-kicker span {
-    display: none !important;
+  .proposicao-printable.report-anexo .report-kicker svg,
+  .pdf-export-background.report-anexo .report-kicker svg {
+    display: inline-block !important;
+    stroke: #000 !important;
   }
-
-  .proposicao-printable.report-bw .report-kicker::before,
-  .pdf-export-background.report-bw .report-kicker::before {
-    content: "Proposta Comercial";
-    display: block;
-    color: #000000 !important;
-    font-size: 10px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0 !important;
-    line-height: 1.2 !important;
-    text-transform: uppercase;
-  }
-
-  .proposicao-printable.report-bw .report-kicker span,
-  .pdf-export-background.report-bw .report-kicker span {
+  .proposicao-printable.report-anexo .report-kicker span,
+  .pdf-export-background.report-anexo .report-kicker span {
     color: #000000 !important;
     -webkit-text-fill-color: #000000 !important;
     font-size: 10px !important;
-    letter-spacing: 0 !important;
+    letter-spacing: 0.18em !important;
     line-height: 1.2 !important;
+  }
+
+  /* Ocultar todos os valores monetários no anexo contratual. */
+  .proposicao-printable.report-anexo .report-price,
+  .pdf-export-background.report-anexo .report-price {
+    display: none !important;
+  }
+
+  /* Evita cortes desagradáveis: cada bloco de camada e cada seção-cartão
+     deve tentar caber em uma única página. */
+  .proposicao-printable.report-anexo .report-section,
+  .pdf-export-background.report-anexo .report-section,
+  .proposicao-printable.report-anexo [data-tier],
+  .pdf-export-background.report-anexo [data-tier] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Bloco de camada: contorno único preto, sem preenchimento. */
+  .proposicao-printable.report-anexo [data-tier],
+  .pdf-export-background.report-anexo [data-tier] {
+    border: 1.5px solid #000 !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    padding-top: 4px !important;
+  }
+  .proposicao-printable.report-anexo [data-tier] > div:first-child,
+  .pdf-export-background.report-anexo [data-tier] > div:first-child {
+    display: none !important; /* remove decorative blobs */
+  }
+
+  /* Ícone da camada em bloco preto (contraste) com traço branco. */
+  .proposicao-printable.report-anexo [data-tier-icon],
+  .pdf-export-background.report-anexo [data-tier-icon] {
+    background: #000 !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+  }
+  .proposicao-printable.report-anexo [data-tier-icon] svg,
+  .pdf-export-background.report-anexo [data-tier-icon] svg,
+  .proposicao-printable.report-anexo [data-tier-icon] svg *,
+  .pdf-export-background.report-anexo [data-tier-icon] svg * {
+    stroke: #ffffff !important;
+    color: #ffffff !important;
+  }
+  .proposicao-printable.report-anexo [data-tier-icon] svg [fill="currentColor"],
+  .pdf-export-background.report-anexo [data-tier-icon] svg [fill="currentColor"] {
+    fill: #ffffff !important;
   }
 }
 
