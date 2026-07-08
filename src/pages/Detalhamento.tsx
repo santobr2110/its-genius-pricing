@@ -1298,7 +1298,7 @@ export default function Detalhamento() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
                     <span className="font-semibold">
-                      {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
+                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}</span>
                     </span>
                   </div>
                 <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
@@ -1312,12 +1312,12 @@ export default function Detalhamento() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
                     <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sm.custoN3Manut * fatorVenda)}</div>
+                    <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(sm.custoN3Manut * fatorVenda)}</span></div>
                     <div className="text-[10px] text-muted-foreground">Ajustes e tunings do monitoramento.</div>
                   </div>
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-1.5">
                     <div className="text-muted-foreground text-[10px]">Atendimento N3 · {pctAcion.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sm.custoN3 * fatorVenda)}</div>
+                    <div className="font-semibold">{formatNumber(hAcion)}h<span className="report-price"> · {formatBRL(sm.custoN3 * fatorVenda)}</span></div>
                     <div className="text-[10px] text-muted-foreground">Tratamento de incidentes detectados.</div>
                   </div>
                 </div>
@@ -1454,7 +1454,7 @@ export default function Detalhamento() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
                     <span className="font-semibold">
-                      {formatNumber(hTotal)}h · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}
+                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}</span>
                     </span>
                   </div>
                   <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
@@ -1468,12 +1468,12 @@ export default function Detalhamento() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
                       <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
-                      <div className="font-semibold">{formatNumber(hManut)}h · {formatBRL(sf.custoN3Manut * fatorVenda)}</div>
+                      <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(sf.custoN3Manut * fatorVenda)}</span></div>
                       <div className="text-[10px] text-muted-foreground">Tratamento contínuo e automações de eventos.</div>
                     </div>
                     <div className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-1.5">
                       <div className="text-muted-foreground text-[10px]">Atendimento N3 · {pctAcion.toFixed(0)}%</div>
-                      <div className="font-semibold">{formatNumber(hAcion)}h · {formatBRL(sf.custoN3 * fatorVenda)}</div>
+                      <div className="font-semibold">{formatNumber(hAcion)}h<span className="report-price"> · {formatBRL(sf.custoN3 * fatorVenda)}</span></div>
                       <div className="text-[10px] text-muted-foreground">Horas técnicas sob demanda.</div>
                     </div>
                   </div>
