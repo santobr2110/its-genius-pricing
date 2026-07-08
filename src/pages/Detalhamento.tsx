@@ -237,13 +237,16 @@ export default function Detalhamento() {
     const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
     const pageBg = "#ffffff";
 
-    const onclone = (doc: Document) => {
+    const applyExportCloneFixes = (doc: Document) => {
       const printable = doc.getElementById("proposicao-printable");
       if (printable) {
         printable.classList.add("pdf-export-background");
         printable.classList.add("report-anexo");
         printable.style.width = `${el.scrollWidth}px`;
         printable.style.maxWidth = `${el.scrollWidth}px`;
+        printable.style.background = pageBg;
+        printable.style.color = "#000000";
+        printable.style.overflow = "visible";
       }
       doc.querySelectorAll<HTMLElement>(".text-transparent, .bg-clip-text").forEach((node) => {
         node.classList.remove("text-transparent");
@@ -276,19 +279,33 @@ export default function Detalhamento() {
           (svg as unknown as HTMLElement).style.verticalAlign = "middle";
         });
 
+        printable.querySelectorAll<HTMLElement>(".report-section, [data-pdf-section], [data-tier]").forEach((section) => {
+          section.style.breakInside = "avoid";
+          section.style.pageBreakInside = "avoid";
+          section.style.overflow = "visible";
+        });
+
         // The "Proposta Comercial" kicker and the "Composta por" pills rely on
-        // inline-flex + gap, which html2canvas can collapse. Force explicit
-        // block-ish layout so they always render.
+        // flex + gap, which html2canvas can collapse. Force explicit sizes and
+        // no text wrapping inside each pill so the export keeps the same shape.
         printable.querySelectorAll<HTMLElement>(".report-kicker").forEach((node) => {
-          node.style.display = "inline-block";
+          node.style.display = "inline-flex";
+          node.style.alignItems = "center";
+          node.style.justifyContent = "center";
+          node.style.gap = "6px";
           node.style.padding = "4px 14px";
           node.style.border = "1px solid #000";
           node.style.borderRadius = "999px";
           node.style.background = "#ffffff";
-          node.style.lineHeight = "1.4";
+          node.style.lineHeight = "1.2";
+          node.style.whiteSpace = "nowrap";
+          node.style.minHeight = "24px";
           node.querySelectorAll<HTMLElement>("svg").forEach((s) => {
-            s.style.verticalAlign = "-2px";
-            s.style.marginRight = "6px";
+            s.style.width = "14px";
+            s.style.height = "14px";
+            s.style.flex = "0 0 14px";
+            s.style.marginRight = "0";
+            s.style.verticalAlign = "middle";
           });
           node.querySelectorAll<HTMLElement>("span").forEach((s) => {
             s.style.color = "#000";
@@ -298,71 +315,59 @@ export default function Detalhamento() {
             s.style.fontWeight = "700";
             s.style.textTransform = "uppercase";
             s.style.verticalAlign = "middle";
+            s.style.whiteSpace = "nowrap";
           });
         });
 
         // "Composta por" pills — same treatment.
+        printable.querySelectorAll<HTMLElement>(".composta-list").forEach((list) => {
+          list.style.display = "flex";
+          list.style.flexWrap = "wrap";
+          list.style.alignItems = "center";
+          list.style.justifyContent = "center";
+          list.style.gap = "8px";
+          list.style.overflow = "visible";
+        });
+        printable.querySelectorAll<HTMLElement>(".composta-label, .composta-item").forEach((node) => {
+          node.style.display = "inline-flex";
+          node.style.alignItems = "center";
+          node.style.flex = "0 0 auto";
+          node.style.whiteSpace = "nowrap";
+          node.style.breakInside = "avoid";
+        });
         printable.querySelectorAll<HTMLElement>(".composta-pill").forEach((pill) => {
-          pill.style.display = "inline-block";
-          pill.style.padding = "3px 10px";
+          pill.style.display = "inline-flex";
+          pill.style.alignItems = "center";
+          pill.style.gap = "4px";
+          pill.style.flex = "0 0 auto";
+          pill.style.padding = "4px 10px";
           pill.style.border = "1px solid #000";
           pill.style.borderRadius = "999px";
           pill.style.background = "#ffffff";
-          pill.style.marginRight = "6px";
-          pill.style.lineHeight = "1.4";
+          pill.style.marginRight = "0";
+          pill.style.lineHeight = "1";
+          pill.style.minHeight = "24px";
+          pill.style.whiteSpace = "nowrap";
+          pill.style.breakInside = "avoid";
           pill.querySelectorAll<HTMLElement>("svg").forEach((s) => {
-            s.style.verticalAlign = "-2px";
-            s.style.marginRight = "4px";
+            s.style.width = "12px";
+            s.style.height = "12px";
+            s.style.flex = "0 0 12px";
+            s.style.marginRight = "0";
+            s.style.verticalAlign = "middle";
+          });
+          pill.querySelectorAll<HTMLElement>("span").forEach((s) => {
+            s.style.whiteSpace = "nowrap";
           });
         });
+
+        printable.querySelectorAll<HTMLElement>(".tier-tagline, .report-description").forEach((node) => {
+          node.style.lineHeight = "1.45";
+          node.style.wordBreak = "normal";
+          node.style.overflowWrap = "normal";
+          node.style.hyphens = "none";
+        });
       }
-    };
-
-    const canvas = await html2canvas(el, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: pageBg,
-      windowWidth: el.scrollWidth,
-      windowHeight: el.scrollHeight,
-      onclone,
-    });
-
-    const pxPerMm = canvas.width / CONTENT_W;
-    const pageHeightPx = Math.floor(CONTENT_H * pxPerMm);
-    const cssToCanvasY = canvas.height / el.scrollHeight;
-    const rootTop = el.getBoundingClientRect().top;
-    const candidateSelector = [
-      "#proposicao-printable > *",
-      "section",
-      "article",
-      "table",
-      "thead",
-      "tbody",
-      "tfoot",
-      "tr",
-      "li",
-      "[class*='rounded']",
-    ].join(",");
-    const breakPoints = Array.from(el.querySelectorAll<HTMLElement>(candidateSelector))
-      .map((node) => {
-        const rect = node.getBoundingClientRect();
-        const height = rect.height;
-        if (height < 18) return null;
-        const y = Math.round((rect.bottom - rootTop) * cssToCanvasY);
-        return y > 0 && y < canvas.height ? y : null;
-      })
-      .filter((y): y is number => y !== null)
-      .sort((a, b) => a - b)
-      .filter((y, index, arr) => index === 0 || Math.abs(y - arr[index - 1]) > 8);
-
-    const chooseSliceEnd = (startPx: number) => {
-      const maxEnd = Math.min(canvas.height, startPx + pageHeightPx);
-      if (maxEnd >= canvas.height) return canvas.height;
-      const minEnd = startPx + pageHeightPx * 0.45;
-      const safeEnd = [...breakPoints]
-        .reverse()
-        .find((point) => point > startPx + 32 && point <= maxEnd - 12 && point >= minEnd);
-      return safeEnd ?? maxEnd;
     };
 
     const paintPage = () => {
@@ -370,37 +375,51 @@ export default function Detalhamento() {
       pdf.rect(0, 0, A4_W, A4_H, "F");
     };
 
-    let startPx = 0;
-    let pageIndex = 0;
-    while (startPx < canvas.height) {
-      if (pageIndex > 0) pdf.addPage();
-      paintPage();
+    const topLevelSections = Array.from(el.children).filter((node): node is HTMLElement => {
+      return node instanceof HTMLElement && node.getBoundingClientRect().height > 0;
+    });
+    const exportSections = topLevelSections.length > 0 ? topLevelSections : [el];
+    const SECTION_GAP = 4;
+    let currentY = MARGIN;
+    let hasContent = false;
+    paintPage();
 
-      const endPx = chooseSliceEnd(startPx);
-      const sliceHeightPx = Math.max(1, endPx - startPx);
-      const sliceCanvas = document.createElement("canvas");
-      sliceCanvas.width = canvas.width;
-      sliceCanvas.height = sliceHeightPx;
-      const ctx = sliceCanvas.getContext("2d");
-      if (ctx) {
-        ctx.fillStyle = pageBg;
-        ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-        ctx.drawImage(
-          canvas,
-          0,
-          startPx,
-          canvas.width,
-          sliceHeightPx,
-          0,
-          0,
-          canvas.width,
-          sliceHeightPx,
-        );
+    for (const section of exportSections) {
+      const sectionCanvas = await html2canvas(section, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: pageBg,
+        windowWidth: el.scrollWidth,
+        windowHeight: Math.max(el.scrollHeight, section.scrollHeight),
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        onclone: applyExportCloneFixes,
+      });
+
+      if (sectionCanvas.width <= 0 || sectionCanvas.height <= 0) continue;
+
+      let imgW = CONTENT_W;
+      let imgH = (sectionCanvas.height * imgW) / sectionCanvas.width;
+      let imgX = MARGIN;
+
+      // A camada não deve atravessar páginas. Se um bloco isolado ficar maior
+      // que a área útil da A4, reduzimos só esse bloco para caber inteiro.
+      if (imgH > CONTENT_H) {
+        const fit = CONTENT_H / imgH;
+        imgW = CONTENT_W * fit;
+        imgH = CONTENT_H;
+        imgX = MARGIN + (CONTENT_W - imgW) / 2;
       }
-      const imgH = sliceHeightPx / pxPerMm;
-      pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", MARGIN, MARGIN, CONTENT_W, imgH, undefined, "FAST");
-      startPx = endPx;
-      pageIndex += 1;
+
+      if (hasContent && currentY + imgH > A4_H - MARGIN) {
+        pdf.addPage();
+        paintPage();
+        currentY = MARGIN;
+      }
+
+      pdf.addImage(sectionCanvas.toDataURL("image/png"), "PNG", imgX, currentY, imgW, imgH, undefined, "FAST");
+      currentY += imgH + SECTION_GAP;
+      hasContent = true;
     }
 
     pdf.save(`proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -1256,7 +1275,7 @@ export default function Detalhamento() {
         id="proposicao-printable"
         className="proposicao-printable report-anexo mx-auto max-w-5xl p-6 space-y-6"
       >
-        <section className="text-center pt-2 pb-1">
+        <section data-pdf-section className="report-section text-center pt-2 pb-1">
           <div className="report-kicker inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Proposta Comercial</span>
@@ -1264,20 +1283,20 @@ export default function Detalhamento() {
           <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
             {dominantOffer ? dominantOffer.name : "Proposição de Smart ITO"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-3">
+          <p className="report-description text-sm text-muted-foreground mt-3">
             {dominantOffer ? dominantOffer.tagline : "Detalhamento por camada da oferta"}
           </p>
           {componentNames.length > 0 && (
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            <div className="composta-list mt-4 flex flex-wrap items-center justify-center gap-2">
+              <span className="composta-label text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                 Composta por
               </span>
               {componentNames.map((n, i) => (
-                <span key={n} className="inline-flex items-center gap-1.5">
-                  {i > 0 && <span className="text-muted-foreground/60 text-xs">+</span>}
+                <span key={n} className="composta-item inline-flex items-center gap-1.5">
+                  {i > 0 && <span className="composta-plus text-muted-foreground/60 text-xs">+</span>}
                   <span className="composta-pill inline-flex items-center gap-1 rounded-full border bg-card/70 backdrop-blur px-2.5 py-1 text-[11px] font-bold">
                     <Sparkles className="h-3 w-3 text-primary" />
-                    {n}
+                    <span>{n}</span>
                   </span>
                 </span>
               ))}
@@ -2246,7 +2265,7 @@ function TierBlock({
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-xl font-extrabold tracking-tight">{title}</h3>
             </div>
-            <p className={`text-[11px] font-semibold mt-1.5 inline-block px-2.5 py-1 rounded-full ${theme.chip}`}>{tagline}</p>
+            <p className={`tier-tagline text-[11px] font-semibold mt-1.5 inline-block px-2.5 py-1 rounded-full ${theme.chip}`}>{tagline}</p>
           </div>
           {alias && AliasIcon && (
             <div className={`shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 shadow-md ${theme.badge} text-white`}>
