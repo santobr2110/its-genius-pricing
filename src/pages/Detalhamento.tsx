@@ -1192,7 +1192,7 @@ export default function Detalhamento() {
 
         {/* SMART MONITOR */}
         {monitorVisible && !unifiedMonitorFlow && (
-        <TierBlock active={monitorVisible} color="bronze" icon={Activity} tierIndex={1}
+        <TierBlock active={monitorVisible} color="bronze" icon={TierMonitorIcon} tierIndex={1}
           dominant={dominantColor === "bronze"}
           title={escopo.monitor.titulo} tagline={escopo.monitor.tagline}
           valor={valorMonitor}>
@@ -1351,7 +1351,7 @@ export default function Detalhamento() {
 
         {/* SMART FLOW */}
         {flowVisible && (
-        <TierBlock active={flowVisible} color="steel" icon={Workflow} tierIndex={2}
+        <TierBlock active={flowVisible} color="steel" icon={TierFlowIcon} tierIndex={2}
           dominant={dominantColor === "steel"}
           title={escopoFlowDisplay.titulo} tagline={escopoFlowDisplay.tagline}
           valor={unifiedMonitorFlow ? valorMonitor + valorFlow : valorFlow}>
@@ -1510,7 +1510,7 @@ export default function Detalhamento() {
         )}
 
         {/* SMART OPERATION */}
-        <TierBlock active={state.tierOperation} color="silver" icon={Rocket} tierIndex={3}
+        <TierBlock active={state.tierOperation} color="silver" icon={TierOperationIcon} tierIndex={3}
           dominant={dominantColor === "silver"}
           title={escopo.operation.titulo} tagline={escopo.operation.tagline}
           valor={valorOperation}>
@@ -1630,7 +1630,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART PERFORMANCE */}
-        <TierBlock active={state.tierPerformance} color="gold" icon={TrendingUp} tierIndex={4}
+        <TierBlock active={state.tierPerformance} color="gold" icon={TierPerformanceIcon} tierIndex={4}
           dominant={dominantColor === "gold"}
           title={escopo.performance.titulo} tagline={escopo.performance.tagline}
           valor={valorPerformance}>
@@ -1696,7 +1696,7 @@ export default function Detalhamento() {
         </TierBlock>
 
         {/* SMART ENTERPRISE */}
-        <TierBlock active={state.tierEnterprise} color="diamond" icon={Crown} tierIndex={5}
+        <TierBlock active={state.tierEnterprise} color="diamond" icon={TierEnterpriseIcon} tierIndex={5}
           dominant={dominantColor === "diamond"}
           title={escopo.enterprise.titulo} tagline={escopo.enterprise.tagline} valor={0}>
           {escopo.enterprise.descricao && (
