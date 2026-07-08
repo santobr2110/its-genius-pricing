@@ -229,12 +229,9 @@ export default function Detalhamento() {
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
 
-    const A4_W = 210;
-    const A4_H = 297;
+    const PAGE_W = 210;
     const MARGIN = 10;
-    const CONTENT_W = A4_W - MARGIN * 2;
-    const CONTENT_H = A4_H - MARGIN * 2;
-    const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+    const CONTENT_W = PAGE_W - MARGIN * 2;
     const pageBg = "#ffffff";
 
     const applyExportCloneFixes = (doc: Document) => {
@@ -370,57 +367,33 @@ export default function Detalhamento() {
       }
     };
 
-    const paintPage = () => {
-      pdf.setFillColor(pageBg);
-      pdf.rect(0, 0, A4_W, A4_H, "F");
-    };
-
-    const topLevelSections = Array.from(el.children).filter((node): node is HTMLElement => {
-      return node instanceof HTMLElement && node.getBoundingClientRect().height > 0;
+    // O anexo é para assinatura digital, não para impressão. Portanto exporta
+    // o relatório inteiro em uma única página contínua, preservando o fluxo da
+    // tela e eliminando cortes arbitrários entre caixas/textos.
+    const exportWidth = Math.max(el.scrollWidth, el.clientWidth);
+    const exportHeight = Math.max(el.scrollHeight, el.clientHeight);
+    const maxCanvasHeight = 30000;
+    const renderScale = Math.max(0.75, Math.min(2, maxCanvasHeight / exportHeight));
+    const canvas = await html2canvas(el, {
+      scale: renderScale,
+      useCORS: true,
+      backgroundColor: pageBg,
+      windowWidth: exportWidth,
+      windowHeight: exportHeight,
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      onclone: applyExportCloneFixes,
     });
-    const exportSections = topLevelSections.length > 0 ? topLevelSections : [el];
-    const SECTION_GAP = 4;
-    let currentY = MARGIN;
-    let hasContent = false;
-    paintPage();
 
-    for (const section of exportSections) {
-      const sectionCanvas = await html2canvas(section, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: pageBg,
-        windowWidth: el.scrollWidth,
-        windowHeight: Math.max(el.scrollHeight, section.scrollHeight),
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        onclone: applyExportCloneFixes,
-      });
+    if (canvas.width <= 0 || canvas.height <= 0) return;
 
-      if (sectionCanvas.width <= 0 || sectionCanvas.height <= 0) continue;
-
-      let imgW = CONTENT_W;
-      let imgH = (sectionCanvas.height * imgW) / sectionCanvas.width;
-      let imgX = MARGIN;
-
-      // A camada não deve atravessar páginas. Se um bloco isolado ficar maior
-      // que a área útil da A4, reduzimos só esse bloco para caber inteiro.
-      if (imgH > CONTENT_H) {
-        const fit = CONTENT_H / imgH;
-        imgW = CONTENT_W * fit;
-        imgH = CONTENT_H;
-        imgX = MARGIN + (CONTENT_W - imgW) / 2;
-      }
-
-      if (hasContent && currentY + imgH > A4_H - MARGIN) {
-        pdf.addPage();
-        paintPage();
-        currentY = MARGIN;
-      }
-
-      pdf.addImage(sectionCanvas.toDataURL("image/png"), "PNG", imgX, currentY, imgW, imgH, undefined, "FAST");
-      currentY += imgH + SECTION_GAP;
-      hasContent = true;
-    }
+    const imgW = CONTENT_W;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    const pageH = imgH + MARGIN * 2;
+    const pdf = new jsPDF({ orientation: "p", unit: "mm", format: [PAGE_W, pageH], compress: true });
+    pdf.setFillColor(pageBg);
+    pdf.rect(0, 0, PAGE_W, pageH, "F");
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", MARGIN, MARGIN, imgW, imgH, undefined, "FAST");
 
     pdf.save(`proposicao-smart-ito-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
