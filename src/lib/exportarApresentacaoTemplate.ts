@@ -1198,10 +1198,10 @@ function renderRotinas(ids: () => number, cam: CamadaSlideData, grupo: RotinaGru
       cw - inch(0.2),
       rowH,
       [
-        { text: "TOTAL PREVISTO", w: wGrupo + wRotina + wFreq, bold: true, color: COLOR_ACCENT },
-        { text: `${fmtNum(somaDemanda, 1)} ch/mês`, w: wDem, align: "r", bold: true, color: COLOR_ACCENT },
+        { text: "TOTAL PREVISTO", w: wGrupo + wRotina + wFreq, bold: true, color: COLOR_ON_DARK },
+        { text: `${fmtNum(somaDemanda, 1)} ch/mês`, w: wDem, align: "r", bold: true, color: COLOR_ON_DARK },
       ],
-      { fill: COLOR_PRIMARY, alpha: 50000 },
+      { fill: COLOR_PRIMARY },
     ),
   );
 
