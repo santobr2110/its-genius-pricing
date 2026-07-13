@@ -610,7 +610,7 @@ function renderCapa(ids: () => number, data: ApresentacaoPayload): string {
       paragraphs: paraSimple("INVESTIMENTO MENSAL", {
         sz: 1000,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
         spc: 400,
       }),
@@ -628,7 +628,7 @@ function renderCapa(ids: () => number, data: ApresentacaoPayload): string {
       paragraphs: paraSimple(fmt(data.investimentoTotal), {
         sz: 4000,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
       }),
     }),
@@ -673,7 +673,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       cx: badgeSize,
       cy: badgeSize,
       adj: 22000,
-      fill: COLOR_DARK,
+      fill: COLOR_PRIMARY,
       lineColor: COLOR_PRIMARY,
       lineW: 15875,
     }),
@@ -691,7 +691,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple(String(meta.number), {
         sz: 3600,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
         align: "ctr",
       }),
