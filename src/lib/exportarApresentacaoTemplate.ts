@@ -54,7 +54,7 @@ const TIER_META: Record<
 /* ------------------------------------------------------------------ */
 
 type Block =
-  | { kind: "capa" }
+  | { kind: "capa"; data: ApresentacaoPayload }
   | { kind: "camada"; cam: CamadaSlideData; idx: number }
   | { kind: "horas-n3"; cam: CamadaSlideData; n3: HorasN3Slide }
   | { kind: "rotinas"; cam: CamadaSlideData; grupo: RotinaGrupoSlide }
@@ -87,7 +87,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
   const blocks: Block[] = [];
   const camadas = data.camadas ?? [];
 
-  blocks.push({ kind: "capa" });
+  blocks.push({ kind: "capa", data });
 
   camadas.forEach((cam, idx) => {
     blocks.push({ kind: "camada", cam, idx });
@@ -1598,7 +1598,7 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
   let injection = "";
   switch (block.kind) {
     case "capa":
-      injection = renderCapa(ids, (block as { kind: "capa" } & { data?: ApresentacaoPayload }).data ?? ({} as ApresentacaoPayload));
+      injection = renderCapa(ids, block.data);
       break;
     case "camada":
       injection = renderCamada(ids, block.cam, block.idx);
@@ -1655,10 +1655,6 @@ function nextRid(relsXml: string): string {
 export async function exportarApresentacaoTemplate(data: ApresentacaoPayload): Promise<void> {
   const zip = await loadMaster();
   const blocks = buildBlocks(data);
-  // Injeta `data` no bloco capa para o renderer usar
-  for (const b of blocks) {
-    if (b.kind === "capa") (b as unknown as { data: ApresentacaoPayload }).data = data;
-  }
 
   // Carregar template
   const tplPath = `ppt/slides/slide${TEMPLATE_SLIDE_INDEX}.xml`;
