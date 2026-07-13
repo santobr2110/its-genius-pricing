@@ -19,7 +19,8 @@ import masterAsset from "@/assets/apresentacao-master.pptx.asset.json";
 
 const TEMPLATE_SLIDE_INDEX = 10; // slide10.xml = template
 const CLOSING_SLIDE_INDEX = 11; // slide11.xml = fechamento
-const CHARS_PER_SLIDE = 900;
+const CHARS_PER_SLIDE = 520;
+const LINES_PER_COLUMN = 12;
 
 /* Área útil do slide 16:9 = 12192000 x 6858000 EMU */
 const SLIDE_W = 12192000;
