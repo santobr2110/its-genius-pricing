@@ -150,16 +150,21 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
 
 function splitContent(text: string, limit: number): string[] {
   if (!text) return [""];
-  if (text.length <= limit) return [text];
   const lines = text.split("\n");
+  const MAX_LINES = 22; // cabe em 2 colunas de ~11 linhas cada
+  if (text.length <= limit && lines.length <= MAX_LINES) return [text];
   const chunks: string[] = [];
   let cur = "";
+  let curLines = 0;
   for (const line of lines) {
-    if ((cur + "\n" + line).length > limit && cur) {
+    const next = cur ? `${cur}\n${line}` : line;
+    if ((next.length > limit || curLines + 1 > MAX_LINES) && cur) {
       chunks.push(cur);
       cur = line;
+      curLines = 1;
     } else {
-      cur = cur ? `${cur}\n${line}` : line;
+      cur = next;
+      curLines += 1;
     }
   }
   if (cur) chunks.push(cur);
