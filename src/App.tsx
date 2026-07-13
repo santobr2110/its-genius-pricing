@@ -22,6 +22,7 @@ import PerfisParametros from "./pages/PerfisParametros";
 import Escopo from "./pages/Escopo";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import SemAcesso from "./pages/SemAcesso";
 import Admin from "./pages/Admin";
 import AprovacoesAdmin from "./pages/admin/AprovacoesAdmin";
@@ -72,6 +73,7 @@ const App = () => (
             <GlobalActivePresetBanner />
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/sem-acesso" element={<SemAcesso />} />
               <Route path="/admin" element={<ProtectedRoute requireAdmin><Admin /></ProtectedRoute>} />
               <Route path="/admin/aprovacoes" element={<ProtectedRoute requireAdmin><AprovacoesAdmin /></ProtectedRoute>} />
