@@ -26,13 +26,15 @@ const SLIDE_H = 6858000;
 const EMU_IN = 914400;
 const inch = (n: number) => Math.round(n * EMU_IN);
 
-/* Paleta corporativa (herdada do master, slide 2 como referência) */
-const COLOR_ACCENT = "EF8944"; // laranja
-const COLOR_DARK = "17392F"; // verde escuro (card)
-const COLOR_PRIMARY = "01764B"; // verde primário
-const COLOR_LINE = "2F5B48";
-const COLOR_TEXT = "FFFFFF";
-const COLOR_MUTED = "B7CFC1";
+/* Paleta clara — texto preto/verde sobre fundo branco (referência: slide 6) */
+const COLOR_ACCENT = "01764B"; // verde primário (kickers, títulos de seção)
+const COLOR_DARK = "F1F6F3"; // fundo dos cards (verde-claro quase branco)
+const COLOR_PRIMARY = "01764B"; // verde primário (bordas, badges)
+const COLOR_LINE = "01764B";
+const COLOR_TEXT = "0B1E15"; // preto esverdeado (corpo)
+const COLOR_MUTED = "51665A"; // cinza esverdeado (secundário)
+const COLOR_ON_DARK = "FFFFFF"; // texto sobre gradient/cards escuros
+const COLOR_SURFACE = "FFFFFF"; // fundo branco geral do slide clonado
 const FONT_HEAD = "Segoe UI Black";
 const FONT_BODY = "Segoe UI";
 
@@ -41,12 +43,13 @@ const TIER_META: Record<
   string,
   { tag: string; number: number; tagColor: string }
 > = {
-  monitor: { tag: "STEEL", number: 1, tagColor: "8FA7A1" },
-  flow: { tag: "STEEL", number: 2, tagColor: "8FA7A1" },
-  operation: { tag: "SILVER", number: 3, tagColor: "C7D0D6" },
-  performance: { tag: "GOLD", number: 4, tagColor: "E5B848" },
-  enterprise: { tag: "PLATINUM", number: 5, tagColor: "D8E4E1" },
-  fieldService: { tag: "FIELD", number: 6, tagColor: COLOR_ACCENT },
+  // Cores das tags calibradas para fundo branco (alto contraste)
+  monitor: { tag: "STEEL", number: 1, tagColor: "3E5A54" },
+  flow: { tag: "STEEL", number: 2, tagColor: "3E5A54" },
+  operation: { tag: "SILVER", number: 3, tagColor: "5A6773" },
+  performance: { tag: "GOLD", number: 4, tagColor: "A67A00" },
+  enterprise: { tag: "PLATINUM", number: 5, tagColor: "3E5A54" },
+  fieldService: { tag: "FIELD", number: 6, tagColor: "0B4A32" },
 };
 
 /* ------------------------------------------------------------------ */
