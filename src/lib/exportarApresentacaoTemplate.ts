@@ -8,8 +8,10 @@ import masterAsset from "@/assets/apresentacao-master.pptx.asset.json";
  *
  * Regras (inegociáveis):
  *  - Slides 1..9 = imutáveis (byte a byte).
- *  - Slide 10 = TEMPLATE. Clonado 1x por bloco de conteúdo. O slide 10 original
- *    NÃO aparece na apresentação final.
+ *  - Slide 10 = TEMPLATE visual. Clonado 1x por bloco de conteúdo; o clone
+ *    preserva a arte original (fundo, imagem, título "Proposição") e recebe
+ *    novos shapes com o conteúdo transportado do Relatório de Proposição.
+ *    O slide 10 original NÃO aparece na apresentação final.
  *  - Slide 11 = fechamento fixo.
  *
  * A manipulação é feita direto no OOXML via JSZip; nada é gerado por pptxgenjs.
@@ -17,13 +19,26 @@ import masterAsset from "@/assets/apresentacao-master.pptx.asset.json";
 
 const TEMPLATE_SLIDE_INDEX = 10; // slide10.xml = template
 const CLOSING_SLIDE_INDEX = 11; // slide11.xml = fechamento
-const CHARS_PER_SLIDE = 600;
+const CHARS_PER_SLIDE = 900;
+
+/* Área útil do slide 16:9 = 12192000 x 6858000 EMU */
+const SLIDE_W = 12192000;
+const SLIDE_H = 6858000;
+
+/* Paleta corporativa (herdada do master) */
+const COLOR_ACCENT = "EF8944"; // laranja
+const COLOR_DARK = "17392F"; // verde escuro (card)
+const COLOR_PRIMARY = "01764B"; // verde primário
+const COLOR_TEXT = "FFFFFF";
+const FONT_HEAD = "Segoe UI Black";
+const FONT_BODY = "Segoe UI";
 
 interface Block {
   titulo: string;
   conteudo: string;
   metrica1?: string;
   metrica2?: string;
+  kicker?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -39,6 +54,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
 
   // Capa da oferta
   blocks.push({
+    kicker: "Proposta Comercial",
     titulo: data.ofertaNome || "Proposição",
     conteudo: [
       data.ofertaTagline,
@@ -79,6 +95,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
     const chunks = splitContent(conteudo, CHARS_PER_SLIDE);
     chunks.forEach((chunk, i) => {
       blocks.push({
+        kicker: "Camada da Oferta",
         titulo: chunks.length > 1 ? `${c.titulo} (continuação ${i + 1})` : c.titulo,
         conteudo: chunk,
         metrica1: i === 0 ? "Investimento mensal" : undefined,
@@ -96,6 +113,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
     const chunks = splitContent(conteudo, CHARS_PER_SLIDE);
     chunks.forEach((chunk, i) => {
       blocks.push({
+        kicker: "Escopo",
         titulo: chunks.length > 1 ? `Itens Adicionais (continuação ${i + 1})` : "Itens Adicionais",
         conteudo: chunk,
       });
@@ -108,6 +126,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
     const chunks = splitContent(conteudo, CHARS_PER_SLIDE);
     chunks.forEach((chunk, i) => {
       blocks.push({
+        kicker: "Escopo",
         titulo: chunks.length > 1 ? `Restrições Gerais (continuação ${i + 1})` : "Restrições Gerais",
         conteudo: chunk,
       });
@@ -116,6 +135,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
 
   // Consolidado financeiro
   blocks.push({
+    kicker: "Investimento",
     titulo: "Investimento Consolidado",
     conteudo: (data.camadas ?? [])
       .map((c) => `• ${c.titulo}: ${fmt(c.valor)}`)
@@ -156,59 +176,285 @@ function xmlEscape(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
-/**
- * Substitui um placeholder em um XML de slide.
- *
- * O PowerPoint pode fragmentar o placeholder em múltiplos <a:r>. Para lidar
- * com isso, consolidamos os runs de cada parágrafo <a:p> antes de procurar
- * o placeholder; se encontrado, escrevemos o resultado no primeiro <a:r>
- * (mantendo o <a:rPr>) e removemos os demais.
- */
-function replacePlaceholder(xml: string, placeholder: string, value: string): string {
-  const escapedValue = xmlEscape(value ?? "");
-  const paragraphs = xml.split(/(<a:p[ >][\s\S]*?<\/a:p>)/g);
-  let changed = false;
-  const out = paragraphs.map((seg) => {
-    if (!seg.startsWith("<a:p")) return seg;
-    // Coleta texto agregado dos runs
-    const runs = [...seg.matchAll(/<a:r\b[\s\S]*?<\/a:r>/g)].map((m) => m[0]);
-    if (!runs.length) return seg;
-    const texts = runs.map((r) => {
-      const m = r.match(/<a:t[^>]*>([\s\S]*?)<\/a:t>/);
-      return m ? m[1] : "";
-    });
-    const joined = texts.join("");
-    if (!joined.includes(placeholder)) return seg;
+/* ------------------------------------------------------------------ */
+/* Construção de shapes OOXML para conteúdo transportado.              */
+/* ------------------------------------------------------------------ */
 
-    const replaced = joined.split(placeholder).join(escapedValue);
-    // Suporte a quebra de linha: transformar \n em múltiplos <a:br/> dentro do primeiro run
-    const linhas = replaced.split("\n");
-    const firstRun = runs[0];
-    const rPrMatch = firstRun.match(/<a:rPr\b[\s\S]*?(\/>|<\/a:rPr>)/);
-    const rPr = rPrMatch ? rPrMatch[0] : "";
-    const newRun = linhas
-      .map((linha, i) => {
-        const t = `<a:r>${rPr}<a:t>${linha}</a:t></a:r>`;
-        return i < linhas.length - 1 ? `${t}<a:br>${rPr}</a:br>` : t;
-      })
-      .join("");
-    let newSeg = seg;
-    // remove os runs originais (mantendo pPr e outros filhos), depois adiciona o novo antes de </a:p>
-    for (const r of runs) newSeg = newSeg.replace(r, "");
-    newSeg = newSeg.replace(/<\/a:p>$/, `${newRun}</a:p>`);
-    changed = true;
-    return newSeg;
-  });
-  return changed ? out.join("") : xml;
+interface Para {
+  text: string;
+  bullet?: boolean;
+  header?: boolean;
+  sz?: number;
+  color?: string;
+  bold?: boolean;
 }
 
-function applyPlaceholders(xml: string, block: Block): string {
-  let out = xml;
-  out = replacePlaceholder(out, "{{TITULO_SECAO}}", block.titulo ?? "");
-  out = replacePlaceholder(out, "{{CONTEUDO}}", block.conteudo ?? "");
-  out = replacePlaceholder(out, "{{METRICA_1}}", block.metrica1 ?? "");
-  out = replacePlaceholder(out, "{{METRICA_2}}", block.metrica2 ?? "");
+function parseParagraphs(content: string): Para[] {
+  const out: Para[] = [];
+  const lines = (content ?? "").split("\n");
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) {
+      out.push({ text: "" });
+      continue;
+    }
+    if (line.startsWith("• ")) {
+      out.push({ text: line.slice(2).trim(), bullet: true });
+    } else if (/^[A-Za-zÀ-ÿ][^:]{0,60}:$/.test(line)) {
+      // "Incluído:", "Restrições:", etc.
+      out.push({ text: line, header: true, bold: true, color: COLOR_ACCENT });
+    } else {
+      out.push({ text: line });
+    }
+  }
   return out;
+}
+
+function runXml(text: string, opts: { sz?: number; bold?: boolean; color?: string; font?: string } = {}) {
+  const sz = opts.sz ?? 1600;
+  const bold = opts.bold ? ' b="1"' : "";
+  const color = opts.color ?? COLOR_TEXT;
+  const font = opts.font ?? FONT_BODY;
+  return (
+    `<a:r><a:rPr lang="pt-BR" sz="${sz}"${bold} dirty="0">` +
+    `<a:solidFill><a:srgbClr val="${color}"/></a:solidFill>` +
+    `<a:latin typeface="${font}"/><a:ea typeface="${font}"/><a:cs typeface="${font}"/>` +
+    `</a:rPr><a:t>${xmlEscape(text)}</a:t></a:r>`
+  );
+}
+
+function paragraphXml(p: Para, defaults: { sz: number; color: string; font: string }): string {
+  if (!p.text) {
+    return `<a:p><a:pPr algn="l"/><a:endParaRPr lang="pt-BR" sz="${defaults.sz}"/></a:p>`;
+  }
+  const sz = p.sz ?? (p.header ? defaults.sz + 200 : defaults.sz);
+  const color = p.color ?? defaults.color;
+  const bold = !!p.bold || !!p.header;
+  if (p.bullet) {
+    return (
+      `<a:p><a:pPr marL="285750" indent="-285750" algn="l">` +
+      `<a:buClr><a:srgbClr val="${COLOR_ACCENT}"/></a:buClr>` +
+      `<a:buFont typeface="Arial"/><a:buChar char="•"/></a:pPr>` +
+      runXml(p.text, { sz, color, font: defaults.font }) +
+      `</a:p>`
+    );
+  }
+  return (
+    `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
+    runXml(p.text, { sz, color, bold, font: p.header ? FONT_HEAD : defaults.font }) +
+    `</a:p>`
+  );
+}
+
+function textShape(opts: {
+  id: number;
+  name: string;
+  x: number;
+  y: number;
+  cx: number;
+  cy: number;
+  paragraphs: string; // XML pronto de <a:p>...
+  anchor?: "t" | "ctr" | "b";
+  autofit?: "norm" | "spAuto" | "none";
+}): string {
+  const anchor = opts.anchor ?? "t";
+  const autofit =
+    opts.autofit === "spAuto"
+      ? "<a:spAutoFit/>"
+      : opts.autofit === "none"
+        ? ""
+        : '<a:normAutofit fontScale="100000" lnSpcReduction="0"/>';
+  return (
+    `<p:sp><p:nvSpPr>` +
+    `<p:cNvPr id="${opts.id}" name="${opts.name}"/>` +
+    `<p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>` +
+    `<p:spPr><a:xfrm><a:off x="${opts.x}" y="${opts.y}"/>` +
+    `<a:ext cx="${opts.cx}" cy="${opts.cy}"/></a:xfrm>` +
+    `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>` +
+    `<p:txBody><a:bodyPr wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" anchor="${anchor}">${autofit}</a:bodyPr>` +
+    `<a:lstStyle/>${opts.paragraphs}</p:txBody></p:sp>`
+  );
+}
+
+function rectShape(opts: {
+  id: number;
+  name: string;
+  x: number;
+  y: number;
+  cx: number;
+  cy: number;
+  fill: string;
+  alpha?: number; // 0..100000
+  lineColor?: string;
+}): string {
+  const fill = opts.alpha
+    ? `<a:solidFill><a:srgbClr val="${opts.fill}"><a:alpha val="${opts.alpha}"/></a:srgbClr></a:solidFill>`
+    : `<a:solidFill><a:srgbClr val="${opts.fill}"/></a:solidFill>`;
+  const line = opts.lineColor
+    ? `<a:ln w="12700"><a:solidFill><a:srgbClr val="${opts.lineColor}"/></a:solidFill></a:ln>`
+    : `<a:ln><a:noFill/></a:ln>`;
+  return (
+    `<p:sp><p:nvSpPr><p:cNvPr id="${opts.id}" name="${opts.name}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
+    `<p:spPr><a:xfrm><a:off x="${opts.x}" y="${opts.y}"/><a:ext cx="${opts.cx}" cy="${opts.cy}"/></a:xfrm>` +
+    `<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 8000"/></a:avLst></a:prstGeom>` +
+    fill + line + `</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="pt-BR"/></a:p></p:txBody></p:sp>`
+  );
+}
+
+function accentBarShape(id: number, x: number, y: number, cy: number): string {
+  return (
+    `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="Accent${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
+    `<p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="80000" cy="${cy}"/></a:xfrm>` +
+    `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>` +
+    `<a:solidFill><a:srgbClr val="${COLOR_ACCENT}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr>` +
+    `<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="pt-BR"/></a:p></p:txBody></p:sp>`
+  );
+}
+
+/**
+ * Injeta shapes de conteúdo dentro do <p:spTree> preservando toda a arte
+ * original do slide 10 (fundo, imagem, título "Proposição").
+ */
+function buildContentSlide(templateXml: string, block: Block, seed: number): string {
+  const idBase = 5000 + seed * 20;
+
+  // Layout (EMU)
+  const marginX = 650000;
+  const contentW = SLIDE_W - marginX * 2; // ~10.9M
+  const kickerY = 1500000;
+  const kickerH = 320000;
+  const titleY = 1830000;
+  const titleH = 900000;
+  const bodyY = 2820000;
+  const bodyH = 3400000;
+  const metricW = 3400000;
+  const metricH = 620000;
+  const metricX = SLIDE_W - marginX - metricW;
+  const metricY = SLIDE_H - 780000;
+
+  const kickerText = (block.kicker || "Proposição").toUpperCase();
+  const titleText = (block.titulo || "").toUpperCase();
+  const paras = parseParagraphs(block.conteudo || "");
+
+  const parasXml = paras
+    .map((p) => paragraphXml(p, { sz: 1500, color: COLOR_TEXT, font: FONT_BODY }))
+    .join("");
+
+  const shapes: string[] = [];
+
+  // Barra de acento vertical
+  shapes.push(accentBarShape(idBase + 1, marginX, kickerY, titleY + titleH - kickerY));
+
+  // Kicker (etiqueta de seção)
+  shapes.push(
+    textShape({
+      id: idBase + 2,
+      name: `Kicker${idBase}`,
+      x: marginX + 180000,
+      y: kickerY,
+      cx: contentW - 180000,
+      cy: kickerH,
+      autofit: "none",
+      paragraphs:
+        `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
+        runXml(kickerText, { sz: 1400, bold: true, color: COLOR_ACCENT, font: FONT_HEAD }) +
+        `</a:p>`,
+    }),
+  );
+
+  // Título grande
+  shapes.push(
+    textShape({
+      id: idBase + 3,
+      name: `Titulo${idBase}`,
+      x: marginX + 180000,
+      y: titleY,
+      cx: contentW - 180000,
+      cy: titleH,
+      autofit: "norm",
+      paragraphs:
+        `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
+        runXml(titleText, { sz: 4000, bold: true, color: COLOR_TEXT, font: FONT_HEAD }) +
+        `</a:p>`,
+    }),
+  );
+
+  // Card de fundo do corpo (verde escuro translúcido)
+  shapes.push(
+    rectShape({
+      id: idBase + 4,
+      name: `Card${idBase}`,
+      x: marginX,
+      y: bodyY,
+      cx: contentW,
+      cy: bodyH,
+      fill: COLOR_DARK,
+      alpha: 78000,
+      lineColor: COLOR_PRIMARY,
+    }),
+  );
+
+  // Corpo de texto
+  shapes.push(
+    textShape({
+      id: idBase + 5,
+      name: `Body${idBase}`,
+      x: marginX + 260000,
+      y: bodyY + 180000,
+      cx: contentW - 520000,
+      cy: bodyH - 360000,
+      autofit: "norm",
+      paragraphs: parasXml || `<a:p><a:endParaRPr lang="pt-BR"/></a:p>`,
+    }),
+  );
+
+  // Card de métrica (canto inferior direito)
+  if (block.metrica1 && block.metrica2) {
+    shapes.push(
+      rectShape({
+        id: idBase + 6,
+        name: `MetricBg${idBase}`,
+        x: metricX,
+        y: metricY,
+        cx: metricW,
+        cy: metricH,
+        fill: COLOR_ACCENT,
+      }),
+    );
+    shapes.push(
+      textShape({
+        id: idBase + 7,
+        name: `MetricLabel${idBase}`,
+        x: metricX + 120000,
+        y: metricY + 60000,
+        cx: metricW - 240000,
+        cy: 220000,
+        autofit: "none",
+        paragraphs:
+          `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
+          runXml(block.metrica1, { sz: 1000, bold: true, color: COLOR_DARK, font: FONT_HEAD }) +
+          `</a:p>`,
+      }),
+    );
+    shapes.push(
+      textShape({
+        id: idBase + 8,
+        name: `MetricValue${idBase}`,
+        x: metricX + 120000,
+        y: metricY + 260000,
+        cx: metricW - 240000,
+        cy: metricH - 300000,
+        autofit: "norm",
+        paragraphs:
+          `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
+          runXml(block.metrica2, { sz: 2400, bold: true, color: COLOR_TEXT, font: FONT_HEAD }) +
+          `</a:p>`,
+      }),
+    );
+  }
+
+  const injection = shapes.join("");
+  return templateXml.replace(/<\/p:spTree>/, `${injection}</p:spTree>`);
 }
 
 /* ------------------------------------------------------------------ */
@@ -259,11 +505,12 @@ export async function exportarApresentacaoTemplate(data: ApresentacaoPayload): P
   // Gerar clones
   let fileIdx = nextSlideFileIndex(zip); // ex: 12
   const newSlideNumbers: number[] = [];
+  let seed = 0;
   for (const block of blocks) {
     const n = fileIdx++;
     const slidePath = `ppt/slides/slide${n}.xml`;
     const relsPath = `ppt/slides/_rels/slide${n}.xml.rels`;
-    const slideXml = applyPlaceholders(tplXml, block);
+    const slideXml = buildContentSlide(tplXml, block, seed++);
     zip.file(slidePath, slideXml);
     zip.file(relsPath, tplRelsXml);
     newSlideNumbers.push(n);
