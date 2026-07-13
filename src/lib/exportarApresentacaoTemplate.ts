@@ -1598,31 +1598,56 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
   let counter = 5000 + seed * 200;
   const ids = () => ++counter;
 
-  let injection = "";
+  // Overlay branco cobrindo todo o slide, para garantir alto contraste
+  // do conteúdo injetado (referência: slide 6). O master fica preservado
+  // no ZIP, mas visualmente é reescrito neste clone.
+  const whiteBg = shape({
+    id: ++counter,
+    name: "WhiteBg",
+    prst: "rect",
+    x: 0,
+    y: 0,
+    cx: SLIDE_W,
+    cy: SLIDE_H,
+    fill: COLOR_SURFACE,
+  });
+  // Faixa lateral verde (identidade), à esquerda
+  const sideBand = shape({
+    id: ++counter,
+    name: "SideBand",
+    prst: "rect",
+    x: 0,
+    y: 0,
+    cx: inch(0.18),
+    cy: SLIDE_H,
+    fill: COLOR_PRIMARY,
+  });
+
+  let injection = whiteBg + sideBand;
   switch (block.kind) {
     case "capa":
-      injection = renderCapa(ids, block.data);
+      injection += renderCapa(ids, block.data);
       break;
     case "camada":
-      injection = renderCamada(ids, block.cam, block.idx);
+      injection += renderCamada(ids, block.cam, block.idx);
       break;
     case "horas-n3":
-      injection = renderHorasN3(ids, block.cam, block.n3);
+      injection += renderHorasN3(ids, block.cam, block.n3);
       break;
     case "rotinas":
-      injection = renderRotinas(ids, block.cam, block.grupo);
+      injection += renderRotinas(ids, block.cam, block.grupo);
       break;
     case "restricoes-camadas":
-      injection = renderRestricoesCamadas(ids, block.camadas);
+      injection += renderRestricoesCamadas(ids, block.camadas);
       break;
     case "itens-adicionais":
-      injection = renderItensAdicionais(ids, block.items, block.page, block.totalPages);
+      injection += renderItensAdicionais(ids, block.items, block.page, block.totalPages);
       break;
     case "restricoes-gerais":
-      injection = renderRestricoesGerais(ids, block.items);
+      injection += renderRestricoesGerais(ids, block.items);
       break;
     case "investimento":
-      injection = renderInvestimento(ids, block.data);
+      injection += renderInvestimento(ids, block.data);
       break;
   }
   return baseXml.replace(/<\/p:spTree>/, `${injection}</p:spTree>`);
