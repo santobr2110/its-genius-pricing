@@ -52,7 +52,7 @@ import {
   type HorasN3Slide,
   type FieldSlideData,
 } from "@/lib/exportarApresentacao";
-import { exportarApresentacaoModelo2 } from "@/lib/exportarApresentacaoModelo2";
+import { exportarApresentacaoTemplate } from "@/lib/exportarApresentacaoTemplate";
 import { toast } from "sonner";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
@@ -1251,14 +1251,12 @@ export default function Detalhamento() {
       toast.error("Salve a precificação para exportar a apresentação.");
       return;
     }
-    await exportarApresentacao(buildApresentacaoPayload());
-  };
-  const handleExportPresentationModelo2 = async () => {
-    if (!isSavedPricing) {
-      toast.error("Salve a precificação para exportar a apresentação.");
-      return;
+    try {
+      await exportarApresentacaoTemplate(buildApresentacaoPayload());
+    } catch (e) {
+      console.error(e);
+      toast.error("Falha ao gerar apresentação: " + (e as Error).message);
     }
-    await exportarApresentacaoModelo2(buildApresentacaoPayload());
   };
 
   return (
@@ -1298,16 +1296,7 @@ export default function Detalhamento() {
                   title={exportDisabledReason}
                 >
                   <Presentation className="h-4 w-4" />
-                  Apresentação · Modelo 1
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={handleExportPresentationModelo2}
-                  className="gap-2"
-                  disabled={!isSavedPricing}
-                  title={exportDisabledReason}
-                >
-                  <Presentation className="h-4 w-4" />
-                  Apresentação · Modelo 2 (Selbetti)
+                  Apresentação (PPTX)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
