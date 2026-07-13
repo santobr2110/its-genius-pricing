@@ -67,6 +67,7 @@ export default function UserMenu() {
   const initials = fullName?.trim() ? getInitials(fullName) : (user.email?.[0] ?? "?").toUpperCase();
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" title={displayName}>
