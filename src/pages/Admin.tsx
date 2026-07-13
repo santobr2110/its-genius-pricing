@@ -395,6 +395,7 @@ function CreateUserDialog({
   const [fullName, setFullName] = useState("");
   const [roleId, setRoleId] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [sendInvite, setSendInvite] = useState(true);
 
   useEffect(() => {
     if (!open) {
@@ -402,22 +403,35 @@ function CreateUserDialog({
       setPassword("");
       setFullName("");
       setRoleId("");
+      setSendInvite(true);
     }
   }, [open]);
 
   const submit = async () => {
-    if (!email || password.length < 8) {
-      toast.error("Email e senha (mín 8) obrigatórios.");
+    if (!email) {
+      toast.error("Email obrigatório.");
+      return;
+    }
+    if (!sendInvite && password.length < 8) {
+      toast.error("Senha (mín 8) obrigatória.");
       return;
     }
     setBusy(true);
     const { error } = await supabase.functions.invoke("admin-users", {
-      body: { action: "create", email, password, full_name: fullName, role_id: roleId || null },
+      body: {
+        action: "create",
+        email,
+        password: sendInvite ? undefined : password,
+        full_name: fullName,
+        role_id: roleId || null,
+        send_invite: sendInvite,
+        site_url: window.location.origin,
+      },
     });
     setBusy(false);
     if (error) toast.error(error.message);
     else {
-      toast.success("Usuário criado.");
+      toast.success(sendInvite ? "Convite enviado por email." : "Usuário criado.");
       onOpenChange(false);
       reload();
     }
@@ -439,10 +453,27 @@ function CreateUserDialog({
             <Label>Email</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          <div className="space-y-1.5">
-            <Label>Senha temporária (mín 8)</Label>
-            <Input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <div className="flex items-start gap-2 rounded-md border p-3 bg-muted/30">
+            <Checkbox
+              id="invite"
+              checked={sendInvite}
+              onCheckedChange={(v) => setSendInvite(v === true)}
+            />
+            <div className="space-y-0.5">
+              <Label htmlFor="invite" className="cursor-pointer">
+                Enviar convite por email
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                O usuário receberá um link para definir a própria senha.
+              </p>
+            </div>
           </div>
+          {!sendInvite && (
+            <div className="space-y-1.5">
+              <Label>Senha temporária (mín 8)</Label>
+              <Input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>Perfil</Label>
             <Select value={roleId} onValueChange={setRoleId}>
