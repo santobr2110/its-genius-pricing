@@ -900,7 +900,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple("INVESTIMENTO MENSAL", {
         sz: 900,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
         spc: 300,
       }),
@@ -918,7 +918,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple(fmt(cam.valor), {
         sz: 2600,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
       }),
     }),
@@ -983,7 +983,7 @@ function renderHorasN3(ids: () => number, cam: CamadaSlideData, n3: HorasN3Slide
       paragraphs: paraSimple("TOTAL DE HORAS TÉCNICAS N3 · MÊS", {
         sz: 1000,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
         spc: 400,
       }),
@@ -1000,7 +1000,7 @@ function renderHorasN3(ids: () => number, cam: CamadaSlideData, n3: HorasN3Slide
       autofit: "norm",
       paragraphs: paraSimple(
         `${fmtNum(n3.total, 1)}h  ·  ${fmt(n3.valorHora)}/h  ·  ${fmt(n3.total * n3.valorHora)}/mês`,
-        { sz: 1800, bold: true, color: COLOR_TEXT, font: FONT_HEAD },
+        { sz: 1800, bold: true, color: COLOR_ON_DARK, font: FONT_HEAD },
       ),
     }),
   );
