@@ -1,9 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  keysForOffering,
-  type ParamOffering,
-} from "@/lib/paramKeys";
+import { type ParamOffering } from "@/lib/paramKeys";
 import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 import { isPresetActive } from "@/lib/activePreset";
 import { getAppliedProfile, fetchAppliedProfileFromDb, setAppliedProfile } from "@/lib/appliedProfile";
