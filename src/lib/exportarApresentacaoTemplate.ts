@@ -505,11 +505,12 @@ export async function exportarApresentacaoTemplate(data: ApresentacaoPayload): P
   // Gerar clones
   let fileIdx = nextSlideFileIndex(zip); // ex: 12
   const newSlideNumbers: number[] = [];
+  let seed = 0;
   for (const block of blocks) {
     const n = fileIdx++;
     const slidePath = `ppt/slides/slide${n}.xml`;
     const relsPath = `ppt/slides/_rels/slide${n}.xml.rels`;
-    const slideXml = applyPlaceholders(tplXml, block);
+    const slideXml = buildContentSlide(tplXml, block, seed++);
     zip.file(slidePath, slideXml);
     zip.file(relsPath, tplRelsXml);
     newSlideNumbers.push(n);
