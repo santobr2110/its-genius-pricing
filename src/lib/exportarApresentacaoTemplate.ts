@@ -1322,9 +1322,10 @@ function renderItensAdicionais(
     }),
   );
 
-  const wUnid = inch(1.8);
-  const wObs = inch(5.0);
-  const wItem = cw - wUnid - wObs - inch(0.2);
+  const wUnid = inch(1.5);
+  const wValor = inch(1.7);
+  const wObs = inch(4.2);
+  const wItem = cw - wUnid - wValor - wObs - inch(0.2);
 
   let yy = y + inch(0.07);
   parts.push(
@@ -1337,6 +1338,7 @@ function renderItensAdicionais(
       [
         { text: "ITEM", w: wItem, align: "l" },
         { text: "UNIDADE", w: wUnid, align: "l" },
+        { text: "VALOR UNIT.", w: wValor, align: "r" },
         { text: "OBSERVAÇÃO", w: wObs, align: "l" },
       ],
       { header: true },
@@ -1354,6 +1356,7 @@ function renderItensAdicionais(
         [
           { text: it.descricao, w: wItem, bold: true, sz: 1000 },
           { text: it.unidade, w: wUnid, color: COLOR_MUTED, sz: 950 },
+          { text: fmt(it.valor), w: wValor, color: COLOR_TEXT, sz: 1000, bold: true, align: "r" },
           { text: it.observacao ?? "", w: wObs, color: COLOR_MUTED, sz: 900 },
         ],
         { fill: COLOR_DARK, alpha: i % 2 === 0 ? 20000 : 5000 },
