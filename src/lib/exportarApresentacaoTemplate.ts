@@ -8,8 +8,10 @@ import masterAsset from "@/assets/apresentacao-master.pptx.asset.json";
  *
  * Regras (inegociáveis):
  *  - Slides 1..9 = imutáveis (byte a byte).
- *  - Slide 10 = TEMPLATE. Clonado 1x por bloco de conteúdo. O slide 10 original
- *    NÃO aparece na apresentação final.
+ *  - Slide 10 = TEMPLATE visual. Clonado 1x por bloco de conteúdo; o clone
+ *    preserva a arte original (fundo, imagem, título "Proposição") e recebe
+ *    novos shapes com o conteúdo transportado do Relatório de Proposição.
+ *    O slide 10 original NÃO aparece na apresentação final.
  *  - Slide 11 = fechamento fixo.
  *
  * A manipulação é feita direto no OOXML via JSZip; nada é gerado por pptxgenjs.
@@ -17,13 +19,26 @@ import masterAsset from "@/assets/apresentacao-master.pptx.asset.json";
 
 const TEMPLATE_SLIDE_INDEX = 10; // slide10.xml = template
 const CLOSING_SLIDE_INDEX = 11; // slide11.xml = fechamento
-const CHARS_PER_SLIDE = 600;
+const CHARS_PER_SLIDE = 900;
+
+/* Área útil do slide 16:9 = 12192000 x 6858000 EMU */
+const SLIDE_W = 12192000;
+const SLIDE_H = 6858000;
+
+/* Paleta corporativa (herdada do master) */
+const COLOR_ACCENT = "EF8944"; // laranja
+const COLOR_DARK = "17392F"; // verde escuro (card)
+const COLOR_PRIMARY = "01764B"; // verde primário
+const COLOR_TEXT = "FFFFFF";
+const FONT_HEAD = "Segoe UI Black";
+const FONT_BODY = "Segoe UI";
 
 interface Block {
   titulo: string;
   conteudo: string;
   metrica1?: string;
   metrica2?: string;
+  kicker?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -39,6 +54,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
 
   // Capa da oferta
   blocks.push({
+    kicker: "Proposta Comercial",
     titulo: data.ofertaNome || "Proposição",
     conteudo: [
       data.ofertaTagline,
@@ -79,6 +95,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
     const chunks = splitContent(conteudo, CHARS_PER_SLIDE);
     chunks.forEach((chunk, i) => {
       blocks.push({
+        kicker: "Camada da Oferta",
         titulo: chunks.length > 1 ? `${c.titulo} (continuação ${i + 1})` : c.titulo,
         conteudo: chunk,
         metrica1: i === 0 ? "Investimento mensal" : undefined,
@@ -96,6 +113,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
     const chunks = splitContent(conteudo, CHARS_PER_SLIDE);
     chunks.forEach((chunk, i) => {
       blocks.push({
+        kicker: "Escopo",
         titulo: chunks.length > 1 ? `Itens Adicionais (continuação ${i + 1})` : "Itens Adicionais",
         conteudo: chunk,
       });
@@ -108,6 +126,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
     const chunks = splitContent(conteudo, CHARS_PER_SLIDE);
     chunks.forEach((chunk, i) => {
       blocks.push({
+        kicker: "Escopo",
         titulo: chunks.length > 1 ? `Restrições Gerais (continuação ${i + 1})` : "Restrições Gerais",
         conteudo: chunk,
       });
@@ -116,6 +135,7 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
 
   // Consolidado financeiro
   blocks.push({
+    kicker: "Investimento",
     titulo: "Investimento Consolidado",
     conteudo: (data.camadas ?? [])
       .map((c) => `• ${c.titulo}: ${fmt(c.valor)}`)
