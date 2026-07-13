@@ -26,13 +26,15 @@ const SLIDE_H = 6858000;
 const EMU_IN = 914400;
 const inch = (n: number) => Math.round(n * EMU_IN);
 
-/* Paleta corporativa (herdada do master, slide 2 como referência) */
-const COLOR_ACCENT = "EF8944"; // laranja
-const COLOR_DARK = "17392F"; // verde escuro (card)
-const COLOR_PRIMARY = "01764B"; // verde primário
-const COLOR_LINE = "2F5B48";
-const COLOR_TEXT = "FFFFFF";
-const COLOR_MUTED = "B7CFC1";
+/* Paleta clara — texto preto/verde sobre fundo branco (referência: slide 6) */
+const COLOR_ACCENT = "01764B"; // verde primário (kickers, títulos de seção)
+const COLOR_DARK = "F1F6F3"; // fundo dos cards (verde-claro quase branco)
+const COLOR_PRIMARY = "01764B"; // verde primário (bordas, badges)
+const COLOR_LINE = "01764B";
+const COLOR_TEXT = "0B1E15"; // preto esverdeado (corpo)
+const COLOR_MUTED = "51665A"; // cinza esverdeado (secundário)
+const COLOR_ON_DARK = "FFFFFF"; // texto sobre gradient/cards escuros
+const COLOR_SURFACE = "FFFFFF"; // fundo branco geral do slide clonado
 const FONT_HEAD = "Segoe UI Black";
 const FONT_BODY = "Segoe UI";
 
@@ -41,12 +43,13 @@ const TIER_META: Record<
   string,
   { tag: string; number: number; tagColor: string }
 > = {
-  monitor: { tag: "STEEL", number: 1, tagColor: "8FA7A1" },
-  flow: { tag: "STEEL", number: 2, tagColor: "8FA7A1" },
-  operation: { tag: "SILVER", number: 3, tagColor: "C7D0D6" },
-  performance: { tag: "GOLD", number: 4, tagColor: "E5B848" },
-  enterprise: { tag: "PLATINUM", number: 5, tagColor: "D8E4E1" },
-  fieldService: { tag: "FIELD", number: 6, tagColor: COLOR_ACCENT },
+  // Cores das tags calibradas para fundo branco (alto contraste)
+  monitor: { tag: "STEEL", number: 1, tagColor: "3E5A54" },
+  flow: { tag: "STEEL", number: 2, tagColor: "3E5A54" },
+  operation: { tag: "SILVER", number: 3, tagColor: "5A6773" },
+  performance: { tag: "GOLD", number: 4, tagColor: "A67A00" },
+  enterprise: { tag: "PLATINUM", number: 5, tagColor: "3E5A54" },
+  fieldService: { tag: "FIELD", number: 6, tagColor: "0B4A32" },
 };
 
 /* ------------------------------------------------------------------ */
@@ -607,7 +610,7 @@ function renderCapa(ids: () => number, data: ApresentacaoPayload): string {
       paragraphs: paraSimple("INVESTIMENTO MENSAL", {
         sz: 1000,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
         spc: 400,
       }),
@@ -625,7 +628,7 @@ function renderCapa(ids: () => number, data: ApresentacaoPayload): string {
       paragraphs: paraSimple(fmt(data.investimentoTotal), {
         sz: 4000,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
       }),
     }),
@@ -670,7 +673,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       cx: badgeSize,
       cy: badgeSize,
       adj: 22000,
-      fill: COLOR_DARK,
+      fill: COLOR_PRIMARY,
       lineColor: COLOR_PRIMARY,
       lineW: 15875,
     }),
@@ -688,7 +691,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple(String(meta.number), {
         sz: 3600,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
         align: "ctr",
       }),
@@ -897,7 +900,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple("INVESTIMENTO MENSAL", {
         sz: 900,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
         spc: 300,
       }),
@@ -915,7 +918,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple(fmt(cam.valor), {
         sz: 2600,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
       }),
     }),
@@ -980,7 +983,7 @@ function renderHorasN3(ids: () => number, cam: CamadaSlideData, n3: HorasN3Slide
       paragraphs: paraSimple("TOTAL DE HORAS TÉCNICAS N3 · MÊS", {
         sz: 1000,
         bold: true,
-        color: COLOR_TEXT,
+        color: COLOR_ON_DARK,
         font: FONT_HEAD,
         spc: 400,
       }),
@@ -997,7 +1000,7 @@ function renderHorasN3(ids: () => number, cam: CamadaSlideData, n3: HorasN3Slide
       autofit: "norm",
       paragraphs: paraSimple(
         `${fmtNum(n3.total, 1)}h  ·  ${fmt(n3.valorHora)}/h  ·  ${fmt(n3.total * n3.valorHora)}/mês`,
-        { sz: 1800, bold: true, color: COLOR_TEXT, font: FONT_HEAD },
+        { sz: 1800, bold: true, color: COLOR_ON_DARK, font: FONT_HEAD },
       ),
     }),
   );
@@ -1195,10 +1198,10 @@ function renderRotinas(ids: () => number, cam: CamadaSlideData, grupo: RotinaGru
       cw - inch(0.2),
       rowH,
       [
-        { text: "TOTAL PREVISTO", w: wGrupo + wRotina + wFreq, bold: true, color: COLOR_ACCENT },
-        { text: `${fmtNum(somaDemanda, 1)} ch/mês`, w: wDem, align: "r", bold: true, color: COLOR_ACCENT },
+        { text: "TOTAL PREVISTO", w: wGrupo + wRotina + wFreq, bold: true, color: COLOR_ON_DARK },
+        { text: `${fmtNum(somaDemanda, 1)} ch/mês`, w: wDem, align: "r", bold: true, color: COLOR_ON_DARK },
       ],
-      { fill: COLOR_PRIMARY, alpha: 50000 },
+      { fill: COLOR_PRIMARY },
     ),
   );
 
@@ -1595,31 +1598,56 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
   let counter = 5000 + seed * 200;
   const ids = () => ++counter;
 
-  let injection = "";
+  // Overlay branco cobrindo todo o slide, para garantir alto contraste
+  // do conteúdo injetado (referência: slide 6). O master fica preservado
+  // no ZIP, mas visualmente é reescrito neste clone.
+  const whiteBg = shape({
+    id: ++counter,
+    name: "WhiteBg",
+    prst: "rect",
+    x: 0,
+    y: 0,
+    cx: SLIDE_W,
+    cy: SLIDE_H,
+    fill: COLOR_SURFACE,
+  });
+  // Faixa lateral verde (identidade), à esquerda
+  const sideBand = shape({
+    id: ++counter,
+    name: "SideBand",
+    prst: "rect",
+    x: 0,
+    y: 0,
+    cx: inch(0.18),
+    cy: SLIDE_H,
+    fill: COLOR_PRIMARY,
+  });
+
+  let injection = whiteBg + sideBand;
   switch (block.kind) {
     case "capa":
-      injection = renderCapa(ids, block.data);
+      injection += renderCapa(ids, block.data);
       break;
     case "camada":
-      injection = renderCamada(ids, block.cam, block.idx);
+      injection += renderCamada(ids, block.cam, block.idx);
       break;
     case "horas-n3":
-      injection = renderHorasN3(ids, block.cam, block.n3);
+      injection += renderHorasN3(ids, block.cam, block.n3);
       break;
     case "rotinas":
-      injection = renderRotinas(ids, block.cam, block.grupo);
+      injection += renderRotinas(ids, block.cam, block.grupo);
       break;
     case "restricoes-camadas":
-      injection = renderRestricoesCamadas(ids, block.camadas);
+      injection += renderRestricoesCamadas(ids, block.camadas);
       break;
     case "itens-adicionais":
-      injection = renderItensAdicionais(ids, block.items, block.page, block.totalPages);
+      injection += renderItensAdicionais(ids, block.items, block.page, block.totalPages);
       break;
     case "restricoes-gerais":
-      injection = renderRestricoesGerais(ids, block.items);
+      injection += renderRestricoesGerais(ids, block.items);
       break;
     case "investimento":
-      injection = renderInvestimento(ids, block.data);
+      injection += renderInvestimento(ids, block.data);
       break;
   }
   return baseXml.replace(/<\/p:spTree>/, `${injection}</p:spTree>`);
