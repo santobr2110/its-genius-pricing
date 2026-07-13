@@ -10,17 +10,15 @@ import { getAppliedProfile, fetchAppliedProfileFromDb, setAppliedProfile } from 
 
 const OFFERINGS: ParamOffering[] = ["smart-ito", "profissionais-alocados"];
 
-function flagKey(uid: string, offering: ParamOffering) {
-  return `defaultProfile:applied:${uid}:${offering}`;
-}
-
 /**
  * Aplica automaticamente o "Perfil padrão" (registrado em
  * `app_default_profile`) da oferta para usuários que ainda não têm
  * parâmetros próprios salvos em `user_app_state`.
  *
- * Executa uma vez por usuário+oferta (guardado em localStorage). Não roda
- * quando a aba está editando uma precificação ativa.
+ * Executa apenas no PRIMEIRO login do usuário (detectado por
+ * `profiles.first_login_at IS NULL`). Após aplicar, marca o timestamp
+ * para não repetir em logins futuros. Não roda quando a aba está
+ * editando uma precificação ativa.
  */
 export function useApplyDefaultProfileOnLogin() {
   useEffect(() => {
@@ -28,12 +26,20 @@ export function useApplyDefaultProfileOnLogin() {
     let cancelled = false;
 
     async function run(uid: string) {
+      // Verifica se é o primeiro login (first_login_at nulo).
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("first_login_at")
+        .eq("id", uid)
+        .maybeSingle();
+      if (cancelled) return;
+      // Se não conseguiu ler, aborta silenciosamente.
+      if (!prof) return;
+      const isFirstLogin = !prof.first_login_at;
+
       for (const offering of OFFERINGS) {
         if (cancelled) return;
         try {
-          const flag = flagKey(uid, offering);
-          if (typeof window !== "undefined" && window.localStorage.getItem(flag)) continue;
-
           const { data: dp } = await supabase
             .from("app_default_profile")
             .select("profile_id")
@@ -42,18 +48,9 @@ export function useApplyDefaultProfileOnLogin() {
 
           if (!dp?.profile_id) continue;
 
-          const keys = keysForOffering(offering);
-          const { data: existing } = await supabase
-            .from("user_app_state")
-            .select("key")
-            .eq("user_id", uid)
-            .in("key", keys)
-            .limit(1);
-
-          if (existing && existing.length > 0) {
-            // Usuário já tem parâmetros próprios — não sobrescrever os
-            // valores, mas garante que o "perfil ativo" exibido reflita
-            // algo coerente (backfill com o default se não houver registro).
+          if (!isFirstLogin) {
+            // Logins subsequentes: nunca sobrescreve valores; apenas
+            // garante que o "perfil ativo" exibido reflita algo coerente.
             const hasLocal = getAppliedProfile(offering);
             if (!hasLocal) {
               const remote = await fetchAppliedProfileFromDb(offering);
@@ -69,10 +66,10 @@ export function useApplyDefaultProfileOnLogin() {
                 setAppliedProfile(offering, remote);
               }
             }
-            if (typeof window !== "undefined") window.localStorage.setItem(flag, "1");
             continue;
           }
 
+          // Primeiro login: aplica o payload do perfil padrão.
           const { data: profile } = await supabase
             .from("parameter_profiles")
             .select("payload, name")
@@ -85,9 +82,21 @@ export function useApplyDefaultProfileOnLogin() {
             const name = (profile as { name?: string } | null)?.name;
             if (name) setAppliedProfile(offering, { id: dp.profile_id, name });
           }
-          if (typeof window !== "undefined") window.localStorage.setItem(flag, "1");
         } catch {
           /* ignore — tenta novamente em outro login */
+        }
+      }
+
+      // Marca o primeiro login como concluído (idempotente).
+      if (isFirstLogin && !cancelled) {
+        try {
+          await supabase
+            .from("profiles")
+            .update({ first_login_at: new Date().toISOString() })
+            .eq("id", uid)
+            .is("first_login_at", null);
+        } catch {
+          /* ignore */
         }
       }
     }
