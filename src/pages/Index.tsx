@@ -8,6 +8,7 @@ import UserMenu from "@/components/auth/UserMenu";
 import Can from "@/components/auth/Can";
 import ParametrosMenu from "@/components/ParametrosMenu";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import WriteFence from "@/components/auth/WriteFence";
 
 const Index = () => {
   const { state, update, updateFunnel, results } = useITSMContext();
@@ -36,6 +37,7 @@ const Index = () => {
       </header>
 
       <main className="mx-auto max-w-[1400px] p-4">
+<WriteFence permission="page.home.write" anyOf={["pricing.edit"]}>
         <ResizablePanelGroup
           direction="horizontal"
           className="items-start gap-0 min-h-[600px]"
@@ -59,6 +61,7 @@ const Index = () => {
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
+      </WriteFence>
       </main>
     </div>
   );

@@ -8,6 +8,7 @@ import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import FinanceiroSubNav from "@/components/itsm/FinanceiroSubNav";
+import WriteFence from "@/components/auth/WriteFence";
 
 export default function ConfiguracoesComissoes() {
   const { state, comissaoTiers, setComissaoTiers } = useITSMContext();
@@ -29,6 +30,7 @@ export default function ConfiguracoesComissoes() {
       </header>
 
       <main className="mx-auto max-w-4xl p-6 space-y-6">
+<WriteFence permission="page.financeiro.write" anyOf={["financeiro.edit"]}>
         <FinanceiroSubNav />
 
         <Card>
@@ -133,6 +135,7 @@ export default function ConfiguracoesComissoes() {
             </p>
           </CardContent>
         </Card>
+      </WriteFence>
       </main>
     </div>
   );

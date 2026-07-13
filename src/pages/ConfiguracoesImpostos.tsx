@@ -17,6 +17,7 @@ import { CIDADES_ISS, CidadeISS, getIssPercByCidade } from "@/data/codigosProdut
 import { useCodigosProdutoImposto } from "@/hooks/useCodigosProdutoImposto";
 import ProdutosImpostoManager from "@/components/itsm/ProdutosImpostoManager";
 import { useEffect } from "react";
+import WriteFence from "@/components/auth/WriteFence";
 
 type CompKey = "pisPerc" | "cofinsPerc" | "issPerc" | "irpjCsllPerc" | "encFinancPerc" | "lucroPerc";
 
@@ -69,6 +70,7 @@ export default function ConfiguracoesImpostos() {
       </header>
 
       <main className="mx-auto max-w-5xl p-6 space-y-6">
+<WriteFence permission="page.financeiro.write" anyOf={["financeiro.edit"]}>
         <FinanceiroSubNav />
 
         {/* Código do Produto (Faturamento) */}
@@ -329,6 +331,7 @@ export default function ConfiguracoesImpostos() {
             </div>
           </CardContent>
         </Card>
+      </WriteFence>
       </main>
     </div>
   );
