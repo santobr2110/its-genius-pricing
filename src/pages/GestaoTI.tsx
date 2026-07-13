@@ -61,7 +61,6 @@ import {
 } from "@/data/rotinas";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import {
-import WriteFence from "@/components/auth/WriteFence";
   GMUDS_DEFAULT,
   GMUD_TIPOS,
   GMUD_COMPLEXIDADES,
@@ -75,6 +74,7 @@ import WriteFence from "@/components/auth/WriteFence";
   type GmudOferta,
   type GmudFrequencia,
 } from "@/data/gmuds";
+import WriteFence from "@/components/auth/WriteFence";
 
 const OFERTAS: Oferta[] = [
   "Monitor",
