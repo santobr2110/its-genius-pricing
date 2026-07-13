@@ -642,14 +642,11 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
   const cw = SLIDE_W - marginX * 2;
   const parts: string[] = [];
 
-  // Camada slides preservam o fundo com imagem do master (slide clonado).
-  // As cores foram invertidas para máximo contraste sobre fundo escuro.
-  const CAM_TEXT = "FFFFFF";
-  const CAM_MUTED = "C9D8CE";
-  const CAM_ACCENT = "8EE3B8"; // verde claro (kickers, divisórias)
-  const CAM_TAG = "F1F6F3";
-  const CAM_CARD_FILL = "0B1E15"; // verde muito escuro translúcido
-  const CAM_CARD_LINE = CAM_ACCENT;
+  // Fontes em preto/verde sobre o fundo do master (referência slide 6).
+  const CAM_TEXT = COLOR_TEXT;
+  const CAM_MUTED = COLOR_MUTED;
+  const CAM_ACCENT = COLOR_ACCENT; // verde primário (kickers, divisórias)
+  const CAM_TAG = COLOR_TEXT;
 
   // Kicker
   parts.push(
