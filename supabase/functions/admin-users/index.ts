@@ -71,8 +71,23 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create") {
-      const { email, password, full_name, role_id } = body;
-      if (!email || !password || password.length < 8) return json({ error: "Email e senha (mín 8) obrigatórios" }, 400);
+      const { email, password, full_name, role_id, send_invite, site_url } = body;
+      if (!email) return json({ error: "Email obrigatório" }, 400);
+
+      if (send_invite) {
+        const redirectTo = `${site_url || ""}/reset-password`;
+        const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
+          data: { full_name: full_name ?? email },
+          redirectTo,
+        });
+        if (error) return json({ error: error.message }, 400);
+        if (role_id && data.user) {
+          await admin.from("user_roles").upsert({ user_id: data.user.id, role_id });
+        }
+        return json({ user: data.user, invited: true });
+      }
+
+      if (!password || password.length < 8) return json({ error: "Senha (mín 8) obrigatória" }, 400);
       const { data, error } = await admin.auth.admin.createUser({
         email,
         password,
@@ -84,6 +99,15 @@ Deno.serve(async (req) => {
         await admin.from("user_roles").upsert({ user_id: data.user.id, role_id });
       }
       return json({ user: data.user });
+    }
+
+    if (action === "send_reset") {
+      const { email, site_url } = body;
+      if (!email) return json({ error: "email obrigatório" }, 400);
+      const redirectTo = `${site_url || ""}/reset-password`;
+      const { error } = await admin.auth.resetPasswordForEmail(email, { redirectTo });
+      if (error) return json({ error: error.message }, 400);
+      return json({ ok: true });
     }
 
     if (action === "update_password") {
