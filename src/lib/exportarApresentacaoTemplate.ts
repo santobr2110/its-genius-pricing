@@ -642,14 +642,11 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
   const cw = SLIDE_W - marginX * 2;
   const parts: string[] = [];
 
-  // Camada slides preservam o fundo com imagem do master (slide clonado).
-  // As cores foram invertidas para máximo contraste sobre fundo escuro.
-  const CAM_TEXT = "FFFFFF";
-  const CAM_MUTED = "C9D8CE";
-  const CAM_ACCENT = "8EE3B8"; // verde claro (kickers, divisórias)
-  const CAM_TAG = "F1F6F3";
-  const CAM_CARD_FILL = "0B1E15"; // verde muito escuro translúcido
-  const CAM_CARD_LINE = CAM_ACCENT;
+  // Fontes em preto/verde sobre o fundo do master (referência slide 6).
+  const CAM_TEXT = COLOR_TEXT;
+  const CAM_MUTED = COLOR_MUTED;
+  const CAM_ACCENT = COLOR_ACCENT; // verde primário (kickers, divisórias)
+  const CAM_TAG = COLOR_TEXT;
 
   // Kicker
   parts.push(
@@ -1612,33 +1609,10 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
   let counter = 5000 + seed * 200;
   const ids = () => ++counter;
 
-  // Slides de camada preservam o fundo com imagem do master (identidade
-  // corporativa). Os demais recebem overlay branco para máximo contraste
-  // (referência: slide 6).
+  // Todos os slides gerados preservam o fundo do master (identidade
+  // corporativa dos slides imutáveis). Fontes ficam em preto/verde
+  // seguindo a referência do slide 6.
   let injection = "";
-  if (block.kind !== "camada") {
-    const whiteBg = shape({
-      id: ++counter,
-      name: "WhiteBg",
-      prst: "rect",
-      x: 0,
-      y: 0,
-      cx: SLIDE_W,
-      cy: SLIDE_H,
-      fill: COLOR_SURFACE,
-    });
-    const sideBand = shape({
-      id: ++counter,
-      name: "SideBand",
-      prst: "rect",
-      x: 0,
-      y: 0,
-      cx: inch(0.18),
-      cy: SLIDE_H,
-      fill: COLOR_PRIMARY,
-    });
-    injection = whiteBg + sideBand;
-  }
   switch (block.kind) {
     case "capa":
       injection += renderCapa(ids, block.data);
