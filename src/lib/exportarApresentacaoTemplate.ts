@@ -642,6 +642,15 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
   const cw = SLIDE_W - marginX * 2;
   const parts: string[] = [];
 
+  // Camada slides preservam o fundo com imagem do master (slide clonado).
+  // As cores foram invertidas para máximo contraste sobre fundo escuro.
+  const CAM_TEXT = "FFFFFF";
+  const CAM_MUTED = "C9D8CE";
+  const CAM_ACCENT = "8EE3B8"; // verde claro (kickers, divisórias)
+  const CAM_TAG = "F1F6F3";
+  const CAM_CARD_FILL = "0B1E15"; // verde muito escuro translúcido
+  const CAM_CARD_LINE = CAM_ACCENT;
+
   // Kicker
   parts.push(
     textShape({
@@ -655,7 +664,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple("CAMADA DA OFERTA", {
         sz: 1000,
         bold: true,
-        color: COLOR_ACCENT,
+        color: CAM_ACCENT,
         font: FONT_HEAD,
         spc: 400,
       }),
@@ -673,8 +682,8 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       cx: badgeSize,
       cy: badgeSize,
       adj: 22000,
-      fill: COLOR_PRIMARY,
-      lineColor: COLOR_PRIMARY,
+      fill: CAM_ACCENT,
+      lineColor: CAM_ACCENT,
       lineW: 15875,
     }),
   );
@@ -691,7 +700,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple(String(meta.number), {
         sz: 3600,
         bold: true,
-        color: COLOR_ON_DARK,
+        color: "0B1E15",
         font: FONT_HEAD,
         align: "ctr",
       }),
@@ -711,7 +720,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple(meta.tag, {
         sz: 1400,
         bold: true,
-        color: meta.tagColor,
+        color: CAM_TAG,
         font: FONT_HEAD,
         align: "r",
         spc: 500,
@@ -732,7 +741,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple(cam.titulo, {
         sz: 3200,
         bold: true,
-        color: COLOR_TEXT,
+        color: CAM_TEXT,
         font: FONT_HEAD,
       }),
     }),
@@ -753,7 +762,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
           sz: 1200,
           bold: true,
           italic: true,
-          color: COLOR_MUTED,
+          color: CAM_MUTED,
         }),
       }),
     );
@@ -769,7 +778,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       y: inch(2.0),
       cx: inch(0.7),
       cy: 22860,
-      fill: COLOR_ACCENT,
+      fill: CAM_ACCENT,
     }),
   );
 
@@ -786,7 +795,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
         autofit: "norm",
         paragraphs: paraSimple(cam.descricao, {
           sz: 1200,
-          color: COLOR_TEXT,
+          color: CAM_TEXT,
         }),
       }),
     );
@@ -806,7 +815,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       paragraphs: paraSimple("★  O QUE ESTÁ INCLUÍDO", {
         sz: 1100,
         bold: true,
-        color: COLOR_ACCENT,
+        color: CAM_ACCENT,
         font: FONT_HEAD,
         spc: 400,
       }),
@@ -832,7 +841,9 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
       cx: colW,
       cy: listH,
       autofit: "norm",
-      paragraphs: colA.map((t) => paraCheck(t, sz)).join("") || paraSimple("—"),
+      paragraphs:
+        colA.map((t) => paraCheck(t, sz, CAM_TEXT, CAM_ACCENT)).join("") ||
+        paraSimple("—", { color: CAM_MUTED }),
     }),
   );
   if (colB.length) {
@@ -845,7 +856,7 @@ function renderCamada(ids: () => number, cam: CamadaSlideData, idx: number): str
         cx: colW,
         cy: listH,
         autofit: "norm",
-        paragraphs: colB.map((t) => paraCheck(t, sz)).join(""),
+        paragraphs: colB.map((t) => paraCheck(t, sz, CAM_TEXT, CAM_ACCENT)).join(""),
       }),
     );
   }
