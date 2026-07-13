@@ -1612,33 +1612,10 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
   let counter = 5000 + seed * 200;
   const ids = () => ++counter;
 
-  // Slides de camada preservam o fundo com imagem do master (identidade
-  // corporativa). Os demais recebem overlay branco para máximo contraste
-  // (referência: slide 6).
+  // Todos os slides gerados preservam o fundo do master (identidade
+  // corporativa dos slides imutáveis). Fontes ficam em preto/verde
+  // seguindo a referência do slide 6.
   let injection = "";
-  if (block.kind !== "camada") {
-    const whiteBg = shape({
-      id: ++counter,
-      name: "WhiteBg",
-      prst: "rect",
-      x: 0,
-      y: 0,
-      cx: SLIDE_W,
-      cy: SLIDE_H,
-      fill: COLOR_SURFACE,
-    });
-    const sideBand = shape({
-      id: ++counter,
-      name: "SideBand",
-      prst: "rect",
-      x: 0,
-      y: 0,
-      cx: inch(0.18),
-      cy: SLIDE_H,
-      fill: COLOR_PRIMARY,
-    });
-    injection = whiteBg + sideBand;
-  }
   switch (block.kind) {
     case "capa":
       injection += renderCapa(ids, block.data);
