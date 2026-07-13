@@ -19,7 +19,8 @@ import masterAsset from "@/assets/apresentacao-master.pptx.asset.json";
 
 const TEMPLATE_SLIDE_INDEX = 10; // slide10.xml = template
 const CLOSING_SLIDE_INDEX = 11; // slide11.xml = fechamento
-const CHARS_PER_SLIDE = 900;
+const CHARS_PER_SLIDE = 520;
+const LINES_PER_COLUMN = 12;
 
 /* Área útil do slide 16:9 = 12192000 x 6858000 EMU */
 const SLIDE_W = 12192000;
@@ -149,16 +150,21 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
 
 function splitContent(text: string, limit: number): string[] {
   if (!text) return [""];
-  if (text.length <= limit) return [text];
   const lines = text.split("\n");
+  const MAX_LINES = 22; // cabe em 2 colunas de ~11 linhas cada
+  if (text.length <= limit && lines.length <= MAX_LINES) return [text];
   const chunks: string[] = [];
   let cur = "";
+  let curLines = 0;
   for (const line of lines) {
-    if ((cur + "\n" + line).length > limit && cur) {
+    const next = cur ? `${cur}\n${line}` : line;
+    if ((next.length > limit || curLines + 1 > MAX_LINES) && cur) {
       chunks.push(cur);
       cur = line;
+      curLines = 1;
     } else {
-      cur = cur ? `${cur}\n${line}` : line;
+      cur = next;
+      curLines += 1;
     }
   }
   if (cur) chunks.push(cur);
@@ -286,10 +292,23 @@ function rectShape(opts: {
   fill: string;
   alpha?: number; // 0..100000
   lineColor?: string;
+  gradient?: boolean;
 }): string {
-  const fill = opts.alpha
-    ? `<a:solidFill><a:srgbClr val="${opts.fill}"><a:alpha val="${opts.alpha}"/></a:srgbClr></a:solidFill>`
-    : `<a:solidFill><a:srgbClr val="${opts.fill}"/></a:solidFill>`;
+  let fill: string;
+  if (opts.gradient) {
+    fill =
+      `<a:gradFill flip="none" rotWithShape="1">` +
+      `<a:gsLst>` +
+      `<a:gs pos="0"><a:srgbClr val="${COLOR_PRIMARY}"/></a:gs>` +
+      `<a:gs pos="100000"><a:srgbClr val="${COLOR_DARK}"/></a:gs>` +
+      `</a:gsLst>` +
+      `<a:lin ang="2700000" scaled="0"/>` +
+      `</a:gradFill>`;
+  } else if (opts.alpha) {
+    fill = `<a:solidFill><a:srgbClr val="${opts.fill}"><a:alpha val="${opts.alpha}"/></a:srgbClr></a:solidFill>`;
+  } else {
+    fill = `<a:solidFill><a:srgbClr val="${opts.fill}"/></a:solidFill>`;
+  }
   const line = opts.lineColor
     ? `<a:ln w="12700"><a:solidFill><a:srgbClr val="${opts.lineColor}"/></a:solidFill></a:ln>`
     : `<a:ln><a:noFill/></a:ln>`;
@@ -301,14 +320,16 @@ function rectShape(opts: {
   );
 }
 
-function accentBarShape(id: number, x: number, y: number, cy: number): string {
-  return (
-    `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="Accent${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
-    `<p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="80000" cy="${cy}"/></a:xfrm>` +
-    `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>` +
-    `<a:solidFill><a:srgbClr val="${COLOR_ACCENT}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr>` +
-    `<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="pt-BR"/></a:p></p:txBody></p:sp>`
-  );
+/**
+ * Remove do template clonado shapes que contêm o texto "Proposição" — era o
+ * placeholder do master, dispensável nos slides gerados.
+ */
+function stripProposicaoShape(xml: string): string {
+  return xml.replace(/<p:sp\b[\s\S]*?<\/p:sp>/g, (sp) => {
+    const flat = sp.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+    if (/>\s*[^<]*Proposicao[^<]*</i.test(flat)) return "";
+    return sp;
+  });
 }
 
 /**
@@ -318,46 +339,54 @@ function accentBarShape(id: number, x: number, y: number, cy: number): string {
 function buildContentSlide(templateXml: string, block: Block, seed: number): string {
   const idBase = 5000 + seed * 20;
 
-  // Layout (EMU)
-  const marginX = 650000;
-  const contentW = SLIDE_W - marginX * 2; // ~10.9M
-  const kickerY = 1500000;
-  const kickerH = 320000;
-  const titleY = 1830000;
-  const titleH = 900000;
-  const bodyY = 2820000;
-  const bodyH = 3400000;
-  const metricW = 3400000;
-  const metricH = 620000;
+  // Remove o "Proposição" original do template clonado — libera espaço.
+  const baseXml = stripProposicaoShape(templateXml);
+
+  // Layout (EMU) — compacto para caber todo o conteúdo.
+  const marginX = 600000;
+  const contentW = SLIDE_W - marginX * 2;
+  const kickerY = 480000;
+  const kickerH = 260000;
+  const titleY = 760000;
+  const titleH = 700000;
+  const bodyY = 1540000;
+  const bodyH = 4540000;
+  const metricW = 3600000;
+  const metricH = 560000;
   const metricX = SLIDE_W - marginX - metricW;
-  const metricY = SLIDE_H - 780000;
+  const metricY = SLIDE_H - 700000;
 
   const kickerText = (block.kicker || "Proposição").toUpperCase();
   const titleText = (block.titulo || "").toUpperCase();
   const paras = parseParagraphs(block.conteudo || "");
 
-  const parasXml = paras
-    .map((p) => paragraphXml(p, { sz: 1500, color: COLOR_TEXT, font: FONT_BODY }))
+  const useTwoColumns = paras.length > LINES_PER_COLUMN;
+  const halfIdx = Math.ceil(paras.length / 2);
+  const parasA = useTwoColumns ? paras.slice(0, halfIdx) : paras;
+  const parasB = useTwoColumns ? paras.slice(halfIdx) : [];
+  const bodyFontSize = paras.length > 18 ? 1000 : paras.length > 10 ? 1100 : 1200;
+  const parasXmlA = parasA
+    .map((p) => paragraphXml(p, { sz: bodyFontSize, color: COLOR_TEXT, font: FONT_BODY }))
+    .join("");
+  const parasXmlB = parasB
+    .map((p) => paragraphXml(p, { sz: bodyFontSize, color: COLOR_TEXT, font: FONT_BODY }))
     .join("");
 
   const shapes: string[] = [];
 
-  // Barra de acento vertical
-  shapes.push(accentBarShape(idBase + 1, marginX, kickerY, titleY + titleH - kickerY));
-
-  // Kicker (etiqueta de seção)
+  // Kicker (etiqueta de seção) — sem barra laranja
   shapes.push(
     textShape({
       id: idBase + 2,
       name: `Kicker${idBase}`,
-      x: marginX + 180000,
+      x: marginX,
       y: kickerY,
-      cx: contentW - 180000,
+      cx: contentW,
       cy: kickerH,
       autofit: "none",
       paragraphs:
         `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
-        runXml(kickerText, { sz: 1400, bold: true, color: COLOR_ACCENT, font: FONT_HEAD }) +
+        runXml(kickerText, { sz: 1100, bold: true, color: COLOR_PRIMARY, font: FONT_HEAD }) +
         `</a:p>`,
     }),
   );
@@ -367,14 +396,14 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
     textShape({
       id: idBase + 3,
       name: `Titulo${idBase}`,
-      x: marginX + 180000,
+      x: marginX,
       y: titleY,
-      cx: contentW - 180000,
+      cx: contentW,
       cy: titleH,
       autofit: "norm",
       paragraphs:
         `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
-        runXml(titleText, { sz: 4000, bold: true, color: COLOR_TEXT, font: FONT_HEAD }) +
+        runXml(titleText, { sz: 2800, bold: true, color: COLOR_TEXT, font: FONT_HEAD }) +
         `</a:p>`,
     }),
   );
@@ -389,26 +418,59 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
       cx: contentW,
       cy: bodyH,
       fill: COLOR_DARK,
-      alpha: 78000,
+      alpha: 72000,
       lineColor: COLOR_PRIMARY,
     }),
   );
 
-  // Corpo de texto
-  shapes.push(
-    textShape({
-      id: idBase + 5,
-      name: `Body${idBase}`,
-      x: marginX + 260000,
-      y: bodyY + 180000,
-      cx: contentW - 520000,
-      cy: bodyH - 360000,
-      autofit: "norm",
-      paragraphs: parasXml || `<a:p><a:endParaRPr lang="pt-BR"/></a:p>`,
-    }),
-  );
+  // Corpo de texto — 1 ou 2 colunas
+  const bodyPadX = 260000;
+  const bodyPadY = 200000;
+  const colGap = 280000;
+  const colY = bodyY + bodyPadY;
+  const colCy = bodyH - bodyPadY * 2;
+  if (useTwoColumns) {
+    const colW = Math.floor((contentW - bodyPadX * 2 - colGap) / 2);
+    shapes.push(
+      textShape({
+        id: idBase + 5,
+        name: `BodyA${idBase}`,
+        x: marginX + bodyPadX,
+        y: colY,
+        cx: colW,
+        cy: colCy,
+        autofit: "norm",
+        paragraphs: parasXmlA || `<a:p><a:endParaRPr lang="pt-BR"/></a:p>`,
+      }),
+    );
+    shapes.push(
+      textShape({
+        id: idBase + 9,
+        name: `BodyB${idBase}`,
+        x: marginX + bodyPadX + colW + colGap,
+        y: colY,
+        cx: colW,
+        cy: colCy,
+        autofit: "norm",
+        paragraphs: parasXmlB || `<a:p><a:endParaRPr lang="pt-BR"/></a:p>`,
+      }),
+    );
+  } else {
+    shapes.push(
+      textShape({
+        id: idBase + 5,
+        name: `Body${idBase}`,
+        x: marginX + bodyPadX,
+        y: colY,
+        cx: contentW - bodyPadX * 2,
+        cy: colCy,
+        autofit: "norm",
+        paragraphs: parasXmlA || `<a:p><a:endParaRPr lang="pt-BR"/></a:p>`,
+      }),
+    );
+  }
 
-  // Card de métrica (canto inferior direito)
+  // Card de métrica (canto inferior direito) — degrade verde como no slide 2
   if (block.metrica1 && block.metrica2) {
     shapes.push(
       rectShape({
@@ -418,21 +480,22 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
         y: metricY,
         cx: metricW,
         cy: metricH,
-        fill: COLOR_ACCENT,
+        fill: COLOR_PRIMARY,
+        gradient: true,
       }),
     );
     shapes.push(
       textShape({
         id: idBase + 7,
         name: `MetricLabel${idBase}`,
-        x: metricX + 120000,
+        x: metricX + 140000,
         y: metricY + 60000,
-        cx: metricW - 240000,
-        cy: 220000,
+        cx: metricW - 280000,
+        cy: 200000,
         autofit: "none",
         paragraphs:
           `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
-          runXml(block.metrica1, { sz: 1000, bold: true, color: COLOR_DARK, font: FONT_HEAD }) +
+          runXml(block.metrica1, { sz: 900, bold: true, color: COLOR_TEXT, font: FONT_HEAD }) +
           `</a:p>`,
       }),
     );
@@ -440,21 +503,21 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
       textShape({
         id: idBase + 8,
         name: `MetricValue${idBase}`,
-        x: metricX + 120000,
-        y: metricY + 260000,
-        cx: metricW - 240000,
-        cy: metricH - 300000,
+        x: metricX + 140000,
+        y: metricY + 230000,
+        cx: metricW - 280000,
+        cy: metricH - 260000,
         autofit: "norm",
         paragraphs:
           `<a:p><a:pPr algn="l"><a:buNone/></a:pPr>` +
-          runXml(block.metrica2, { sz: 2400, bold: true, color: COLOR_TEXT, font: FONT_HEAD }) +
+          runXml(block.metrica2, { sz: 2000, bold: true, color: COLOR_TEXT, font: FONT_HEAD }) +
           `</a:p>`,
       }),
     );
   }
 
   const injection = shapes.join("");
-  return templateXml.replace(/<\/p:spTree>/, `${injection}</p:spTree>`);
+  return baseXml.replace(/<\/p:spTree>/, `${injection}</p:spTree>`);
 }
 
 /* ------------------------------------------------------------------ */
