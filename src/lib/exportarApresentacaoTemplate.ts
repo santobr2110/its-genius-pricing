@@ -287,10 +287,23 @@ function rectShape(opts: {
   fill: string;
   alpha?: number; // 0..100000
   lineColor?: string;
+  gradient?: boolean;
 }): string {
-  const fill = opts.alpha
-    ? `<a:solidFill><a:srgbClr val="${opts.fill}"><a:alpha val="${opts.alpha}"/></a:srgbClr></a:solidFill>`
-    : `<a:solidFill><a:srgbClr val="${opts.fill}"/></a:solidFill>`;
+  let fill: string;
+  if (opts.gradient) {
+    fill =
+      `<a:gradFill flip="none" rotWithShape="1">` +
+      `<a:gsLst>` +
+      `<a:gs pos="0"><a:srgbClr val="${COLOR_PRIMARY}"/></a:gs>` +
+      `<a:gs pos="100000"><a:srgbClr val="${COLOR_DARK}"/></a:gs>` +
+      `</a:gsLst>` +
+      `<a:lin ang="2700000" scaled="0"/>` +
+      `</a:gradFill>`;
+  } else if (opts.alpha) {
+    fill = `<a:solidFill><a:srgbClr val="${opts.fill}"><a:alpha val="${opts.alpha}"/></a:srgbClr></a:solidFill>`;
+  } else {
+    fill = `<a:solidFill><a:srgbClr val="${opts.fill}"/></a:solidFill>`;
+  }
   const line = opts.lineColor
     ? `<a:ln w="12700"><a:solidFill><a:srgbClr val="${opts.lineColor}"/></a:solidFill></a:ln>`
     : `<a:ln><a:noFill/></a:ln>`;
