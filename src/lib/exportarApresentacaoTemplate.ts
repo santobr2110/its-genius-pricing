@@ -315,14 +315,16 @@ function rectShape(opts: {
   );
 }
 
-function accentBarShape(id: number, x: number, y: number, cy: number): string {
-  return (
-    `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="Accent${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
-    `<p:spPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="80000" cy="${cy}"/></a:xfrm>` +
-    `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>` +
-    `<a:solidFill><a:srgbClr val="${COLOR_ACCENT}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr>` +
-    `<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="pt-BR"/></a:p></p:txBody></p:sp>`
-  );
+/**
+ * Remove do template clonado shapes que contêm o texto "Proposição" — era o
+ * placeholder do master, dispensável nos slides gerados.
+ */
+function stripProposicaoShape(xml: string): string {
+  return xml.replace(/<p:sp\b[\s\S]*?<\/p:sp>/g, (sp) => {
+    const flat = sp.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+    if (/>\s*[^<]*Proposicao[^<]*</i.test(flat)) return "";
+    return sp;
+  });
 }
 
 /**
