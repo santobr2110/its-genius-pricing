@@ -182,15 +182,15 @@ function paraSimple(
   );
 }
 
-function paraCheck(text: string, sz = 1200): string {
-  // Bullet com check em verde primário
+function paraCheck(text: string, sz = 1200, color = COLOR_TEXT, bulletColor = COLOR_PRIMARY): string {
+  // Bullet com check em verde primário (ou variação clara sobre fundo escuro)
   return (
     `<a:p><a:pPr marL="342900" indent="-342900" algn="l">` +
-    `<a:buClr><a:srgbClr val="${COLOR_PRIMARY}"/></a:buClr>` +
+    `<a:buClr><a:srgbClr val="${bulletColor}"/></a:buClr>` +
     `<a:buSzPct val="120000"/>` +
     `<a:buFont typeface="Wingdings"/><a:buChar char="ü"/>` +
     `</a:pPr>` +
-    runXml(text, { sz, color: COLOR_TEXT }) +
+    runXml(text, { sz, color }) +
     `</a:p>`
   );
 }
