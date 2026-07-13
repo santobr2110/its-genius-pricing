@@ -11,6 +11,7 @@ import { N2Professional } from "@/hooks/useN2TeamState";
 import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
+import WriteFence from "@/components/auth/WriteFence";
 
 export default function EquipeN2() {
   const {
@@ -46,6 +47,7 @@ export default function EquipeN2() {
       </header>
 
       <main className="mx-auto max-w-[1200px] p-4 space-y-4">
+<WriteFence permission="page.equipe_n2.write" anyOf={["teams.edit"]}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <SummaryCard icon={Users} label="Total Pessoas" value={String(n2Results.totalPessoas)} accent="text-blue-600 bg-blue-50" />
           <SummaryCard icon={DollarSign} label="Custo Total Equipe" value={formatBRL(n2Results.custoTotalEquipe)} accent="text-emerald-600 bg-emerald-50" />
@@ -195,6 +197,7 @@ export default function EquipeN2() {
             </CardContent>
           </Card>
         </div>
+      </WriteFence>
       </main>
     </div>
   );

@@ -7,6 +7,7 @@ import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import FinanceiroSubNav from "@/components/itsm/FinanceiroSubNav";
+import WriteFence from "@/components/auth/WriteFence";
 
 export default function ConfiguracoesFinanceiras() {
   const { state, results } = useITSMContext();
@@ -47,6 +48,7 @@ export default function ConfiguracoesFinanceiras() {
       </header>
 
       <main className="mx-auto max-w-6xl p-6 space-y-6">
+<WriteFence permission="page.financeiro.write" anyOf={["financeiro.edit"]}>
         <FinanceiroSubNav />
         {/* Resumo topo */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -160,6 +162,7 @@ export default function ConfiguracoesFinanceiras() {
               })()}
             </CardContent>
           </Card>
+      </WriteFence>
       </main>
     </div>
   );

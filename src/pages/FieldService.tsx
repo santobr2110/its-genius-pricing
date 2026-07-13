@@ -12,6 +12,7 @@ import type { FieldLevel, FieldProfessional, FieldLevelState, FieldLevelResults 
 import { Link } from "react-router-dom";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
+import WriteFence from "@/components/auth/WriteFence";
 
 const LEVELS: { id: FieldLevel; label: string; desc: string }[] = [
   { id: "n1f", label: "N1 Field", desc: "Técnico presencial — atendimento de primeiro nível em campo" },
@@ -55,6 +56,7 @@ export default function FieldService() {
       </header>
 
       <main className="mx-auto max-w-[1200px] p-4 space-y-4">
+<WriteFence permission="page.field_service.write">
         <Card className="border-orange-200 bg-orange-50/40 dark:bg-orange-950/20 dark:border-orange-900">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
@@ -105,6 +107,7 @@ export default function FieldService() {
             </TabsContent>
           ))}
         </Tabs>
+      </WriteFence>
       </main>
     </div>
   );

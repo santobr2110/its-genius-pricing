@@ -59,6 +59,7 @@ import {
   type Gmud, type GmudComputed,
 } from "@/data/gmuds";
 import { GitBranch, PackagePlus } from "lucide-react";
+import WriteFence from "@/components/auth/WriteFence";
 
 function normalizeOsRotina(r: Rotina): Rotina {
   const normalized = normalizeLegacyRotina(r);
@@ -1309,6 +1310,7 @@ export default function Detalhamento() {
         id="proposicao-printable"
         className="proposicao-printable report-anexo mx-auto max-w-5xl p-6 space-y-6"
       >
+<WriteFence permission="page.detalhamento.write" anyOf={["pricing.edit"]}>
         <section data-pdf-section className="report-section text-center pt-2 pb-1">
           <div className="report-kicker inline-flex items-center gap-2 rounded-full border bg-card/60 backdrop-blur px-3 py-1 mb-4">
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Proposta Comercial</span>
@@ -2207,6 +2209,7 @@ export default function Detalhamento() {
             <div>Exportado em {new Date().toLocaleString("pt-BR")}</div>
           </div>
         )}
+      </WriteFence>
       </main>
     </div>
   );

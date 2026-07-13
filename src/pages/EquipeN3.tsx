@@ -7,6 +7,7 @@ import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
+import WriteFence from "@/components/auth/WriteFence";
 
 export default function EquipeN3() {
   const { state, update, results } = useITSMContext();
@@ -26,6 +27,7 @@ export default function EquipeN3() {
       </header>
 
       <main className="mx-auto max-w-[1200px] p-4 space-y-4">
+<WriteFence permission="page.equipe_n3.write" anyOf={["teams.edit"]}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <SummaryCard label="Valor / Hora N3" value={formatBRL(state.valorHoraN3)} />
           <SummaryCard label="Tempo médio / chamado" value={`${formatNumber(state.tempoMedioChamadoN3, 1)}h`} highlight />
@@ -70,6 +72,7 @@ export default function EquipeN3() {
             Esta página será expandida para incluir perfis de especialistas (segurança, cloud, redes, etc.), com salários, encargos e alocação de horas por especialidade.
           </CardContent>
         </Card>
+      </WriteFence>
       </main>
     </div>
   );

@@ -10,6 +10,7 @@ import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import { ITSMState, formatNumber } from "@/hooks/useITSMCalculator";
 import { LucideIcon } from "lucide-react";
+import WriteFence from "@/components/auth/WriteFence";
 
 const FUNNEL_COLORS = {
   N1: "bg-blue-500",
@@ -119,6 +120,7 @@ export default function TaxasDemanda() {
       </header>
 
       <main className="mx-auto max-w-5xl p-6 space-y-6">
+<WriteFence permission="page.taxas_demanda.write" anyOf={["pricing.edit","params.save_defaults"]}>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
@@ -651,6 +653,7 @@ export default function TaxasDemanda() {
             </CardContent>
           </Card>
         </div>
+      </WriteFence>
       </main>
     </div>
   );

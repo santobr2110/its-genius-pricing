@@ -61,6 +61,7 @@ import {
 } from "@/data/rotinas";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import {
+import WriteFence from "@/components/auth/WriteFence";
   GMUDS_DEFAULT,
   GMUD_TIPOS,
   GMUD_COMPLEXIDADES,
@@ -517,6 +518,7 @@ export default function GestaoTI() {
       </header>
 
       <main className="mx-auto max-w-[1400px] p-6 space-y-6">
+<WriteFence permission="page.gestao_ti.write">
         <Tabs defaultValue="rotinas" className="space-y-6">
           <TabsList>
             <TabsTrigger value="rotinas" className="gap-1.5">
@@ -926,6 +928,7 @@ export default function GestaoTI() {
             </Card>
           </TabsContent>
         </Tabs>
+      </WriteFence>
       </main>
     </div>
   );
