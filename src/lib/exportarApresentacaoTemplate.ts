@@ -1612,32 +1612,33 @@ function buildContentSlide(templateXml: string, block: Block, seed: number): str
   let counter = 5000 + seed * 200;
   const ids = () => ++counter;
 
-  // Overlay branco cobrindo todo o slide, para garantir alto contraste
-  // do conteúdo injetado (referência: slide 6). O master fica preservado
-  // no ZIP, mas visualmente é reescrito neste clone.
-  const whiteBg = shape({
-    id: ++counter,
-    name: "WhiteBg",
-    prst: "rect",
-    x: 0,
-    y: 0,
-    cx: SLIDE_W,
-    cy: SLIDE_H,
-    fill: COLOR_SURFACE,
-  });
-  // Faixa lateral verde (identidade), à esquerda
-  const sideBand = shape({
-    id: ++counter,
-    name: "SideBand",
-    prst: "rect",
-    x: 0,
-    y: 0,
-    cx: inch(0.18),
-    cy: SLIDE_H,
-    fill: COLOR_PRIMARY,
-  });
-
-  let injection = whiteBg + sideBand;
+  // Slides de camada preservam o fundo com imagem do master (identidade
+  // corporativa). Os demais recebem overlay branco para máximo contraste
+  // (referência: slide 6).
+  let injection = "";
+  if (block.kind !== "camada") {
+    const whiteBg = shape({
+      id: ++counter,
+      name: "WhiteBg",
+      prst: "rect",
+      x: 0,
+      y: 0,
+      cx: SLIDE_W,
+      cy: SLIDE_H,
+      fill: COLOR_SURFACE,
+    });
+    const sideBand = shape({
+      id: ++counter,
+      name: "SideBand",
+      prst: "rect",
+      x: 0,
+      y: 0,
+      cx: inch(0.18),
+      cy: SLIDE_H,
+      fill: COLOR_PRIMARY,
+    });
+    injection = whiteBg + sideBand;
+  }
   switch (block.kind) {
     case "capa":
       injection += renderCapa(ids, block.data);
