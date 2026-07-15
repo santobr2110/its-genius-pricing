@@ -54,7 +54,9 @@ export function usePricingApproval(opts: {
     setRequest(r);
     if (r) {
       const { data: decs } = await supabase
-        .from("approval_decisions").select("*").eq("request_id", r.id);
+        .from("approval_decisions")
+        .select("id, request_id, role_id, approver_user_id, approver_email, decision, decided_at, comment")
+        .eq("request_id", r.id);
       setDecisions((decs ?? []) as ApprovalDecision[]);
     } else {
       setDecisions([]);
