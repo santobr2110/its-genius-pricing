@@ -4,9 +4,16 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { ITSMState, ITSMResults, formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
-import { Gauge, Users, Server, Clock, Info, ExternalLink, Activity } from "lucide-react";
+import { Gauge, Users, Server, Clock, Info, ExternalLink, Activity, LayoutGrid } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
+import {
+  computeCustoMonitoramentoTotal,
+  DEFAULT_MONITOR_FAIXAS,
+  DEFAULT_MONITOR_PESOS,
+  type MonitorFaixa,
+} from "@/lib/custoMonitoramentoUM";
+import { Plus, Trash2 } from "lucide-react";
 
 interface Props {
   state: ITSMState;
@@ -204,6 +211,170 @@ export default function MetricsPanel({ state, results, update }: Props) {
           />
         </CardContent>
       </Card>
+
+      {/* Custo Unificado de Monitoramento por UM (Faixas Marginais) */}
+      <MonitorUMCard state={state} update={update} />
     </div>
+  );
+}
+
+function MonitorUMCard({
+  state,
+  update,
+}: {
+  state: ITSMState;
+  update: <K extends keyof ITSMState>(key: K, value: ITSMState[K]) => void;
+}) {
+  const pesos = state.monitorPesos ?? DEFAULT_MONITOR_PESOS;
+  const faixas = state.monitorFaixas ?? DEFAULT_MONITOR_FAIXAS;
+  const piso = state.monitorPisoMensal ?? 0;
+
+  const calc = computeCustoMonitoramentoTotal(
+    {
+      qtdServidores: state.qtdServidores || 0,
+      qtdBancosDados: state.qtdBancosDados || 0,
+      qtdSistemas: state.qtdSistemas || 0,
+      qtdAtivosRede: state.qtdAtivosRede || 0,
+    },
+    pesos,
+    faixas,
+    piso,
+  );
+
+  const updateFaixa = (idx: number, patch: Partial<MonitorFaixa>) => {
+    const next = faixas.map((f, i) => (i === idx ? { ...f, ...patch } : f));
+    update("monitorFaixas", next);
+  };
+  const addFaixa = () => {
+    const last = faixas[faixas.length - 1];
+    const de = last ? last.ate : 0;
+    update("monitorFaixas", [...faixas, { de, ate: de + 100, custoPorUM: 0 }]);
+  };
+  const removeFaixa = (idx: number) => {
+    if (faixas.length <= 1) return;
+    update("monitorFaixas", faixas.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
+          <LayoutGrid className="h-3.5 w-3.5 text-emerald-600" />
+          Custo do Monitoramento — por UM
+        </CardTitle>
+        <p className="text-[10px] text-muted-foreground">
+          Mecanismo unificado usado por todas as camadas (Monitor/Flow/Operation/Performance).
+          UM = Σ (qtd × peso) por tipo de ativo.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Pesos por tipo de ativo */}
+        <div>
+          <Label className="text-[11px] font-semibold text-foreground">Pesos por tipo (UM)</Label>
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            <NumInput
+              label="Servidores"
+              value={pesos.servidores}
+              step={0.1}
+              onChange={(v) => update("monitorPesos", { ...pesos, servidores: Math.max(0, v) })}
+            />
+            <NumInput
+              label="Banco de Dados"
+              value={pesos.bancoDados}
+              step={0.1}
+              onChange={(v) => update("monitorPesos", { ...pesos, bancoDados: Math.max(0, v) })}
+            />
+            <NumInput
+              label="Firewall"
+              value={pesos.firewall}
+              step={0.1}
+              onChange={(v) => update("monitorPesos", { ...pesos, firewall: Math.max(0, v) })}
+            />
+            <NumInput
+              label="Ativos de Rede"
+              value={pesos.ativosRede}
+              step={0.1}
+              onChange={(v) => update("monitorPesos", { ...pesos, ativosRede: Math.max(0, v) })}
+            />
+          </div>
+        </div>
+
+        {/* Faixas de custo por UM */}
+        <div>
+          <div className="flex items-center justify-between">
+            <Label className="text-[11px] font-semibold text-foreground">Faixas marginais (CUSTO/UM)</Label>
+            <Button variant="ghost" size="sm" className="h-6 gap-1 px-2 text-[10px]" onClick={addFaixa}>
+              <Plus className="h-3 w-3" /> Faixa
+            </Button>
+          </div>
+          <div className="mt-1 space-y-1.5">
+            <div className="grid grid-cols-[1fr_1fr_1.2fr_auto] gap-1.5 text-[10px] text-muted-foreground px-1">
+              <span>De (&gt;)</span>
+              <span>Até (≤)</span>
+              <span>Custo/UM (R$)</span>
+              <span />
+            </div>
+            {faixas.map((f, idx) => (
+              <div key={idx} className="grid grid-cols-[1fr_1fr_1.2fr_auto] gap-1.5 items-center">
+                <Input
+                  type="number"
+                  step={1}
+                  value={f.de}
+                  onChange={(e) => updateFaixa(idx, { de: parseFloat(e.target.value) || 0 })}
+                  className="h-7 text-xs"
+                />
+                <Input
+                  type="number"
+                  step={1}
+                  value={f.ate}
+                  onChange={(e) => updateFaixa(idx, { ate: parseFloat(e.target.value) || 0 })}
+                  className="h-7 text-xs"
+                />
+                <Input
+                  type="number"
+                  step={0.01}
+                  value={f.custoPorUM}
+                  onChange={(e) => updateFaixa(idx, { custoPorUM: parseFloat(e.target.value) || 0 })}
+                  className="h-7 text-xs"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-destructive"
+                  onClick={() => removeFaixa(idx)}
+                  disabled={faixas.length <= 1}
+                  title="Remover faixa"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Piso mensal */}
+        <NumInput
+          label="Piso mensal de custo (R$)"
+          value={piso}
+          step={50}
+          prefix="R$"
+          onChange={(v) => update("monitorPisoMensal", Math.max(0, v))}
+          tooltip="Custo mínimo mensal do monitoramento. 0 desativa o piso."
+        />
+
+        {/* Resultado do inventário atual */}
+        <div className="rounded-md border border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20 p-2 space-y-1">
+          <MetricResult label="UM total (invent. atual)" value={formatNumber(calc.umTotal, 1)} />
+          <MetricResult label="Custo Monitoramento" value={formatBRL(calc.custoTotal)} />
+          <MetricResult
+            label="Custo médio / UM"
+            value={calc.umTotal > 0 ? formatBRL(calc.custoMedioPorUM) : "—"}
+          />
+          {calc.pisoAplicado && (
+            <p className="text-[10px] text-amber-600">⚠️ Piso mensal aplicado.</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
