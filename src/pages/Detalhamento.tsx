@@ -1182,14 +1182,26 @@ export default function Detalhamento() {
     const cppN1 = results.custoPorChamadoN1;
     const cppN2 = results.custoPorChamadoN2;
     const cN3perChamado = state.valorHoraN3 * state.tempoMedioChamadoN3;
-    const computeMonitoradoUnit = (taxa: number) => {
+    const pesos = state.monitorPesos ?? { servidores: 1, bancoDados: 1.2, firewall: 0.7, ativosRede: 0.5 };
+    const faixas = state.monitorFaixas ?? [];
+    const umInvAtual =
+      (state.qtdServidores || 0) * pesos.servidores +
+      (state.qtdBancosDados || 0) * pesos.bancoDados +
+      (state.qtdSistemas || 0) * pesos.firewall +
+      (state.qtdAtivosRede || 0) * pesos.ativosRede;
+    const custoPorUMMarginal = (() => {
+      const um = Math.max(0, umInvAtual);
+      for (const f of faixas) if (um > f.de && um <= f.ate) return f.custoPorUM || 0;
+      return faixas.length > 0 ? faixas[faixas.length - 1].custoPorUM || 0 : 0;
+    })();
+    const computeMonitoradoUnit = (taxa: number, peso: number) => {
       const chamadosBrutos = adj(taxa);
       const chamadosLiq = chamadosBrutos * (1 - state.reducaoN0 / 100);
       const vN1 = chamadosLiq * (state.percN1 / 100);
       const vN2 = chamadosLiq * (state.percN2 / 100);
       const vN3 = chamadosLiq * (state.percN3 / 100);
       const custoIncidentes = cppN1 * vN1 + cppN2 * vN2 + cN3perChamado * vN3;
-      const custoMonit = monitoradoUnitCostBase;
+      const custoMonit = custoPorUMMarginal * peso;
       const custoN1Aloc = state.tierMonitor && !state.tierOperation
         ? (state.percAlocacaoN1Monitor / 100) * cppN1 * chamadosLiq
         : 0;
@@ -1214,11 +1226,11 @@ export default function Detalhamento() {
     const computeItemValor = (it: ItemAdicional): number => {
       if (typeof it.valorManual === "number" && it.valorManual > 0) return it.valorManual;
       switch (it.tipo) {
-        case "monitorado-servidor": return computeMonitoradoUnit(state.taxaServidor);
+        case "monitorado-servidor": return computeMonitoradoUnit(state.taxaServidor, pesos.servidores);
         case "monitorado-rede":
-        case "monitorado-firewall": return computeMonitoradoUnit(state.taxaRede);
-        case "monitorado-bd": return computeMonitoradoUnit(state.taxaBancoDados);
-        case "monitorado-sistema": return computeMonitoradoUnit(state.taxaSistemas);
+        case "monitorado-firewall": return computeMonitoradoUnit(state.taxaRede, pesos.ativosRede);
+        case "monitorado-bd": return computeMonitoradoUnit(state.taxaBancoDados, pesos.bancoDados);
+        case "monitorado-sistema": return computeMonitoradoUnit(state.taxaSistemas, pesos.firewall);
         case "proxy": return (state.valorProxyAdicional || 0) * fatorVenda;
         case "hora-n3": return valorHoraN3Venda;
         default: return it.valorManual ?? 0;
@@ -2032,14 +2044,26 @@ export default function Detalhamento() {
           const cppN1 = results.custoPorChamadoN1;
           const cppN2 = results.custoPorChamadoN2;
           const cN3perChamado = state.valorHoraN3 * state.tempoMedioChamadoN3;
-          const computeMonitoradoUnit = (taxa: number): { custo: number; chamados: number } => {
+          const pesos2 = state.monitorPesos ?? { servidores: 1, bancoDados: 1.2, firewall: 0.7, ativosRede: 0.5 };
+          const faixas2 = state.monitorFaixas ?? [];
+          const umInvAtual2 =
+            (state.qtdServidores || 0) * pesos2.servidores +
+            (state.qtdBancosDados || 0) * pesos2.bancoDados +
+            (state.qtdSistemas || 0) * pesos2.firewall +
+            (state.qtdAtivosRede || 0) * pesos2.ativosRede;
+          const custoPorUMMarginal2 = (() => {
+            const um = Math.max(0, umInvAtual2);
+            for (const f of faixas2) if (um > f.de && um <= f.ate) return f.custoPorUM || 0;
+            return faixas2.length > 0 ? faixas2[faixas2.length - 1].custoPorUM || 0 : 0;
+          })();
+          const computeMonitoradoUnit = (taxa: number, peso: number): { custo: number; chamados: number } => {
             const chamadosBrutos = adj(taxa);
             const chamadosLiq = chamadosBrutos * (1 - state.reducaoN0 / 100);
             const vN1 = chamadosLiq * (state.percN1 / 100);
             const vN2 = chamadosLiq * (state.percN2 / 100);
             const vN3 = chamadosLiq * (state.percN3 / 100);
             const custoIncidentes = cppN1 * vN1 + cppN2 * vN2 + cN3perChamado * vN3;
-            const custoMonit = monitoradoUnitCostBase;
+            const custoMonit = custoPorUMMarginal2 * peso;
             // Parcela de N1 alocada ao Smart Monitor (quando Operation inativo)
             const custoN1Aloc = monitorActive && !state.tierOperation
               ? (state.percAlocacaoN1Monitor / 100) * cppN1 * chamadosLiq
@@ -2054,20 +2078,20 @@ export default function Detalhamento() {
             }
             switch (it.tipo) {
               case "monitorado-servidor": {
-                const r = computeMonitoradoUnit(state.taxaServidor);
+                const r = computeMonitoradoUnit(state.taxaServidor, pesos2.servidores);
                 return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
               }
               case "monitorado-rede":
               case "monitorado-firewall": {
-                const r = computeMonitoradoUnit(state.taxaRede);
+                const r = computeMonitoradoUnit(state.taxaRede, pesos2.ativosRede);
                 return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
               }
               case "monitorado-bd": {
-                const r = computeMonitoradoUnit(state.taxaBancoDados);
+                const r = computeMonitoradoUnit(state.taxaBancoDados, pesos2.bancoDados);
                 return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
               }
               case "monitorado-sistema": {
-                const r = computeMonitoradoUnit(state.taxaSistemas);
+                const r = computeMonitoradoUnit(state.taxaSistemas, pesos2.firewall);
                 return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
               }
               case "proxy":
