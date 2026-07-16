@@ -218,7 +218,7 @@ export default function MetricsPanel({ state, results, update }: Props) {
   );
 }
 
-function MonitorUMCard({
+export function MonitorUMCard({
   state,
   update,
 }: {
