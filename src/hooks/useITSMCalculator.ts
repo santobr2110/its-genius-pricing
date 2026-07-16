@@ -407,6 +407,9 @@ const DEFAULTS: ITSMState = {
   itsmFlowList: ["ServiceNow", "Jira Service Management", "Zendesk", "Freshservice", "GLPI", "BMC Helix"],
   itsmFlowSelected: "",
   demandSource: "inventario",
+  monitorPesos: DEFAULT_MONITOR_PESOS,
+  monitorFaixas: DEFAULT_MONITOR_FAIXAS,
+  monitorPisoMensal: DEFAULT_MONITOR_PISO,
 };
 
 export function useITSMCalculator() {
@@ -566,7 +569,30 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     // Smart Monitor: mínimo de 10 itens cobrados pelo valor unitário;
     // a partir do 11º cada item adicional acrescenta o valor unitário.
     const smAtivosBillable = Math.max(10, smAtivos);
-    const smCustoMonit = monitorBilling ? state.custoAtivoMonitorado * smAtivosBillable : 0;
+    // === Custo unificado de monitoramento (faixas por UM) ===
+    // Aplicado UMA ÚNICA VEZ na composição de custo quando qualquer camada
+    // que envolva monitoramento estiver ativa (Monitor/Flow/Operation/Performance/Enterprise).
+    const monitoramentoUMActive =
+      state.tierMonitor || state.tierFlow || state.tierOperation || state.tierPerformance || state.tierEnterprise;
+    const monitorPesos = state.monitorPesos ?? DEFAULT_MONITOR_PESOS;
+    const monitorFaixas = state.monitorFaixas ?? DEFAULT_MONITOR_FAIXAS;
+    const monitorPiso = Math.max(0, state.monitorPisoMensal ?? 0);
+    const monitorCalc = computeCustoMonitoramentoTotal(
+      {
+        qtdServidores: state.qtdServidores || 0,
+        qtdBancosDados: state.qtdBancosDados || 0,
+        qtdSistemas: state.qtdSistemas || 0,
+        qtdAtivosRede: state.qtdAtivosRede || 0,
+      },
+      monitorPesos,
+      monitorFaixas,
+      monitorPiso,
+    );
+    const custoMonitoramentoUM = monitoramentoUMActive ? monitorCalc.custoTotal : 0;
+    // A cobrança por camada legada (custoAtivoMonitorado × ativos e custoAtivoFlow/Operacao × ativos)
+    // foi substituída pelo custo unificado por UM. Zeramos as parcelas legadas
+    // para evitar dupla contagem na composição do custo total.
+    const smCustoMonit = 0;
     // Atendentes no ITSM migrou para Smart Flow — Smart Monitor não cobra mais.
     const smCustoAtendentes = 0;
     // Custo de proxys: 1 = inicial; n>1 = inicial + adicional*(n-1)
@@ -586,13 +612,8 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const smCustoN3Manut = smHorasN3Manut * state.valorHoraN3;
 
     // === Smart Flow (clone independente do Smart Monitor) ===
-    const flAtivosBillable = Math.max(10, smAtivos);
-    // Quando Smart Operation está ativo, o custo de monitoramento integrado do
-    // Smart Flow passa a usar a variável "Custo por ativo — Smart Operation".
-    const flCustoAtivoUnit = state.tierOperation
-      ? Math.max(0, state.custoAtivoOperacao || 0)
-      : Math.max(0, state.custoAtivoFlow || 0);
-    const flCustoMonit = flowActive ? flCustoAtivoUnit * flAtivosBillable : 0;
+    // Custo por ativo legado no Smart Flow também substituído pelo custo unificado por UM.
+    const flCustoMonit = 0;
     const flCustoAtendentes = flowActive && !flowAdvanced
       ? Math.max(0, state.qtdAtendentesFlow || 0) * Math.max(0, state.custoAtendenteFlow || 0)
       : 0;
@@ -673,6 +694,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       (includeN3 ? custoN3 : 0) +
       smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys +
       flCustoMonit + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys +
+      custoMonitoramentoUM +
       (includeOperationExtras ? custoEndpointTooling + custoFieldTotal : 0);
     // ===== Composição do preço de venda (Markup Divisor único) =====
     // PV = Custo / (1 - Σ% / 100), onde Σ% = PIS+COFINS+ISS+Comissão+IRPJ/CSLL+Enc.Financ.+Lucro
@@ -720,7 +742,9 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const smartMonitor = {
       ativos: smAtivos,
       chamadosAtivos: smChamados,
-      custoMonitoramento: smCustoMonit,
+      // Reporta o custo unificado apenas quando o Smart Monitor for a camada de monitoramento
+      // "efetiva" (opera sozinho), evitando dupla contagem em relatórios que somam camadas.
+      custoMonitoramento: monitorBilling ? custoMonitoramentoUM : 0,
       custoN1Alocado: smCustoN1Aloc,
       horasN3: smHorasN3,
       custoN3: smCustoN3,
@@ -730,13 +754,15 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       qtdAtendentes: 0,
       custoProxys: smCustoProxys,
       qtdProxys,
-      total: smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys,
+      total: (monitorBilling ? custoMonitoramentoUM : 0) + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys,
     };
 
     const smartFlow = {
       ativos: smAtivos,
       chamadosAtivos: smChamados,
-      custoMonitoramento: flCustoMonit,
+      // Quando Smart Flow está ativo (sozinho ou com camadas superiores), o custo
+      // unificado por UM aparece aqui — Smart Monitor deixa de reportar.
+      custoMonitoramento: flowActive ? custoMonitoramentoUM : 0,
       custoN1Alocado: flCustoN1Aloc,
       horasN3: flHorasN3,
       custoN3: flCustoN3,
@@ -746,7 +772,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       qtdAtendentes: flowActive && !flowAdvanced ? (state.qtdAtendentesFlow || 0) : 0,
       custoProxys: flCustoProxys,
       qtdProxys: flQtdProxys,
-      total: flCustoMonit + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys,
+      total: (flowActive ? custoMonitoramentoUM : 0) + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys,
     };
 
     const fieldService = {
