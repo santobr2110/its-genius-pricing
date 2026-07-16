@@ -213,11 +213,6 @@ export default function TaxasDemanda() {
                 <span className="text-[10px] text-muted-foreground">monitoramento de infraestrutura</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1 md:col-span-1 rounded-md border border-dashed border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-950/20 p-2">
-                  <p className="text-[11px] text-muted-foreground">
-                    O custo por ativo monitorado agora é definido pelo mecanismo unificado de <strong>faixas por UM</strong> em <em>Métricas e Parâmetros → Custo do Monitoramento — por UM</em>.
-                  </p>
-                </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Monitor</Label>
                   <Input
@@ -304,11 +299,6 @@ export default function TaxasDemanda() {
                 <span className="text-[10px] text-muted-foreground">monitoramento integrado ao ITSM</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1 rounded-md border border-dashed border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-950/20 p-2">
-                  <p className="text-[11px] text-muted-foreground">
-                    Custo por ativo agora vem do mecanismo unificado de <strong>faixas por UM</strong> em Métricas e Parâmetros.
-                  </p>
-                </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Flow</Label>
                   <Input
@@ -373,11 +363,6 @@ export default function TaxasDemanda() {
                 <span className="text-[10px] text-muted-foreground">Service Desk humano com monitoramento incluso</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1 rounded-md border border-dashed border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-950/20 p-2">
-                  <p className="text-[11px] text-muted-foreground">
-                    Custo por ativo agora vem do mecanismo unificado de <strong>faixas por UM</strong> em Métricas e Parâmetros.
-                  </p>
-                </div>
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Operation</Label>
                   <Input
