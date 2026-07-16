@@ -1189,7 +1189,7 @@ export default function Detalhamento() {
       const vN2 = chamadosLiq * (state.percN2 / 100);
       const vN3 = chamadosLiq * (state.percN3 / 100);
       const custoIncidentes = cppN1 * vN1 + cppN2 * vN2 + cN3perChamado * vN3;
-      const custoMonit = state.custoAtivoMonitorado;
+      const custoMonit = monitoradoUnitCostBase;
       const custoN1Aloc = state.tierMonitor && !state.tierOperation
         ? (state.percAlocacaoN1Monitor / 100) * cppN1 * chamadosLiq
         : 0;
@@ -2039,7 +2039,7 @@ export default function Detalhamento() {
             const vN2 = chamadosLiq * (state.percN2 / 100);
             const vN3 = chamadosLiq * (state.percN3 / 100);
             const custoIncidentes = cppN1 * vN1 + cppN2 * vN2 + cN3perChamado * vN3;
-            const custoMonit = state.custoAtivoMonitorado;
+            const custoMonit = monitoradoUnitCostBase;
             // Parcela de N1 alocada ao Smart Monitor (quando Operation inativo)
             const custoN1Aloc = monitorActive && !state.tierOperation
               ? (state.percAlocacaoN1Monitor / 100) * cppN1 * chamadosLiq
