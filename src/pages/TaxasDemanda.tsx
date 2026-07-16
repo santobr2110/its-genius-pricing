@@ -210,18 +210,9 @@ export default function TaxasDemanda() {
                 <span className="text-[10px] text-muted-foreground">monitoramento de infraestrutura</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Monitor (R$/mês)</Label>
-                  <Input
-                    type="number"
-                    step={1}
-                    min={0}
-                    value={state.custoAtivoMonitorado}
-                    onChange={(e) => update("custoAtivoMonitorado", parseFloat(e.target.value) || 0)}
-                    className="h-9"
-                  />
+                <div className="space-y-1 md:col-span-1 rounded-md border border-dashed border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-950/20 p-2">
                   <p className="text-[11px] text-muted-foreground">
-                    Variável <code>custoAtivoMonitorado</code> · multiplica os ativos de Servidores + Rede + Firewall na composição do Smart Monitor.
+                    O custo por ativo monitorado agora é definido pelo mecanismo unificado de <strong>faixas por UM</strong> em <em>Métricas e Parâmetros → Custo do Monitoramento — por UM</em>.
                   </p>
                 </div>
                 <div className="space-y-1">
@@ -310,18 +301,9 @@ export default function TaxasDemanda() {
                 <span className="text-[10px] text-muted-foreground">monitoramento integrado ao ITSM</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Flow (R$/mês)</Label>
-                  <Input
-                    type="number"
-                    step={1}
-                    min={0}
-                    value={state.custoAtivoFlow}
-                    onChange={(e) => update("custoAtivoFlow", parseFloat(e.target.value) || 0)}
-                    className="h-9"
-                  />
+                <div className="space-y-1 rounded-md border border-dashed border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-950/20 p-2">
                   <p className="text-[11px] text-muted-foreground">
-                    Variável <code>custoAtivoFlow</code> · multiplica os ativos integrados ao ITSM na composição do Smart Flow.
+                    Custo por ativo agora vem do mecanismo unificado de <strong>faixas por UM</strong> em Métricas e Parâmetros.
                   </p>
                 </div>
                 <div className="space-y-1">
@@ -388,18 +370,9 @@ export default function TaxasDemanda() {
                 <span className="text-[10px] text-muted-foreground">Service Desk humano com monitoramento incluso</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Custo por ativo — Smart Operation (R$/mês)</Label>
-                  <Input
-                    type="number"
-                    step={1}
-                    min={0}
-                    value={state.custoAtivoOperacao}
-                    onChange={(e) => update("custoAtivoOperacao", parseFloat(e.target.value) || 0)}
-                    className="h-9"
-                  />
+                <div className="space-y-1 rounded-md border border-dashed border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-950/20 p-2">
                   <p className="text-[11px] text-muted-foreground">
-                    Variável <code>custoAtivoOperacao</code> · multiplica os ativos de Servidores + Rede + Firewall na composição do Smart Operation.
+                    Custo por ativo agora vem do mecanismo unificado de <strong>faixas por UM</strong> em Métricas e Parâmetros.
                   </p>
                 </div>
                 <div className="space-y-1">
