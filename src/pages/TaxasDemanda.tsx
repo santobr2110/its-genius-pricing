@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { ITSMState, formatNumber } from "@/hooks/useITSMCalculator";
 import { LucideIcon } from "lucide-react";
 import WriteFence from "@/components/auth/WriteFence";
+import { MonitorUMCard } from "@/components/itsm/MetricsPanel";
 
 const FUNNEL_COLORS = {
   N1: "bg-blue-500",
@@ -193,6 +194,8 @@ export default function TaxasDemanda() {
             </div>
           </CardContent>
         </Card>
+
+        <MonitorUMCard state={state} update={update} />
 
         <Card>
           <CardHeader className="pb-3">
