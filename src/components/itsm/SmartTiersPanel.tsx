@@ -155,27 +155,49 @@ export default function SmartTiersPanel() {
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
-  // Distribuição percentual das horas N3 / Automação entre as 3 funções (TAM / Owner / Livre).
-  // Os dois "cortes" definem os limites: [0..corteTam] = TAM, [corteTam..corteOwner] = Owner, [corteOwner..100] = Livre.
-  const [n3Cortes, setN3Cortes] = usePersistentState<[number, number]>(
-    "gestao-ti:smartPerf:n3Cortes",
-    [33, 66],
-  );
-  const [corteTam, corteOwner] = n3Cortes;
-  const pctTam = corteTam;
-  const pctOwner = Math.max(0, corteOwner - corteTam);
-  const pctLivre = Math.max(0, 100 - corteOwner);
-  const setPctTam = (value: number) => {
-    const nextTam = Math.max(0, Math.min(100 - pctOwner, value));
-    setN3Cortes([nextTam, nextTam + pctOwner]);
-  };
-  const setPctOwner = (value: number) => {
-    const nextOwner = Math.max(0, Math.min(100 - pctTam, value));
-    setN3Cortes([pctTam, pctTam + nextOwner]);
-  };
+  // Distribuição das horas N3 / Automação entre TAM / Owner / Livre.
+  // Persistimos o VOLUME de horas (absoluto) — ao alterar o total N3, o volume
+  // alocado a TAM/Owner é preservado (o % é recalculado). O % permanece só como
+  // visualização derivada.
   const horasTotaisN3 = state.horasN3Mensais || 0;
-  const horasTam = (horasTotaisN3 * pctTam) / 100;
-  const horasOwner = (horasTotaisN3 * pctOwner) / 100;
+  const [n3AllocHoras, setN3AllocHoras] = usePersistentState<[number, number]>(
+    "gestao-ti:smartPerf:n3AllocHoras",
+    [0, 0],
+  );
+  // Migração one-shot: se ainda não há alocação em horas mas existe a antiga
+  // distribuição percentual, converte usando o total N3 corrente.
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined") return;
+      const hasNew = window.localStorage.getItem("gestao-ti:smartPerf:n3AllocHoras");
+      const legacy = window.localStorage.getItem("gestao-ti:smartPerf:n3Cortes");
+      if (!hasNew && legacy && horasTotaisN3 > 0) {
+        const parsed = JSON.parse(legacy);
+        if (Array.isArray(parsed) && parsed.length === 2) {
+          const [t, o] = parsed as [number, number];
+          const tamH = Math.round((horasTotaisN3 * (t || 0)) / 100);
+          const ownerH = Math.round((horasTotaisN3 * Math.max(0, (o || 0) - (t || 0))) / 100);
+          setN3AllocHoras([tamH, ownerH]);
+        }
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const rawTam = Math.max(0, n3AllocHoras[0] || 0);
+  const rawOwner = Math.max(0, n3AllocHoras[1] || 0);
+  const horasTam = Math.min(rawTam, horasTotaisN3);
+  const horasOwner = Math.min(rawOwner, Math.max(0, horasTotaisN3 - horasTam));
+  const pctTam = horasTotaisN3 > 0 ? (horasTam / horasTotaisN3) * 100 : 0;
+  const pctOwner = horasTotaisN3 > 0 ? (horasOwner / horasTotaisN3) * 100 : 0;
+  const pctLivre = Math.max(0, 100 - pctTam - pctOwner);
+  const setHorasTam = (value: number) => {
+    const v = Math.max(0, Math.min(horasTotaisN3 - horasOwner, Math.round(value)));
+    setN3AllocHoras([v, horasOwner]);
+  };
+  const setHorasOwner = (value: number) => {
+    const v = Math.max(0, Math.min(horasTotaisN3 - horasTam, Math.round(value)));
+    setN3AllocHoras([horasTam, v]);
+  };
   // Horas consumidas pelo atendimento de chamados N3 (do funil)
   const horasChamadosN3 = results.horasAtendimentoN3 || 0;
   const pctChamadosN3 = horasTotaisN3 > 0 ? (horasChamadosN3 / horasTotaisN3) * 100 : 0;
@@ -1896,30 +1918,30 @@ export default function SmartTiersPanel() {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px]">
+                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-semibold text-emerald-700 dark:text-emerald-300">TAM</span>
-                        <span className="tabular-nums text-muted-foreground">{pctTam}% · {formatNumber(horasTam)}h</span>
+                        <span className="tabular-nums text-muted-foreground">{formatNumber(horasTam)}h · {pctTam.toFixed(0)}%</span>
                       </div>
                       <Slider
-                        value={[pctTam]}
-                        onValueChange={([v]) => setPctTam(v)}
+                        value={[horasTam]}
+                        onValueChange={([v]) => setHorasTam(v)}
                         min={0}
-                        max={100 - pctOwner}
+                        max={Math.max(1, Math.round(horasTotaisN3 - horasOwner))}
                         step={1}
                         rangeClassName="bg-emerald-500"
                         thumbClassName="h-6 w-6 border-emerald-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px]">
+                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-semibold text-sky-700 dark:text-sky-300">Owner</span>
-                        <span className="tabular-nums text-muted-foreground">{pctOwner}% · {formatNumber(horasOwner)}h</span>
+                        <span className="tabular-nums text-muted-foreground">{formatNumber(horasOwner)}h · {pctOwner.toFixed(0)}%</span>
                       </div>
                       <Slider
-                        value={[pctOwner]}
-                        onValueChange={([v]) => setPctOwner(v)}
+                        value={[horasOwner]}
+                        onValueChange={([v]) => setHorasOwner(v)}
                         min={0}
-                        max={100 - pctTam}
+                        max={Math.max(1, Math.round(horasTotaisN3 - horasTam))}
                         step={1}
                         rangeClassName="bg-sky-500"
                         thumbClassName="h-6 w-6 border-sky-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
@@ -1954,11 +1976,11 @@ export default function SmartTiersPanel() {
                     <div className={`font-semibold tabular-nums ${horasRotinasN3 > 0 ? "text-rose-700 dark:text-rose-300 text-sm" : ""}`}>{formatNumber(horasRotinasN3, 1)}h</div>
                   </div>
                   <div className={`rounded px-1.5 py-1 border transition-all ${horasTam > 0 ? "bg-emerald-500/20 border-emerald-500/60 ring-2 ring-emerald-400/50 shadow-sm" : "bg-emerald-500/10 border-emerald-500/30"}`}>
-                    <div className="text-muted-foreground">TAM · {pctTam}%</div>
+                    <div className="text-muted-foreground">TAM · {pctTam.toFixed(0)}%</div>
                     <div className={`font-semibold tabular-nums ${horasTam > 0 ? "text-emerald-700 dark:text-emerald-300 text-sm" : ""}`}>{formatNumber(horasTam)}h</div>
                   </div>
                   <div className={`rounded px-1.5 py-1 border transition-all ${horasOwner > 0 ? "bg-sky-500/20 border-sky-500/60 ring-2 ring-sky-400/50 shadow-sm" : "bg-sky-500/10 border-sky-500/30"}`}>
-                    <div className="text-muted-foreground">Owner · {pctOwner}%</div>
+                    <div className="text-muted-foreground">Owner · {pctOwner.toFixed(0)}%</div>
                     <div className={`font-semibold tabular-nums ${horasOwner > 0 ? "text-sky-700 dark:text-sky-300 text-sm" : ""}`}>{formatNumber(horasOwner)}h</div>
                   </div>
                   <div className={`rounded px-1.5 py-1 border transition-all ${horasMelhoriaPerfClamped > 0 ? "bg-indigo-500/20 border-indigo-500/60 ring-2 ring-indigo-400/50 shadow-sm" : "bg-indigo-500/10 border-indigo-500/30"}`}>
