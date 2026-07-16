@@ -1918,30 +1918,30 @@ export default function SmartTiersPanel() {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px]">
+                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-semibold text-emerald-700 dark:text-emerald-300">TAM</span>
-                        <span className="tabular-nums text-muted-foreground">{pctTam}% · {formatNumber(horasTam)}h</span>
+                        <span className="tabular-nums text-muted-foreground">{formatNumber(horasTam)}h · {pctTam.toFixed(0)}%</span>
                       </div>
                       <Slider
-                        value={[pctTam]}
-                        onValueChange={([v]) => setPctTam(v)}
+                        value={[horasTam]}
+                        onValueChange={([v]) => setHorasTam(v)}
                         min={0}
-                        max={100 - pctOwner}
+                        max={Math.max(1, Math.round(horasTotaisN3 - horasOwner))}
                         step={1}
                         rangeClassName="bg-emerald-500"
                         thumbClassName="h-6 w-6 border-emerald-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px]">
+                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-semibold text-sky-700 dark:text-sky-300">Owner</span>
-                        <span className="tabular-nums text-muted-foreground">{pctOwner}% · {formatNumber(horasOwner)}h</span>
+                        <span className="tabular-nums text-muted-foreground">{formatNumber(horasOwner)}h · {pctOwner.toFixed(0)}%</span>
                       </div>
                       <Slider
-                        value={[pctOwner]}
-                        onValueChange={([v]) => setPctOwner(v)}
+                        value={[horasOwner]}
+                        onValueChange={([v]) => setHorasOwner(v)}
                         min={0}
-                        max={100 - pctTam}
+                        max={Math.max(1, Math.round(horasTotaisN3 - horasTam))}
                         step={1}
                         rangeClassName="bg-sky-500"
                         thumbClassName="h-6 w-6 border-sky-600 bg-background shadow-md cursor-grab active:cursor-grabbing"
