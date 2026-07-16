@@ -1,53 +1,77 @@
+# Custo Unificado por UM — Faixas Marginais
+
 ## Objetivo
+Substituir os três campos atuais de "custo por ativo monitorado por camada" (`custoAtivoMonitorado`, `custoAtivoFlow`, `custoAtivoOperacao`) por **um único mecanismo** baseado em:
+- **Pesos por tipo de ativo** → convertem inventário em **UM** (Unidade de Medida).
+- **Faixas marginais progressivas** de **CUSTO/UM** (estilo IR).
+- O custo é cobrado **uma única vez** na composição, independente de quantas camadas estejam ativas.
+- O campo **"Custo por Atendente no ITSM"** (Smart Flow) permanece intacto.
 
-Transformar o Relatório de Proposição em uma versão única — sem alternância Color/B&W — desenhada como anexo técnico de contrato: preto e branco puro, imprimível, com ícones vetoriais dedicados por camada, sem valores monetários, e com quebras de página respeitando cada bloco de oferta.
+## Modelo de dados (novo estado global persistente)
 
-## Escopo funcional
+```text
+monitorPesos: { servidores: 1, bancoDados: 1.2, firewall: 0.7, ativosRede: 0.5 }
+monitorFaixas: [
+  { de: 0,   ate: 50,     custoPorUM: 13.62 },
+  { de: 50,  ate: 150,    custoPorUM: 9.80 },
+  { de: 150, ate: 300,    custoPorUM: 6.54 },
+  { de: 300, ate: 600,    custoPorUM: 4.90 },
+  { de: 600, ate: 100000, custoPorUM: 3.54 },
+]
+monitorPisoMensal: 750   // piso de VENDA (opcional, aplicado no custo equivalente)
+```
 
-- Manter todas as seções e informações do relatório atual (camadas ativas, escopo incluído, restrições, inventário, componentes monitorados, rotinas preventivas, GMUDs, horas N3, itens adicionais, restrições gerais).
-- Suprimir todos os valores monetários (mensal, anual, composição de valor, custo por chamado, valor hora, cards de investimento total).
-- Remover toda a diagramação com gradientes, glows, blobs, anéis coloridos, `bg-clip-text`, sombras coloridas — resultado sempre chapado em preto sobre branco.
-- Manter o layout geral (blocos de camada empilhados, cabeçalho, kicker "Proposta Comercial", lista de componentes, tabelas de rotinas/GMUDs, resumo de horas N3).
+Armazenado como bloco em `ITSMState` e incluído no snapshot dos Perfis de Parâmetros / Presets.
 
-## Mudanças concretas
+## Cálculo (utilitário `src/lib/custoMonitoramentoUM.ts`)
 
-### 1. `src/pages/Detalhamento.tsx`
-- Remover `reportColorMode`, `setReportColorMode`, `bwMode`, o bloco da barra de seleção "Colorido / Preto & branco" e os imports não usados (`Palette`).
-- Aplicar sempre a classe `report-anexo` (renomeação semântica de `report-bw`) no `<main id="proposicao-printable">`.
-- Simplificar `handleExportPDF`: sempre fundo branco, sempre classe `report-anexo`, manter lógica de quebra de página por seções (evitando cortar blocos). Aumentar prioridade das quebras nos limites de `<section>` diretos.
-- Envolver cada bloco de camada e seção em `<section className="report-section">` para permitir CSS `break-inside: avoid`.
-- Marcar todo elemento que exibe valores em R$ (spans, divs, `CompositionBox`, cards de "Investimento Total", `Stat` com `formatBRL`) com className `report-price` para hiding via CSS — a exibição continua no código, apenas oculta neste relatório. Isso mantém a lógica original intocada e evita risco de regressão.
-- Trocar os ícones `Activity / Workflow / Rocket / TrendingUp / Crown` (por camada) por novos componentes SVG dedicados (ver item 3).
+```text
+UM_total = Σ (qtd_tipo × peso_tipo)
+custo_faixa_i = max(0, min(UM_total, faixa.ate) − faixa.de) × faixa.custoPorUM
+custoMonitoramentoTotal = Σ custo_faixa_i
+```
 
-### 2. `src/index.css`
-- Substituir todo o bloco `.report-bw` por `.report-anexo` com regras equivalentes de preto/branco puro (fundo branco, texto preto, bordas pretas, sem gradientes, sem sombras, sem opacidade parcial).
-- Adicionar: `.report-anexo .report-price { display: none !important; }`.
-- Adicionar regras de impressão / html2canvas: `.report-anexo .report-section { break-inside: avoid; page-break-inside: avoid; }` e margens internas maiores nos blocos para respirar.
-- Ajustar `.report-anexo .report-kicker::before` para permanecer visível como já corrigido.
-- Manter ícones (SVGs) sempre em `stroke: #000; fill: none` no modo anexo.
+- Piso mensal aplicado como custo equivalente mínimo (opcional, desliga com 0).
+- Função pura + memoização em `useITSMCalculator`.
 
-### 3. Novo arquivo `src/components/itsm/TierIcons.tsx`
-- Cinco componentes SVG dedicados, apenas traço preto (currentColor), sem preenchimentos:
-  - `MonitorIcon` — radar/pulso representando monitoramento 24x7.
-  - `FlowIcon` — nós conectados por setas representando integração ITSM.
-  - `OperationIcon` — headset com engrenagem representando service desk.
-  - `PerformanceIcon` — velocímetro/gauge representando rotinas avançadas.
-  - `EnterpriseIcon` — coroa/pilares representando governança executiva.
-  - `FieldServiceIcon` — chave e maleta representando atendimento presencial.
-- Cada ícone aceita `className` e `size`, herda `currentColor`, funciona em qualquer contexto (tela e PDF).
+## Integração com o cálculo existente
 
-### 4. Comportamento de exportação
-- Removida escolha de modo — botão de exportação PDF gera direto no formato anexo.
-- Renomear label do botão de "Exportar PDF" para "Exportar Anexo Contratual (PDF)".
+Em `useITSMCalculator.ts`:
+- Remover uso de `state.custoAtivoMonitorado`, `state.custoAtivoOperacao`, `state.custoAtivoFlow` na composição de custo.
+- Substituir por `custoMonitoramentoTotal` (calculado 1x) somado à composição quando **qualquer** camada (Monitor, Flow, Operation ou Performance) estiver ativa.
+- Manter os campos antigos no estado por compatibilidade de presets antigos, mas marcados como *legacy* (não são mais lidos).
 
-## Fora de escopo
+## UI — Métricas e Parâmetros
 
-- Nenhuma alteração em regras de cálculo (`useITSMCalculator`, `buildAreas`, funções de venda).
-- Nenhuma alteração em `escopoProposicao.ts` (conteúdo textual).
-- Não altero as exportações "Apresentação · Modelo 1/2" (PPTX). Permanecem coloridas como estão.
-- Nenhuma mudança de banco/backend.
+Novo card em `src/components/itsm/MetricsPanel.tsx` (abaixo/no lugar do card "Monitoramento" atual do Smart Monitor):
 
-## Risco e verificação
+- **Pesos por tipo** (4 inputs): Servidores · Banco de Dados · Firewall · Ativos de Rede.
+- **Faixas de custo por UM** (tabela editável de 5 linhas — "de", "até", "custo/UM"), com botão para adicionar/remover linha.
+- **Piso mensal (R$)** — 1 input.
+- **Painel de resultado** (readonly): UM total do inventário atual, custo total do monitoramento calculado, custo médio por UM, comparação com modelo flat.
 
-- Risco baixo: mudanças são apresentacionais e usam CSS + classes para ocultar preços sem tocar em lógica.
-- Verificação: build + inspeção visual do relatório na tela, tirando screenshot via Playwright para conferir ausência de valores, contraste preto/branco e ícones renderizando corretamente.
+O card antigo com "Custo por Atendente no ITSM" e sliders de "Qtd atendentes" **permanece** (Smart Flow — inalterado).
+Os inputs de "Custo por ativo — Monitor/Operation/Flow" existentes em `TaxasDemanda.tsx` são **removidos**.
+
+## Presets e Perfis de Parâmetros
+
+- Novos campos entram no payload salvo (`parameter_profiles.payload` e `pricing_presets.calculator`).
+- Presets antigos que carreguem os campos legacy continuam funcionando (compatibilidade), mas exibem aviso ao usuário para revisar as faixas.
+
+## Impactos em relatórios/apresentações
+
+- `Detalhamento.tsx`, `ResumoCotacao.tsx`, exportações PPTX: onde hoje se exibe "Custo do monitoramento por camada", passar a exibir uma única linha "Monitoramento (por UM)" com UM total e custo consolidado.
+
+## Arquivos afetados
+
+| Arquivo | Mudança |
+|---|---|
+| `src/hooks/useITSMCalculator.ts` | Novo estado (`monitorPesos`, `monitorFaixas`, `monitorPisoMensal`), cálculo, remoção do uso legacy |
+| `src/lib/custoMonitoramentoUM.ts` | **NOVO** — cálculo puro de UM/faixas |
+| `src/components/itsm/MetricsPanel.tsx` | Novo card de faixas + pesos + piso |
+| `src/pages/TaxasDemanda.tsx` | Remover inputs `custoAtivoMonitorado`/`custoAtivoOperacao`/`custoAtivoFlow` |
+| `src/pages/Detalhamento.tsx`, `ResumoCotacao.tsx` | Ajuste na linha de custo de monitoramento |
+| `src/lib/exportarApresentacaoTemplate.ts` | Ajuste da linha de monitoramento no PPT |
+| `src/lib/clientProfileFields.ts` / `paramKeys.ts` | Incluir novos campos no snapshot de parâmetros |
+
+Todos os cálculos permanecem **mensais** e o markup divisor (impostos + comissão + lucro) continua sendo aplicado pelo motor existente — a tabela de faixas fornece apenas **CUSTO/UM**.
