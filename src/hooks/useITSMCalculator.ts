@@ -1,6 +1,14 @@
 // @refresh reset
 import { useMemo, useCallback } from "react";
 import { usePersistentState } from "./usePersistentState";
+import {
+  DEFAULT_MONITOR_FAIXAS,
+  DEFAULT_MONITOR_PESOS,
+  DEFAULT_MONITOR_PISO,
+  computeCustoMonitoramentoTotal,
+  type MonitorFaixa,
+  type MonitorPesos,
+} from "@/lib/custoMonitoramentoUM";
 
 export interface ITSMState {
   // Inventário
@@ -162,6 +170,12 @@ export interface ITSMState {
   // Quando Operation/Performance/Enterprise estão ativos, esta opção é
   // ignorada e o cálculo sempre usa o inventário.
   demandSource: "inventario" | "manual";
+  // Custo unificado de monitoramento por UM (Unidade de Medida) — faixas marginais.
+  // Substitui os campos legados custoAtivoMonitorado/custoAtivoFlow/custoAtivoOperacao
+  // (mantidos no tipo apenas para compatibilidade com presets antigos).
+  monitorPesos: MonitorPesos;
+  monitorFaixas: MonitorFaixa[];
+  monitorPisoMensal: number;
 }
 
 export interface ITSMResults {
