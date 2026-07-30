@@ -242,9 +242,11 @@ export default function SmartTiersPanel() {
     }
     if ((state.qtdProxysFlow || 0) < 1) {
       update("qtdProxysFlow", 1 as any);
+    } else if ((state.qtdProxysFlow || 0) > Math.max(1, state.qtdProxysMonitorMax || 1)) {
+      update("qtdProxysFlow", Math.max(1, state.qtdProxysMonitorMax || 1) as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.tierFlow, state.horasN3FlowManutMin, state.horasN3FlowMin, state.qtdAtendentesFlowMin]);
+  }, [state.tierFlow, state.horasN3FlowManutMin, state.horasN3FlowMin, state.qtdAtendentesFlowMin, state.qtdProxysMonitorMax]);
 
   useEffect(() => {
     if (!state.tierOperation || state.tierPerformance) return;
