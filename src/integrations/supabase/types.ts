@@ -121,7 +121,7 @@ export type Database = {
           decision: string
           id: string
           request_id: string
-          role_id: string
+          role_id: string | null
           token_hash: string
         }
         Insert: {
@@ -133,7 +133,7 @@ export type Database = {
           decision?: string
           id?: string
           request_id: string
-          role_id: string
+          role_id?: string | null
           token_hash: string
         }
         Update: {
@@ -145,7 +145,7 @@ export type Database = {
           decision?: string
           id?: string
           request_id?: string
-          role_id?: string
+          role_id?: string | null
           token_hash?: string
         }
         Relationships: [
