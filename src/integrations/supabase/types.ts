@@ -114,7 +114,7 @@ export type Database = {
       approval_decisions: {
         Row: {
           approver_email: string
-          approver_user_id: string
+          approver_user_id: string | null
           comment: string | null
           created_at: string
           decided_at: string | null
@@ -126,7 +126,7 @@ export type Database = {
         }
         Insert: {
           approver_email: string
-          approver_user_id: string
+          approver_user_id?: string | null
           comment?: string | null
           created_at?: string
           decided_at?: string | null
@@ -138,7 +138,7 @@ export type Database = {
         }
         Update: {
           approver_email?: string
-          approver_user_id?: string
+          approver_user_id?: string | null
           comment?: string | null
           created_at?: string
           decided_at?: string | null
@@ -232,7 +232,7 @@ export type Database = {
           full_name: string | null
           id: string
           role_id: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -240,7 +240,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           role_id: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -248,7 +248,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           role_id?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
