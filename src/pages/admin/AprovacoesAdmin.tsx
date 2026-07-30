@@ -143,13 +143,15 @@ function RoleRow({ role, members, onChange, onRemove }: {
 
   const addMember = async () => {
     if (!email) return;
-    // Look up user_id by email in profiles
-    const { data: prof } = await supabase.from("profiles").select("id, full_name").eq("email", email).maybeSingle();
-    if (!prof) { toast.error("Usuário não encontrado em profiles. Peça que ele faça login uma vez."); return; }
+    const clean = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) { toast.error("Informe um e-mail válido"); return; }
+    // Vincula ao usuário do sistema quando existir; caso contrário, contato externo (só e-mail)
+    const { data: prof } = await supabase.from("profiles").select("id, full_name").eq("email", clean).maybeSingle();
     const { error } = await supabase.from("approval_role_members").insert({
-      role_id: role.id, user_id: prof.id, email, full_name: fullName || prof.full_name,
+      role_id: role.id, user_id: prof?.id ?? null, email: clean, full_name: fullName || prof?.full_name || null,
     });
     if (error) { toast.error(error.message); return; }
+    toast.success(prof ? "Usuário vinculado ao papel" : "Contato externo vinculado ao papel");
     setEmail(""); setFullName(""); onChange();
   };
 
@@ -202,6 +204,7 @@ function RoleRow({ role, members, onChange, onRemove }: {
           ) : (
             <Badge key={m.id} variant="outline" className="gap-1">
               {m.full_name || m.email}
+              {!m.user_id && <span className="text-[10px] uppercase text-muted-foreground">externo</span>}
               <button title="Editar nome" onClick={() => { setEditMemberId(m.id); setEditMemberName(m.full_name ?? ""); }} className="ml-1 hover:text-primary">
                 <Pencil className="h-3 w-3" />
               </button>
@@ -213,7 +216,7 @@ function RoleRow({ role, members, onChange, onRemove }: {
       </div>
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <Label className="text-xs">E-mail do usuário (já cadastrado no app)</Label>
+          <Label className="text-xs">E-mail do aprovador (usuário do app ou contato externo)</Label>
           <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@empresa.com" />
         </div>
         <div className="flex-1">
