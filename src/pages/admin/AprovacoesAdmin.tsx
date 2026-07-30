@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, ArrowLeft, Save } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, Save, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useApprovalConfig } from "@/hooks/useApprovalConfig";
@@ -74,7 +74,9 @@ function RolesPanel({ roles, members, onChange }: {
   const removeRole = async (id: string) => {
     if (!confirm("Remover este papel? Membros e vínculos serão removidos.")) return;
     const { error } = await supabase.from("approval_roles").delete().eq("id", id);
-    if (error) toast.error(error.message); else onChange();
+    if (error) { toast.error(`Não foi possível remover o papel: ${error.message}`); return; }
+    toast.success("Papel removido");
+    onChange();
   };
 
   return (
@@ -107,6 +109,37 @@ function RoleRow({ role, members, onChange, onRemove }: {
 }) {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [editLabel, setEditLabel] = useState(role.label);
+  const [editSlug, setEditSlug] = useState(role.slug);
+  const [savingRole, setSavingRole] = useState(false);
+  const [editMemberId, setEditMemberId] = useState<string | null>(null);
+  const [editMemberName, setEditMemberName] = useState("");
+
+  useEffect(() => { setEditLabel(role.label); setEditSlug(role.slug); }, [role.label, role.slug]);
+
+  const saveRole = async () => {
+    if (!editLabel.trim() || !editSlug.trim()) { toast.error("Nome e slug são obrigatórios"); return; }
+    setSavingRole(true);
+    const { error } = await supabase.from("approval_roles")
+      .update({ label: editLabel.trim(), slug: editSlug.trim() })
+      .eq("id", role.id);
+    setSavingRole(false);
+    if (error) { toast.error(`Não foi possível salvar o papel: ${error.message}`); return; }
+    toast.success("Papel atualizado");
+    setEditing(false);
+    onChange();
+  };
+
+  const saveMemberName = async (id: string) => {
+    const { error } = await supabase.from("approval_role_members")
+      .update({ full_name: editMemberName.trim() || null })
+      .eq("id", id);
+    if (error) { toast.error(`Não foi possível salvar: ${error.message}`); return; }
+    setEditMemberId(null);
+    toast.success("Membro atualizado");
+    onChange();
+  };
 
   const addMember = async () => {
     if (!email) return;
@@ -121,24 +154,60 @@ function RoleRow({ role, members, onChange, onRemove }: {
   };
 
   const removeMember = async (id: string) => {
+    if (!confirm("Remover esta pessoa do papel?")) return;
     const { error } = await supabase.from("approval_role_members").delete().eq("id", id);
-    if (error) toast.error(error.message); else onChange();
+    if (error) { toast.error(`Não foi possível remover: ${error.message}`); return; }
+    toast.success("Pessoa removida do papel");
+    onChange();
   };
 
   return (
     <div className="rounded border p-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="font-semibold">{role.label} <span className="text-xs text-muted-foreground">({role.slug})</span></div>
-        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={onRemove}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </div>
+      {editing ? (
+        <div className="flex items-end gap-2">
+          <div className="flex-1">
+            <Label className="text-xs">Nome do papel</Label>
+            <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} />
+          </div>
+          <div className="w-48">
+            <Label className="text-xs">Slug</Label>
+            <Input value={editSlug} onChange={(e) => setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_"))} />
+          </div>
+          <Button size="sm" onClick={saveRole} disabled={savingRole}><Save className="h-4 w-4 mr-1" /> Salvar</Button>
+          <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setEditLabel(role.label); setEditSlug(role.slug); }}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between">
+          <div className="font-semibold">{role.label} <span className="text-xs text-muted-foreground">({role.slug})</span></div>
+          <div className="flex items-center gap-1">
+            <Button size="icon" variant="ghost" className="h-7 w-7" title="Editar papel" onClick={() => setEditing(true)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" title="Remover papel" onClick={onRemove}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
         {members.map((m) => (
-          <Badge key={m.id} variant="outline" className="gap-1">
-            {m.full_name || m.email}
-            <button onClick={() => removeMember(m.id)} className="ml-1 hover:text-destructive">×</button>
-          </Badge>
+          editMemberId === m.id ? (
+            <div key={m.id} className="flex items-center gap-1">
+              <Input className="h-7 w-48 text-xs" value={editMemberName} onChange={(e) => setEditMemberName(e.target.value)} placeholder={m.email} />
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => saveMemberName(m.id)}><Save className="h-3.5 w-3.5" /></Button>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditMemberId(null)}><X className="h-3.5 w-3.5" /></Button>
+            </div>
+          ) : (
+            <Badge key={m.id} variant="outline" className="gap-1">
+              {m.full_name || m.email}
+              <button title="Editar nome" onClick={() => { setEditMemberId(m.id); setEditMemberName(m.full_name ?? ""); }} className="ml-1 hover:text-primary">
+                <Pencil className="h-3 w-3" />
+              </button>
+              <button title="Remover" onClick={() => removeMember(m.id)} className="hover:text-destructive">×</button>
+            </Badge>
+          )
         ))}
         {members.length === 0 && <span className="text-xs text-muted-foreground">Sem membros</span>}
       </div>
