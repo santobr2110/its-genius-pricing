@@ -415,8 +415,8 @@ export default function ResumoCotacao() {
 
   // ===== Exportar PDF =====
   const handleExportPDF = async () => {
-    if (!isSaved) {
-      toast.error("Salve a precificação para exportar o relatório.");
+    if (exportBlocked) {
+      toast.error(exportDisabledReason ?? "Exportação bloqueada.");
       return;
     }
     const el = document.getElementById("resumo-cotacao-printable");
