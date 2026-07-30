@@ -10,7 +10,7 @@ export interface ApprovalRole {
 export interface ApprovalRoleMember {
   id: string;
   role_id: string;
-  user_id: string;
+  user_id: string | null;
   email: string;
   full_name: string | null;
 }
@@ -31,7 +31,7 @@ export interface ApprovalDecision {
   id: string;
   request_id: string;
   role_id: string;
-  approver_user_id: string;
+  approver_user_id: string | null;
   approver_email: string;
   decision: DecisionStatus;
   decided_at: string | null;
