@@ -1358,10 +1358,10 @@ export default function SmartTiersPanel() {
                     </span>
                   </div>
                   <Slider
-                    value={[Math.min(state.qtdProxysFlowMax, Math.max(1, state.qtdProxysFlow || 1))]}
+                    value={[Math.min(Math.max(1, state.qtdProxysMonitorMax), Math.max(1, state.qtdProxysFlow || 1))]}
                     onValueChange={([v]) => update("qtdProxysFlow", v)}
                     min={1}
-                    max={Math.max(1, state.qtdProxysFlowMax)}
+                    max={Math.max(1, state.qtdProxysMonitorMax)}
                     step={1}
                   />
                 </div>
