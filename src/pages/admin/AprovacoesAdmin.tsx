@@ -74,7 +74,9 @@ function RolesPanel({ roles, members, onChange }: {
   const removeRole = async (id: string) => {
     if (!confirm("Remover este papel? Membros e vínculos serão removidos.")) return;
     const { error } = await supabase.from("approval_roles").delete().eq("id", id);
-    if (error) toast.error(error.message); else onChange();
+    if (error) { toast.error(`Não foi possível remover o papel: ${error.message}`); return; }
+    toast.success("Papel removido");
+    onChange();
   };
 
   return (
