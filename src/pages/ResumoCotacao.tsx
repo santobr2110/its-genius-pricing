@@ -414,9 +414,21 @@ export default function ResumoCotacao() {
   const liquidoPerc = receitaMes > 0 ? (liquido / receitaMes) * 100 : 0;
 
   // ===== Exportar PDF =====
+  const approvalBlocked =
+    approval.loading || (approval.requiresApproval && approval.effectiveStatus !== "approved");
+  const exportDisabledReason = !isSaved
+    ? "Salve a precificação para habilitar a exportação"
+    : !canExport
+    ? "Você não tem permissão para exportar"
+    : approval.loading
+    ? "Verificando status de aprovação..."
+    : approvalBlocked
+    ? `Exportação bloqueada: rentabilidade de ${Number(calcState.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
+    : undefined;
+  const exportBlocked = !!exportDisabledReason;
   const handleExportPDF = async () => {
-    if (!isSaved) {
-      toast.error("Salve a precificação para exportar o relatório.");
+    if (exportBlocked) {
+      toast.error(exportDisabledReason ?? "Exportação bloqueada.");
       return;
     }
     const el = document.getElementById("resumo-cotacao-printable");
@@ -471,12 +483,6 @@ export default function ResumoCotacao() {
       <span style={{ color: "#000" }}>{value || "—"}</span>
     </div>
   );
-
-  const exportDisabledReason = !isSaved
-    ? "Salve a precificação para habilitar a exportação"
-    : !canExport
-    ? "Você não tem permissão para exportar"
-    : undefined;
 
   return (
     <div className="min-h-screen bg-muted/30">
