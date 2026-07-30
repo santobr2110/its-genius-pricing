@@ -18,6 +18,9 @@ const SMART_ITO_RAW = [
   "gestao-ti:rotinas",
   "gestao-ti:gmuds",
   "gestao-ti:smartPerf:n3Cortes",
+  "gestao-ti:smartPerf:n3AllocHoras",
+  "gestao-ti:smartOp:horasMelhoria",
+  "gestao-ti:smartPerf:horasMelhoria",
   "escopo:proposicao",
   "escopo:restricoesGerais",
   "escopo:itensAdicionais",
@@ -62,6 +65,22 @@ export const ALL_PARAM_KEYS: string[] = [
 export function keysForOffering(offering: ParamOffering): string[] {
   return offering === "smart-ito" ? SMART_ITO_PARAM_KEYS : BODYSHOP_PARAM_KEYS;
 }
+
+/**
+ * Chaves cujo conteúdo pertence à PRECIFICAÇÃO (e não ao perfil de parâmetros):
+ * escopo da proposta, restrições, itens adicionais, distribuição das horas N3
+ * e horas de melhoria. Ao abrir uma precificação salva, esses valores devem vir
+ * sempre do snapshot salvo — nunca do perfil de parâmetros padrão.
+ */
+export const PRICING_OWNED_PARAM_KEYS: string[] = [
+  "gestao-ti:smartPerf:n3Cortes",
+  "gestao-ti:smartPerf:n3AllocHoras",
+  "gestao-ti:smartOp:horasMelhoria",
+  "gestao-ti:smartPerf:horasMelhoria",
+  "escopo:proposicao",
+  "escopo:restricoesGerais",
+  "escopo:itensAdicionais",
+].map((k) => SMART_ITO_NS + k);
 
 export const OFFERING_LABEL: Record<ParamOffering, string> = {
   "smart-ito": "Smart ITO",

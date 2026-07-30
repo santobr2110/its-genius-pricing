@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
 import type { ParamPayload } from "@/hooks/useParameterProfiles";
 import { CALCULATOR_KEY, CLIENT_PROFILE_CALCULATOR_FIELDS } from "@/lib/clientProfileFields";
+import { PRICING_OWNED_PARAM_KEYS } from "@/lib/paramKeys";
 
 const DEFAULT_OFFERING = "smart-ito";
 
@@ -62,6 +63,19 @@ export function mergePresetParamsForPricing(
   const params = defaultParams && Object.keys(defaultParams).length > 0
     ? { ...defaultParams }
     : { ...(savedParams ?? {}) };
+
+  // Chaves que pertencem à precificação (escopo, restrições, itens adicionais,
+  // alocação de horas N3, horas de melhoria) devem sempre vir do snapshot salvo.
+  if (savedParams) {
+    for (const key of PRICING_OWNED_PARAM_KEYS) {
+      if (savedParams[key] !== undefined) params[key] = savedParams[key];
+    }
+    // Parâmetros salvos que não existem no perfil padrão (ex.: parâmetros novos
+    // ou removidos do perfil) também são preservados.
+    for (const [key, value] of Object.entries(savedParams)) {
+      if (params[key] === undefined && value !== undefined) params[key] = value;
+    }
+  }
 
   const calcFromSaved = savedParams?.[CALCULATOR_KEY];
   const calculator = quoteCalculator ?? (isRecord(calcFromSaved) ? calcFromSaved as unknown as ITSMState : undefined);
