@@ -39,6 +39,7 @@ export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   "tierMonitor",
   "tierFlow",
   "tierOperation",
+  "tierOperationN3",
   "tierPerformance",
   "tierEnterprise",
   "tierFieldOperation",
@@ -54,6 +55,16 @@ export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   // Smart Monitor — quantidades escolhidas (custos e min/max permanecem parâmetros)
   "qtdAtendentesMonitor",
   "qtdProxysMonitor",
+  // Smart Flow — quantidades escolhidas nesta precificação
+  "qtdAtendentesFlow",
+  "qtdProxysFlow",
+  "itsmFlowSelected",
+  // Field Service — quantidades escolhidas nesta precificação (modo direto)
+  "fieldDirectQtdN1",
+  "fieldDirectQtdN2",
+  "fieldDirectQtdN3",
+  // Fonte de demanda escolhida nesta precificação
+  "demandSource",
 ]);
 
 /**
