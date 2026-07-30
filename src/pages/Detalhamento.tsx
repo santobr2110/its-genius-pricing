@@ -100,9 +100,18 @@ export default function Detalhamento() {
     targetId: activePreset.activeId ?? null,
     rentPct: Number(state.lucroPerc ?? 0),
   });
-  const exportDisabledReason = isSavedPricing
-    ? undefined
-    : "Salve a precificação para habilitar a exportação";
+  // Bloqueio de exportação: precificação não salva OU rentabilidade em faixa
+  // que exige aprovação e que ainda não foi aprovada (ex.: margem < 15%).
+  const approvalBlocked =
+    approval.loading || (approval.requiresApproval && approval.effectiveStatus !== "approved");
+  const exportDisabledReason = !isSavedPricing
+    ? "Salve a precificação para habilitar a exportação"
+    : approval.loading
+    ? "Verificando status de aprovação..."
+    : approvalBlocked
+    ? `Exportação bloqueada: rentabilidade de ${Number(state.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
+    : undefined;
+  const exportBlocked = !isSavedPricing || approvalBlocked;
   const sm = results.smartMonitor;
   const sf = results.smartFlow;
   const fs = results.fieldService;
@@ -221,8 +230,8 @@ export default function Detalhamento() {
   if (state.tierEnterprise) componentNames.push("Enterprise");
 
   const handleExportPDF = async () => {
-    if (!isSavedPricing) {
-      toast.error("Salve a precificação para exportar o relatório.");
+    if (exportBlocked) {
+      toast.error(exportDisabledReason ?? "Exportação bloqueada.");
       return;
     }
     const el = document.getElementById("proposicao-printable");
@@ -1260,8 +1269,8 @@ export default function Detalhamento() {
     return payload;
   };
   const handleExportPresentation = async () => {
-    if (!isSavedPricing) {
-      toast.error("Salve a precificação para exportar a apresentação.");
+    if (exportBlocked) {
+      toast.error(exportDisabledReason ?? "Exportação bloqueada.");
       return;
     }
     try {
@@ -1296,7 +1305,7 @@ export default function Detalhamento() {
                 <DropdownMenuItem
                   onClick={handleExportPDF}
                   className="gap-2"
-                  disabled={!isSavedPricing}
+                  disabled={exportBlocked}
                   title={exportDisabledReason}
                 >
                   <FileDown className="h-4 w-4" />
@@ -1305,7 +1314,7 @@ export default function Detalhamento() {
                 <DropdownMenuItem
                   onClick={handleExportPresentation}
                   className="gap-2"
-                  disabled={!isSavedPricing}
+                  disabled={exportBlocked}
                   title={exportDisabledReason}
                 >
                   <Presentation className="h-4 w-4" />
