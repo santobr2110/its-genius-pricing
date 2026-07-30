@@ -414,6 +414,18 @@ export default function ResumoCotacao() {
   const liquidoPerc = receitaMes > 0 ? (liquido / receitaMes) * 100 : 0;
 
   // ===== Exportar PDF =====
+  const approvalBlocked =
+    approval.loading || (approval.requiresApproval && approval.effectiveStatus !== "approved");
+  const exportDisabledReason = !isSaved
+    ? "Salve a precificação para habilitar a exportação"
+    : !canExport
+    ? "Você não tem permissão para exportar"
+    : approval.loading
+    ? "Verificando status de aprovação..."
+    : approvalBlocked
+    ? `Exportação bloqueada: rentabilidade de ${Number(calcState.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
+    : undefined;
+  const exportBlocked = !!exportDisabledReason;
   const handleExportPDF = async () => {
     if (exportBlocked) {
       toast.error(exportDisabledReason ?? "Exportação bloqueada.");
