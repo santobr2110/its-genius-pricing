@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { computeTierPricing, gerencialBucket as gerencialBucketFor } from "@/lib/tierPricing";
+import { computeN3Distribution, resolveN3Alloc } from "@/lib/n3Distribution";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { supabase } from "@/integrations/supabase/client";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
@@ -92,7 +94,7 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 };
 
 export default function Detalhamento() {
-  const { state, results, activePreset } = useITSMContext();
+  const { state, results, activePreset, extrasOperacionais } = useITSMContext();
   const isSavedPricing = !!activePreset.activeId;
   const approval = usePricingApproval({
     offering: "smart-ito",
@@ -483,7 +485,10 @@ export default function Detalhamento() {
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
-  const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  // Alocação absoluta de horas TAM/Owner (fonte canônica editada em Camadas).
+  // `n3Cortes` permanece apenas como fallback legado.
+  const [n3AllocHoras] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3AllocHoras", [0, 0]);
+  const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [0, 0]);
   const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
   const [restricoesGerais] = usePersistentState<string[]>(
     RESTRICOES_GERAIS_STORAGE_KEY,
@@ -494,11 +499,13 @@ export default function Detalhamento() {
     ITENS_ADICIONAIS_DEFAULT,
   );
 
-  const [corteTam, corteOwner] = n3Cortes;
-  const pctTam = corteTam;
-  const pctOwner = Math.max(0, corteOwner - corteTam);
-  const pctLivre = Math.max(0, 100 - corteOwner);
   const horasTotaisN3 = state.horasN3Mensais || 0;
+  const n3Alloc = resolveN3Alloc(n3AllocHoras, n3Cortes, horasTotaisN3);
+  const horasTamN3 = n3Alloc.tam;
+  const horasOwnerN3 = n3Alloc.owner;
+  const pctTam = horasTotaisN3 > 0 ? (horasTamN3 / horasTotaisN3) * 100 : 0;
+  const pctOwner = horasTotaisN3 > 0 ? (horasOwnerN3 / horasTotaisN3) * 100 : 0;
+  const pctLivre = Math.max(0, 100 - pctTam - pctOwner);
 
   // Fator de venda (markup divisor único) — converte custo em preço de venda
   const totalEncargosPerc =
@@ -774,50 +781,26 @@ export default function Detalhamento() {
       }
     : escopoFiltered.flow;
 
-  // Valores de venda por camada (alinhados ao painel principal)
+  // Valores de venda por camada (fonte canônica compartilhada com o painel de
+  // Camadas, o Resumo de Cotação e a Apresentação).
   const toSell = (c: number) => c * fatorVenda;
-  const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
-  const valorFlow = flowVisible ? toSell(sf.total) : 0;
+  const tierPricing = computeTierPricing(state, results, extrasOperacionais);
+  const valorMonitor = monitorVisible ? tierPricing.venda.monitor : 0;
+  const valorFlow = flowVisible ? tierPricing.venda.flow : 0;
   const custoOperacaoBase =
     results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
   const valorFieldService = state.tierFieldOperation
-    ? toSell(fs.total) + toSell(custoRotinasField)
+    ? tierPricing.venda.fieldService
     : 0;
-  const valorOperation = state.tierOperation
-    ? toSell(custoOperacaoBase) + valorFieldService + toSell(gmudOperationData.totals.custo)
-    : 0;
-  const valorPerformance = state.tierPerformance
-    ? toSell(results.custoN3) + toSell(gmudPerformanceData.totals.custo)
-    : 0;
+  const valorOperation = state.tierOperation ? tierPricing.venda.operation : 0;
+  const valorPerformance = state.tierPerformance ? tierPricing.venda.performance : 0;
   // Rotinas Gerenciais Selbetti são cobradas em separado e são CUMULATIVAS entre
   // as camadas: uma gerencial de Monitor permanece ativa em Flow/Operation/
   // Performance; de Flow permanece em Operation/Performance; etc. Cada gerencial
   // é exibida e cobrada em uma única camada — a camada ativa mais baixa cuja
   // ordem seja ≥ à oferta vinculada da rotina (display bucket).
-  const tierOrder: Record<"Monitor" | "Flow" | "Operation" | "Performance", number> = {
-    Monitor: 1, Flow: 2, Operation: 3, Performance: 4,
-  };
-  const activeTiersOrdered = (
-    [
-      // Quando Monitor e Flow estão ativos simultaneamente, o bloco Monitor
-      // é ocultado (unifiedMonitorFlow). Nesse caso, as gerenciais de Monitor
-      // devem cair no próximo bucket displayable (Flow), e não em Monitor.
-      [monitorVisible && !flowVisible, "Monitor"],
-      [flowVisible, "Flow"],
-      [state.tierOperation, "Operation"],
-      [state.tierPerformance, "Performance"],
-    ] as Array<[boolean, "Monitor" | "Flow" | "Operation" | "Performance"]>
-  )
-    .filter(([active]) => active)
-    .map(([, t]) => t)
-    .sort((a, b) => tierOrder[a] - tierOrder[b]);
-  const gerencialBucket = (oferta: "Monitor" | "Flow" | "Operation" | "Performance") => {
-    const min = tierOrder[oferta];
-    for (const t of activeTiersOrdered) {
-      if (tierOrder[t] >= min) return t;
-    }
-    return null;
-  };
+  const gerencialBucket = (oferta: "Monitor" | "Flow" | "Operation" | "Performance") =>
+    gerencialBucketFor(state, oferta);
   const gerenciaisDe = (camada: "Monitor" | "Flow" | "Operation" | "Performance") =>
     rotinasGerenciais.filter((r) => {
       const oferta = (r as any).oferta as "Monitor" | "Flow" | "Operation" | "Performance";
@@ -830,9 +813,9 @@ export default function Detalhamento() {
     return gerencialBucket(oferta) !== null;
   });
   const custoRotinasGerenciais = sumCusto(rotinasGerenciaisCobradas);
-  const valorRotinasGerenciais = toSell(custoRotinasGerenciais);
-  const investimentoTotal =
-    valorMonitor + valorFlow + valorOperation + valorPerformance + valorRotinasGerenciais;
+  const valorRotinasGerenciais = tierPricing.venda.gerenciais;
+  // Total canônico: idêntico ao preço de venda mensal e ao total das Camadas.
+  const investimentoTotal = tierPricing.venda.total;
 
   // Subtotais decompostos para exibir a composição do valor de cada camada
   const valorMonitorParts = monitorVisible
@@ -875,6 +858,15 @@ export default function Detalhamento() {
         ...(gmudOperationData.totals.custo > 0
           ? [{ label: "GMUDs (Operation)", value: toSell(gmudOperationData.totals.custo) }]
           : []),
+        ...(tierPricing.venda.endpointTooling > 0
+          ? [{
+              label: `Ferramenta de endpoint (${formatNumber(state.qtdEquipamentos || 0)} equip.)`,
+              value: tierPricing.venda.endpointTooling,
+            }]
+          : []),
+        ...(tierPricing.custo.residualBucket === "Operation" && tierPricing.venda.residual > 0.005
+          ? [{ label: "Monitoramento de ativos (UM)", value: tierPricing.venda.residual }]
+          : []),
       ]
     : [];
   const valorPerformanceParts = state.tierPerformance
@@ -885,6 +877,9 @@ export default function Detalhamento() {
         },
         ...(gmudPerformanceData.totals.custo > 0
           ? [{ label: "GMUDs (Performance)", value: toSell(gmudPerformanceData.totals.custo) }]
+          : []),
+        ...(tierPricing.custo.residualBucket === "Performance" && tierPricing.venda.residual > 0.005
+          ? [{ label: "Monitoramento de ativos (UM)", value: tierPricing.venda.residual }]
           : []),
       ]
     : [];
@@ -915,8 +910,8 @@ export default function Detalhamento() {
 
   // Mesma lógica para o bucket Performance (TAM + Owner + Rotinas + Chamados → resíduo).
   const [horasMelhoriaPerfRaw] = usePersistentState<number>("gestao-ti:smartPerf:horasMelhoria", 0);
-  const horasTamPerfDetalhe = ((state.horasN3Mensais || 0) * pctTam) / 100;
-  const horasOwnerPerfDetalhe = ((state.horasN3Mensais || 0) * pctOwner) / 100;
+  const horasTamPerfDetalhe = horasTamN3;
+  const horasOwnerPerfDetalhe = horasOwnerN3;
   const horasLivrePerfDetalhe = Math.max(
     0,
     (state.horasN3Mensais || 0) - horasAtendN3 - horasRotinasN3 - horasTamPerfDetalhe - horasOwnerPerfDetalhe,
@@ -1068,14 +1063,21 @@ export default function Detalhamento() {
       let horasN3: HorasN3Slide | undefined;
       if ((!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && state.horasN3Mensais > 0) {
         const total = state.horasN3Mensais;
-        const horasLivreOp = Math.max(0, total - horasAtendN3 - horasRotinasOpN3);
+        const distOp = computeN3Distribution({
+          total,
+          horasChamados: horasAtendN3,
+          horasRotinas: horasRotinasOpN3,
+          horasMelhoria: horasMelhoriaOp,
+        });
+        const horasLivreOp = distOp.tecnicas;
         horasN3 = {
           total,
           valorHora: valorHoraN3Venda,
           modo: "operation",
           blocos: [
-            { titulo: "Chamados N3", horas: horasAtendN3, valor: horasAtendN3 * valorHoraN3Venda, descricao: "Atendimento reativo de incidentes complexos." },
-            { titulo: "Rotinas Operation", horas: horasRotinasOpN3, valor: horasRotinasOpN3 * valorHoraN3Venda, descricao: "Rotinas preventivas absorvidas no pool N3." },
+            { titulo: "Chamados N3", horas: distOp.chamados, valor: distOp.chamados * valorHoraN3Venda, descricao: "Atendimento reativo de incidentes complexos." },
+            { titulo: "Rotinas Operation", horas: distOp.rotinas, valor: distOp.rotinas * valorHoraN3Venda, descricao: "Rotinas preventivas absorvidas no pool N3." },
+            { titulo: "Melhoria", horas: distOp.melhoria, valor: distOp.melhoria * valorHoraN3Venda, descricao: "Horas reservadas para evoluções e melhorias contínuas." },
             { titulo: "Horas técnicas", horas: horasLivreOp, valor: horasLivreOp * valorHoraN3Venda, descricao: "Saldo livre para projetos e demandas pontuais." },
           ].filter((b) => b.horas > 0),
         };
@@ -1126,18 +1128,28 @@ export default function Detalhamento() {
       let horasN3: HorasN3Slide | undefined;
       if ((!n3OptionalScenario || state.tierOperationN3) && state.horasN3Mensais > 0) {
         const total = state.horasN3Mensais;
-        const horasTam = (total * pctTam) / 100;
-        const horasOwner = (total * pctOwner) / 100;
-        const horasLivre = Math.max(0, total - horasAtendN3 - horasRotinasN3 - horasTam - horasOwner);
+        // Mesma cascata da tela (fonte única) — as parcelas fecham no total.
+        const distPerf = computeN3Distribution({
+          total,
+          horasChamados: horasAtendN3,
+          horasRotinas: horasRotinasN3,
+          horasTam: horasTamN3,
+          horasOwner: horasOwnerN3,
+          horasMelhoria: horasMelhoriaPerf,
+        });
+        const horasTam = distPerf.tam;
+        const horasOwner = distPerf.owner;
+        const horasLivre = distPerf.tecnicas;
         horasN3 = {
           total,
           valorHora: valorHoraN3Venda,
           modo: "performance",
           blocos: [
-            { titulo: "Chamados N3", horas: horasAtendN3, valor: horasAtendN3 * valorHoraN3Venda, descricao: "Atendimento reativo N3." },
-            { titulo: "Rotinas", horas: horasRotinasN3, valor: horasRotinasN3 * valorHoraN3Venda, descricao: "Rotinas Performance/Operation absorvidas." },
+            { titulo: "Chamados N3", horas: distPerf.chamados, valor: distPerf.chamados * valorHoraN3Venda, descricao: "Atendimento reativo N3." },
+            { titulo: "Rotinas", horas: distPerf.rotinas, valor: distPerf.rotinas * valorHoraN3Venda, descricao: "Rotinas Performance/Operation absorvidas." },
             { titulo: "TAM", horas: horasTam, valor: horasTam * valorHoraN3Venda, descricao: "Acompanhamento técnico e governança." },
             { titulo: "Owner", horas: horasOwner, valor: horasOwner * valorHoraN3Venda, descricao: "Especialista dedicado às rotinas e melhorias." },
+            { titulo: "Melhoria", horas: distPerf.melhoria, valor: distPerf.melhoria * valorHoraN3Venda, descricao: "Horas reservadas para evoluções e melhorias contínuas." },
             { titulo: "Horas técnicas", horas: horasLivre, valor: horasLivre * valorHoraN3Venda, descricao: "Saldo para projetos e demandas pontuais." },
           ].filter((b) => b.horas > 0),
         };
@@ -1915,7 +1927,7 @@ export default function Detalhamento() {
               modo="performance"
               horasRotinas={horasRotinasN3}
               horasMelhoria={horasMelhoriaPerf}
-              distribuicao={{ tam: pctTam, owner: pctOwner, livre: pctLivre }}
+              alocacao={{ tam: horasTamN3, owner: horasOwnerN3 }}
             />
           )}
           <CompositionBox title="Composição do valor mensal" total={valorPerformance} parts={valorPerformanceParts} color="gold" />
@@ -2491,32 +2503,39 @@ function GmudReportTable({
 }
 
 function N3HoursBox({
-  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, horasMelhoria = 0, distribuicao,
+  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, horasMelhoria = 0, alocacao,
 }: {
   total: number; consumidas: number; previstas: number;
   chamadosN3: number; tempoMedio: number; valorHora: number;
   modo: "operation" | "performance";
   horasRotinas?: number;
   horasMelhoria?: number;
-  distribuicao?: { tam: number; owner: number; livre: number };
+  /** Horas absolutas de TAM e Owner (apenas modo performance). */
+  alocacao?: { tam: number; owner: number };
 }) {
   const pctConsumido = total > 0 ? Math.min(100, (consumidas / total) * 100) : 0;
   const deficit = consumidas > total;
-  const horasTam = distribuicao ? (total * distribuicao.tam) / 100 : 0;
-  const horasOwner = distribuicao ? (total * distribuicao.owner) / 100 : 0;
-  // Livre = sobra após chamados + TAM + Owner
-  const horasMelhoriaPerfClamp = distribuicao
-    ? Math.max(0, Math.min(horasMelhoria, Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner)))
-    : 0;
-  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner - horasMelhoriaPerfClamp) : 0;
-  const pctChamados = total > 0 ? (consumidas / total) * 100 : 0;
-  const pctRotinas = total > 0 ? (horasRotinas / total) * 100 : 0;
-  const pctTam = distribuicao?.tam ?? 0;
-  const pctOwner = distribuicao?.owner ?? 0;
-  const pctMelhoriaPerf = total > 0 ? (horasMelhoriaPerfClamp / total) * 100 : 0;
-  const pctLivre = total > 0 ? (horasLivre / total) * 100 : 0;
+  // Distribuição em cascata — soma das parcelas == total contratado.
+  const dist = computeN3Distribution({
+    total,
+    horasChamados: consumidas,
+    horasRotinas,
+    horasTam: alocacao?.tam ?? 0,
+    horasOwner: alocacao?.owner ?? 0,
+    horasMelhoria,
+  });
+  const horasTam = dist.tam;
+  const horasOwner = dist.owner;
+  const horasMelhoriaPerfClamp = dist.melhoria;
+  const horasLivre = dist.tecnicas;
+  const pctChamados = dist.pct(dist.chamados);
+  const pctRotinas = dist.pct(dist.rotinas);
+  const pctTam = dist.pct(horasTam);
+  const pctOwner = dist.pct(horasOwner);
+  const pctMelhoriaPerf = dist.pct(horasMelhoriaPerfClamp);
+  const pctLivre = dist.pct(horasLivre);
   const valorTotalVenda = total * valorHora;
-  const livreNegativo = !!distribuicao && (consumidas + horasRotinas + horasTam + horasOwner) > total;
+  const livreNegativo = dist.excedente > 0;
 
   return (
     <div className="mt-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background/90 to-background/60 backdrop-blur-sm p-4 space-y-4 shadow-md">
@@ -2550,11 +2569,11 @@ function N3HoursBox({
       </div>
 
       {modo === "operation" && (() => {
-        const horasMelhoriaClamp = Math.max(0, Math.min(horasMelhoria, Math.max(0, total - consumidas - horasRotinas)));
-        const horasLivreOp = Math.max(0, total - consumidas - horasRotinas - horasMelhoriaClamp);
-        const pctLivreOp = total > 0 ? (horasLivreOp / total) * 100 : 0;
-        const pctMelhoriaOp = total > 0 ? (horasMelhoriaClamp / total) * 100 : 0;
-        const estourado = consumidas + horasRotinas > total;
+        const horasMelhoriaClamp = dist.melhoria;
+        const horasLivreOp = dist.tecnicas;
+        const pctLivreOp = dist.pct(horasLivreOp);
+        const pctMelhoriaOp = dist.pct(horasMelhoriaClamp);
+        const estourado = dist.excedente > 0;
         return (
           <div className="space-y-3 pt-1">
             <div className="flex items-center gap-2">
@@ -2587,10 +2606,10 @@ function N3HoursBox({
               Horas Técnicas = Total contratado − Chamados N3 (funil) − Rotinas Operation − Horas de Melhoria
             </p>
             <div className={`grid grid-cols-1 ${horasMelhoriaClamp > 0 ? "sm:grid-cols-4" : "sm:grid-cols-3"} gap-2`}>
-              <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
+              <DistCard color="amber" pct={pctChamados} horas={dist.chamados} valor={dist.chamados * valorHora}
                 titulo="Chamados" subtitulo="Atendimento reativo N3"
                 desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
-              <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
+              <DistCard color="rose" pct={pctRotinas} horas={dist.rotinas} valor={dist.rotinas * valorHora}
                 titulo="Rotinas" subtitulo="Rotinas Operation"
                 desc="Horas consumidas pelas rotinas preventivas básicas, já cobradas dentro do pool de horas N3." />
               {horasMelhoriaClamp > 0 && (
@@ -2611,7 +2630,7 @@ function N3HoursBox({
         );
       })()}
 
-      {modo === "performance" && distribuicao && (
+      {modo === "performance" && alocacao && (
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
@@ -2658,10 +2677,10 @@ function N3HoursBox({
 
           {/* Cards detalhados */}
           <div className={`grid grid-cols-1 ${horasMelhoriaPerfClamp > 0 ? "sm:grid-cols-6" : "sm:grid-cols-5"} gap-2`}>
-            <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
+            <DistCard color="amber" pct={pctChamados} horas={dist.chamados} valor={dist.chamados * valorHora}
               titulo="Chamados" subtitulo="Atendimento reativo N3"
               desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
-            <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
+            <DistCard color="rose" pct={pctRotinas} horas={dist.rotinas} valor={dist.rotinas * valorHora}
               titulo="Rotinas" subtitulo="Rotinas Performance"
               desc="Horas consumidas pelas rotinas preventivas Padrão/Complexo, já cobradas dentro do pool de horas N3." />
             <DistCard color="emerald" pct={pctTam} horas={horasTam} valor={horasTam * valorHora}

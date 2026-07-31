@@ -7,6 +7,8 @@ import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trop
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { computeTierPricing, gerencialBucket } from "@/lib/tierPricing";
+import { computeN3Distribution } from "@/lib/n3Distribution";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import ApprovalBadge from "@/components/approval/ApprovalBadge";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
@@ -142,15 +144,17 @@ const TIERS: {
 ];
 
 export default function SmartTiersPanel() {
-  const { results, state, update, activePreset } = useITSMContext();
+  const { results, state, update, activePreset, extrasOperacionais } = useITSMContext();
   const sm = results.smartMonitor;
   const sfl = results.smartFlow;
-  const totalEncargosPerc =
-    (state.pisPerc || 0) + (state.cofinsPerc || 0) + (state.issPerc || 0) +
-    (state.comissaoPerc || 0) + (state.irpjCsllPerc || 0) + (state.encFinancPerc || 0) +
-    (state.lucroPerc || 0);
-  const fatorVenda = totalEncargosPerc < 100 ? (100 - totalEncargosPerc) / 100 : 0;
-  const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
+  // Totalizadores canônicos por camada (mesma fonte usada em Proposição,
+  // Resumo de Cotação e Apresentação).
+  const tierPricing = useMemo(
+    () => computeTierPricing(state, results, extrasOperacionais),
+    [state, results, extrasOperacionais],
+  );
+  const fatorVenda = tierPricing.fatorVenda;
+  const toSell = (c: number) => c * fatorVenda;
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
@@ -492,7 +496,11 @@ export default function SmartTiersPanel() {
   // Gerenciais agora são atribuídas à oferta vinculada de cada rotina,
   // não mais somadas todas na camada dominante.
   const gerenciaisEmCamada = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") => {
-    const items = rotinasGerenciais.items.filter((i) => i.oferta === camada);
+    // Bucket cumulativo (mesma regra dos relatórios): a gerencial é cobrada
+    // na camada ativa mais baixa cuja ordem >= à oferta vinculada.
+    const items = rotinasGerenciais.items.filter(
+      (i) => gerencialBucket(state, (i.oferta as any) ?? "Operation") === camada,
+    );
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
@@ -623,7 +631,7 @@ export default function SmartTiersPanel() {
   const smN3ManutVenda = toSell(sm.custoN3Manut);
   const smAtendentesVenda = toSell(sm.custoAtendentes);
   const smProxysVenda = toSell(sm.custoProxys);
-  const smTotalVenda = toSell(sm.total) + gerenciaisVendaIn("Monitor");
+  const smTotalVenda = tierPricing.venda.monitor + gerenciaisVendaIn("Monitor");
   // Smart Flow — venda
   const sflMonitVenda = toSell(sfl.custoMonitoramento);
   const sflN1Venda = toSell(sfl.custoN1Alocado);
@@ -631,10 +639,10 @@ export default function SmartTiersPanel() {
   const sflN3ManutVenda = toSell(sfl.custoN3Manut);
   const sflAtendentesVenda = toSell(sfl.custoAtendentes);
   const sflProxysVenda = toSell(sfl.custoProxys);
-  const sflTotalVenda = toSell(sfl.total) + gerenciaisVendaIn("Flow");
+  const sflTotalVenda = tierPricing.venda.flow + gerenciaisVendaIn("Flow");
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
-  const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
+  const fsVenda = fs.active ? tierPricing.venda.fieldService : 0;
 
   // === GMUDs por camada ===
   const gmudInput = {
@@ -678,16 +686,14 @@ export default function SmartTiersPanel() {
   // quando Smart Operation está ativo). Precisa ser refletido aqui para que o
   // "Valor Total de Venda" das Camadas bata exatamente com o preço de venda
   // calculado no Resumo de Cotação e na Listagem de Precificações.
-  const custoEndpointTooling =
-    (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0);
+  const custoEndpointTooling = tierPricing.custo.endpointTooling;
   const smOperationVenda = state.tierOperation
-    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0))
-      + toSell(custoEndpointTooling)
-      + fsVenda + gmudOperation.venda + gerenciaisVendaIn("Operation")
+    ? tierPricing.venda.operation + gerenciaisVendaIn("Operation")
     : 0;
   const smPerformanceVenda = state.tierPerformance
-    ? toSell(results.custoN3) + gmudPerformance.venda + gerenciaisVendaIn("Performance")
+    ? tierPricing.venda.performance + gerenciaisVendaIn("Performance")
     : 0;
+  // Soma canônica: idêntica a `results.precoVendaMensal`.
   const totalSelecionado =
     (state.tierMonitor ? smTotalVenda : 0) + (state.tierFlow ? sflTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
 

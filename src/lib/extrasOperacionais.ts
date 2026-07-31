@@ -8,6 +8,7 @@ import {
   normalizeLegacyRotina,
 } from "@/data/rotinas";
 import { type Gmud, bucketGmuds, computeGmud } from "@/data/gmuds";
+import { gerencialBucket, type TierKey } from "./tierPricing";
 
 // Mesma normalização aplicada em SmartTiersPanel/Detalhamento para rotinas
 // de Sistema Operacional (tratadas como unitárias por ambiente) +
@@ -78,21 +79,18 @@ export function computeExtrasOperacionais(
     (inv.qtdUsuarios || 0) + (inv.qtdEquipamentos || 0) > 0;
   const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
 
-  const ofertaAtiva = (oferta: Rotina["oferta"]) => {
-    if (oferta === "Monitor") return state.tierMonitor;
-    if (oferta === "Flow") return state.tierFlow;
-    if (oferta === "Operation") return state.tierOperation;
-    if (oferta === "Performance") return state.tierPerformance;
-    if (oferta === "Enterprise") return state.tierEnterprise;
-    return false;
-  };
+  // Rotinas gerenciais são CUMULATIVAS: uma gerencial vinculada a Monitor
+  // continua sendo executada (e cobrada) quando apenas Flow/Operation/
+  // Performance estão ativos. Usa exatamente o mesmo bucket dos relatórios.
+  const gerencialCobrada = (oferta: Rotina["oferta"]) =>
+    gerencialBucket(state, (oferta as TierKey) ?? "Operation") !== null;
 
   // === Rotinas Gerenciais Selbetti ===
   // Só são cobradas quando a camada vinculada na própria rotina está ativa.
   let custoRotinasGerenciais = 0;
   for (const rRaw of rotinas) {
     const r = normalizeLegacyRotina(rRaw);
-    if (!r.gerencial || !ofertaAtiva(r.oferta)) continue;
+    if (!r.gerencial || !gerencialCobrada(r.oferta)) continue;
     const rotina = normalizeOsRotina(rRaw);
     const mult = rotinaMultiplicador(rotina, inv, complexFlags);
     const demanda = r.chamadosMes * mult;

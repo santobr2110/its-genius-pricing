@@ -9,6 +9,8 @@ import { useITSMContext } from "@/contexts/ITSMContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { formatBRL, formatNumber, computeITSMResults, type ITSMState, type ITSMResults } from "@/hooks/useITSMCalculator";
 import { computeExtrasOperacionais, recomputeComposicaoComExtras } from "@/lib/extrasOperacionais";
+import { computeTierPricing } from "@/lib/tierPricing";
+import { computeN3Distribution, resolveN3Alloc } from "@/lib/n3Distribution";
 import { SMART_ITO_NS } from "@/lib/offerings";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
@@ -87,7 +89,8 @@ export default function ResumoCotacao() {
 
   const [rotinasLive] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [gmudsLive] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
-  const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [0, 0]);
+  const [n3AllocHorasLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3AllocHoras", [0, 0]);
   const [horasMelhoriaOpLive] = usePersistentState<number>("gestao-ti:smartOp:horasMelhoria", 0);
   const [horasMelhoriaPerfLive] = usePersistentState<number>("gestao-ti:smartPerf:horasMelhoria", 0);
 
@@ -100,6 +103,7 @@ export default function ResumoCotacao() {
   const rotinas: Rotina[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? rotinasLive;
   const gmuds: Gmud[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:gmuds`] as Gmud[] | undefined) ?? gmudsLive;
   const n3Cortes: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3Cortes`] as [number, number] | undefined) ?? n3CortesLive;
+  const n3AllocHoras: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3AllocHoras`] as [number, number] | undefined) ?? n3AllocHorasLive;
   const horasMelhoriaOpSnap: number = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartOp:horasMelhoria`] as number | undefined) ?? horasMelhoriaOpLive;
   const horasMelhoriaPerfSnap: number = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:horasMelhoria`] as number | undefined) ?? horasMelhoriaPerfLive;
 
@@ -122,9 +126,6 @@ export default function ResumoCotacao() {
     (calcState.pisPerc || 0) + (calcState.cofinsPerc || 0) + (calcState.issPerc || 0) +
     (calcState.comissaoPerc || 0) + (calcState.irpjCsllPerc || 0) + (calcState.encFinancPerc || 0) +
     (calcState.lucroPerc || 0);
-  const fatorDivisor = totalEncargosPerc < 100 ? (100 - totalEncargosPerc) / 100 : 0;
-  const fatorVenda = fatorDivisor > 0 ? 1 / fatorDivisor : 1;
-  const toSell = (custo: number) => custo * fatorVenda;
 
   // ===== Tabela: camadas contratadas × componentes principais =====
   const hasInfraInventory =
@@ -133,7 +134,7 @@ export default function ResumoCotacao() {
 
   // Rotinas preventivas — total de CACs (chamados/mês) com base no inventário.
   // Separa rotinas de Microinformática (Field) das demais (Performance).
-  const { rotinasPerformance, rotinasField } = useMemo(() => {
+  const { rotinasPerformance, rotinasField, horasRotinasN3 } = useMemo(() => {
     const inv = {
       qtdUsuarios: calcState.qtdUsuarios, qtdEquipamentos: calcState.qtdEquipamentos,
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
@@ -151,13 +152,22 @@ export default function ResumoCotacao() {
     };
     let perf = 0;
     let field = 0;
+    // Horas do pool N3 consumidas pelas rotinas preventivas (não gerenciais,
+    // não Microinformática) — mesma regra do Relatório de Proposição.
+    let horasN3Rot = 0;
+    const fa0 = Math.max(0, Math.min(100, calcState.percCustoRotinaAutomatizada ?? 100)) / 100;
     rotinas.forEach((r) => {
       const mult = rotinaMultiplicador(r, inv, flags);
       const ch = r.chamadosMes * mult;
       if (r.grupo === "Microinformática") field += ch;
-      else perf += ch;
+      else {
+        perf += ch;
+        if (!(r as { gerencial?: boolean }).gerencial && ch > 0) {
+          horasN3Rot += ch * (r.horasExecucao ?? 1) * ((r as { automacao?: boolean }).automacao ? fa0 : 1);
+        }
+      }
     });
-    return { rotinasPerformance: perf, rotinasField: field };
+    return { rotinasPerformance: perf, rotinasField: field, horasRotinasN3: horasN3Rot };
   }, [rotinas, calcState]);
 
   // GMUDs — totais Operation + Performance
@@ -189,6 +199,15 @@ export default function ResumoCotacao() {
     () => computeExtrasOperacionais(calcState, computed, rotinas, gmuds),
     [calcState, computed, rotinas, gmuds],
   );
+  // Fonte única dos totalizadores por camada — mesma usada em Camadas de
+  // Oferta, Relatório de Proposição e Apresentação (.pptx).
+  const tp = useMemo(
+    () => computeTierPricing(calcState, computed, extrasResumo),
+    [calcState, computed, extrasResumo],
+  );
+  const fatorVenda =
+    tp.fatorVenda || (totalEncargosPerc < 100 ? 100 / (100 - totalEncargosPerc) : 1);
+  const toSell = (custo: number) => custo * fatorVenda;
   const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | null =
     calcState.tierPerformance ? "Performance"
     : calcState.tierOperation ? "Operation"
@@ -261,12 +280,20 @@ export default function ResumoCotacao() {
   const addDominantGerenciais = (tier: typeof dominantTierKey, custo: number) =>
     custo + (tier ? gerenciaisCustoIn(tier) : 0);
 
-  // Horas N3 — Tamanho, Owner e Livre (cortes Smart Performance)
-  const [corteTam, corteOwner] = n3Cortes;
-  const pctTam = corteTam;
-  const pctOwner = Math.max(0, corteOwner - corteTam);
-  const pctLivre = Math.max(0, 100 - corteOwner);
+  // Horas N3 — alocação absoluta TAM/Owner (fonte canônica), com fallback legado.
   const horasN3 = calcState.horasN3Mensais || 0;
+  const n3Alloc = resolveN3Alloc(n3AllocHoras, n3Cortes, horasN3);
+  const n3Dist = computeN3Distribution({
+    total: horasN3,
+    horasChamados: computed.horasAtendimentoN3 || 0,
+    horasRotinas: horasRotinasN3,
+    horasTam: n3Alloc.tam,
+    horasOwner: n3Alloc.owner,
+    horasMelhoria: horasMelhoriaPerfSnap,
+  });
+  const pctTam = n3Dist.pct(n3Dist.tam);
+  const pctOwner = n3Dist.pct(n3Dist.owner);
+  const pctLivre = n3Dist.pct(n3Dist.tecnicas);
 
   // Custo extra: Endpoint Tooling (entra no custoTotalOperacao do calculador).
   const custoEndpointTooling = (calcState.custoFerramentaEndpoint || 0) * (calcState.qtdEquipamentos || 0);
@@ -291,10 +318,15 @@ export default function ResumoCotacao() {
       .join(" · ");
   const monitorCusto = sm?.total || 0;
   const flowCusto = (sf?.total || 0) + (calcState.tierMonitor && hasInfraInventory ? monitorCusto : 0);
+  // Parcela de custo não atribuída a uma camada específica (ex.: monitoramento
+  // unificado por UM) — lançada na camada ativa mais baixa, igual ao painel
+  // de Camadas e ao Relatório de Proposição.
+  const residualIn = (tier: "Monitor" | "Flow" | "Operation" | "Performance") =>
+    tp.custo.residualBucket === tier ? tp.custo.residual : 0;
 
   // Quando Smart Flow está ativo, ele consolida o Smart Monitor (não exibir separado).
   if (calcState.tierMonitor && !calcState.tierFlow && hasInfraInventory) {
-    const custo = addDominantGerenciais("Monitor", monitorCusto);
+    const custo = addDominantGerenciais("Monitor", monitorCusto + residualIn("Monitor"));
     layerRows.push({
       camada: "Smart Monitor",
       reativos: sm.chamadosAtivos || 0,
@@ -313,7 +345,7 @@ export default function ResumoCotacao() {
     });
   }
   if (calcState.tierFlow) {
-    const custo = addDominantGerenciais("Flow", flowCusto);
+    const custo = addDominantGerenciais("Flow", flowCusto + residualIn("Flow"));
     layerRows.push({
       camada: "Smart Flow",
       reativos: sf.chamadosAtivos || 0,
@@ -336,7 +368,10 @@ export default function ResumoCotacao() {
     const custoOperacaoBase =
       (computed.custoN1 || 0) + (computed.custoN2 || 0) +
       (calcState.tierPerformance ? 0 : (computed.custoN3 || 0));
-    const custo = addDominantGerenciais("Operation", custoOperacaoBase + gmudData.operation.custo);
+    const custo = addDominantGerenciais(
+      "Operation",
+      custoOperacaoBase + gmudData.operation.custo + residualIn("Operation"),
+    );
     layerRows.push({
       camada: "Smart Operation",
       reativos: (computed.volumeN1 || 0) + (computed.volumeN2 || 0),
@@ -350,7 +385,10 @@ export default function ResumoCotacao() {
     });
   }
   if (calcState.tierPerformance) {
-    const custo = addDominantGerenciais("Performance", (computed.custoN3 || 0) + gmudData.performance.custo);
+    const custo = addDominantGerenciais(
+      "Performance",
+      (computed.custoN3 || 0) + gmudData.performance.custo + residualIn("Performance"),
+    );
     layerRows.push({
       camada: "Smart Performance",
       reativos: computed.volumeN3 || 0,
@@ -365,9 +403,8 @@ export default function ResumoCotacao() {
     layerRows.push({
       camada: "Ferramenta de Endpoint",
       reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
-      valor: 0,
-      custo: 0,
-      valorLabel: "Informativo",
+      valor: tp.venda.endpointTooling,
+      custo: tp.custo.endpointTooling,
       nota: buildNota([
         ["Equipamentos", formatNumber(calcState.qtdEquipamentos || 0)],
         ["Custo unitário/mês", formatBRL(calcState.custoFerramentaEndpoint || 0)],
@@ -616,20 +653,22 @@ export default function ResumoCotacao() {
                 </Fragment>
               ))}
               {horasN3 > 0 && calcState.tierPerformance && (() => {
-                const horasAtend = computed.horasAtendimentoN3 || 0;
-                const horasTam = (horasN3 * pctTam) / 100;
-                const horasOwner = (horasN3 * pctOwner) / 100;
-                const sobra = Math.max(0, horasN3 - horasAtend - horasTam - horasOwner);
-                const horasMelhoria = Math.max(0, Math.min(sobra, horasMelhoriaPerfSnap || 0));
-                const horasTecnicas = Math.max(0, sobra - horasMelhoria);
-                const pct = (h: number) => (horasN3 > 0 ? (h / horasN3) * 100 : 0);
+                // Cascata única (mesma do painel e do Relatório) — as parcelas
+                // somam exatamente o total de horas contratadas.
+                const horasAtend = n3Dist.chamados;
+                const horasTam = n3Dist.tam;
+                const horasOwner = n3Dist.owner;
+                const horasMelhoria = n3Dist.melhoria;
+                const horasTecnicas = n3Dist.tecnicas;
+                const pct = (h: number) => n3Dist.pct(h);
                 return (
                   <tr>
                     <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
                       <span className="font-semibold">Distribuição das Horas N3 ({formatNumber(horasN3)}h/mês):</span>{" "}
                       Chamados N3 {formatNumber(horasAtend)}h ({pct(horasAtend).toFixed(0)}%) ·{" "}
-                      TAM {formatNumber(horasTam)}h ({pctTam}%) ·{" "}
-                      Owner {formatNumber(horasOwner)}h ({pctOwner}%) ·{" "}
+                      Rotinas {formatNumber(n3Dist.rotinas)}h ({pct(n3Dist.rotinas).toFixed(0)}%) ·{" "}
+                      TAM {formatNumber(horasTam)}h ({pctTam.toFixed(0)}%) ·{" "}
+                      Owner {formatNumber(horasOwner)}h ({pctOwner.toFixed(0)}%) ·{" "}
                       Horas de Melhoria {formatNumber(horasMelhoria)}h ({pct(horasMelhoria).toFixed(0)}%) ·{" "}
                       Horas Técnicas {formatNumber(horasTecnicas)}h ({pct(horasTecnicas).toFixed(0)}%)
                     </td>
@@ -637,16 +676,22 @@ export default function ResumoCotacao() {
                 );
               })()}
               {horasN3 > 0 && calcState.tierOperation && !calcState.tierPerformance && (() => {
-                const horasAtend = computed.horasAtendimentoN3 || 0;
-                const sobra = Math.max(0, horasN3 - horasAtend);
-                const horasMelhoria = Math.max(0, Math.min(sobra, horasMelhoriaOpSnap || 0));
-                const horasTecnicas = Math.max(0, sobra - horasMelhoria);
-                const pct = (h: number) => (horasN3 > 0 ? (h / horasN3) * 100 : 0);
+                const distOp = computeN3Distribution({
+                  total: horasN3,
+                  horasChamados: computed.horasAtendimentoN3 || 0,
+                  horasRotinas: horasRotinasN3,
+                  horasMelhoria: horasMelhoriaOpSnap || 0,
+                });
+                const horasAtend = distOp.chamados;
+                const horasMelhoria = distOp.melhoria;
+                const horasTecnicas = distOp.tecnicas;
+                const pct = (h: number) => distOp.pct(h);
                 return (
                   <tr>
                     <td colSpan={7} className="border border-slate-300 px-2 py-1.5 text-[11px]" style={{ color: "#000" }}>
                       <span className="font-semibold">Distribuição das Horas N3 ({formatNumber(horasN3)}h/mês):</span>{" "}
                       Chamados N3 {formatNumber(horasAtend)}h ({pct(horasAtend).toFixed(0)}%) ·{" "}
+                      Rotinas {formatNumber(distOp.rotinas)}h ({pct(distOp.rotinas).toFixed(0)}%) ·{" "}
                       Horas de Melhoria {formatNumber(horasMelhoria)}h ({pct(horasMelhoria).toFixed(0)}%) ·{" "}
                       Horas Técnicas {formatNumber(horasTecnicas)}h ({pct(horasTecnicas).toFixed(0)}%)
                     </td>
