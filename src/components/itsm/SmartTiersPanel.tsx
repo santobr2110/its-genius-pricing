@@ -7,6 +7,8 @@ import { Activity, Zap, Gauge, Building2, MapPin, ListChecks, Medal, Award, Trop
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { computeTierPricing, gerencialBucket } from "@/lib/tierPricing";
+import { computeN3Distribution } from "@/lib/n3Distribution";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import ApprovalBadge from "@/components/approval/ApprovalBadge";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
