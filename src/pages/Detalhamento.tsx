@@ -1910,7 +1910,7 @@ export default function Detalhamento() {
               modo="performance"
               horasRotinas={horasRotinasN3}
               horasMelhoria={horasMelhoriaPerf}
-              distribuicao={{ tam: pctTam, owner: pctOwner, livre: pctLivre }}
+              alocacao={{ tam: horasTamN3, owner: horasOwnerN3 }}
             />
           )}
           <CompositionBox title="Composição do valor mensal" total={valorPerformance} parts={valorPerformanceParts} color="gold" />
