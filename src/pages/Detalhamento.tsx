@@ -94,7 +94,7 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 };
 
 export default function Detalhamento() {
-  const { state, results, activePreset } = useITSMContext();
+  const { state, results, activePreset, extrasOperacionais } = useITSMContext();
   const isSavedPricing = !!activePreset.activeId;
   const approval = usePricingApproval({
     offering: "smart-ito",
