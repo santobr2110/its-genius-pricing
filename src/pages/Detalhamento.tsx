@@ -483,7 +483,10 @@ export default function Detalhamento() {
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
-  const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  // Alocação absoluta de horas TAM/Owner (fonte canônica editada em Camadas).
+  // `n3Cortes` permanece apenas como fallback legado.
+  const [n3AllocHoras] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3AllocHoras", [0, 0]);
+  const [n3Cortes] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [0, 0]);
   const [escopo] = usePersistentState<EscopoProposicao>(ESCOPO_STORAGE_KEY, ESCOPO_DEFAULT);
   const [restricoesGerais] = usePersistentState<string[]>(
     RESTRICOES_GERAIS_STORAGE_KEY,
@@ -494,11 +497,13 @@ export default function Detalhamento() {
     ITENS_ADICIONAIS_DEFAULT,
   );
 
-  const [corteTam, corteOwner] = n3Cortes;
-  const pctTam = corteTam;
-  const pctOwner = Math.max(0, corteOwner - corteTam);
-  const pctLivre = Math.max(0, 100 - corteOwner);
   const horasTotaisN3 = state.horasN3Mensais || 0;
+  const n3Alloc = resolveN3Alloc(n3AllocHoras, n3Cortes, horasTotaisN3);
+  const horasTamN3 = n3Alloc.tam;
+  const horasOwnerN3 = n3Alloc.owner;
+  const pctTam = horasTotaisN3 > 0 ? (horasTamN3 / horasTotaisN3) * 100 : 0;
+  const pctOwner = horasTotaisN3 > 0 ? (horasOwnerN3 / horasTotaisN3) * 100 : 0;
+  const pctLivre = Math.max(0, 100 - pctTam - pctOwner);
 
   // Fator de venda (markup divisor único) — converte custo em preço de venda
   const totalEncargosPerc =
