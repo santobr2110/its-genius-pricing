@@ -269,12 +269,20 @@ export default function ResumoCotacao() {
   const addDominantGerenciais = (tier: typeof dominantTierKey, custo: number) =>
     custo + (tier ? gerenciaisCustoIn(tier) : 0);
 
-  // Horas N3 — Tamanho, Owner e Livre (cortes Smart Performance)
-  const [corteTam, corteOwner] = n3Cortes;
-  const pctTam = corteTam;
-  const pctOwner = Math.max(0, corteOwner - corteTam);
-  const pctLivre = Math.max(0, 100 - corteOwner);
+  // Horas N3 — alocação absoluta TAM/Owner (fonte canônica), com fallback legado.
   const horasN3 = calcState.horasN3Mensais || 0;
+  const n3Alloc = resolveN3Alloc(n3AllocHoras, n3Cortes, horasN3);
+  const n3Dist = computeN3Distribution({
+    total: horasN3,
+    horasChamados: computed.horasAtendimentoN3 || 0,
+    horasRotinas: extrasResumo.horasRotinasN3 || 0,
+    horasTam: n3Alloc.tam,
+    horasOwner: n3Alloc.owner,
+    horasMelhoria: horasMelhoriaPerfSnap,
+  });
+  const pctTam = n3Dist.pct(n3Dist.tam);
+  const pctOwner = n3Dist.pct(n3Dist.owner);
+  const pctLivre = n3Dist.pct(n3Dist.tecnicas);
 
   // Custo extra: Endpoint Tooling (entra no custoTotalOperacao do calculador).
   const custoEndpointTooling = (calcState.custoFerramentaEndpoint || 0) * (calcState.qtdEquipamentos || 0);
