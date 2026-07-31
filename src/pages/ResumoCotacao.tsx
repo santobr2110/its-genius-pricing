@@ -122,9 +122,6 @@ export default function ResumoCotacao() {
     (calcState.pisPerc || 0) + (calcState.cofinsPerc || 0) + (calcState.issPerc || 0) +
     (calcState.comissaoPerc || 0) + (calcState.irpjCsllPerc || 0) + (calcState.encFinancPerc || 0) +
     (calcState.lucroPerc || 0);
-  const fatorDivisor = totalEncargosPerc < 100 ? (100 - totalEncargosPerc) / 100 : 0;
-  const fatorVenda = fatorDivisor > 0 ? 1 / fatorDivisor : 1;
-  const toSell = (custo: number) => custo * fatorVenda;
 
   // ===== Tabela: camadas contratadas × componentes principais =====
   const hasInfraInventory =
