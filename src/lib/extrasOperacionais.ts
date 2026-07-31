@@ -8,6 +8,7 @@ import {
   normalizeLegacyRotina,
 } from "@/data/rotinas";
 import { type Gmud, bucketGmuds, computeGmud } from "@/data/gmuds";
+import { gerencialBucket, type TierKey } from "./tierPricing";
 
 // Mesma normalização aplicada em SmartTiersPanel/Detalhamento para rotinas
 // de Sistema Operacional (tratadas como unitárias por ambiente) +
@@ -78,14 +79,6 @@ export function computeExtrasOperacionais(
     (inv.qtdUsuarios || 0) + (inv.qtdEquipamentos || 0) > 0;
   const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
 
-  const ofertaAtiva = (oferta: Rotina["oferta"]) => {
-    if (oferta === "Monitor") return state.tierMonitor;
-    if (oferta === "Flow") return state.tierFlow;
-    if (oferta === "Operation") return state.tierOperation;
-    if (oferta === "Performance") return state.tierPerformance;
-    if (oferta === "Enterprise") return state.tierEnterprise;
-    return false;
-  };
   // Rotinas gerenciais são CUMULATIVAS: uma gerencial vinculada a Monitor
   // continua sendo executada (e cobrada) quando apenas Flow/Operation/
   // Performance estão ativos. Usa exatamente o mesmo bucket dos relatórios.
