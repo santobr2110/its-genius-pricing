@@ -496,7 +496,11 @@ export default function SmartTiersPanel() {
   // Gerenciais agora são atribuídas à oferta vinculada de cada rotina,
   // não mais somadas todas na camada dominante.
   const gerenciaisEmCamada = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") => {
-    const items = rotinasGerenciais.items.filter((i) => i.oferta === camada);
+    // Bucket cumulativo (mesma regra dos relatórios): a gerencial é cobrada
+    // na camada ativa mais baixa cuja ordem >= à oferta vinculada.
+    const items = rotinasGerenciais.items.filter(
+      (i) => gerencialBucket(state, (i.oferta as any) ?? "Operation") === camada,
+    );
     const totals = items.reduce(
       (acc, i) => {
         acc.demanda += i.demanda;
