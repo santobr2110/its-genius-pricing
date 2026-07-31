@@ -53,6 +53,9 @@ export function computeCustoPorUMMarginal(umTotal: number, faixas: MonitorFaixa[
   // preço marginal de novos ativos em itens adicionais).
   if (!faixas || faixas.length === 0) return 0;
   const um = Math.max(0, umTotal);
+  // Inventário vazio (ou abaixo do início da primeira faixa): o próximo ativo
+  // cai na faixa de entrada, não na última (mais barata).
+  if (um <= faixas[0].de) return faixas[0].custoPorUM || 0;
   for (const f of faixas) {
     if (um > f.de && um <= f.ate) return f.custoPorUM || 0;
   }

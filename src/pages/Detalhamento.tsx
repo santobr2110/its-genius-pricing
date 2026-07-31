@@ -1,3 +1,4 @@
+import { computeCustoPorUMMarginal } from "@/lib/custoMonitoramentoUM";
 import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { computeTierPricing, gerencialBucket as gerencialBucketFor } from "@/lib/tierPricing";
@@ -1211,9 +1212,7 @@ export default function Detalhamento() {
       (state.qtdSistemas || 0) * pesos.firewall +
       (state.qtdAtivosRede || 0) * pesos.ativosRede;
     const custoPorUMMarginal = (() => {
-      const um = Math.max(0, umInvAtual);
-      for (const f of faixas) if (um > f.de && um <= f.ate) return f.custoPorUM || 0;
-      return faixas.length > 0 ? faixas[faixas.length - 1].custoPorUM || 0 : 0;
+      return computeCustoPorUMMarginal(umInvAtual, faixas);
     })();
     const computeMonitoradoUnit = (taxa: number, peso: number) => {
       const chamadosBrutos = adj(taxa);
@@ -2073,9 +2072,7 @@ export default function Detalhamento() {
             (state.qtdSistemas || 0) * pesos2.firewall +
             (state.qtdAtivosRede || 0) * pesos2.ativosRede;
           const custoPorUMMarginal2 = (() => {
-            const um = Math.max(0, umInvAtual2);
-            for (const f of faixas2) if (um > f.de && um <= f.ate) return f.custoPorUM || 0;
-            return faixas2.length > 0 ? faixas2[faixas2.length - 1].custoPorUM || 0 : 0;
+            return computeCustoPorUMMarginal(umInvAtual2, faixas2);
           })();
           const computeMonitoradoUnit = (taxa: number, peso: number): { custo: number; chamados: number } => {
             const chamadosBrutos = adj(taxa);
