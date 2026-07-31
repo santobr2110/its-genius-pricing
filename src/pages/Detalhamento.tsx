@@ -1063,14 +1063,21 @@ export default function Detalhamento() {
       let horasN3: HorasN3Slide | undefined;
       if ((!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && state.horasN3Mensais > 0) {
         const total = state.horasN3Mensais;
-        const horasLivreOp = Math.max(0, total - horasAtendN3 - horasRotinasOpN3);
+        const distOp = computeN3Distribution({
+          total,
+          horasChamados: horasAtendN3,
+          horasRotinas: horasRotinasOpN3,
+          horasMelhoria: horasMelhoriaOp,
+        });
+        const horasLivreOp = distOp.tecnicas;
         horasN3 = {
           total,
           valorHora: valorHoraN3Venda,
           modo: "operation",
           blocos: [
-            { titulo: "Chamados N3", horas: horasAtendN3, valor: horasAtendN3 * valorHoraN3Venda, descricao: "Atendimento reativo de incidentes complexos." },
-            { titulo: "Rotinas Operation", horas: horasRotinasOpN3, valor: horasRotinasOpN3 * valorHoraN3Venda, descricao: "Rotinas preventivas absorvidas no pool N3." },
+            { titulo: "Chamados N3", horas: distOp.chamados, valor: distOp.chamados * valorHoraN3Venda, descricao: "Atendimento reativo de incidentes complexos." },
+            { titulo: "Rotinas Operation", horas: distOp.rotinas, valor: distOp.rotinas * valorHoraN3Venda, descricao: "Rotinas preventivas absorvidas no pool N3." },
+            { titulo: "Melhoria", horas: distOp.melhoria, valor: distOp.melhoria * valorHoraN3Venda, descricao: "Horas reservadas para evoluções e melhorias contínuas." },
             { titulo: "Horas técnicas", horas: horasLivreOp, valor: horasLivreOp * valorHoraN3Venda, descricao: "Saldo livre para projetos e demandas pontuais." },
           ].filter((b) => b.horas > 0),
         };
