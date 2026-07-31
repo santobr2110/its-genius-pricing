@@ -2486,32 +2486,39 @@ function GmudReportTable({
 }
 
 function N3HoursBox({
-  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, horasMelhoria = 0, distribuicao,
+  total, consumidas, previstas, chamadosN3, tempoMedio, valorHora, modo, horasRotinas = 0, horasMelhoria = 0, alocacao,
 }: {
   total: number; consumidas: number; previstas: number;
   chamadosN3: number; tempoMedio: number; valorHora: number;
   modo: "operation" | "performance";
   horasRotinas?: number;
   horasMelhoria?: number;
-  distribuicao?: { tam: number; owner: number; livre: number };
+  /** Horas absolutas de TAM e Owner (apenas modo performance). */
+  alocacao?: { tam: number; owner: number };
 }) {
   const pctConsumido = total > 0 ? Math.min(100, (consumidas / total) * 100) : 0;
   const deficit = consumidas > total;
-  const horasTam = distribuicao ? (total * distribuicao.tam) / 100 : 0;
-  const horasOwner = distribuicao ? (total * distribuicao.owner) / 100 : 0;
-  // Livre = sobra após chamados + TAM + Owner
-  const horasMelhoriaPerfClamp = distribuicao
-    ? Math.max(0, Math.min(horasMelhoria, Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner)))
-    : 0;
-  const horasLivre = distribuicao ? Math.max(0, total - consumidas - horasRotinas - horasTam - horasOwner - horasMelhoriaPerfClamp) : 0;
-  const pctChamados = total > 0 ? (consumidas / total) * 100 : 0;
-  const pctRotinas = total > 0 ? (horasRotinas / total) * 100 : 0;
-  const pctTam = distribuicao?.tam ?? 0;
-  const pctOwner = distribuicao?.owner ?? 0;
-  const pctMelhoriaPerf = total > 0 ? (horasMelhoriaPerfClamp / total) * 100 : 0;
-  const pctLivre = total > 0 ? (horasLivre / total) * 100 : 0;
+  // Distribuição em cascata — soma das parcelas == total contratado.
+  const dist = computeN3Distribution({
+    total,
+    horasChamados: consumidas,
+    horasRotinas,
+    horasTam: alocacao?.tam ?? 0,
+    horasOwner: alocacao?.owner ?? 0,
+    horasMelhoria,
+  });
+  const horasTam = dist.tam;
+  const horasOwner = dist.owner;
+  const horasMelhoriaPerfClamp = dist.melhoria;
+  const horasLivre = dist.tecnicas;
+  const pctChamados = dist.pct(dist.chamados);
+  const pctRotinas = dist.pct(dist.rotinas);
+  const pctTam = dist.pct(horasTam);
+  const pctOwner = dist.pct(horasOwner);
+  const pctMelhoriaPerf = dist.pct(horasMelhoriaPerfClamp);
+  const pctLivre = dist.pct(horasLivre);
   const valorTotalVenda = total * valorHora;
-  const livreNegativo = !!distribuicao && (consumidas + horasRotinas + horasTam + horasOwner) > total;
+  const livreNegativo = dist.excedente > 0;
 
   return (
     <div className="mt-4 rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-background/90 to-background/60 backdrop-blur-sm p-4 space-y-4 shadow-md">
@@ -2545,11 +2552,11 @@ function N3HoursBox({
       </div>
 
       {modo === "operation" && (() => {
-        const horasMelhoriaClamp = Math.max(0, Math.min(horasMelhoria, Math.max(0, total - consumidas - horasRotinas)));
-        const horasLivreOp = Math.max(0, total - consumidas - horasRotinas - horasMelhoriaClamp);
-        const pctLivreOp = total > 0 ? (horasLivreOp / total) * 100 : 0;
-        const pctMelhoriaOp = total > 0 ? (horasMelhoriaClamp / total) * 100 : 0;
-        const estourado = consumidas + horasRotinas > total;
+        const horasMelhoriaClamp = dist.melhoria;
+        const horasLivreOp = dist.tecnicas;
+        const pctLivreOp = dist.pct(horasLivreOp);
+        const pctMelhoriaOp = dist.pct(horasMelhoriaClamp);
+        const estourado = dist.excedente > 0;
         return (
           <div className="space-y-3 pt-1">
             <div className="flex items-center gap-2">
@@ -2582,10 +2589,10 @@ function N3HoursBox({
               Horas Técnicas = Total contratado − Chamados N3 (funil) − Rotinas Operation − Horas de Melhoria
             </p>
             <div className={`grid grid-cols-1 ${horasMelhoriaClamp > 0 ? "sm:grid-cols-4" : "sm:grid-cols-3"} gap-2`}>
-              <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
+              <DistCard color="amber" pct={pctChamados} horas={dist.chamados} valor={dist.chamados * valorHora}
                 titulo="Chamados" subtitulo="Atendimento reativo N3"
                 desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
-              <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
+              <DistCard color="rose" pct={pctRotinas} horas={dist.rotinas} valor={dist.rotinas * valorHora}
                 titulo="Rotinas" subtitulo="Rotinas Operation"
                 desc="Horas consumidas pelas rotinas preventivas básicas, já cobradas dentro do pool de horas N3." />
               {horasMelhoriaClamp > 0 && (
@@ -2606,7 +2613,7 @@ function N3HoursBox({
         );
       })()}
 
-      {modo === "performance" && distribuicao && (
+      {modo === "performance" && alocacao && (
         <div className="space-y-3 pt-1">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" />
@@ -2653,10 +2660,10 @@ function N3HoursBox({
 
           {/* Cards detalhados */}
           <div className={`grid grid-cols-1 ${horasMelhoriaPerfClamp > 0 ? "sm:grid-cols-6" : "sm:grid-cols-5"} gap-2`}>
-            <DistCard color="amber" pct={pctChamados} horas={consumidas} valor={consumidas * valorHora}
+            <DistCard color="amber" pct={pctChamados} horas={dist.chamados} valor={dist.chamados * valorHora}
               titulo="Chamados" subtitulo="Atendimento reativo N3"
               desc="Tratamento de incidentes complexos escalados pelo funil de chamados." />
-            <DistCard color="rose" pct={pctRotinas} horas={horasRotinas} valor={horasRotinas * valorHora}
+            <DistCard color="rose" pct={pctRotinas} horas={dist.rotinas} valor={dist.rotinas * valorHora}
               titulo="Rotinas" subtitulo="Rotinas Performance"
               desc="Horas consumidas pelas rotinas preventivas Padrão/Complexo, já cobradas dentro do pool de horas N3." />
             <DistCard color="emerald" pct={pctTam} horas={horasTam} valor={horasTam * valorHora}
