@@ -813,9 +813,9 @@ export default function Detalhamento() {
     return gerencialBucket(oferta) !== null;
   });
   const custoRotinasGerenciais = sumCusto(rotinasGerenciaisCobradas);
-  const valorRotinasGerenciais = toSell(custoRotinasGerenciais);
-  const investimentoTotal =
-    valorMonitor + valorFlow + valorOperation + valorPerformance + valorRotinasGerenciais;
+  const valorRotinasGerenciais = tierPricing.venda.gerenciais;
+  // Total canônico: idêntico ao preço de venda mensal e ao total das Camadas.
+  const investimentoTotal = tierPricing.venda.total;
 
   // Subtotais decompostos para exibir a composição do valor de cada camada
   const valorMonitorParts = monitorVisible
