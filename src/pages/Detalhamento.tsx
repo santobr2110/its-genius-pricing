@@ -910,8 +910,8 @@ export default function Detalhamento() {
 
   // Mesma lógica para o bucket Performance (TAM + Owner + Rotinas + Chamados → resíduo).
   const [horasMelhoriaPerfRaw] = usePersistentState<number>("gestao-ti:smartPerf:horasMelhoria", 0);
-  const horasTamPerfDetalhe = ((state.horasN3Mensais || 0) * pctTam) / 100;
-  const horasOwnerPerfDetalhe = ((state.horasN3Mensais || 0) * pctOwner) / 100;
+  const horasTamPerfDetalhe = horasTamN3;
+  const horasOwnerPerfDetalhe = horasOwnerN3;
   const horasLivrePerfDetalhe = Math.max(
     0,
     (state.horasN3Mensais || 0) - horasAtendN3 - horasRotinasN3 - horasTamPerfDetalhe - horasOwnerPerfDetalhe,
