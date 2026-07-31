@@ -144,15 +144,17 @@ const TIERS: {
 ];
 
 export default function SmartTiersPanel() {
-  const { results, state, update, activePreset } = useITSMContext();
+  const { results, state, update, activePreset, extrasOperacionais } = useITSMContext();
   const sm = results.smartMonitor;
   const sfl = results.smartFlow;
-  const totalEncargosPerc =
-    (state.pisPerc || 0) + (state.cofinsPerc || 0) + (state.issPerc || 0) +
-    (state.comissaoPerc || 0) + (state.irpjCsllPerc || 0) + (state.encFinancPerc || 0) +
-    (state.lucroPerc || 0);
-  const fatorVenda = totalEncargosPerc < 100 ? (100 - totalEncargosPerc) / 100 : 0;
-  const toSell = (c: number) => (fatorVenda > 0 ? c / fatorVenda : 0);
+  // Totalizadores canônicos por camada (mesma fonte usada em Proposição,
+  // Resumo de Cotação e Apresentação).
+  const tierPricing = useMemo(
+    () => computeTierPricing(state, results, extrasOperacionais),
+    [state, results, extrasOperacionais],
+  );
+  const fatorVenda = tierPricing.fatorVenda;
+  const toSell = (c: number) => c * fatorVenda;
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
