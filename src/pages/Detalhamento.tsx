@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { computeTierPricing, gerencialBucket as gerencialBucketFor } from "@/lib/tierPricing";
+import { computeN3Distribution, resolveN3Alloc } from "@/lib/n3Distribution";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { supabase } from "@/integrations/supabase/client";
 import { formatNumber, formatBRL } from "@/hooks/useITSMCalculator";
