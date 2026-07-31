@@ -781,21 +781,19 @@ export default function Detalhamento() {
       }
     : escopoFiltered.flow;
 
-  // Valores de venda por camada (alinhados ao painel principal)
+  // Valores de venda por camada (fonte canônica compartilhada com o painel de
+  // Camadas, o Resumo de Cotação e a Apresentação).
   const toSell = (c: number) => c * fatorVenda;
-  const valorMonitor = monitorVisible ? toSell(sm.total) : 0;
-  const valorFlow = flowVisible ? toSell(sf.total) : 0;
+  const tierPricing = computeTierPricing(state, results, extrasOperacionais);
+  const valorMonitor = monitorVisible ? tierPricing.venda.monitor : 0;
+  const valorFlow = flowVisible ? tierPricing.venda.flow : 0;
   const custoOperacaoBase =
     results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
   const valorFieldService = state.tierFieldOperation
-    ? toSell(fs.total) + toSell(custoRotinasField)
+    ? tierPricing.venda.fieldService
     : 0;
-  const valorOperation = state.tierOperation
-    ? toSell(custoOperacaoBase) + valorFieldService + toSell(gmudOperationData.totals.custo)
-    : 0;
-  const valorPerformance = state.tierPerformance
-    ? toSell(results.custoN3) + toSell(gmudPerformanceData.totals.custo)
-    : 0;
+  const valorOperation = state.tierOperation ? tierPricing.venda.operation : 0;
+  const valorPerformance = state.tierPerformance ? tierPricing.venda.performance : 0;
   // Rotinas Gerenciais Selbetti são cobradas em separado e são CUMULATIVAS entre
   // as camadas: uma gerencial de Monitor permanece ativa em Flow/Operation/
   // Performance; de Flow permanece em Operation/Performance; etc. Cada gerencial
