@@ -631,7 +631,7 @@ export default function SmartTiersPanel() {
   const smN3ManutVenda = toSell(sm.custoN3Manut);
   const smAtendentesVenda = toSell(sm.custoAtendentes);
   const smProxysVenda = toSell(sm.custoProxys);
-  const smTotalVenda = toSell(sm.total) + gerenciaisVendaIn("Monitor");
+  const smTotalVenda = tierPricing.venda.monitor + gerenciaisVendaIn("Monitor");
   // Smart Flow — venda
   const sflMonitVenda = toSell(sfl.custoMonitoramento);
   const sflN1Venda = toSell(sfl.custoN1Alocado);
@@ -639,7 +639,7 @@ export default function SmartTiersPanel() {
   const sflN3ManutVenda = toSell(sfl.custoN3Manut);
   const sflAtendentesVenda = toSell(sfl.custoAtendentes);
   const sflProxysVenda = toSell(sfl.custoProxys);
-  const sflTotalVenda = toSell(sfl.total) + gerenciaisVendaIn("Flow");
+  const sflTotalVenda = tierPricing.venda.flow + gerenciaisVendaIn("Flow");
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
   const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
@@ -686,16 +686,14 @@ export default function SmartTiersPanel() {
   // quando Smart Operation está ativo). Precisa ser refletido aqui para que o
   // "Valor Total de Venda" das Camadas bata exatamente com o preço de venda
   // calculado no Resumo de Cotação e na Listagem de Precificações.
-  const custoEndpointTooling =
-    (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0);
+  const custoEndpointTooling = tierPricing.custo.endpointTooling;
   const smOperationVenda = state.tierOperation
-    ? toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0))
-      + toSell(custoEndpointTooling)
-      + fsVenda + gmudOperation.venda + gerenciaisVendaIn("Operation")
+    ? tierPricing.venda.operation + gerenciaisVendaIn("Operation")
     : 0;
   const smPerformanceVenda = state.tierPerformance
-    ? toSell(results.custoN3) + gmudPerformance.venda + gerenciaisVendaIn("Performance")
+    ? tierPricing.venda.performance + gerenciaisVendaIn("Performance")
     : 0;
+  // Soma canônica: idêntica a `results.precoVendaMensal`.
   const totalSelecionado =
     (state.tierMonitor ? smTotalVenda : 0) + (state.tierFlow ? sflTotalVenda : 0) + smOperationVenda + smPerformanceVenda;
 
