@@ -1211,9 +1211,7 @@ export default function Detalhamento() {
       (state.qtdSistemas || 0) * pesos.firewall +
       (state.qtdAtivosRede || 0) * pesos.ativosRede;
     const custoPorUMMarginal = (() => {
-      const um = Math.max(0, umInvAtual);
-      for (const f of faixas) if (um > f.de && um <= f.ate) return f.custoPorUM || 0;
-      return faixas.length > 0 ? faixas[faixas.length - 1].custoPorUM || 0 : 0;
+      return computeCustoPorUMMarginal(umInvAtual, faixas);
     })();
     const computeMonitoradoUnit = (taxa: number, peso: number) => {
       const chamadosBrutos = adj(taxa);
