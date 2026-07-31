@@ -86,13 +86,18 @@ export function computeExtrasOperacionais(
     if (oferta === "Enterprise") return state.tierEnterprise;
     return false;
   };
+  // Rotinas gerenciais são CUMULATIVAS: uma gerencial vinculada a Monitor
+  // continua sendo executada (e cobrada) quando apenas Flow/Operation/
+  // Performance estão ativos. Usa exatamente o mesmo bucket dos relatórios.
+  const gerencialCobrada = (oferta: Rotina["oferta"]) =>
+    gerencialBucket(state, (oferta as TierKey) ?? "Operation") !== null;
 
   // === Rotinas Gerenciais Selbetti ===
   // Só são cobradas quando a camada vinculada na própria rotina está ativa.
   let custoRotinasGerenciais = 0;
   for (const rRaw of rotinas) {
     const r = normalizeLegacyRotina(rRaw);
-    if (!r.gerencial || !ofertaAtiva(r.oferta)) continue;
+    if (!r.gerencial || !gerencialCobrada(r.oferta)) continue;
     const rotina = normalizeOsRotina(rRaw);
     const mult = rotinaMultiplicador(rotina, inv, complexFlags);
     const demanda = r.chamadosMes * mult;
