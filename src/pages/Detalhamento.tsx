@@ -858,6 +858,15 @@ export default function Detalhamento() {
         ...(gmudOperationData.totals.custo > 0
           ? [{ label: "GMUDs (Operation)", value: toSell(gmudOperationData.totals.custo) }]
           : []),
+        ...(tierPricing.venda.endpointTooling > 0
+          ? [{
+              label: `Ferramenta de endpoint (${formatNumber(state.qtdEquipamentos || 0)} equip.)`,
+              value: tierPricing.venda.endpointTooling,
+            }]
+          : []),
+        ...(tierPricing.custo.residualBucket === "Operation" && tierPricing.venda.residual > 0.005
+          ? [{ label: "Monitoramento de ativos (UM)", value: tierPricing.venda.residual }]
+          : []),
       ]
     : [];
   const valorPerformanceParts = state.tierPerformance
@@ -868,6 +877,9 @@ export default function Detalhamento() {
         },
         ...(gmudPerformanceData.totals.custo > 0
           ? [{ label: "GMUDs (Performance)", value: toSell(gmudPerformanceData.totals.custo) }]
+          : []),
+        ...(tierPricing.custo.residualBucket === "Performance" && tierPricing.venda.residual > 0.005
+          ? [{ label: "Monitoramento de ativos (UM)", value: tierPricing.venda.residual }]
           : []),
       ]
     : [];
