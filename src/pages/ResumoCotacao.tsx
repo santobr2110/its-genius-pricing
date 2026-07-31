@@ -89,7 +89,8 @@ export default function ResumoCotacao() {
 
   const [rotinasLive] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const [gmudsLive] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
-  const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [33, 66]);
+  const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [0, 0]);
+  const [n3AllocHorasLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3AllocHoras", [0, 0]);
   const [horasMelhoriaOpLive] = usePersistentState<number>("gestao-ti:smartOp:horasMelhoria", 0);
   const [horasMelhoriaPerfLive] = usePersistentState<number>("gestao-ti:smartPerf:horasMelhoria", 0);
 
@@ -102,6 +103,7 @@ export default function ResumoCotacao() {
   const rotinas: Rotina[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? rotinasLive;
   const gmuds: Gmud[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:gmuds`] as Gmud[] | undefined) ?? gmudsLive;
   const n3Cortes: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3Cortes`] as [number, number] | undefined) ?? n3CortesLive;
+  const n3AllocHoras: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3AllocHoras`] as [number, number] | undefined) ?? n3AllocHorasLive;
   const horasMelhoriaOpSnap: number = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartOp:horasMelhoria`] as number | undefined) ?? horasMelhoriaOpLive;
   const horasMelhoriaPerfSnap: number = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:horasMelhoria`] as number | undefined) ?? horasMelhoriaPerfLive;
 
@@ -284,7 +286,7 @@ export default function ResumoCotacao() {
   const n3Dist = computeN3Distribution({
     total: horasN3,
     horasChamados: computed.horasAtendimentoN3 || 0,
-    horasRotinas: extrasResumo.horasRotinasN3 || 0,
+    horasRotinas: horasRotinasN3,
     horasTam: n3Alloc.tam,
     horasOwner: n3Alloc.owner,
     horasMelhoria: horasMelhoriaPerfSnap,
