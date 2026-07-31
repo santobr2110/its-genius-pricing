@@ -642,7 +642,7 @@ export default function SmartTiersPanel() {
   const sflTotalVenda = tierPricing.venda.flow + gerenciaisVendaIn("Flow");
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
   const fs = results.fieldService;
-  const fsVenda = fs.active ? toSell(fs.total) + rotinasField.totals.venda : 0;
+  const fsVenda = fs.active ? tierPricing.venda.fieldService : 0;
 
   // === GMUDs por camada ===
   const gmudInput = {
