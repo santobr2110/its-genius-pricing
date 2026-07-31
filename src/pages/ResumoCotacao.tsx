@@ -318,10 +318,15 @@ export default function ResumoCotacao() {
       .join(" · ");
   const monitorCusto = sm?.total || 0;
   const flowCusto = (sf?.total || 0) + (calcState.tierMonitor && hasInfraInventory ? monitorCusto : 0);
+  // Parcela de custo não atribuída a uma camada específica (ex.: monitoramento
+  // unificado por UM) — lançada na camada ativa mais baixa, igual ao painel
+  // de Camadas e ao Relatório de Proposição.
+  const residualIn = (tier: "Monitor" | "Flow" | "Operation" | "Performance") =>
+    tp.custo.residualBucket === tier ? tp.custo.residual : 0;
 
   // Quando Smart Flow está ativo, ele consolida o Smart Monitor (não exibir separado).
   if (calcState.tierMonitor && !calcState.tierFlow && hasInfraInventory) {
-    const custo = addDominantGerenciais("Monitor", monitorCusto);
+    const custo = addDominantGerenciais("Monitor", monitorCusto + residualIn("Monitor"));
     layerRows.push({
       camada: "Smart Monitor",
       reativos: sm.chamadosAtivos || 0,
@@ -340,7 +345,7 @@ export default function ResumoCotacao() {
     });
   }
   if (calcState.tierFlow) {
-    const custo = addDominantGerenciais("Flow", flowCusto);
+    const custo = addDominantGerenciais("Flow", flowCusto + residualIn("Flow"));
     layerRows.push({
       camada: "Smart Flow",
       reativos: sf.chamadosAtivos || 0,
@@ -363,7 +368,10 @@ export default function ResumoCotacao() {
     const custoOperacaoBase =
       (computed.custoN1 || 0) + (computed.custoN2 || 0) +
       (calcState.tierPerformance ? 0 : (computed.custoN3 || 0));
-    const custo = addDominantGerenciais("Operation", custoOperacaoBase + gmudData.operation.custo);
+    const custo = addDominantGerenciais(
+      "Operation",
+      custoOperacaoBase + gmudData.operation.custo + residualIn("Operation"),
+    );
     layerRows.push({
       camada: "Smart Operation",
       reativos: (computed.volumeN1 || 0) + (computed.volumeN2 || 0),
@@ -377,7 +385,10 @@ export default function ResumoCotacao() {
     });
   }
   if (calcState.tierPerformance) {
-    const custo = addDominantGerenciais("Performance", (computed.custoN3 || 0) + gmudData.performance.custo);
+    const custo = addDominantGerenciais(
+      "Performance",
+      (computed.custoN3 || 0) + gmudData.performance.custo + residualIn("Performance"),
+    );
     layerRows.push({
       camada: "Smart Performance",
       reativos: computed.volumeN3 || 0,
@@ -392,9 +403,8 @@ export default function ResumoCotacao() {
     layerRows.push({
       camada: "Ferramenta de Endpoint",
       reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
-      valor: 0,
-      custo: 0,
-      valorLabel: "Informativo",
+      valor: tp.venda.endpointTooling,
+      custo: tp.custo.endpointTooling,
       nota: buildNota([
         ["Equipamentos", formatNumber(calcState.qtdEquipamentos || 0)],
         ["Custo unitário/mês", formatBRL(calcState.custoFerramentaEndpoint || 0)],
