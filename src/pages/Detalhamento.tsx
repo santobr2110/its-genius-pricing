@@ -799,30 +799,8 @@ export default function Detalhamento() {
   // Performance; de Flow permanece em Operation/Performance; etc. Cada gerencial
   // é exibida e cobrada em uma única camada — a camada ativa mais baixa cuja
   // ordem seja ≥ à oferta vinculada da rotina (display bucket).
-  const tierOrder: Record<"Monitor" | "Flow" | "Operation" | "Performance", number> = {
-    Monitor: 1, Flow: 2, Operation: 3, Performance: 4,
-  };
-  const activeTiersOrdered = (
-    [
-      // Quando Monitor e Flow estão ativos simultaneamente, o bloco Monitor
-      // é ocultado (unifiedMonitorFlow). Nesse caso, as gerenciais de Monitor
-      // devem cair no próximo bucket displayable (Flow), e não em Monitor.
-      [monitorVisible && !flowVisible, "Monitor"],
-      [flowVisible, "Flow"],
-      [state.tierOperation, "Operation"],
-      [state.tierPerformance, "Performance"],
-    ] as Array<[boolean, "Monitor" | "Flow" | "Operation" | "Performance"]>
-  )
-    .filter(([active]) => active)
-    .map(([, t]) => t)
-    .sort((a, b) => tierOrder[a] - tierOrder[b]);
-  const gerencialBucket = (oferta: "Monitor" | "Flow" | "Operation" | "Performance") => {
-    const min = tierOrder[oferta];
-    for (const t of activeTiersOrdered) {
-      if (tierOrder[t] >= min) return t;
-    }
-    return null;
-  };
+  const gerencialBucket = (oferta: "Monitor" | "Flow" | "Operation" | "Performance") =>
+    gerencialBucketFor(state, oferta);
   const gerenciaisDe = (camada: "Monitor" | "Flow" | "Operation" | "Performance") =>
     rotinasGerenciais.filter((r) => {
       const oferta = (r as any).oferta as "Monitor" | "Flow" | "Operation" | "Performance";
