@@ -1121,18 +1121,28 @@ export default function Detalhamento() {
       let horasN3: HorasN3Slide | undefined;
       if ((!n3OptionalScenario || state.tierOperationN3) && state.horasN3Mensais > 0) {
         const total = state.horasN3Mensais;
-        const horasTam = (total * pctTam) / 100;
-        const horasOwner = (total * pctOwner) / 100;
-        const horasLivre = Math.max(0, total - horasAtendN3 - horasRotinasN3 - horasTam - horasOwner);
+        // Mesma cascata da tela (fonte única) — as parcelas fecham no total.
+        const distPerf = computeN3Distribution({
+          total,
+          horasChamados: horasAtendN3,
+          horasRotinas: horasRotinasN3,
+          horasTam: horasTamN3,
+          horasOwner: horasOwnerN3,
+          horasMelhoria: horasMelhoriaPerf,
+        });
+        const horasTam = distPerf.tam;
+        const horasOwner = distPerf.owner;
+        const horasLivre = distPerf.tecnicas;
         horasN3 = {
           total,
           valorHora: valorHoraN3Venda,
           modo: "performance",
           blocos: [
-            { titulo: "Chamados N3", horas: horasAtendN3, valor: horasAtendN3 * valorHoraN3Venda, descricao: "Atendimento reativo N3." },
-            { titulo: "Rotinas", horas: horasRotinasN3, valor: horasRotinasN3 * valorHoraN3Venda, descricao: "Rotinas Performance/Operation absorvidas." },
+            { titulo: "Chamados N3", horas: distPerf.chamados, valor: distPerf.chamados * valorHoraN3Venda, descricao: "Atendimento reativo N3." },
+            { titulo: "Rotinas", horas: distPerf.rotinas, valor: distPerf.rotinas * valorHoraN3Venda, descricao: "Rotinas Performance/Operation absorvidas." },
             { titulo: "TAM", horas: horasTam, valor: horasTam * valorHoraN3Venda, descricao: "Acompanhamento técnico e governança." },
             { titulo: "Owner", horas: horasOwner, valor: horasOwner * valorHoraN3Venda, descricao: "Especialista dedicado às rotinas e melhorias." },
+            { titulo: "Melhoria", horas: distPerf.melhoria, valor: distPerf.melhoria * valorHoraN3Venda, descricao: "Horas reservadas para evoluções e melhorias contínuas." },
             { titulo: "Horas técnicas", horas: horasLivre, valor: horasLivre * valorHoraN3Venda, descricao: "Saldo para projetos e demandas pontuais." },
           ].filter((b) => b.horas > 0),
         };
