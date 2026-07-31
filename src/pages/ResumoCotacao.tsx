@@ -9,6 +9,8 @@ import { useITSMContext } from "@/contexts/ITSMContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { formatBRL, formatNumber, computeITSMResults, type ITSMState, type ITSMResults } from "@/hooks/useITSMCalculator";
 import { computeExtrasOperacionais, recomputeComposicaoComExtras } from "@/lib/extrasOperacionais";
+import { computeTierPricing } from "@/lib/tierPricing";
+import { computeN3Distribution, resolveN3Alloc } from "@/lib/n3Distribution";
 import { SMART_ITO_NS } from "@/lib/offerings";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
