@@ -186,6 +186,15 @@ export default function ResumoCotacao() {
     () => computeExtrasOperacionais(calcState, computed, rotinas, gmuds),
     [calcState, computed, rotinas, gmuds],
   );
+  // Fonte única dos totalizadores por camada — mesma usada em Camadas de
+  // Oferta, Relatório de Proposição e Apresentação (.pptx).
+  const tp = useMemo(
+    () => computeTierPricing(calcState, computed, extrasResumo),
+    [calcState, computed, extrasResumo],
+  );
+  const fatorVenda =
+    tp.fatorVenda || (totalEncargosPerc < 100 ? 100 / (100 - totalEncargosPerc) : 1);
+  const toSell = (custo: number) => custo * fatorVenda;
   const dominantTierKey: "Monitor" | "Flow" | "Operation" | "Performance" | null =
     calcState.tierPerformance ? "Performance"
     : calcState.tierOperation ? "Operation"
