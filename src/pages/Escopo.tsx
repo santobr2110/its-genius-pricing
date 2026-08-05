@@ -14,6 +14,7 @@ import {
   CAMADA_LABEL, CAMADA_ORDEM, ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY,
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
+  ITEM_TIPO_LABEL, normalizeItensAdicionais,
   type CamadaKey, type EscopoCamada, type EscopoProposicao,
   type ItemAdicional, type ItemAdicionalTipo,
 } from "@/data/escopoProposicao";
@@ -34,10 +35,11 @@ export default function Escopo() {
     RESTRICOES_GERAIS_STORAGE_KEY,
     RESTRICOES_GERAIS_DEFAULT,
   );
-  const [itens, setItens] = usePersistentState<ItemAdicional[]>(
+  const [itensRaw, setItens] = usePersistentState<ItemAdicional[]>(
     ITENS_ADICIONAIS_STORAGE_KEY,
     ITENS_ADICIONAIS_DEFAULT,
   );
+  const itens = normalizeItensAdicionais(itensRaw);
 
   const updateCamada = (key: CamadaKey, patch: Partial<EscopoCamada>) => {
     setEscopo((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
@@ -49,13 +51,18 @@ export default function Escopo() {
   const removeItem = (id: string) => {
     setItens((prev) => prev.filter((it) => it.id !== id));
   };
-  const addItem = () => {
+  const addItem = (camada: CamadaKey) => {
     const id = `item-${Date.now()}`;
     setItens((prev) => [
-      ...prev,
-      { id, descricao: "Novo item", unidade: "Unidade", tipo: "fixo", valorManual: 0, observacao: "" },
+      ...normalizeItensAdicionais(prev),
+      {
+        id, camada, descricao: "Novo item", unidade: "Unidade",
+        tipo: "fixo", valorManual: 0, observacao: "",
+      },
     ]);
   };
+
+  const HORA_TIPOS: ItemAdicionalTipo[] = ["hora-n3", "tam", "owner"];
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -198,125 +205,169 @@ export default function Escopo() {
 
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">
-                  Adicionais
-                </Badge>
-                <CardTitle className="text-base">Itens Adicionais ao Contrato</CardTitle>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="gap-1.5 text-xs"
-                  onClick={addItem}
-                  disabled={!canEdit}
-                >
-                  <Plus className="h-3.5 w-3.5" /> Novo item
-                </Button>
-              </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">
+                Adicionais
+              </Badge>
+              <CardTitle className="text-base">Itens Adicionais ao Contrato — por camada</CardTitle>
             </div>
             <p className="text-xs text-muted-foreground pt-2">
-              Itens cobrados como adicionais ao contrato. Para tipos monitorados (servidor,
-              rede, firewall, banco de dados, sistema), o valor unitário é calculado
-              automaticamente combinando o custo de monitoramento, os chamados previstos
-              (incidentes ponderados no funil) e a parcela proporcional de rotinas/GMUDs por
-              ativo. Para os demais, informe o valor unitário manualmente.
+              Cadastre os itens adicionais dentro de cada camada de oferta. No Relatório de
+              Proposição só aparecem os itens das camadas ativas na precificação. O valor de
+              venda é calculado pelo mecanismo escolhido em <strong>Forma de cálculo</strong>
+              {" "}(ativos usam custo de monitoramento + chamados previstos, ajustados pelo
+              slider de Risco; horas usam o valor hora do N3; ITSM usa o custo de atendente),
+              sempre com o markup da rentabilidade informada na tela de Camadas. Informe um
+              valor manual para sobrescrever o cálculo.
             </p>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {itens.map((it) => (
-              <div key={it.id} className="rounded-lg border bg-muted/20 p-3 space-y-2">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
-                  <div className="md:col-span-4 space-y-1">
-                    <Label className="text-[11px]">Descrição</Label>
-                    <Input
-                      value={it.descricao}
-                      onChange={(e) => updateItem(it.id, { descricao: e.target.value })}
-                      disabled={!canEdit}
-                    />
-                  </div>
-                  <div className="md:col-span-2 space-y-1">
-                    <Label className="text-[11px]">Unidade</Label>
-                    <Input
-                      value={it.unidade}
-                      onChange={(e) => updateItem(it.id, { unidade: e.target.value })}
-                      disabled={!canEdit}
-                    />
-                  </div>
-                  <div className="md:col-span-3 space-y-1">
-                    <Label className="text-[11px]">Tipo</Label>
-                    <select
-                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs"
-                      value={it.tipo}
-                      onChange={(e) => updateItem(it.id, { tipo: e.target.value as ItemAdicionalTipo })}
-                      disabled={!canEdit}
-                    >
-                      <option value="monitorado-servidor">Monitorado · Servidor</option>
-                      <option value="monitorado-rede">Monitorado · Ativo de Rede</option>
-                      <option value="monitorado-firewall">Monitorado · Firewall</option>
-                      <option value="monitorado-bd">Monitorado · Banco de Dados</option>
-                      <option value="monitorado-sistema">Monitorado · Sistema</option>
-                      <option value="proxy">Proxy adicional</option>
-                      <option value="itsm">Acesso ao ITSM</option>
-                      <option value="hora-n3">Hora N3 avulsa</option>
-                      <option value="tam">TAM</option>
-                      <option value="owner">Owner</option>
-                      <option value="fixo">Outro (valor fixo)</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2 space-y-1">
-                    <Label className="text-[11px]">
-                      Valor manual (R$)
-                      <span className="text-muted-foreground"> opcional</span>
-                    </Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={1}
-                      value={it.valorManual ?? ""}
-                      onChange={(e) =>
-                        updateItem(it.id, {
-                          valorManual: e.target.value === "" ? undefined : Number(e.target.value),
-                        })
-                      }
-                      placeholder="auto"
-                      disabled={!canEdit}
-                    />
-                  </div>
-                  <div className="md:col-span-1 flex justify-end">
+          <CardContent className="space-y-6">
+            {CAMADA_ORDEM.map((camada) => {
+              const doGrupo = itens.filter((it) => it.camada === camada);
+              return (
+                <div key={camada} className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 flex-wrap border-b pb-2">
+                    <div className="flex items-center gap-2">
+                      <Badge className="text-[10px] uppercase tracking-wider">
+                        {CAMADA_LABEL[camada]}
+                      </Badge>
+                      <span className="text-[11px] text-muted-foreground">
+                        {doGrupo.length} {doGrupo.length === 1 ? "item" : "itens"}
+                      </span>
+                    </div>
                     <Button
                       type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeItem(it.id)}
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 text-xs"
+                      onClick={() => addItem(camada)}
                       disabled={!canEdit}
-                      aria-label="Remover item"
-                      title="Remover item"
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <Plus className="h-3.5 w-3.5" /> Novo item
                     </Button>
                   </div>
+
+                  {doGrupo.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">
+                      Nenhum item adicional nesta camada.
+                    </p>
+                  )}
+
+                  {doGrupo.map((it) => (
+                    <div key={it.id} className="rounded-lg border bg-muted/20 p-3 space-y-2">
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                        <div className="md:col-span-4 space-y-1">
+                          <Label className="text-[11px]">Descrição</Label>
+                          <Input
+                            value={it.descricao}
+                            onChange={(e) => updateItem(it.id, { descricao: e.target.value })}
+                            disabled={!canEdit}
+                          />
+                        </div>
+                        <div className="md:col-span-2 space-y-1">
+                          <Label className="text-[11px]">Unidade</Label>
+                          <Input
+                            value={it.unidade}
+                            onChange={(e) => updateItem(it.id, { unidade: e.target.value })}
+                            disabled={!canEdit}
+                          />
+                        </div>
+                        <div className="md:col-span-2 space-y-1">
+                          <Label className="text-[11px]">Camada</Label>
+                          <select
+                            className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs"
+                            value={it.camada}
+                            onChange={(e) => updateItem(it.id, { camada: e.target.value as CamadaKey })}
+                            disabled={!canEdit}
+                          >
+                            {CAMADA_ORDEM.map((k) => (
+                              <option key={k} value={k}>{CAMADA_LABEL[k]}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="md:col-span-3 space-y-1">
+                          <Label className="text-[11px]">Forma de cálculo</Label>
+                          <select
+                            className="h-9 w-full rounded-md border border-input bg-background px-2 text-xs"
+                            value={it.tipo}
+                            onChange={(e) => updateItem(it.id, { tipo: e.target.value as ItemAdicionalTipo })}
+                            disabled={!canEdit}
+                          >
+                            {(Object.keys(ITEM_TIPO_LABEL) as ItemAdicionalTipo[]).map((t) => (
+                              <option key={t} value={t}>{ITEM_TIPO_LABEL[t]}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="md:col-span-1 flex justify-end">
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => removeItem(it.id)}
+                            disabled={!canEdit}
+                            aria-label="Remover item"
+                            title="Remover item"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                        {HORA_TIPOS.includes(it.tipo) && (
+                          <div className="md:col-span-3 space-y-1">
+                            <Label className="text-[11px]">Horas por unidade</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={1}
+                              value={it.horas ?? 1}
+                              onChange={(e) =>
+                                updateItem(it.id, {
+                                  horas: e.target.value === "" ? undefined : Number(e.target.value),
+                                })
+                              }
+                              disabled={!canEdit}
+                            />
+                          </div>
+                        )}
+                        <div className="md:col-span-3 space-y-1">
+                          <Label className="text-[11px]">
+                            Valor manual (R$)
+                            <span className="text-muted-foreground">
+                              {it.tipo === "fixo" ? " obrigatório" : " opcional"}
+                            </span>
+                          </Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={it.valorManual ?? ""}
+                            onChange={(e) =>
+                              updateItem(it.id, {
+                                valorManual: e.target.value === "" ? undefined : Number(e.target.value),
+                              })
+                            }
+                            placeholder={it.tipo === "fixo" ? "0" : "auto"}
+                            disabled={!canEdit}
+                          />
+                        </div>
+                        <div className="md:col-span-6 space-y-1">
+                          <Label className="text-[11px]">Observação</Label>
+                          <Textarea
+                            rows={2}
+                            value={it.observacao ?? ""}
+                            onChange={(e) => updateItem(it.id, { observacao: e.target.value })}
+                            disabled={!canEdit}
+                            placeholder="Notas explicativas exibidas no relatório."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-[11px]">Observação</Label>
-                  <Textarea
-                    rows={2}
-                    value={it.observacao ?? ""}
-                    onChange={(e) => updateItem(it.id, { observacao: e.target.value })}
-                    disabled={!canEdit}
-                    placeholder="Notas explicativas exibidas no relatório."
-                  />
-                </div>
-              </div>
-            ))}
-            {itens.length === 0 && (
-              <p className="text-xs text-muted-foreground italic">
-                Nenhum item adicional cadastrado. Use “Novo item” para adicionar.
-              </p>
-            )}
+              );
+            })}
           </CardContent>
         </Card>
       </main>

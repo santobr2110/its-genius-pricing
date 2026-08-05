@@ -1,4 +1,3 @@
-import { computeCustoPorUMMarginal } from "@/lib/custoMonitoramentoUM";
 import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { computeTierPricing, gerencialBucket as gerencialBucketFor } from "@/lib/tierPricing";
@@ -39,11 +38,12 @@ import {
   type ComplexFlags, type Rotina,
 } from "@/data/rotinas";
 import {
-  ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
+  ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL, CAMADA_ORDEM,
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
-  ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
+  ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY, normalizeItensAdicionais,
   type EscopoProposicao, type EscopoCamada, type CamadaKey, type ItemAdicional,
 } from "@/data/escopoProposicao";
+import { createItemAdicionalCalculator, itemCamadaVisivel } from "@/lib/itensAdicionais";
 import {
   exportarApresentacao,
   type ApresentacaoPayload,
@@ -1197,71 +1197,22 @@ export default function Detalhamento() {
     if (state.tierEnterprise)
       pushCamada("enterprise", 0, []);
 
-    // Itens adicionais (replicando regra de visibilidade do bloco visual)
-    const escala = state.criticidadeEscala ?? [];
-    const ajuste = escala[state.criticidadeNivel] ?? 0;
-    const adj = (t: number) => Math.max(0, t * (1 + ajuste));
-    const cppN1 = results.custoPorChamadoN1;
-    const cppN2 = results.custoPorChamadoN2;
-    const cN3perChamado = state.valorHoraN3 * state.tempoMedioChamadoN3;
-    const pesos = state.monitorPesos ?? { servidores: 1, bancoDados: 1.2, firewall: 0.7, ativosRede: 0.5 };
-    const faixas = state.monitorFaixas ?? [];
-    const umInvAtual =
-      (state.qtdServidores || 0) * pesos.servidores +
-      (state.qtdBancosDados || 0) * pesos.bancoDados +
-      (state.qtdSistemas || 0) * pesos.firewall +
-      (state.qtdAtivosRede || 0) * pesos.ativosRede;
-    const custoPorUMMarginal = (() => {
-      return computeCustoPorUMMarginal(umInvAtual, faixas);
-    })();
-    const computeMonitoradoUnit = (taxa: number, peso: number) => {
-      const chamadosBrutos = adj(taxa);
-      const chamadosLiq = chamadosBrutos * (1 - state.reducaoN0 / 100);
-      const vN1 = chamadosLiq * (state.percN1 / 100);
-      const vN2 = chamadosLiq * (state.percN2 / 100);
-      const vN3 = chamadosLiq * (state.percN3 / 100);
-      const custoIncidentes = cppN1 * vN1 + cppN2 * vN2 + cN3perChamado * vN3;
-      const custoMonit = custoPorUMMarginal * peso;
-      const custoN1Aloc = state.tierMonitor && !state.tierOperation
-        ? (state.percAlocacaoN1Monitor / 100) * cppN1 * chamadosLiq
-        : 0;
-      return (custoIncidentes + custoMonit + custoN1Aloc) * fatorVenda;
+    // Itens adicionais — por camada ativa (configurados em Configurações › Escopo)
+    const calcItem = createItemAdicionalCalculator({ state, results, fatorVenda });
+    const camadaAtiva = {
+      monitorVisible, flowVisible,
+      operation: !!state.tierOperation,
+      fieldService: !!state.tierFieldOperation,
+      performance: !!state.tierPerformance,
+      enterprise: !!state.tierEnterprise,
     };
-    const isItemVisible = (it: ItemAdicional): boolean => {
-      switch (it.tipo) {
-        case "monitorado-servidor": return monitorVisible && (state.qtdServidores || 0) > 0;
-        case "monitorado-rede":
-        case "monitorado-firewall": return monitorVisible && (state.qtdAtivosRede || 0) > 0;
-        case "monitorado-bd": return monitorVisible && (state.qtdBancosDados || 0) > 0;
-        case "monitorado-sistema": return monitorVisible && (state.qtdSistemas || 0) > 0;
-        case "proxy": return monitorVisible || flowVisible;
-        case "itsm": return flowVisible;
-        case "hora-n3": return state.tierOperation || state.tierPerformance;
-        case "tam":
-        case "owner": return state.tierEnterprise;
-        case "fixo":
-        default: return true;
-      }
-    };
-    const computeItemValor = (it: ItemAdicional): number => {
-      if (typeof it.valorManual === "number" && it.valorManual > 0) return it.valorManual;
-      switch (it.tipo) {
-        case "monitorado-servidor": return computeMonitoradoUnit(state.taxaServidor, pesos.servidores);
-        case "monitorado-rede":
-        case "monitorado-firewall": return computeMonitoradoUnit(state.taxaRede, pesos.ativosRede);
-        case "monitorado-bd": return computeMonitoradoUnit(state.taxaBancoDados, pesos.bancoDados);
-        case "monitorado-sistema": return computeMonitoradoUnit(state.taxaSistemas, pesos.firewall);
-        case "proxy": return (state.valorProxyAdicional || 0) * fatorVenda;
-        case "hora-n3": return valorHoraN3Venda;
-        default: return it.valorManual ?? 0;
-      }
-    };
-    const itensSlide: ItemAdicionalSlide[] = itensAdicionais
-      .filter(isItemVisible)
+    const itensSlide: ItemAdicionalSlide[] = normalizeItensAdicionais(itensAdicionais)
+      .filter((it) => itemCamadaVisivel(it.camada, camadaAtiva))
+      .sort((a, b) => CAMADA_ORDEM.indexOf(a.camada) - CAMADA_ORDEM.indexOf(b.camada))
       .map((it) => ({
-        descricao: it.descricao,
+        descricao: `${CAMADA_LABEL[it.camada]} · ${it.descricao}`,
         unidade: it.unidade,
-        valor: computeItemValor(it),
+        valor: calcItem(it).valor,
         observacao: it.observacao,
       }));
 
@@ -2021,113 +1972,27 @@ export default function Detalhamento() {
           </CardContent>
         </Card>
 
-        {/* ITENS ADICIONAIS AO CONTRATO */}
+        {/* ITENS ADICIONAIS AO CONTRATO — por camada ativa */}
         {(() => {
-          if (!itensAdicionais || itensAdicionais.length === 0) return null;
-          const escala = state.criticidadeEscala ?? [];
-          const ajuste = escala[state.criticidadeNivel] ?? 0;
-          const adj = (t: number) => Math.max(0, t * (1 + ajuste));
-          const monitorActive = state.tierMonitor;
-          // Visibilidade por item: coerente com camadas ativas e inventário.
-          const isItemVisible = (it: ItemAdicional): boolean => {
-            switch (it.tipo) {
-              case "monitorado-servidor":
-                return monitorVisible && (state.qtdServidores || 0) > 0;
-              case "monitorado-rede":
-              case "monitorado-firewall":
-                return monitorVisible && (state.qtdAtivosRede || 0) > 0;
-              case "monitorado-bd":
-                return monitorVisible && (state.qtdBancosDados || 0) > 0;
-              case "monitorado-sistema":
-                return monitorVisible && (state.qtdSistemas || 0) > 0;
-              case "proxy":
-                // Proxy adicional faz sentido quando há coleta (Monitor ou Flow)
-                return monitorVisible || flowVisible;
-              case "itsm":
-                // Acesso ao ITSM é exclusivo do Smart Flow
-                return flowVisible;
-              case "hora-n3":
-                // Horas N3 avulsas só com Operation ou Performance ativos
-                return state.tierOperation || state.tierPerformance;
-              case "tam":
-              case "owner":
-                // Governança executiva — depende do Smart Enterprise
-                return state.tierEnterprise;
-              case "fixo":
-              default:
-                return true;
-            }
+          const todos = normalizeItensAdicionais(itensAdicionais);
+          if (todos.length === 0) return null;
+          const camadaAtiva = {
+            monitorVisible, flowVisible,
+            operation: !!state.tierOperation,
+            fieldService: !!state.tierFieldOperation,
+            performance: !!state.tierPerformance,
+            enterprise: !!state.tierEnterprise,
           };
-          const itensVisiveis = itensAdicionais.filter(isItemVisible);
-          if (itensVisiveis.length === 0) return null;
-          // Custo base por chamado (sem markup)
-          const cppN1 = results.custoPorChamadoN1;
-          const cppN2 = results.custoPorChamadoN2;
-          const cN3perChamado = state.valorHoraN3 * state.tempoMedioChamadoN3;
-          const pesos2 = state.monitorPesos ?? { servidores: 1, bancoDados: 1.2, firewall: 0.7, ativosRede: 0.5 };
-          const faixas2 = state.monitorFaixas ?? [];
-          const umInvAtual2 =
-            (state.qtdServidores || 0) * pesos2.servidores +
-            (state.qtdBancosDados || 0) * pesos2.bancoDados +
-            (state.qtdSistemas || 0) * pesos2.firewall +
-            (state.qtdAtivosRede || 0) * pesos2.ativosRede;
-          const custoPorUMMarginal2 = (() => {
-            return computeCustoPorUMMarginal(umInvAtual2, faixas2);
-          })();
-          const computeMonitoradoUnit = (taxa: number, peso: number): { custo: number; chamados: number } => {
-            const chamadosBrutos = adj(taxa);
-            const chamadosLiq = chamadosBrutos * (1 - state.reducaoN0 / 100);
-            const vN1 = chamadosLiq * (state.percN1 / 100);
-            const vN2 = chamadosLiq * (state.percN2 / 100);
-            const vN3 = chamadosLiq * (state.percN3 / 100);
-            const custoIncidentes = cppN1 * vN1 + cppN2 * vN2 + cN3perChamado * vN3;
-            const custoMonit = custoPorUMMarginal2 * peso;
-            // Parcela de N1 alocada ao Smart Monitor (quando Operation inativo)
-            const custoN1Aloc = monitorActive && !state.tierOperation
-              ? (state.percAlocacaoN1Monitor / 100) * cppN1 * chamadosLiq
-              : 0;
-            return { custo: custoIncidentes + custoMonit + custoN1Aloc, chamados: chamadosLiq };
-          };
-          const valorFinal = (custo: number) => custo * fatorVenda;
-
-          const computeItem = (it: ItemAdicional): { valor: number; detalhe?: string } => {
-            if (typeof it.valorManual === "number" && it.valorManual > 0) {
-              return { valor: it.valorManual };
-            }
-            switch (it.tipo) {
-              case "monitorado-servidor": {
-                const r = computeMonitoradoUnit(state.taxaServidor, pesos2.servidores);
-                return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
-              }
-              case "monitorado-rede":
-              case "monitorado-firewall": {
-                const r = computeMonitoradoUnit(state.taxaRede, pesos2.ativosRede);
-                return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
-              }
-              case "monitorado-bd": {
-                const r = computeMonitoradoUnit(state.taxaBancoDados, pesos2.bancoDados);
-                return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
-              }
-              case "monitorado-sistema": {
-                const r = computeMonitoradoUnit(state.taxaSistemas, pesos2.firewall);
-                return { valor: valorFinal(r.custo), detalhe: `${formatNumber(r.chamados, 1)} ch/mês previstos` };
-              }
-              case "proxy":
-                return { valor: (state.valorProxyAdicional || 0) * fatorVenda };
-              case "hora-n3":
-                return { valor: valorHoraN3Venda };
-              case "itsm":
-              case "tam":
-              case "owner":
-              case "fixo":
-              default:
-                return { valor: it.valorManual ?? 0 };
-            }
-          };
+          const computeItem = createItemAdicionalCalculator({ state, results, fatorVenda });
+          const grupos = CAMADA_ORDEM
+            .filter((c) => itemCamadaVisivel(c, camadaAtiva))
+            .map((c) => ({ camada: c, itens: todos.filter((it) => it.camada === c) }))
+            .filter((g) => g.itens.length > 0);
+          if (grupos.length === 0) return null;
 
           return (
             <Card className="report-section border-primary/20">
-              <CardContent className="p-5 space-y-3">
+              <CardContent className="p-5 space-y-4">
                 <div className="flex items-center gap-2">
                   <PackagePlus className="h-4 w-4 text-primary" />
                   <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
@@ -2135,46 +2000,55 @@ export default function Detalhamento() {
                   </p>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-snug report-price">
-                  Itens cobrados como adicionais ao escopo contratado. Para ativos monitorados,
-                  o valor unitário considera o custo de monitoramento e os chamados previstos
-                  (incidentes ponderados no funil N1/N2/N3 do contrato), com markup de margem
-                  e impostos. Para os demais, valor unitário conforme contrato.
+                  Itens cobrados como adicionais ao escopo contratado, organizados pelas camadas
+                  contratadas. Ativos consideram o custo de monitoramento e os chamados previstos
+                  (funil N1/N2/N3, ajustados pelo nível de risco); horas técnicas usam o valor hora
+                  do N3. Todos os valores já incluem margem, comissão e impostos.
                 </p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-[11px]">
-                    <thead>
-                      <tr className="border-b text-muted-foreground">
-                        <th className="text-left py-1.5 px-2 font-semibold">Item</th>
-                        <th className="text-left py-1.5 px-2 font-semibold">Unidade</th>
-                        <th className="text-right py-1.5 px-2 font-semibold report-price">Valor unitário</th>
-                        <th className="text-left py-1.5 px-2 font-semibold">Observação</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                       {itensVisiveis.map((it) => {
-                        const { valor, detalhe } = computeItem(it);
-                        return (
-                          <tr key={it.id} className="border-b border-muted-foreground/10 align-top">
-                            <td className="py-1.5 px-2 font-medium text-foreground">{it.descricao}</td>
-                            <td className="py-1.5 px-2 text-muted-foreground">{it.unidade}</td>
-                            <td className="py-1.5 px-2 text-right font-semibold tabular-nums report-price">
-                              {formatBRL(valor)}
-                              {detalhe && (
-                                <div className="text-[10px] font-normal text-muted-foreground">{detalhe}</div>
-                              )}
-                            </td>
-                            <td className="py-1.5 px-2 text-muted-foreground leading-snug">
-                              {it.observacao}
-                            </td>
+
+                {grupos.map((g) => (
+                  <div key={g.camada} className="space-y-1.5">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                      {CAMADA_LABEL[g.camada]}
+                    </p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="border-b text-muted-foreground">
+                            <th className="text-left py-1.5 px-2 font-semibold">Item</th>
+                            <th className="text-left py-1.5 px-2 font-semibold">Unidade</th>
+                            <th className="text-right py-1.5 px-2 font-semibold report-price">Valor unitário</th>
+                            <th className="text-left py-1.5 px-2 font-semibold">Observação</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                        </thead>
+                        <tbody>
+                          {g.itens.map((it) => {
+                            const { valor, detalhe } = computeItem(it);
+                            return (
+                              <tr key={it.id} className="border-b border-muted-foreground/10 align-top">
+                                <td className="py-1.5 px-2 font-medium text-foreground">{it.descricao}</td>
+                                <td className="py-1.5 px-2 text-muted-foreground">{it.unidade}</td>
+                                <td className="py-1.5 px-2 text-right font-semibold tabular-nums report-price">
+                                  {formatBRL(valor)}
+                                  {detalhe && (
+                                    <div className="text-[10px] font-normal text-muted-foreground">{detalhe}</div>
+                                  )}
+                                </td>
+                                <td className="py-1.5 px-2 text-muted-foreground leading-snug">
+                                  {it.observacao}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+
                 <p className="text-[10px] text-muted-foreground italic report-price">
-                  Valores mensais sugeridos. Itens marcados como “manual” usam o valor fixo
-                  cadastrado em Configurações › Escopo.
+                  Valores mensais sugeridos, calculados conforme a configuração de cada item em
+                  Configurações › Escopo.
                 </p>
               </CardContent>
             </Card>
