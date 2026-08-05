@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ListChecks, Plus, Trash2 } from "lucide-react";
+import { ListChecks, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +51,24 @@ export default function Escopo() {
   };
   const removeItem = (id: string) => {
     setItens((prev) => prev.filter((it) => it.id !== id));
+  };
+  /** Move o item para cima/baixo dentro da sua camada (a ordem aqui é a ordem do relatório). */
+  const moveItem = (id: string, dir: -1 | 1) => {
+    setItens((prev) => {
+      const list = normalizeItensAdicionais(prev);
+      const idx = list.findIndex((it) => it.id === id);
+      if (idx < 0) return prev;
+      const camada = list[idx].camada;
+      const irmaos = list
+        .map((it, i) => ({ it, i }))
+        .filter(({ it }) => it.camada === camada);
+      const pos = irmaos.findIndex(({ it }) => it.id === id);
+      const alvo = irmaos[pos + dir];
+      if (!alvo) return prev;
+      const next = [...list];
+      [next[idx], next[alvo.i]] = [next[alvo.i], next[idx]];
+      return next;
+    });
   };
   const addItem = (camada: CamadaKey) => {
     const id = `item-${Date.now()}`;
@@ -263,7 +281,7 @@ export default function Escopo() {
                     </p>
                   )}
 
-                  {doGrupo.map((it) => (
+                  {doGrupo.map((it, idxGrupo) => (
                     <div key={it.id} className="rounded-lg border bg-muted/20 p-3 space-y-2">
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
                         <div className="md:col-span-4 space-y-1">
@@ -308,7 +326,33 @@ export default function Escopo() {
                             ))}
                           </select>
                         </div>
-                        <div className="md:col-span-1 flex justify-end">
+                        <div className="md:col-span-1 flex justify-end items-center gap-0.5">
+                          <div className="flex flex-col">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-4 w-6"
+                              onClick={() => moveItem(it.id, -1)}
+                              disabled={!canEdit || idxGrupo === 0}
+                              aria-label="Mover para cima"
+                              title="Mover para cima"
+                            >
+                              <ChevronUp className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-4 w-6"
+                              onClick={() => moveItem(it.id, 1)}
+                              disabled={!canEdit || idxGrupo === doGrupo.length - 1}
+                              aria-label="Mover para baixo"
+                              title="Mover para baixo"
+                            >
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                           <Button
                             type="button"
                             size="icon"
