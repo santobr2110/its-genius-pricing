@@ -1,4 +1,3 @@
-import { computeCustoPorUMMarginal } from "@/lib/custoMonitoramentoUM";
 import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { computeTierPricing, gerencialBucket as gerencialBucketFor } from "@/lib/tierPricing";
