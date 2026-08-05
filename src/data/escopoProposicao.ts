@@ -185,6 +185,11 @@ export type ItemAdicionalTipo =
   | "monitorado-firewall"
   | "monitorado-bd"
   | "monitorado-sistema"
+  | "monit-servidor"
+  | "monit-rede"
+  | "monit-firewall"
+  | "monit-bd"
+  | "monit-sistema"
   | "proxy"
   | "atendente-itsm"
   | "itsm"
@@ -213,6 +218,11 @@ export const ITEM_TIPO_LABEL: Record<ItemAdicionalTipo, string> = {
   "monitorado-firewall": "Calculado · Firewall (monitoramento + chamados)",
   "monitorado-bd": "Calculado · Banco de dados (monitoramento + chamados)",
   "monitorado-sistema": "Calculado · Sistema (monitoramento + chamados)",
+  "monit-servidor": "Calculado · Servidor (somente monitoramento)",
+  "monit-rede": "Calculado · Ativo de rede (somente monitoramento)",
+  "monit-firewall": "Calculado · Firewall (somente monitoramento)",
+  "monit-bd": "Calculado · Banco de dados (somente monitoramento)",
+  "monit-sistema": "Calculado · Sistema (somente monitoramento)",
   proxy: "Calculado · Proxy adicional",
   "atendente-itsm": "Calculado · Atendente dedicado no ITSM",
   itsm: "Calculado · Acesso ao ITSM (custo por atendente)",
@@ -230,6 +240,11 @@ export function inferCamadaFromTipo(tipo: ItemAdicionalTipo): CamadaKey {
     case "monitorado-firewall":
     case "monitorado-bd":
     case "monitorado-sistema":
+    case "monit-servidor":
+    case "monit-rede":
+    case "monit-firewall":
+    case "monit-bd":
+    case "monit-sistema":
     case "proxy":
       return "monitor";
     case "atendente-itsm":
@@ -264,32 +279,32 @@ export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
     camada: "monitor",
     descricao: "Servidor adicional",
     unidade: "Servidor / mês",
-    tipo: "monitorado-servidor",
-    observacao: "Inclui monitoramento + chamados previstos (incidentes, rotinas e GMUDs) ponderados no funil de atendimento.",
+    tipo: "monit-servidor",
+    observacao: "Somente monitoramento do ativo (sem chamados previstos), conforme escopo do Smart Monitor.",
   },
   {
     id: uid("firewall"),
     camada: "monitor",
     descricao: "Firewall adicional",
     unidade: "Firewall / mês",
-    tipo: "monitorado-firewall",
-    observacao: "Considerado como ativo de rede crítico — mesma taxa de chamados de ativos de rede.",
+    tipo: "monit-firewall",
+    observacao: "Somente monitoramento do ativo (sem chamados previstos).",
   },
   {
     id: uid("rede"),
     camada: "monitor",
     descricao: "Ativo de Rede adicional",
     unidade: "Ativo / mês",
-    tipo: "monitorado-rede",
-    observacao: "Switch, roteador, access point ou similar dentro do escopo monitorado.",
+    tipo: "monit-rede",
+    observacao: "Switch, roteador, access point ou similar — somente monitoramento, sem chamados previstos.",
   },
   {
     id: uid("bd"),
     camada: "monitor",
     descricao: "Banco de Dados adicional",
     unidade: "Instância / mês",
-    tipo: "monitorado-bd",
-    observacao: "Instância de banco de dados monitorada e suportada conforme escopo contratado.",
+    tipo: "monit-bd",
+    observacao: "Instância de banco de dados — somente monitoramento, sem chamados previstos.",
   },
   {
     id: uid("proxy"),
