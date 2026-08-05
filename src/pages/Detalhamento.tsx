@@ -2004,13 +2004,6 @@ export default function Detalhamento() {
                     Itens adicionais ao contrato
                   </p>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-snug">
-                  Itens cobrados como adicionais ao escopo contratado, organizados pelas camadas
-                  contratadas. Ativos consideram o custo de monitoramento e os chamados previstos
-                  (funil N1/N2/N3, ajustados pelo nível de risco); horas técnicas usam o valor hora
-                  do N3. Todos os valores já incluem margem, comissão e impostos.
-                </p>
-
                 {grupos.map((g) => (
                   <div key={g.camada} className="space-y-1.5">
                     <div className="overflow-x-auto">
