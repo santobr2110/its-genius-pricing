@@ -2041,10 +2041,6 @@ export default function Detalhamento() {
                   </div>
                 ))}
 
-                <p className="text-[10px] text-muted-foreground italic">
-                  Valores mensais sugeridos, calculados conforme a configuração de cada item em
-                  Configurações › Escopo.
-                </p>
               </CardContent>
             </Card>
           );
