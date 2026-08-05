@@ -62,6 +62,12 @@ export function createItemAdicionalCalculator(ctx: ItemAdicionalCtx) {
     };
   };
 
+  /** Somente monitoramento do ativo (sem chamados previstos). */
+  const monitOnly = (peso: number): ItemAdicionalValor => ({
+    valor: custoPorUMMarginal * peso * fatorVenda,
+    detalhe: "somente monitoramento",
+  });
+
   return function computeItem(it: ItemAdicional): ItemAdicionalValor {
     if (it.tipo === "fixo" || (typeof it.valorManual === "number" && it.valorManual > 0)) {
       return { valor: it.valorManual ?? 0 };
@@ -73,6 +79,11 @@ export function createItemAdicionalCalculator(ctx: ItemAdicionalCtx) {
       case "monitorado-firewall": return ativoUnit(state.taxaRede, pesos.ativosRede);
       case "monitorado-bd": return ativoUnit(state.taxaBancoDados, pesos.bancoDados);
       case "monitorado-sistema": return ativoUnit(state.taxaSistemas, pesos.firewall);
+      case "monit-servidor": return monitOnly(pesos.servidores);
+      case "monit-rede":
+      case "monit-firewall": return monitOnly(pesos.ativosRede);
+      case "monit-bd": return monitOnly(pesos.bancoDados);
+      case "monit-sistema": return monitOnly(pesos.firewall);
       case "proxy": return { valor: (state.valorProxyAdicional || 0) * fatorVenda };
       case "atendente-itsm":
       case "itsm": return { valor: (state.custoAtendenteFlow || 0) * fatorVenda };
