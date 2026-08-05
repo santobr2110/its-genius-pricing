@@ -2347,16 +2347,16 @@ function GmudReportTable({
               </td>
               <td className="px-3 py-2 text-muted-foreground">{g.tipo}</td>
               <td className="px-3 py-2 text-muted-foreground">{g.frequencia}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{g.chamadosMes.toFixed(2)}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{g.horasN3.toFixed(2)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{g.chamadosMes.toFixed(1)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{g.horasN3.toFixed(1)}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr className="border-t bg-muted/40">
             <td className="px-3 py-2 font-bold uppercase tracking-wider text-[10px]" colSpan={3}>Total</td>
-            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.chamados.toFixed(2)}</td>
-            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.horasN3.toFixed(2)}</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.chamados.toFixed(1)}</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.horasN3.toFixed(1)}</td>
           </tr>
         </tfoot>
       </table>
