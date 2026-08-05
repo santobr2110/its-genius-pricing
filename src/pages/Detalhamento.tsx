@@ -2055,11 +2055,12 @@ export default function Detalhamento() {
           if (state.tierFieldOperation) ativos.push("fieldService");
           if (state.tierPerformance) ativos.push("performance");
           if (state.tierEnterprise) ativos.push("enterprise");
-          const blocos = ativos
+          const ultima = ativos.length > 0 ? [ativos[ativos.length - 1]] : [];
+          const blocos = ultima
             .map((k) => ({ k, items: (escopo[k]?.restricoes ?? []).filter((r) => r.trim()) }))
             .filter((b) => b.items.length > 0);
-          if (blocos.length === 0) return null;
           const gerais = restricoesGerais.filter((r) => r.trim().length > 0);
+          if (blocos.length === 0 && gerais.length === 0) return null;
           return (
             <Card className="border-muted-foreground/20 bg-muted/20">
               <CardContent className="p-5 space-y-3">
