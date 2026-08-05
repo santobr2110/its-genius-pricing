@@ -2517,12 +2517,12 @@ function N3HoursBox({
             )}
             {pctTam > 0 && (
               <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctTam}%` }}>
-                {pctTam >= 8 && `TAM ${pctTam}%`}
+                {pctTam >= 8 && `TAM ${pctTam.toFixed(0)}%`}
               </div>
             )}
             {pctOwner > 0 && (
               <div className="bg-gradient-to-r from-sky-400 to-sky-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctOwner}%` }}>
-                {pctOwner >= 8 && `Owner ${pctOwner}%`}
+                {pctOwner >= 8 && `Owner ${pctOwner.toFixed(0)}%`}
               </div>
             )}
             {pctMelhoriaPerf > 0 && (
