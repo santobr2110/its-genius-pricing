@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ListChecks, Plus, Trash2 } from "lucide-react";
+import { ListChecks, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +51,24 @@ export default function Escopo() {
   };
   const removeItem = (id: string) => {
     setItens((prev) => prev.filter((it) => it.id !== id));
+  };
+  /** Move o item para cima/baixo dentro da sua camada (a ordem aqui é a ordem do relatório). */
+  const moveItem = (id: string, dir: -1 | 1) => {
+    setItens((prev) => {
+      const list = normalizeItensAdicionais(prev);
+      const idx = list.findIndex((it) => it.id === id);
+      if (idx < 0) return prev;
+      const camada = list[idx].camada;
+      const irmaos = list
+        .map((it, i) => ({ it, i }))
+        .filter(({ it }) => it.camada === camada);
+      const pos = irmaos.findIndex(({ it }) => it.id === id);
+      const alvo = irmaos[pos + dir];
+      if (!alvo) return prev;
+      const next = [...list];
+      [next[idx], next[alvo.i]] = [next[alvo.i], next[idx]];
+      return next;
+    });
   };
   const addItem = (camada: CamadaKey) => {
     const id = `item-${Date.now()}`;
