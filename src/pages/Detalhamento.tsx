@@ -1206,9 +1206,11 @@ export default function Detalhamento() {
       performance: !!state.tierPerformance,
       enterprise: !!state.tierEnterprise,
     };
+    const ultimaCamadaAtivaSlide = [...CAMADA_ORDEM]
+      .filter((c) => itemCamadaVisivel(c, camadaAtiva))
+      .pop();
     const itensSlide: ItemAdicionalSlide[] = normalizeItensAdicionais(itensAdicionais)
-      .filter((it) => itemCamadaVisivel(it.camada, camadaAtiva))
-      .sort((a, b) => CAMADA_ORDEM.indexOf(a.camada) - CAMADA_ORDEM.indexOf(b.camada))
+      .filter((it) => !!ultimaCamadaAtivaSlide && it.camada === ultimaCamadaAtivaSlide)
       .map((it) => ({
         descricao: `${CAMADA_LABEL[it.camada]} · ${it.descricao}`,
         unidade: it.unidade,
