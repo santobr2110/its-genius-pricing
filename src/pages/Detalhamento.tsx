@@ -2013,9 +2013,6 @@ export default function Detalhamento() {
 
                 {grupos.map((g) => (
                   <div key={g.camada} className="space-y-1.5">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                      {CAMADA_LABEL[g.camada]}
-                    </p>
                     <div className="overflow-x-auto">
                       <table className="w-full text-[11px]">
                         <thead>
