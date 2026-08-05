@@ -39,11 +39,12 @@ import {
   type ComplexFlags, type Rotina,
 } from "@/data/rotinas";
 import {
-  ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL,
+  ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY, CAMADA_LABEL, CAMADA_ORDEM,
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
-  ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
+  ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY, normalizeItensAdicionais,
   type EscopoProposicao, type EscopoCamada, type CamadaKey, type ItemAdicional,
 } from "@/data/escopoProposicao";
+import { createItemAdicionalCalculator, itemCamadaVisivel } from "@/lib/itensAdicionais";
 import {
   exportarApresentacao,
   type ApresentacaoPayload,
