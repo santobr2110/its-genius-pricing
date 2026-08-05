@@ -1206,9 +1206,11 @@ export default function Detalhamento() {
       performance: !!state.tierPerformance,
       enterprise: !!state.tierEnterprise,
     };
+    const ultimaCamadaAtivaSlide = [...CAMADA_ORDEM]
+      .filter((c) => itemCamadaVisivel(c, camadaAtiva))
+      .pop();
     const itensSlide: ItemAdicionalSlide[] = normalizeItensAdicionais(itensAdicionais)
-      .filter((it) => itemCamadaVisivel(it.camada, camadaAtiva))
-      .sort((a, b) => CAMADA_ORDEM.indexOf(a.camada) - CAMADA_ORDEM.indexOf(b.camada))
+      .filter((it) => !!ultimaCamadaAtivaSlide && it.camada === ultimaCamadaAtivaSlide)
       .map((it) => ({
         descricao: `${CAMADA_LABEL[it.camada]} · ${it.descricao}`,
         unidade: it.unidade,
@@ -1984,8 +1986,11 @@ export default function Detalhamento() {
             enterprise: !!state.tierEnterprise,
           };
           const computeItem = createItemAdicionalCalculator({ state, results, fatorVenda });
-          const grupos = CAMADA_ORDEM
+          const ultimaCamadaAtiva = [...CAMADA_ORDEM]
             .filter((c) => itemCamadaVisivel(c, camadaAtiva))
+            .pop();
+          const grupos = CAMADA_ORDEM
+            .filter((c) => !!ultimaCamadaAtiva && c === ultimaCamadaAtiva)
             .map((c) => ({ camada: c, itens: todos.filter((it) => it.camada === c) }))
             .filter((g) => g.itens.length > 0);
           if (grupos.length === 0) return null;
@@ -1999,7 +2004,7 @@ export default function Detalhamento() {
                     Itens adicionais ao contrato
                   </p>
                 </div>
-                <p className="text-[11px] text-muted-foreground leading-snug report-price">
+                <p className="text-[11px] text-muted-foreground leading-snug">
                   Itens cobrados como adicionais ao escopo contratado, organizados pelas camadas
                   contratadas. Ativos consideram o custo de monitoramento e os chamados previstos
                   (funil N1/N2/N3, ajustados pelo nível de risco); horas técnicas usam o valor hora
@@ -2017,7 +2022,7 @@ export default function Detalhamento() {
                           <tr className="border-b text-muted-foreground">
                             <th className="text-left py-1.5 px-2 font-semibold">Item</th>
                             <th className="text-left py-1.5 px-2 font-semibold">Unidade</th>
-                            <th className="text-right py-1.5 px-2 font-semibold report-price">Valor unitário</th>
+                            <th className="text-right py-1.5 px-2 font-semibold">Valor de venda</th>
                             <th className="text-left py-1.5 px-2 font-semibold">Observação</th>
                           </tr>
                         </thead>
@@ -2028,7 +2033,7 @@ export default function Detalhamento() {
                               <tr key={it.id} className="border-b border-muted-foreground/10 align-top">
                                 <td className="py-1.5 px-2 font-medium text-foreground">{it.descricao}</td>
                                 <td className="py-1.5 px-2 text-muted-foreground">{it.unidade}</td>
-                                <td className="py-1.5 px-2 text-right font-semibold tabular-nums report-price">
+                                <td className="py-1.5 px-2 text-right font-semibold tabular-nums">
                                   {formatBRL(valor)}
                                   {detalhe && (
                                     <div className="text-[10px] font-normal text-muted-foreground">{detalhe}</div>
@@ -2046,7 +2051,7 @@ export default function Detalhamento() {
                   </div>
                 ))}
 
-                <p className="text-[10px] text-muted-foreground italic report-price">
+                <p className="text-[10px] text-muted-foreground italic">
                   Valores mensais sugeridos, calculados conforme a configuração de cada item em
                   Configurações › Escopo.
                 </p>
