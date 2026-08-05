@@ -281,7 +281,7 @@ export default function Escopo() {
                     </p>
                   )}
 
-                  {doGrupo.map((it) => (
+                  {doGrupo.map((it, idxGrupo) => (
                     <div key={it.id} className="rounded-lg border bg-muted/20 p-3 space-y-2">
                       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
                         <div className="md:col-span-4 space-y-1">
@@ -326,7 +326,33 @@ export default function Escopo() {
                             ))}
                           </select>
                         </div>
-                        <div className="md:col-span-1 flex justify-end">
+                        <div className="md:col-span-1 flex justify-end items-center gap-0.5">
+                          <div className="flex flex-col">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-4 w-6"
+                              onClick={() => moveItem(it.id, -1)}
+                              disabled={!canEdit || idxGrupo === 0}
+                              aria-label="Mover para cima"
+                              title="Mover para cima"
+                            >
+                              <ChevronUp className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-4 w-6"
+                              onClick={() => moveItem(it.id, 1)}
+                              disabled={!canEdit || idxGrupo === doGrupo.length - 1}
+                              aria-label="Mover para baixo"
+                              title="Mover para baixo"
+                            >
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                           <Button
                             type="button"
                             size="icon"
