@@ -60,20 +60,18 @@ export function mergePresetParamsForPricing(
   savedParams?: ParamPayload,
   defaultParams?: ParamPayload | null,
 ): ParamPayload {
-  const params = defaultParams && Object.keys(defaultParams).length > 0
-    ? { ...defaultParams }
-    : { ...(savedParams ?? {}) };
-
-  // Chaves que pertencem à precificação (escopo, restrições, itens adicionais,
-  // alocação de horas N3, horas de melhoria) devem sempre vir do snapshot salvo.
+  // O snapshot salvo da precificação é a fonte de verdade: qualquer parâmetro
+  // alterado durante aquela precificação prevalece sobre o perfil padrão.
+  // O perfil padrão serve apenas para preencher chaves ausentes no snapshot
+  // (ex.: parâmetros criados depois que a precificação foi salva).
+  const params: ParamPayload = { ...(defaultParams ?? {}) };
   if (savedParams) {
+    for (const [key, value] of Object.entries(savedParams)) {
+      if (value !== undefined) params[key] = value;
+    }
+    // Reforço explícito das chaves que sempre pertencem à precificação.
     for (const key of PRICING_OWNED_PARAM_KEYS) {
       if (savedParams[key] !== undefined) params[key] = savedParams[key];
-    }
-    // Parâmetros salvos que não existem no perfil padrão (ex.: parâmetros novos
-    // ou removidos do perfil) também são preservados.
-    for (const [key, value] of Object.entries(savedParams)) {
-      if (params[key] === undefined && value !== undefined) params[key] = value;
     }
   }
 
