@@ -186,6 +186,7 @@ export type ItemAdicionalTipo =
   | "monitorado-bd"
   | "monitorado-sistema"
   | "proxy"
+  | "atendente-itsm"
   | "itsm"
   | "hora-n3"
   | "tam"
@@ -194,12 +195,62 @@ export type ItemAdicionalTipo =
 
 export interface ItemAdicional {
   id: string;
+  /** Camada de oferta à qual o item pertence. Só aparece no relatório quando a camada está ativa. */
+  camada: CamadaKey;
   descricao: string;
   unidade: string;
   tipo: ItemAdicionalTipo;
+  /** Multiplicador de horas (usado por tipos baseados em hora: hora-n3, tam, owner). */
+  horas?: number;
   /** Valor manual em R$. Quando informado (>0) sobrescreve o cálculo automático. */
   valorManual?: number;
   observacao?: string;
+}
+
+export const ITEM_TIPO_LABEL: Record<ItemAdicionalTipo, string> = {
+  "monitorado-servidor": "Calculado · Servidor (monitoramento + chamados)",
+  "monitorado-rede": "Calculado · Ativo de rede (monitoramento + chamados)",
+  "monitorado-firewall": "Calculado · Firewall (monitoramento + chamados)",
+  "monitorado-bd": "Calculado · Banco de dados (monitoramento + chamados)",
+  "monitorado-sistema": "Calculado · Sistema (monitoramento + chamados)",
+  proxy: "Calculado · Proxy adicional",
+  "atendente-itsm": "Calculado · Atendente dedicado no ITSM",
+  itsm: "Calculado · Acesso ao ITSM (custo por atendente)",
+  "hora-n3": "Calculado · Hora N3 / Automação",
+  tam: "Calculado · TAM (horas × valor hora N3)",
+  owner: "Calculado · Owner (horas × valor hora N3)",
+  fixo: "Valor fixo (manual)",
+};
+
+/** Camada padrão inferida a partir do tipo — usada na migração de itens antigos. */
+export function inferCamadaFromTipo(tipo: ItemAdicionalTipo): CamadaKey {
+  switch (tipo) {
+    case "monitorado-servidor":
+    case "monitorado-rede":
+    case "monitorado-firewall":
+    case "monitorado-bd":
+    case "monitorado-sistema":
+    case "proxy":
+      return "monitor";
+    case "atendente-itsm":
+    case "itsm":
+      return "flow";
+    case "hora-n3":
+      return "operation";
+    case "tam":
+    case "owner":
+      return "enterprise";
+    default:
+      return "operation";
+  }
+}
+
+/** Garante que todo item tenha camada (compatibilidade com dados legados). */
+export function normalizeItensAdicionais(itens: ItemAdicional[] | undefined): ItemAdicional[] {
+  return (itens ?? []).map((it) => ({
+    ...it,
+    camada: it.camada ?? inferCamadaFromTipo(it.tipo),
+  }));
 }
 
 export const ITENS_ADICIONAIS_STORAGE_KEY = "escopo:itensAdicionais";
@@ -207,8 +258,10 @@ export const ITENS_ADICIONAIS_STORAGE_KEY = "escopo:itensAdicionais";
 const uid = (s: string) => s;
 
 export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
+  // ---- Smart Monitor ----
   {
     id: uid("servidor"),
+    camada: "monitor",
     descricao: "Servidor adicional",
     unidade: "Servidor / mês",
     tipo: "monitorado-servidor",
@@ -216,6 +269,7 @@ export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
   },
   {
     id: uid("firewall"),
+    camada: "monitor",
     descricao: "Firewall adicional",
     unidade: "Firewall / mês",
     tipo: "monitorado-firewall",
@@ -223,6 +277,7 @@ export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
   },
   {
     id: uid("rede"),
+    camada: "monitor",
     descricao: "Ativo de Rede adicional",
     unidade: "Ativo / mês",
     tipo: "monitorado-rede",
@@ -230,6 +285,7 @@ export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
   },
   {
     id: uid("bd"),
+    camada: "monitor",
     descricao: "Banco de Dados adicional",
     unidade: "Instância / mês",
     tipo: "monitorado-bd",
@@ -237,40 +293,90 @@ export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
   },
   {
     id: uid("proxy"),
+    camada: "monitor",
     descricao: "Proxy de monitoramento adicional",
     unidade: "Proxy / mês",
     tipo: "proxy",
     observacao: "Adicional ao(s) proxy(s) inicial(is); valor unitário alinhado ao parâmetro de Proxy adicional do Smart Monitor.",
   },
+  // ---- Smart Flow ----
+  {
+    id: uid("atendente-itsm"),
+    camada: "flow",
+    descricao: "Atendente dedicado adicional no ITSM",
+    unidade: "Atendente / mês",
+    tipo: "atendente-itsm",
+    observacao: "Atendente dedicado à triagem e roteamento técnico no ITSM do cliente.",
+  },
   {
     id: uid("itsm"),
+    camada: "flow",
     descricao: "Acesso adicional ao ITSM",
     unidade: "Usuário / mês",
     tipo: "itsm",
-    valorManual: 150,
     observacao: "Liberação de novo usuário no ITSM além dos perfis previstos no contrato.",
+  },
+  // ---- Smart Operation ----
+  {
+    id: uid("op-servidor"),
+    camada: "operation",
+    descricao: "Servidor gerenciado adicional",
+    unidade: "Servidor / mês",
+    tipo: "monitorado-servidor",
+    observacao: "Gestão completa do ativo: monitoramento e chamados previstos no funil N1/N2/N3.",
+  },
+  {
+    id: uid("op-bd"),
+    camada: "operation",
+    descricao: "Banco de Dados gerenciado adicional",
+    unidade: "Instância / mês",
+    tipo: "monitorado-bd",
+    observacao: "Gestão completa da instância, incluindo chamados previstos.",
+  },
+  {
+    id: uid("op-rede"),
+    camada: "operation",
+    descricao: "Ativo de Rede gerenciado adicional",
+    unidade: "Ativo / mês",
+    tipo: "monitorado-rede",
+    observacao: "Gestão completa do ativo de rede, incluindo chamados previstos.",
   },
   {
     id: uid("hora-n3"),
+    camada: "operation",
     descricao: "Hora técnica N3 / Automação avulsa",
     unidade: "Hora",
     tipo: "hora-n3",
+    horas: 1,
     observacao: "Hora N3 / Automação sob demanda, fora do volume mensal contratado. Cobrada conforme consumo aprovado.",
   },
+  // ---- Smart Performance ----
+  {
+    id: uid("perf-hora-n3"),
+    camada: "performance",
+    descricao: "Pacote de 10 horas de melhoria",
+    unidade: "Pacote / mês",
+    tipo: "hora-n3",
+    horas: 10,
+    observacao: "Pacote adicional de horas dedicadas a melhorias e rotinas avançadas.",
+  },
+  // ---- Smart Enterprise ----
   {
     id: uid("tam"),
+    camada: "enterprise",
     descricao: "TAM — Technical Account Manager",
     unidade: "Mês",
     tipo: "tam",
-    valorManual: 0,
+    horas: 20,
     observacao: "Profissional dedicado à governança técnica e relacionamento contínuo com o cliente.",
   },
   {
     id: uid("owner"),
+    camada: "enterprise",
     descricao: "Owner / Gestor de Contas dedicado",
     unidade: "Mês",
     tipo: "owner",
-    valorManual: 0,
+    horas: 20,
     observacao: "Gestor responsável pelo ciclo de vida do contrato e satisfação do cliente.",
   },
 ];
