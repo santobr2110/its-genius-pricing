@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -80,6 +81,13 @@ export default function Escopo() {
       </header>
 
       <main className="mx-auto max-w-5xl p-6 space-y-6">
+        <Tabs defaultValue="conteudo" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="conteudo">Conteúdo por camada</TabsTrigger>
+            <TabsTrigger value="adicionais">Itens Adicionais</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="conteudo" className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Conteúdo do Relatório de Proposição</CardTitle>
@@ -202,7 +210,9 @@ export default function Escopo() {
             </p>
           </CardContent>
         </Card>
+          </TabsContent>
 
+          <TabsContent value="adicionais" className="space-y-6">
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
@@ -370,6 +380,8 @@ export default function Escopo() {
             })}
           </CardContent>
         </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
