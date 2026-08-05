@@ -14,6 +14,7 @@ import {
   CAMADA_LABEL, CAMADA_ORDEM, ESCOPO_DEFAULT, ESCOPO_STORAGE_KEY,
   RESTRICOES_GERAIS_DEFAULT, RESTRICOES_GERAIS_STORAGE_KEY,
   ITENS_ADICIONAIS_DEFAULT, ITENS_ADICIONAIS_STORAGE_KEY,
+  ITEM_TIPO_LABEL, normalizeItensAdicionais,
   type CamadaKey, type EscopoCamada, type EscopoProposicao,
   type ItemAdicional, type ItemAdicionalTipo,
 } from "@/data/escopoProposicao";
@@ -34,10 +35,11 @@ export default function Escopo() {
     RESTRICOES_GERAIS_STORAGE_KEY,
     RESTRICOES_GERAIS_DEFAULT,
   );
-  const [itens, setItens] = usePersistentState<ItemAdicional[]>(
+  const [itensRaw, setItens] = usePersistentState<ItemAdicional[]>(
     ITENS_ADICIONAIS_STORAGE_KEY,
     ITENS_ADICIONAIS_DEFAULT,
   );
+  const itens = normalizeItensAdicionais(itensRaw);
 
   const updateCamada = (key: CamadaKey, patch: Partial<EscopoCamada>) => {
     setEscopo((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
@@ -49,13 +51,18 @@ export default function Escopo() {
   const removeItem = (id: string) => {
     setItens((prev) => prev.filter((it) => it.id !== id));
   };
-  const addItem = () => {
+  const addItem = (camada: CamadaKey) => {
     const id = `item-${Date.now()}`;
     setItens((prev) => [
-      ...prev,
-      { id, descricao: "Novo item", unidade: "Unidade", tipo: "fixo", valorManual: 0, observacao: "" },
+      ...normalizeItensAdicionais(prev),
+      {
+        id, camada, descricao: "Novo item", unidade: "Unidade",
+        tipo: "fixo", valorManual: 0, observacao: "",
+      },
     ]);
   };
+
+  const HORA_TIPOS: ItemAdicionalTipo[] = ["hora-n3", "tam", "owner"];
 
   return (
     <div className="min-h-screen bg-muted/30">
