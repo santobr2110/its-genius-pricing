@@ -2041,10 +2041,6 @@ export default function Detalhamento() {
                   </div>
                 ))}
 
-                <p className="text-[10px] text-muted-foreground italic">
-                  Valores mensais sugeridos, calculados conforme a configuração de cada item em
-                  Configurações › Escopo.
-                </p>
               </CardContent>
             </Card>
           );
@@ -2351,16 +2347,16 @@ function GmudReportTable({
               </td>
               <td className="px-3 py-2 text-muted-foreground">{g.tipo}</td>
               <td className="px-3 py-2 text-muted-foreground">{g.frequencia}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{g.chamadosMes.toFixed(2)}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{g.horasN3.toFixed(2)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{g.chamadosMes.toFixed(1)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{g.horasN3.toFixed(1)}</td>
             </tr>
           ))}
         </tbody>
         <tfoot>
           <tr className="border-t bg-muted/40">
             <td className="px-3 py-2 font-bold uppercase tracking-wider text-[10px]" colSpan={3}>Total</td>
-            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.chamados.toFixed(2)}</td>
-            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.horasN3.toFixed(2)}</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.chamados.toFixed(1)}</td>
+            <td className="px-3 py-2 text-right tabular-nums font-extrabold">{totals.horasN3.toFixed(1)}</td>
           </tr>
         </tfoot>
       </table>
@@ -2517,12 +2513,12 @@ function N3HoursBox({
             )}
             {pctTam > 0 && (
               <div className="bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctTam}%` }}>
-                {pctTam >= 8 && `TAM ${pctTam}%`}
+                {pctTam >= 8 && `TAM ${pctTam.toFixed(0)}%`}
               </div>
             )}
             {pctOwner > 0 && (
               <div className="bg-gradient-to-r from-sky-400 to-sky-600 flex items-center justify-center text-white text-[10px] font-extrabold" style={{ width: `${pctOwner}%` }}>
-                {pctOwner >= 8 && `Owner ${pctOwner}%`}
+                {pctOwner >= 8 && `Owner ${pctOwner.toFixed(0)}%`}
               </div>
             )}
             {pctMelhoriaPerf > 0 && (

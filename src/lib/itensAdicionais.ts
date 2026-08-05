@@ -92,7 +92,7 @@ export function createItemAdicionalCalculator(ctx: ItemAdicionalCtx) {
       case "owner":
         return {
           valor: horas * valorHoraN3Venda,
-          detalhe: horas > 1 ? `${horas}h × valor hora N3` : undefined,
+          detalhe: horas > 1 ? `${horas.toFixed(1).replace(/\.0$/, "")}h × valor hora N3` : undefined,
         };
       default:
         return { valor: it.valorManual ?? 0 };
