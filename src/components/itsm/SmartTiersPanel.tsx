@@ -1465,6 +1465,7 @@ export default function SmartTiersPanel() {
                   <table className="w-full text-[11px]">
                     <thead className="bg-muted sticky top-0">
                       <tr>
+                        <th className="w-7 px-1 py-1" />
                         <th className="text-left px-2 py-1 font-medium">Rotina</th>
                         <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
                         <th className="text-right px-2 py-1 font-medium w-14">CAC</th>
@@ -1474,8 +1475,17 @@ export default function SmartTiersPanel() {
                     </thead>
                     <tbody>
                       {rotinasOperation.items.map((i) => (
-                        <tr key={i.id} className="border-t">
-                          <td className="px-2 py-1">
+                        <tr key={i.id} className={`border-t ${i.off ? "opacity-45" : ""}`}>
+                          <td className="px-1 py-1 text-center">
+                            <input
+                              type="checkbox"
+                              className="h-3 w-3 accent-emerald-600 cursor-pointer"
+                              checked={!i.off}
+                              onChange={() => toggleRotina(i.id)}
+                              title={i.off ? "Incluir rotina na precificação" : "Remover rotina da precificação"}
+                            />
+                          </td>
+                          <td className={`px-2 py-1 ${i.off ? "line-through" : ""}`}>
                             <span className="text-muted-foreground">{i.grupo} · </span>
                             {i.rotina}
                             {i.automacao && (
@@ -1491,6 +1501,7 @@ export default function SmartTiersPanel() {
                     </tbody>
                     <tfoot className="bg-muted sticky bottom-0">
                       <tr>
+                        <td className="px-1 py-1" />
                         <td className="px-2 py-1 font-semibold">Total</td>
                         <td className="px-2 py-1 text-right font-semibold tabular-nums">
                           {rotinasOperation.totals.demanda.toFixed(1)}
