@@ -17,6 +17,7 @@ const SMART_ITO_RAW = [
   "itsm:fieldteams:v1",
   "gestao-ti:rotinas",
   "gestao-ti:gmuds",
+  "gestao-ti:rotinasOff",
   "gestao-ti:smartPerf:n3Cortes",
   "gestao-ti:smartPerf:n3AllocHoras",
   "gestao-ti:smartOp:horasMelhoria",
@@ -73,6 +74,7 @@ export function keysForOffering(offering: ParamOffering): string[] {
  * sempre do snapshot salvo — nunca do perfil de parâmetros padrão.
  */
 export const PRICING_OWNED_PARAM_KEYS: string[] = [
+  "gestao-ti:rotinasOff",
   "gestao-ti:smartPerf:n3Cortes",
   "gestao-ti:smartPerf:n3AllocHoras",
   "gestao-ti:smartOp:horasMelhoria",
