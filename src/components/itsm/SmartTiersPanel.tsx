@@ -612,6 +612,7 @@ export default function SmartTiersPanel() {
           rotina: r.rotina,
           oferta: r.oferta,
           automacao: r.automacao,
+          off: rotinaOff(r.id),
           demanda,
           cac,
           custo,
@@ -622,6 +623,7 @@ export default function SmartTiersPanel() {
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.cac += i.cac;
         acc.custo += i.custo;
@@ -632,7 +634,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [normalizedRotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda, rotinasOffSet]);
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
