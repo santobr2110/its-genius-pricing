@@ -14,6 +14,7 @@ import { useApplyDefaultProfileOnLogin } from "@/hooks/useApplyDefaultProfileOnL
 import { isPresetActive } from "@/lib/activePreset";
 import { toast } from "sonner";
 import { type Rotina, ROTINAS_DEFAULT } from "@/data/rotinas";
+import { useRotinasSelecao, filterRotinasAtivas } from "@/hooks/useRotinasSelecao";
 import { type Gmud, GMUDS_DEFAULT } from "@/data/gmuds";
 import {
   computeExtrasOperacionais,
