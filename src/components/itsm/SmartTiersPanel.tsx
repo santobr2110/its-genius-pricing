@@ -2309,16 +2309,18 @@ function PerformanceBlock({
   data,
   hourRate,
   hourRateSell,
+  onToggle,
 }: {
   titulo: string;
   vazio: string;
   data: {
-    items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
+    items: { id: string; grupo: string; rotina: string; automacao: boolean; off?: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
     totals: { demanda: number; horasMes: number; cac: number; custo: number; venda: number };
     isComplex: boolean;
   };
   hourRate?: number;
   hourRateSell?: number;
+  onToggle?: (id: string) => void;
 }) {
   const isComplex = data.isComplex;
   return (
@@ -2341,6 +2343,7 @@ function PerformanceBlock({
           <table className="w-full text-[11px]">
             <thead className="bg-muted sticky top-0">
               <tr>
+                {onToggle && <th className="w-7 px-1 py-1" />}
                 <th className="text-left px-2 py-1 font-medium">Rotina</th>
                 <th className="text-right px-2 py-1 font-medium w-16">
                   {isComplex ? "Exec/mês" : "Ch/mês"}
@@ -2353,8 +2356,19 @@ function PerformanceBlock({
             </thead>
             <tbody>
               {data.items.map((i) => (
-                <tr key={i.id} className="border-t">
-                  <td className="px-2 py-1">
+                <tr key={i.id} className={`border-t ${i.off ? "opacity-45" : ""}`}>
+                  {onToggle && (
+                    <td className="px-1 py-1 text-center">
+                      <input
+                        type="checkbox"
+                        className="h-3 w-3 accent-violet-600 cursor-pointer"
+                        checked={!i.off}
+                        onChange={() => onToggle(i.id)}
+                        title={i.off ? "Incluir rotina na precificação" : "Remover rotina da precificação"}
+                      />
+                    </td>
+                  )}
+                  <td className={`px-2 py-1 ${i.off ? "line-through" : ""}`}>
                     <span className="text-muted-foreground">{i.grupo} · </span>
                     {i.rotina}
                     {i.automacao && <span className="ml-1 text-[9px] text-primary">[auto]</span>}
@@ -2376,6 +2390,7 @@ function PerformanceBlock({
             </tbody>
             <tfoot className="bg-muted sticky bottom-0">
               <tr>
+                {onToggle && <td className="px-1 py-1" />}
                 <td className="px-2 py-1 font-semibold">Total</td>
                 <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.demanda.toFixed(1)}</td>
                 {isComplex && (
