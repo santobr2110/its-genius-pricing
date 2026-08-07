@@ -9,6 +9,7 @@ import BackHomeButton from "@/components/BackHomeButton";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, Legend, ResponsiveContainer, Customized } from "recharts";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useRotinasSelecao, filterRotinasAtivas } from "@/hooks/useRotinasSelecao";
 import { ROTINAS_DEFAULT, rotinaMultiplicador, type ComplexFlags, type Rotina } from "@/data/rotinas";
 import { useMemo } from "react";
 import { ListChecks, GitBranch } from "lucide-react";
@@ -41,7 +42,12 @@ export default function RelatorioDemanda() {
   const fatorLimite = 1 + limitePerc / 100;
 
   // === Rotinas (CACs previstos por origem/ativo) ===
-  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [rotinasAll] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { offSet: rotinasOffSet } = useRotinasSelecao();
+  const rotinas = useMemo(
+    () => filterRotinasAtivas(rotinasAll, rotinasOffSet),
+    [rotinasAll, rotinasOffSet],
+  );
   // === GMUDs (demanda extra para N2/N3) ===
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   const gmudData = useMemo(() => {
