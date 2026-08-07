@@ -14,6 +14,7 @@ import { computeN3Distribution, resolveN3Alloc } from "@/lib/n3Distribution";
 import { SMART_ITO_NS } from "@/lib/offerings";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useRotinasSelecao, filterRotinasAtivas } from "@/hooks/useRotinasSelecao";
 import { ROTINAS_DEFAULT, rotinaMultiplicador, type ComplexFlags, type Rotina } from "@/data/rotinas";
 import { GMUDS_DEFAULT, bucketGmuds, computeGmud, type Gmud } from "@/data/gmuds";
 import { useAuth } from "@/contexts/AuthContext";
