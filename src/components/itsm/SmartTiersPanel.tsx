@@ -1127,6 +1127,7 @@ export default function SmartTiersPanel() {
             </div>
             {rotinasMonitor.items.length > 0 && (
               <LayerRoutineTable
+                onToggle={toggleRotina}
                 titulo="Rotinas Técnicas Preventivas — Smart Monitor"
                 items={rotinasMonitor.items}
                 totals={rotinasMonitor.totals}
@@ -1176,6 +1177,7 @@ export default function SmartTiersPanel() {
               const g = gerenciaisEmCamada("Monitor");
               return g.items.length > 0 ? (
                 <LayerRoutineTable
+                onToggle={toggleRotina}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
                   totals={g.totals}
@@ -1388,6 +1390,7 @@ export default function SmartTiersPanel() {
             </div>
             {rotinasFlow.items.length > 0 && (
               <LayerRoutineTable
+                onToggle={toggleRotina}
                 titulo="Rotinas Técnicas Preventivas — Smart Flow"
                 items={rotinasFlow.items}
                 totals={rotinasFlow.totals}
@@ -1397,6 +1400,7 @@ export default function SmartTiersPanel() {
               const g = gerenciaisEmCamada("Flow");
               return g.items.length > 0 ? (
                 <LayerRoutineTable
+                onToggle={toggleRotina}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
                   totals={g.totals}
@@ -1827,6 +1831,7 @@ export default function SmartTiersPanel() {
               const g = gerenciaisEmCamada("Operation");
               return g.items.length > 0 ? (
                 <LayerRoutineTable
+                onToggle={toggleRotina}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
                   totals={g.totals}
@@ -1870,6 +1875,7 @@ export default function SmartTiersPanel() {
             </div>
 
             <PerformanceBlock
+              onToggle={toggleRotina}
               titulo="Rotinas Técnicas Preventivas — Smart Performance · Ambiente Padrão"
               vazio="Nenhuma rotina padrão com demanda ativa no inventário."
               data={rotinasPerfPadrao}
@@ -1877,6 +1883,7 @@ export default function SmartTiersPanel() {
 
             {algumComplexAtivo ? (
               <PerformanceBlock
+              onToggle={toggleRotina}
                 titulo="Rotinas Técnicas Preventivas — Smart Performance · Ambiente Complexo"
                 vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
                 data={rotinasPerfComplexo}
@@ -2077,6 +2084,7 @@ export default function SmartTiersPanel() {
               const g = gerenciaisEmCamada("Performance");
               return g.items.length > 0 ? (
                 <LayerRoutineTable
+                onToggle={toggleRotina}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
                   totals={g.totals}
