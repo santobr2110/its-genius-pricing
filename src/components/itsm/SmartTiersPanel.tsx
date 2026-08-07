@@ -14,6 +14,7 @@ import ApprovalBadge from "@/components/approval/ApprovalBadge";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useRotinasSelecao } from "@/hooks/useRotinasSelecao";
 import {
   ROTINAS_DEFAULT,
   rotinaMultiplicador,
@@ -158,6 +159,8 @@ export default function SmartTiersPanel() {
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
+  // Seleção manual: quais rotinas do catálogo entram nesta precificação.
+  const { offSet: rotinasOffSet, isOff: rotinaOff, toggle: toggleRotina } = useRotinasSelecao();
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   // Distribuição das horas N3 / Automação entre TAM / Owner / Livre.
   // Persistimos o VOLUME de horas (absoluto) — ao alterar o total N3, o volume
