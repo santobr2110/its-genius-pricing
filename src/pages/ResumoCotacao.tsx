@@ -88,6 +88,7 @@ export default function ResumoCotacao() {
   }, [activePreset.activeId]);
 
   const [rotinasLive] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { off: rotinasOffLive } = useRotinasSelecao();
   const [gmudsLive] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [0, 0]);
   const [n3AllocHorasLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3AllocHoras", [0, 0]);
@@ -100,7 +101,9 @@ export default function ResumoCotacao() {
   // Garante que o relatório reflita EXATAMENTE a configuração salva da
   // precificação, mesmo que o estado ao vivo divirja por algum motivo.
   const calcState: ITSMState = snapshot?.calculator ?? (state as ITSMState);
-  const rotinas: Rotina[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? rotinasLive;
+  const rotinasAll: Rotina[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:rotinas`] as Rotina[] | undefined) ?? rotinasLive;
+  const rotinasOff: string[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:rotinasOff`] as string[] | undefined) ?? rotinasOffLive;
+  const rotinas: Rotina[] = filterRotinasAtivas(rotinasAll, rotinasOff);
   const gmuds: Gmud[] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:gmuds`] as Gmud[] | undefined) ?? gmudsLive;
   const n3Cortes: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3Cortes`] as [number, number] | undefined) ?? n3CortesLive;
   const n3AllocHoras: [number, number] = (snapshot?.allParams?.[`${SMART_ITO_NS}gestao-ti:smartPerf:n3AllocHoras`] as [number, number] | undefined) ?? n3AllocHorasLive;
