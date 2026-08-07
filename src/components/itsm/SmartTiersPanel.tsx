@@ -14,6 +14,7 @@ import ApprovalBadge from "@/components/approval/ApprovalBadge";
 import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useRotinasSelecao } from "@/hooks/useRotinasSelecao";
 import {
   ROTINAS_DEFAULT,
   rotinaMultiplicador,
@@ -158,6 +159,8 @@ export default function SmartTiersPanel() {
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
+  // Seleção manual: quais rotinas do catálogo entram nesta precificação.
+  const { offSet: rotinasOffSet, isOff: rotinaOff, toggle: toggleRotina } = useRotinasSelecao();
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   // Distribuição das horas N3 / Automação entre TAM / Owner / Livre.
   // Persistimos o VOLUME de horas (absoluto) — ao alterar o total N3, o volume
@@ -346,13 +349,14 @@ export default function SmartTiersPanel() {
           ? horasMes * state.valorHoraN3
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horasMes, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, off: rotinaOff(r.id), demanda, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
 
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.horasMes += i.horasMes;
         acc.cac += i.cac;
@@ -363,7 +367,8 @@ export default function SmartTiersPanel() {
       { demanda: 0, horasMes: 0, cac: 0, custo: 0, venda: 0 },
     );
     return { items, totals };
-  }, [normalizedRotinas, state, results, fatorVenda]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [normalizedRotinas, state, results, fatorVenda, rotinasOffSet]);
 
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
@@ -391,12 +396,13 @@ export default function SmartTiersPanel() {
           ? horasMes * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horas, horasMes, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, off: rotinaOff(r.id), demanda, horas, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.horasMes += i.horasMes;
         acc.cac += i.cac;
@@ -412,12 +418,12 @@ export default function SmartTiersPanel() {
   const rotinasPerfPadrao = useMemo(
     () => buildPerformance("Padrão"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedRotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda, rotinasOffSet],
   );
   const rotinasPerfComplexo = useMemo(
     () => buildPerformance("Complexo"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedRotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda, rotinasOffSet],
   );
 
   // Builder genérico para rotinas vinculadas a uma camada específica
@@ -436,12 +442,13 @@ export default function SmartTiersPanel() {
           ? demanda * r.horasExecucao * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, off: rotinaOff(r.id), demanda, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.custo += i.custo;
         acc.venda += i.venda;
@@ -454,12 +461,12 @@ export default function SmartTiersPanel() {
   const rotinasMonitor = useMemo(
     () => buildLayerRotinas("Monitor"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedRotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda, rotinasOffSet],
   );
   const rotinasFlow = useMemo(
     () => buildLayerRotinas("Flow"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedRotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda, rotinasOffSet],
   );
 
   // Rotinas Gerenciais Selbetti — precificadas em separado
@@ -477,12 +484,13 @@ export default function SmartTiersPanel() {
         const horas = r.horasExecucao ?? 1;
         const custo = demanda * horas * state.valorHoraN3 * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, oferta: r.oferta, automacao: r.automacao, demanda, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, oferta: r.oferta, automacao: r.automacao, off: rotinaOff(r.id), demanda, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.custo += i.custo;
         acc.venda += i.venda;
@@ -492,7 +500,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [normalizedRotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda, rotinasOffSet]);
   // Gerenciais agora são atribuídas à oferta vinculada de cada rotina,
   // não mais somadas todas na camada dominante.
   const gerenciaisEmCamada = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") => {
@@ -503,6 +511,7 @@ export default function SmartTiersPanel() {
     );
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.custo += i.custo;
         acc.venda += i.venda;
@@ -603,6 +612,7 @@ export default function SmartTiersPanel() {
           rotina: r.rotina,
           oferta: r.oferta,
           automacao: r.automacao,
+          off: rotinaOff(r.id),
           demanda,
           cac,
           custo,
@@ -613,6 +623,7 @@ export default function SmartTiersPanel() {
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.cac += i.cac;
         acc.custo += i.custo;
@@ -623,7 +634,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [normalizedRotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda, rotinasOffSet]);
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
@@ -1116,6 +1127,7 @@ export default function SmartTiersPanel() {
             </div>
             {rotinasMonitor.items.length > 0 && (
               <LayerRoutineTable
+                onToggle={toggleRotina}
                 titulo="Rotinas Técnicas Preventivas — Smart Monitor"
                 items={rotinasMonitor.items}
                 totals={rotinasMonitor.totals}
@@ -1165,6 +1177,7 @@ export default function SmartTiersPanel() {
               const g = gerenciaisEmCamada("Monitor");
               return g.items.length > 0 ? (
                 <LayerRoutineTable
+                onToggle={toggleRotina}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
                   totals={g.totals}
@@ -1377,6 +1390,7 @@ export default function SmartTiersPanel() {
             </div>
             {rotinasFlow.items.length > 0 && (
               <LayerRoutineTable
+                onToggle={toggleRotina}
                 titulo="Rotinas Técnicas Preventivas — Smart Flow"
                 items={rotinasFlow.items}
                 totals={rotinasFlow.totals}
@@ -1386,6 +1400,7 @@ export default function SmartTiersPanel() {
               const g = gerenciaisEmCamada("Flow");
               return g.items.length > 0 ? (
                 <LayerRoutineTable
+                onToggle={toggleRotina}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
                   totals={g.totals}
@@ -1450,6 +1465,7 @@ export default function SmartTiersPanel() {
                   <table className="w-full text-[11px]">
                     <thead className="bg-muted sticky top-0">
                       <tr>
+                        <th className="w-7 px-1 py-1" />
                         <th className="text-left px-2 py-1 font-medium">Rotina</th>
                         <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
                         <th className="text-right px-2 py-1 font-medium w-14">CAC</th>
@@ -1459,8 +1475,17 @@ export default function SmartTiersPanel() {
                     </thead>
                     <tbody>
                       {rotinasOperation.items.map((i) => (
-                        <tr key={i.id} className="border-t">
-                          <td className="px-2 py-1">
+                        <tr key={i.id} className={`border-t ${i.off ? "opacity-45" : ""}`}>
+                          <td className="px-1 py-1 text-center">
+                            <input
+                              type="checkbox"
+                              className="h-3 w-3 accent-emerald-600 cursor-pointer"
+                              checked={!i.off}
+                              onChange={() => toggleRotina(i.id)}
+                              title={i.off ? "Incluir rotina na precificação" : "Remover rotina da precificação"}
+                            />
+                          </td>
+                          <td className={`px-2 py-1 ${i.off ? "line-through" : ""}`}>
                             <span className="text-muted-foreground">{i.grupo} · </span>
                             {i.rotina}
                             {i.automacao && (
@@ -1476,6 +1501,7 @@ export default function SmartTiersPanel() {
                     </tbody>
                     <tfoot className="bg-muted sticky bottom-0">
                       <tr>
+                        <td className="px-1 py-1" />
                         <td className="px-2 py-1 font-semibold">Total</td>
                         <td className="px-2 py-1 text-right font-semibold tabular-nums">
                           {rotinasOperation.totals.demanda.toFixed(1)}
@@ -1756,6 +1782,7 @@ export default function SmartTiersPanel() {
                         <table className="w-full text-[11px]">
                           <thead className="bg-muted sticky top-0">
                             <tr>
+                              <th className="w-7 px-1 py-1" />
                               <th className="text-left px-2 py-1 font-medium">Rotina</th>
                               <th className="text-left px-2 py-1 font-medium w-20">Oferta</th>
                               <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
@@ -1765,8 +1792,17 @@ export default function SmartTiersPanel() {
                           </thead>
                           <tbody>
                             {rotinasField.items.map((i) => (
-                              <tr key={i.id} className="border-t">
-                                <td className="px-2 py-1">
+                              <tr key={i.id} className={`border-t ${i.off ? "opacity-45" : ""}`}>
+                                <td className="px-1 py-1 text-center">
+                                  <input
+                                    type="checkbox"
+                                    className="h-3 w-3 accent-emerald-600 cursor-pointer"
+                                    checked={!i.off}
+                                    onChange={() => toggleRotina(i.id)}
+                                    title={i.off ? "Incluir rotina na precificação" : "Remover rotina da precificação"}
+                                  />
+                                </td>
+                                <td className={`px-2 py-1 ${i.off ? "line-through" : ""}`}>
                                   {i.rotina}
                                   {i.automacao && (
                                     <span className="ml-1 text-[9px] text-primary">[auto]</span>
@@ -1781,7 +1817,7 @@ export default function SmartTiersPanel() {
                           </tbody>
                           <tfoot className="bg-muted sticky bottom-0">
                             <tr>
-                              <td className="px-2 py-1 font-semibold" colSpan={2}>Total</td>
+                              <td className="px-2 py-1 font-semibold" colSpan={3}>Total</td>
                               <td className="px-2 py-1 text-right font-semibold tabular-nums">
                                 {rotinasField.totals.demanda.toFixed(1)}
                               </td>
@@ -1816,6 +1852,7 @@ export default function SmartTiersPanel() {
               const g = gerenciaisEmCamada("Operation");
               return g.items.length > 0 ? (
                 <LayerRoutineTable
+                onToggle={toggleRotina}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
                   totals={g.totals}
@@ -1859,6 +1896,7 @@ export default function SmartTiersPanel() {
             </div>
 
             <PerformanceBlock
+              onToggle={toggleRotina}
               titulo="Rotinas Técnicas Preventivas — Smart Performance · Ambiente Padrão"
               vazio="Nenhuma rotina padrão com demanda ativa no inventário."
               data={rotinasPerfPadrao}
@@ -1866,6 +1904,7 @@ export default function SmartTiersPanel() {
 
             {algumComplexAtivo ? (
               <PerformanceBlock
+              onToggle={toggleRotina}
                 titulo="Rotinas Técnicas Preventivas — Smart Performance · Ambiente Complexo"
                 vazio="Nenhuma rotina vinculada aos itens de complexidade ativos."
                 data={rotinasPerfComplexo}
@@ -2066,6 +2105,7 @@ export default function SmartTiersPanel() {
               const g = gerenciaisEmCamada("Performance");
               return g.items.length > 0 ? (
                 <LayerRoutineTable
+                onToggle={toggleRotina}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
                   totals={g.totals}
@@ -2155,18 +2195,21 @@ function LayerRoutineTable({
   items,
   totals,
   descricao,
+  onToggle,
 }: {
   titulo: string;
-  items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; custo: number; venda: number }[];
+  items: { id: string; grupo: string; rotina: string; automacao: boolean; off?: boolean; demanda: number; custo: number; venda: number }[];
   totals: { demanda: number; custo: number; venda: number };
   descricao?: string;
+  onToggle?: (id: string) => void;
 }) {
+  const ativos = items.filter((i) => !i.off).length;
   return (
     <div className="rounded border bg-background p-2 space-y-1.5">
       <div className="flex items-center gap-1.5">
         <ListChecks className="h-3.5 w-3.5 text-emerald-600" />
         <p className="text-xs font-semibold">{titulo}</p>
-        <span className="text-[10px] text-muted-foreground ml-auto">{items.length} item(ns)</span>
+        <span className="text-[10px] text-muted-foreground ml-auto">{ativos}/{items.length} item(ns)</span>
       </div>
       {descricao && (
         <p className="text-[10px] text-muted-foreground italic px-1">{descricao}</p>
@@ -2175,6 +2218,7 @@ function LayerRoutineTable({
         <table className="w-full text-[11px]">
           <thead className="bg-muted sticky top-0">
             <tr>
+              {onToggle && <th className="w-7 px-1 py-1" />}
               <th className="text-left px-2 py-1 font-medium">Rotina</th>
               <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
               <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
@@ -2183,8 +2227,19 @@ function LayerRoutineTable({
           </thead>
           <tbody>
             {items.map((i) => (
-              <tr key={i.id} className="border-t">
-                <td className="px-2 py-1">
+              <tr key={i.id} className={`border-t ${i.off ? "opacity-45" : ""}`}>
+                {onToggle && (
+                  <td className="px-1 py-1 text-center">
+                    <input
+                      type="checkbox"
+                      className="h-3 w-3 accent-emerald-600 cursor-pointer"
+                      checked={!i.off}
+                      onChange={() => onToggle(i.id)}
+                      title={i.off ? "Incluir rotina na precificação" : "Remover rotina da precificação"}
+                    />
+                  </td>
+                )}
+                <td className={`px-2 py-1 ${i.off ? "line-through" : ""}`}>
                   <span className="text-muted-foreground">{i.grupo} · </span>
                   {i.rotina}
                   {i.automacao && (
@@ -2199,6 +2254,7 @@ function LayerRoutineTable({
           </tbody>
           <tfoot className="bg-muted sticky bottom-0">
             <tr>
+              {onToggle && <td className="px-1 py-1" />}
               <td className="px-2 py-1 font-semibold">Total</td>
               <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.demanda.toFixed(1)}</td>
               <td className="px-2 py-1 text-right font-semibold tabular-nums">{formatBRL(totals.custo)}</td>
@@ -2282,16 +2338,18 @@ function PerformanceBlock({
   data,
   hourRate,
   hourRateSell,
+  onToggle,
 }: {
   titulo: string;
   vazio: string;
   data: {
-    items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
+    items: { id: string; grupo: string; rotina: string; automacao: boolean; off?: boolean; demanda: number; horas: number; horasMes: number; cac: number; custo: number; venda: number }[];
     totals: { demanda: number; horasMes: number; cac: number; custo: number; venda: number };
     isComplex: boolean;
   };
   hourRate?: number;
   hourRateSell?: number;
+  onToggle?: (id: string) => void;
 }) {
   const isComplex = data.isComplex;
   return (
@@ -2314,6 +2372,7 @@ function PerformanceBlock({
           <table className="w-full text-[11px]">
             <thead className="bg-muted sticky top-0">
               <tr>
+                {onToggle && <th className="w-7 px-1 py-1" />}
                 <th className="text-left px-2 py-1 font-medium">Rotina</th>
                 <th className="text-right px-2 py-1 font-medium w-16">
                   {isComplex ? "Exec/mês" : "Ch/mês"}
@@ -2326,8 +2385,19 @@ function PerformanceBlock({
             </thead>
             <tbody>
               {data.items.map((i) => (
-                <tr key={i.id} className="border-t">
-                  <td className="px-2 py-1">
+                <tr key={i.id} className={`border-t ${i.off ? "opacity-45" : ""}`}>
+                  {onToggle && (
+                    <td className="px-1 py-1 text-center">
+                      <input
+                        type="checkbox"
+                        className="h-3 w-3 accent-violet-600 cursor-pointer"
+                        checked={!i.off}
+                        onChange={() => onToggle(i.id)}
+                        title={i.off ? "Incluir rotina na precificação" : "Remover rotina da precificação"}
+                      />
+                    </td>
+                  )}
+                  <td className={`px-2 py-1 ${i.off ? "line-through" : ""}`}>
                     <span className="text-muted-foreground">{i.grupo} · </span>
                     {i.rotina}
                     {i.automacao && <span className="ml-1 text-[9px] text-primary">[auto]</span>}
@@ -2349,6 +2419,7 @@ function PerformanceBlock({
             </tbody>
             <tfoot className="bg-muted sticky bottom-0">
               <tr>
+                {onToggle && <td className="px-1 py-1" />}
                 <td className="px-2 py-1 font-semibold">Total</td>
                 <td className="px-2 py-1 text-right font-semibold tabular-nums">{data.totals.demanda.toFixed(1)}</td>
                 {isComplex && (

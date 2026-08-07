@@ -32,6 +32,7 @@ import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
 import { Link } from "react-router-dom";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useRotinasSelecao, filterRotinasAtivas } from "@/hooks/useRotinasSelecao";
 import {
   ROTINAS_DEFAULT, rotinaMultiplicador, COMPLEX_FLAG_KEYS,
   normalizeLegacyRotina,
@@ -483,7 +484,12 @@ export default function Detalhamento() {
     }
   };
 
-  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [rotinasAll] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { offSet: rotinasOffSet } = useRotinasSelecao();
+  const rotinas = useMemo(
+    () => filterRotinasAtivas(rotinasAll, rotinasOffSet),
+    [rotinasAll, rotinasOffSet],
+  );
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
   // Alocação absoluta de horas TAM/Owner (fonte canônica editada em Camadas).

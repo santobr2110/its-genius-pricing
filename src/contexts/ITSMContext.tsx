@@ -14,6 +14,7 @@ import { useApplyDefaultProfileOnLogin } from "@/hooks/useApplyDefaultProfileOnL
 import { isPresetActive } from "@/lib/activePreset";
 import { toast } from "sonner";
 import { type Rotina, ROTINAS_DEFAULT } from "@/data/rotinas";
+import { useRotinasSelecao, filterRotinasAtivas } from "@/hooks/useRotinasSelecao";
 import { type Gmud, GMUDS_DEFAULT } from "@/data/gmuds";
 import {
   computeExtrasOperacionais,
@@ -75,7 +76,9 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   // e a composição do PV reflitam os mesmos extras exibidos nas camadas Smart
   // e no Relatório de Proposição (Configurações Financeiras vs Camadas vs
   // Relatório passam a usar a mesma base de custo).
-  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [rotinasAll] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { offSet } = useRotinasSelecao();
+  const rotinas = useMemo(() => filterRotinasAtivas(rotinasAll, offSet), [rotinasAll, offSet]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
 
   // Tabela de comissão por faixa de rentabilidade (editável em Configurações Financeiras).
