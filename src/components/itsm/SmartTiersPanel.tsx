@@ -2166,18 +2166,21 @@ function LayerRoutineTable({
   items,
   totals,
   descricao,
+  onToggle,
 }: {
   titulo: string;
-  items: { id: string; grupo: string; rotina: string; automacao: boolean; demanda: number; custo: number; venda: number }[];
+  items: { id: string; grupo: string; rotina: string; automacao: boolean; off?: boolean; demanda: number; custo: number; venda: number }[];
   totals: { demanda: number; custo: number; venda: number };
   descricao?: string;
+  onToggle?: (id: string) => void;
 }) {
+  const ativos = items.filter((i) => !i.off).length;
   return (
     <div className="rounded border bg-background p-2 space-y-1.5">
       <div className="flex items-center gap-1.5">
         <ListChecks className="h-3.5 w-3.5 text-emerald-600" />
         <p className="text-xs font-semibold">{titulo}</p>
-        <span className="text-[10px] text-muted-foreground ml-auto">{items.length} item(ns)</span>
+        <span className="text-[10px] text-muted-foreground ml-auto">{ativos}/{items.length} item(ns)</span>
       </div>
       {descricao && (
         <p className="text-[10px] text-muted-foreground italic px-1">{descricao}</p>
@@ -2186,6 +2189,7 @@ function LayerRoutineTable({
         <table className="w-full text-[11px]">
           <thead className="bg-muted sticky top-0">
             <tr>
+              {onToggle && <th className="w-7 px-1 py-1" />}
               <th className="text-left px-2 py-1 font-medium">Rotina</th>
               <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
               <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
@@ -2194,8 +2198,19 @@ function LayerRoutineTable({
           </thead>
           <tbody>
             {items.map((i) => (
-              <tr key={i.id} className="border-t">
-                <td className="px-2 py-1">
+              <tr key={i.id} className={`border-t ${i.off ? "opacity-45" : ""}`}>
+                {onToggle && (
+                  <td className="px-1 py-1 text-center">
+                    <input
+                      type="checkbox"
+                      className="h-3 w-3 accent-emerald-600 cursor-pointer"
+                      checked={!i.off}
+                      onChange={() => onToggle(i.id)}
+                      title={i.off ? "Incluir rotina na precificação" : "Remover rotina da precificação"}
+                    />
+                  </td>
+                )}
+                <td className={`px-2 py-1 ${i.off ? "line-through" : ""}`}>
                   <span className="text-muted-foreground">{i.grupo} · </span>
                   {i.rotina}
                   {i.automacao && (
@@ -2210,6 +2225,7 @@ function LayerRoutineTable({
           </tbody>
           <tfoot className="bg-muted sticky bottom-0">
             <tr>
+              {onToggle && <td className="px-1 py-1" />}
               <td className="px-2 py-1 font-semibold">Total</td>
               <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.demanda.toFixed(1)}</td>
               <td className="px-2 py-1 text-right font-semibold tabular-nums">{formatBRL(totals.custo)}</td>
