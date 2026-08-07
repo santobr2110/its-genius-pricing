@@ -75,7 +75,9 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   // e a composição do PV reflitam os mesmos extras exibidos nas camadas Smart
   // e no Relatório de Proposição (Configurações Financeiras vs Camadas vs
   // Relatório passam a usar a mesma base de custo).
-  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const [rotinasAll] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { offSet } = useRotinasSelecao();
+  const rotinas = useMemo(() => filterRotinasAtivas(rotinasAll, offSet), [rotinasAll, offSet]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
 
   // Tabela de comissão por faixa de rentabilidade (editável em Configurações Financeiras).
