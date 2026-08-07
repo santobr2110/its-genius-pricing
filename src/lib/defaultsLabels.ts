@@ -9,6 +9,7 @@ const RAW: Record<string, string> = {
   "itsm:fieldteams:v1": "Field Service",
   "gestao-ti:rotinas": "Gestão de TI — Rotinas",
   "gestao-ti:gmuds": "Gestão de TI — GMUDs",
+  "gestao-ti:rotinasOff": "Gestão de TI — Rotinas desativadas na precificação",
   "gestao-ti:smartPerf:n3Cortes": "Gestão de TI — Cortes N3",
   "escopo:proposicao": "Escopo — Proposição",
   "escopo:restricoesGerais": "Escopo — Restrições Gerais",
