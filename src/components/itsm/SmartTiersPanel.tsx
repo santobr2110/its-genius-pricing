@@ -349,13 +349,14 @@ export default function SmartTiersPanel() {
           ? horasMes * state.valorHoraN3
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horasMes, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, off: rotinaOff(r.id), demanda, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
 
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.horasMes += i.horasMes;
         acc.cac += i.cac;
@@ -366,7 +367,8 @@ export default function SmartTiersPanel() {
       { demanda: 0, horasMes: 0, cac: 0, custo: 0, venda: 0 },
     );
     return { items, totals };
-  }, [normalizedRotinas, state, results, fatorVenda]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [normalizedRotinas, state, results, fatorVenda, rotinasOffSet]);
 
   const buildPerformance = (complexidade: "Padrão" | "Complexo") => {
     const isComplex = complexidade === "Complexo";
@@ -394,12 +396,13 @@ export default function SmartTiersPanel() {
           ? horasMes * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, horas, horasMes, cac, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, off: rotinaOff(r.id), demanda, horas, horasMes, cac, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.horasMes += i.horasMes;
         acc.cac += i.cac;
@@ -415,12 +418,12 @@ export default function SmartTiersPanel() {
   const rotinasPerfPadrao = useMemo(
     () => buildPerformance("Padrão"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedRotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda, rotinasOffSet],
   );
   const rotinasPerfComplexo = useMemo(
     () => buildPerformance("Complexo"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedRotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda, rotinasOffSet],
   );
 
   // Builder genérico para rotinas vinculadas a uma camada específica
@@ -439,12 +442,13 @@ export default function SmartTiersPanel() {
           ? demanda * r.horasExecucao * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, demanda, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, off: rotinaOff(r.id), demanda, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.custo += i.custo;
         acc.venda += i.venda;
@@ -457,12 +461,12 @@ export default function SmartTiersPanel() {
   const rotinasMonitor = useMemo(
     () => buildLayerRotinas("Monitor"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedRotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda, rotinasOffSet],
   );
   const rotinasFlow = useMemo(
     () => buildLayerRotinas("Flow"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [normalizedRotinas, state, results, fatorVenda],
+    [normalizedRotinas, state, results, fatorVenda, rotinasOffSet],
   );
 
   // Rotinas Gerenciais Selbetti — precificadas em separado
@@ -480,12 +484,13 @@ export default function SmartTiersPanel() {
         const horas = r.horasExecucao ?? 1;
         const custo = demanda * horas * state.valorHoraN3 * fatorAuto;
         const venda = toSell(custo);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, oferta: r.oferta, automacao: r.automacao, demanda, custo, venda };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, oferta: r.oferta, automacao: r.automacao, off: rotinaOff(r.id), demanda, custo, venda };
       })
       .filter((i) => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.custo += i.custo;
         acc.venda += i.venda;
@@ -495,7 +500,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [normalizedRotinas, state, results, fatorVenda]);
+  }, [normalizedRotinas, state, results, fatorVenda, rotinasOffSet]);
   // Gerenciais agora são atribuídas à oferta vinculada de cada rotina,
   // não mais somadas todas na camada dominante.
   const gerenciaisEmCamada = (camada: "Monitor" | "Flow" | "Operation" | "Performance" | "Enterprise") => {
@@ -506,6 +511,7 @@ export default function SmartTiersPanel() {
     );
     const totals = items.reduce(
       (acc, i) => {
+        if (i.off) return acc;
         acc.demanda += i.demanda;
         acc.custo += i.custo;
         acc.venda += i.venda;
