@@ -349,11 +349,14 @@ export function usePersistentState<T>(
         writeLocal(key, merged);
         // Notifica outras instâncias do mesmo hook nesta aba.
         if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent(PERSISTENT_STATE_SYNC_EVENT, {
-              detail: { key, value: merged, origin: instanceIdRef.current },
-            }),
-          );
+          const origin = instanceIdRef.current;
+          queueMicrotask(() => {
+            window.dispatchEvent(
+              new CustomEvent(PERSISTENT_STATE_SYNC_EVENT, {
+                detail: { key, value: merged, origin },
+              }),
+            );
+          });
         }
         // No modo preset, não persistimos em user_app_state (cloud sync vai
         // pela payload do preset, gerenciada em useActivePresetSession).
