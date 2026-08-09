@@ -4,6 +4,9 @@ import { SMART_ITO_NS } from "@/lib/offerings";
 import { getPresetKeyPrefix, isPresetActive } from "@/lib/activePreset";
 
 export const PERSISTENT_STATE_RESTORED_EVENT = "itsm:persistent-state-restored";
+/** Sincroniza instâncias do mesmo hook na MESMA aba (storage event não dispara localmente). */
+export const PERSISTENT_STATE_SYNC_EVENT = "itsm:persistent-state-sync";
+let instanceCounter = 0;
 
 const cloudValueCache = new Map<string, unknown>();
 const cloudHydrationPromises = new Map<string, Promise<unknown | undefined>>();
@@ -201,6 +204,8 @@ export function usePersistentState<T>(
   stateRef.current = state;
   const localVersionRef = useRef(0);
   const hydratedRef = useRef(false);
+  const instanceIdRef = useRef<number>(0);
+  if (instanceIdRef.current === 0) instanceIdRef.current = ++instanceCounter;
   const userIdRef = useRef<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -310,11 +315,22 @@ export function usePersistentState<T>(
       }
     };
 
+    const onSameTabSync = (event: Event) => {
+      const detail = (event as CustomEvent<{ key?: string; value?: unknown; origin?: number }>).detail;
+      if (detail?.key !== key || detail?.origin === instanceIdRef.current) return;
+      const merged = mergeWithInitial(detail.value as T, initialRef.current);
+      if (isEqualValue(stateRef.current, merged)) return;
+      stateRef.current = merged;
+      setStateBase(merged);
+    };
+
     window.addEventListener(PERSISTENT_STATE_RESTORED_EVENT, onRestored);
     window.addEventListener("storage", onStorage);
+    window.addEventListener(PERSISTENT_STATE_SYNC_EVENT, onSameTabSync);
     return () => {
       window.removeEventListener(PERSISTENT_STATE_RESTORED_EVENT, onRestored);
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener(PERSISTENT_STATE_SYNC_EVENT, onSameTabSync);
     };
   }, [key, commitExternalValue]);
 
@@ -331,6 +347,14 @@ export function usePersistentState<T>(
         localVersionRef.current += 1;
         stateRef.current = merged;
         writeLocal(key, merged);
+        // Notifica outras instâncias do mesmo hook nesta aba.
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent(PERSISTENT_STATE_SYNC_EVENT, {
+              detail: { key, value: merged, origin: instanceIdRef.current },
+            }),
+          );
+        }
         // No modo preset, não persistimos em user_app_state (cloud sync vai
         // pela payload do preset, gerenciada em useActivePresetSession).
         if (isPresetActive()) return merged;
