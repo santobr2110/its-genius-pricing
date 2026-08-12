@@ -718,9 +718,6 @@ export default function Detalhamento() {
       { test: /ambientes?\s+complex|HA,\s*multi-?site|complex/i, keep: incluidosFlags.perfComplexo },
       { test: /hora.*n3|n3.*dedicad|hora.*automa/i, keep: incluidosFlags.perfHorasN3 },
     ],
-    fieldService: [
-      { test: /rotina/i, keep: incluidosFlags.fieldRotinas },
-    ],
     enterprise: [],
   };
   const filterIncluidos = (key: CamadaKey, items: string[]) =>
@@ -1822,7 +1819,7 @@ export default function Detalhamento() {
               )}
               {state.tierOperation && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Operation{state.tierFieldOperation ? " (com Field Service de Microinformática)" : ""}</span>
+                  <span className="text-muted-foreground">Operation</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorOperation)}</span>
                 </div>
               )}
@@ -1921,7 +1918,6 @@ export default function Detalhamento() {
           if (monitorVisible) ativos.push("monitor");
           if (flowVisible) ativos.push("flow");
           if (state.tierOperation) ativos.push("operation");
-          if (state.tierFieldOperation) ativos.push("fieldService");
           if (state.tierPerformance) ativos.push("performance");
           if (state.tierEnterprise) ativos.push("enterprise");
           const ultima = ativos.length > 0 ? [ativos[ativos.length - 1]] : [];

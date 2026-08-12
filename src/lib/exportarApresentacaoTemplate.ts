@@ -49,7 +49,6 @@ const TIER_META: Record<
   operation: { tag: "SILVER", number: 3, tagColor: "5A6773" },
   performance: { tag: "GOLD", number: 4, tagColor: "A67A00" },
   enterprise: { tag: "PLATINUM", number: 5, tagColor: "3E5A54" },
-  fieldService: { tag: "FIELD", number: 6, tagColor: "0B4A32" },
 };
 
 /* ------------------------------------------------------------------ */

@@ -10,7 +10,7 @@
  * sob a chave `escopo:proposicao`.
  */
 
-export type CamadaKey = "monitor" | "flow" | "operation" | "performance" | "enterprise" | "fieldService";
+export type CamadaKey = "monitor" | "flow" | "operation" | "performance" | "enterprise";
 
 export interface EscopoCamada {
   titulo: string;
@@ -26,7 +26,6 @@ export const CAMADA_ORDEM: CamadaKey[] = [
   "monitor",
   "flow",
   "operation",
-  "fieldService",
   "performance",
   "enterprise",
 ];
@@ -35,7 +34,6 @@ export const CAMADA_LABEL: Record<CamadaKey, string> = {
   monitor: "Smart Monitor",
   flow: "Smart Flow",
   operation: "Smart Operation",
-  fieldService: "Field Service de Microinformática",
   performance: "Smart Performance",
   enterprise: "Smart Enterprise",
 };
@@ -95,24 +93,6 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
       "Horas N3 / Automação limitadas ao volume contratado mensalmente — não acumulam entre meses",
       "Não inclui suporte presencial sem contratação do Field Service de Microinformática",
       "Atendimentos fora do horário comercial seguem regras específicas de plantão",
-    ],
-  },
-  fieldService: {
-    titulo: "Field Service de Microinformática",
-    tagline: "Suporte presencial — incluso no Smart Operation",
-    descricao:
-      "Equipe presencial alocada para atendimento de microinformática e suporte em sites do cliente, complementando a operação remota do Smart Operation.",
-    incluidos: [
-      "Equipe N1F / N2F / N3F presencial alocada",
-      "Atendimento de microinformática nos sites do cliente",
-      "Rotinas Field — Microinformática executadas periodicamente",
-      "Transbordo automático para N1 remoto em pico de demanda",
-    ],
-    restricoes: [
-      "Cobertura limitada às localidades contratadas",
-      "SLA de deslocamento conforme distância e modalidade contratada",
-      "Equipamentos fora do inventário declarado podem gerar custo adicional",
-      "Peças e insumos de hardware não estão inclusos",
     ],
   },
   performance: {
