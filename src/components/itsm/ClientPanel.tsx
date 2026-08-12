@@ -97,48 +97,6 @@ export default function ClientPanel({ state, update, results }: Props) {
           </section>
 
           <section className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Volumes Atuais
-              </p>
-              <label htmlFor="sem-volumes" className="flex items-center gap-1.5 cursor-pointer">
-                <Checkbox
-                  id="sem-volumes"
-                  checked={semInfo}
-                  onCheckedChange={(v) => update("semVolumesAtuais", Boolean(v))}
-                />
-                <span className="text-[11px] text-muted-foreground">Não possui a informação</span>
-              </label>
-            </div>
-            <div className={`grid grid-cols-2 gap-2 ${semInfo ? "opacity-60" : ""}`}>
-              <div className="flex items-center gap-2 rounded-lg border p-2">
-                <Server className="h-4 w-4 shrink-0 text-emerald-500" />
-                <div className="flex-1 min-w-0">
-                  <Label className="text-[10px] text-muted-foreground leading-none truncate block">
-                    Chamados de Ativos / mês
-                  </Label>
-                  <Input
-                    type="number"
-                    disabled={semInfo}
-                    value={semInfo ? 0 : state.volumeChamadosAtivosManual}
-                    onChange={(e) => update("volumeChamadosAtivosManual", parseFloat(e.target.value) || 0)}
-                    className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-lg border p-2">
-                <Activity className="h-4 w-4 shrink-0 text-amber-500" />
-                <div className="flex-1 min-w-0">
-                  <Label className="text-[10px] text-muted-foreground leading-none truncate block">
-                    Chamados por Ativo
-                  </Label>
-                  <p className="text-sm font-semibold leading-tight">{fmt(chamadosPorAtivo)}</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Risco</p>
             <div className="rounded-lg border p-3 space-y-3">
               <div className="flex items-center gap-2">
