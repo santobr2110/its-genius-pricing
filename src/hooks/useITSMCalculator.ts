@@ -622,27 +622,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       total: (flowActive ? custoMonitoramentoUM : 0) + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys,
     };
 
-    const fieldService = {
-      active: fieldActive,
-      volumeUsuariosEscalado,
-      volumeN1F: fN1F,
-      volumeN2F: fN2F,
-      volumeN3F: fN3F,
-      custoN1F: custoFN1,
-      custoN2F: custoFN2,
-      custoN3F: custoFN3,
-      total: custoFieldTotal,
-      custoTriagemN1: custoFieldTriagemN1,
-      mode: state.fieldAllocationMode,
-      overflowAtivo,
-      volumeTransbordoN1Remoto: volTransN1R,
-      volumeTransbordoN2F: volTransN2F,
-      custoTransbordoN1Remoto: custoTransN1R,
-      custoTransbordoN2F: custoTransN2F,
-    };
-
     return {
-      totalChamadosUsuarios,
       totalChamadosInfra,
       volumeTotalBruto,
       chamadosResolvidosN0,
@@ -660,7 +640,6 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       horasAtendimentoN3,
       horasPrevencao,
       custoN3,
-      chamadosUsuarios,
       chamadosServidores,
       chamadosRede,
       chamadosBancoDados,
@@ -673,7 +652,6 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       smartMonitor,
       smartFlow,
       humanAttendanceActive,
-      fieldService,
       composicaoPreco,
     };
 }
