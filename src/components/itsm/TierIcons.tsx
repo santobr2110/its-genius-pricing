@@ -86,15 +86,3 @@ export function EnterpriseIcon(props: IconProps) {
   );
 }
 
-/** Field Service — maleta técnica com chave */
-export function FieldServiceIcon(props: IconProps) {
-  return (
-    <Base {...props}>
-      <rect x="6" y="14" width="36" height="26" rx="3" />
-      <path d="M18 14v-4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4" />
-      <path d="M6 24h36" />
-      <path d="M20 30l4 4M28 26l-8 8" />
-      <circle cx="30" cy="24" r="2.4" />
-    </Base>
-  );
-}
