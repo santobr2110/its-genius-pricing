@@ -44,11 +44,6 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     description:
       "Gerencie presets de precificação ITSM salvos para reuso em propostas comerciais.",
   },
-  "/field-service": {
-    title: "Field Service de Microinformática — Smart ITO",
-    description:
-      "Dimensione equipes de Field Service de Microinformática N1/N2/N3 com capacidade e custo mensal por nível.",
-  },
   "/gestao-ti": {
     title: "Gestão de TI — Smart ITO",
     description:
