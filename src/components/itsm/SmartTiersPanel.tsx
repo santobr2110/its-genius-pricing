@@ -933,7 +933,7 @@ export default function SmartTiersPanel() {
                     <span className="text-[11px] leading-tight">
                       <span className="font-semibold">Volume informado</span>
                       <span className="text-muted-foreground">
-                        {" "}— soma dos chamados atuais dos ativos informados no inventário, multiplicada pelo custo unitário.
+                        {" "}— volume de chamados informado abaixo, multiplicado pelo custo unitário.
                       </span>
                     </span>
                   </label>
@@ -1192,7 +1192,7 @@ export default function SmartTiersPanel() {
                     <span className="text-[11px] leading-tight">
                       <span className="font-semibold">Volume informado</span>
                       <span className="text-muted-foreground">
-                        {" "}— soma dos chamados atuais (ativos + usuários) informados, multiplicada pelo custo unitário.
+                        {" "}— volume de chamados informado abaixo, multiplicado pelo custo unitário.
                       </span>
                     </span>
                   </label>

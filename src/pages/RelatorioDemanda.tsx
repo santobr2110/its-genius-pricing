@@ -224,7 +224,7 @@ export default function RelatorioDemanda() {
   ];
 
   // === Distribuição N0/N1/N2/N3 — Previsão vs Cliente ===
-  const clienteAtivos = state.semVolumesAtuais ? 0 : (state.volumeChamadosAtivosManual || 0);
+  const clienteAtivos = state.volumeChamadosAtivosManual || 0;
   const clienteTotal = clienteAtivos;
   // Aplica o mesmo funil (N0 + ratios N1/N2/N3) sobre o total informado pelo cliente
   const clienteN0 = clienteTotal * reducaoN0;
@@ -337,7 +337,7 @@ export default function RelatorioDemanda() {
           <CardHeader>
             <CardTitle className="text-base">Distribuição no funil — Previsão vs Cliente</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Volume informado pelo cliente ({formatNumber(clienteTotal, 1)} ch/mês{state.semVolumesAtuais ? " — não informado" : ""}) como base, e a previsão da calculadora e o limite com excedente (+{limitePerc}%) como metas contratuais por nível (N0, N1, N2, N3).
+              Volume informado pelo cliente ({formatNumber(clienteTotal, 1)} ch/mês) como base, e a previsão da calculadora e o limite com excedente (+{limitePerc}%) como metas contratuais por nível (N0, N1, N2, N3).
             </p>
           </CardHeader>
           <CardContent>
