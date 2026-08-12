@@ -114,20 +114,13 @@ export function computeTierPricing(
     ? (results.custoN1 || 0) + (results.custoN2 || 0) +
       (state.tierPerformance ? 0 : results.custoN3 || 0)
     : 0;
-  const endpointTooling = state.tierOperation
-    ? (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0)
-    : 0;
-  const fieldService =
-    state.tierOperation && state.tierFieldOperation
-      ? (results.fieldService?.total || 0) + (extras.custoRotinasField || 0)
-      : 0;
   const gmudOperation = state.tierOperation ? extras.custoGmudOperation || 0 : 0;
   const gmudPerformance = state.tierPerformance ? extras.custoGmudPerformance || 0 : 0;
   const performanceN3 = state.tierPerformance ? results.custoN3 || 0 : 0;
   const gerenciais = extras.custoRotinasGerenciais || 0;
 
   const atribuido =
-    monitor + flow + operationBase + endpointTooling + fieldService +
+    monitor + flow + operationBase +
     gmudOperation + gmudPerformance + performanceN3 + gerenciais;
   const residual = Math.max(0, custoTotal - atribuido);
   const buckets = activeTierBuckets(state);
