@@ -134,8 +134,7 @@ export function computeTierPricing(
 
   const custoMonitor = monitor + resMonitor;
   const custoFlow = flow + resFlow;
-  const custoOperation =
-    operationBase + endpointTooling + fieldService + gmudOperation + resOperation;
+  const custoOperation = operationBase + gmudOperation + resOperation;
   const custoPerformance = performanceN3 + gmudPerformance + resPerformance;
 
   const sell = (c: number) => c * fatorVenda;
@@ -146,8 +145,6 @@ export function computeTierPricing(
       monitor,
       flow,
       operationBase,
-      endpointTooling,
-      fieldService,
       gmudOperation,
       gmudPerformance,
       performanceN3,
@@ -163,8 +160,6 @@ export function computeTierPricing(
       flow: sell(custoFlow),
       operation: sell(custoOperation),
       performance: sell(custoPerformance),
-      fieldService: sell(fieldService),
-      endpointTooling: sell(endpointTooling),
       gmudOperation: sell(gmudOperation),
       gmudPerformance: sell(gmudPerformance),
       gerenciais: sell(gerenciais),
