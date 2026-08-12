@@ -140,7 +140,6 @@ export default function ResumoCotacao() {
   // Separa rotinas de Microinformática (Field) das demais (Performance).
   const { rotinasPerformance, rotinasField, horasRotinasN3 } = useMemo(() => {
     const inv = {
-      qtdUsuarios: calcState.qtdUsuarios, qtdEquipamentos: calcState.qtdEquipamentos,
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
       qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
     };
@@ -250,7 +249,6 @@ export default function ResumoCotacao() {
   const gerenciaisCustoIn = (tier: "Monitor" | "Flow" | "Operation" | "Performance"): number => {
     let total = 0;
     const inv = {
-      qtdUsuarios: calcState.qtdUsuarios, qtdEquipamentos: calcState.qtdEquipamentos,
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
       qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
     };
@@ -299,8 +297,6 @@ export default function ResumoCotacao() {
   const pctOwner = n3Dist.pct(n3Dist.owner);
   const pctLivre = n3Dist.pct(n3Dist.tecnicas);
 
-  // Custo extra: Endpoint Tooling (entra no custoTotalOperacao do calculador).
-  const custoEndpointTooling = (calcState.custoFerramentaEndpoint || 0) * (calcState.qtdEquipamentos || 0);
 
   type Row = {
     camada: string;
@@ -401,38 +397,6 @@ export default function ResumoCotacao() {
       horasN3: horasN3,
       valor: toSell(custo),
       custo,
-    });
-  }
-  if (custoEndpointTooling > 0) {
-    layerRows.push({
-      camada: "Ferramenta de Endpoint",
-      reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
-      valor: tp.venda.endpointTooling,
-      custo: tp.custo.endpointTooling,
-      nota: buildNota([
-        ["Equipamentos", formatNumber(calcState.qtdEquipamentos || 0)],
-        ["Custo unitário/mês", formatBRL(calcState.custoFerramentaEndpoint || 0)],
-      ]),
-    });
-  }
-  if ((computed.fieldService?.total || 0) > 0) {
-    const fs = computed.fieldService;
-    const custo = (fs.total || 0) + extrasResumo.custoRotinasField;
-    const analistas: string[] = [];
-    if ((calcState.fieldDirectQtdN1 || 0) > 0) analistas.push(`N1: ${calcState.fieldDirectQtdN1}`);
-    if ((calcState.fieldDirectQtdN2 || 0) > 0) analistas.push(`N2: ${calcState.fieldDirectQtdN2}`);
-    if ((calcState.fieldDirectQtdN3 || 0) > 0) analistas.push(`N3: ${calcState.fieldDirectQtdN3}`);
-    const totalAnalistas = (calcState.fieldDirectQtdN1 || 0) + (calcState.fieldDirectQtdN2 || 0) + (calcState.fieldDirectQtdN3 || 0);
-    layerRows.push({
-      camada: "Field Service",
-      reativos: (fs.volumeN1F || 0) + (fs.volumeN2F || 0) + (fs.volumeN3F || 0),
-      rotinas: rotinasField, gmuds: 0, horasN3: 0,
-      valor: toSell(custo),
-      custo,
-      nota: buildNota([
-        ["Analistas (total)", totalAnalistas || 0],
-        ["Distribuição", analistas.length ? analistas.join(", ") : ""],
-      ]),
     });
   }
   if (calcState.tierEnterprise) {
