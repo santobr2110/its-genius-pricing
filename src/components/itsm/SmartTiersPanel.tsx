@@ -272,8 +272,6 @@ export default function SmartTiersPanel() {
   }, [state.tierPerformance, state.horasN3PerformanceMin]);
 
   const inv = {
-    qtdUsuarios: state.qtdUsuarios,
-    qtdEquipamentos: state.qtdEquipamentos,
     qtdServidores: state.qtdServidores,
     qtdAtivosRede: state.qtdAtivosRede,
     qtdBancosDados: state.qtdBancosDados,
@@ -294,9 +292,6 @@ export default function SmartTiersPanel() {
   const hasInfraInventory =
     (inv.qtdServidores || 0) + (inv.qtdAtivosRede || 0) +
     (inv.qtdBancosDados || 0) + (inv.qtdSistemas || 0) > 0;
-  const hasServiceDesk =
-    (inv.qtdUsuarios || 0) + (inv.qtdEquipamentos || 0) > 0;
-  const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
 
   // Custo médio por chamado de rotina ponderado pela escala de rotinas
   // (independente do funil de chamados de usuários/infra).
@@ -325,16 +320,6 @@ export default function SmartTiersPanel() {
   const rotinasOperation = useMemo(() => {
     const items = normalizedRotinas
       .filter((r) => r.oferta === "Operation" && !r.gerencial)
-      // Sem infra (apenas service desk): apenas microinformática.
-      // Com infra + service desk: todas as rotinas (incluindo microinformática).
-      // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
-      .filter((r) =>
-        n3OptionalScenario
-          ? r.grupo.toLowerCase().includes("microinform")
-          : hasServiceDesk && !state.tierFieldOperation
-            ? true
-            : !r.grupo.toLowerCase().includes("microinform"),
-      )
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -374,13 +359,6 @@ export default function SmartTiersPanel() {
     const isComplex = complexidade === "Complexo";
     const items = normalizedRotinas
       .filter((r) => r.oferta === "Performance" && !r.gerencial && (r.complexidade ?? "Padrão") === complexidade)
-      .filter((r) =>
-        n3OptionalScenario
-          ? r.grupo.toLowerCase().includes("microinform")
-          : hasServiceDesk && !state.tierFieldOperation
-            ? true
-            : !r.grupo.toLowerCase().includes("microinform"),
-      )
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -652,8 +630,6 @@ export default function SmartTiersPanel() {
   const sflProxysVenda = toSell(sfl.custoProxys);
   const sflTotalVenda = tierPricing.venda.flow + gerenciaisVendaIn("Flow");
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
-  const fs = results.fieldService;
-  const fsVenda = fs.active ? tierPricing.venda.fieldService : 0;
 
   // === GMUDs por camada ===
   const gmudInput = {
@@ -693,11 +669,6 @@ export default function SmartTiersPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
 
-  // Custo de ferramenta de endpoint (entra em custoTotalOperacao do calculador
-  // quando Smart Operation está ativo). Precisa ser refletido aqui para que o
-  // "Valor Total de Venda" das Camadas bata exatamente com o preço de venda
-  // calculado no Resumo de Cotação e na Listagem de Precificações.
-  const custoEndpointTooling = tierPricing.custo.endpointTooling;
   const smOperationVenda = state.tierOperation
     ? tierPricing.venda.operation + gerenciaisVendaIn("Operation")
     : 0;
@@ -737,7 +708,6 @@ export default function SmartTiersPanel() {
     state.tierFlow ? "Smart Flow" : null,
     state.tierOperation ? "Smart Operation" : null,
     state.tierPerformance ? "Smart Performance" : null,
-    (results.fieldService?.total || 0) > 0 ? "Field Service" : null,
   ].filter(Boolean) as string[];
   const custoTotalMensal =
     (state.tierMonitor ? (sm?.total || 0) : 0) +
@@ -1545,7 +1515,7 @@ export default function SmartTiersPanel() {
               </label>
             )}
 
-            {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && (
+            {!state.tierPerformance && (
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
@@ -1920,7 +1890,7 @@ export default function SmartTiersPanel() {
               ⓘ Os valores das rotinas acima são informativos — as horas consumidas saem do pool N3 contratado (slider abaixo) e <strong>já estão inclusas</strong> em "Atendimento N3" do Total Smart Performance. Não somam novamente.
             </p>
 
-            {(!n3OptionalScenario || state.tierOperationN3) && (
+            {(
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
