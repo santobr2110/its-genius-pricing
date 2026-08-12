@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Server, Network, Database, ShieldCheck, Gauge, Activity } from "lucide-react";
+import { Server, Network, Database, ShieldCheck, Gauge } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { ROTINAS_DEFAULT, type Rotina, type ComplexFlagKey } from "@/data/rotinas";
@@ -37,16 +37,6 @@ export default function ClientPanel({ state, update, results }: Props) {
     });
     return set;
   }, [rotinas]);
-  const totalAtivos =
-    (state.qtdServidores || 0) +
-    (state.qtdAtivosRede || 0) +
-    (state.qtdBancosDados || 0) +
-    (state.qtdSistemas || 0);
-  const semInfo = state.semVolumesAtuais;
-  const chamadosAtivosMes = semInfo ? 0 : state.volumeChamadosAtivosManual;
-  const chamadosPorAtivo = totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0;
-  const fmt = (n: number) =>
-    n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
   const niveis = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
   const descritivos = [
     "Ambiente Cloud Native, PaaS, sem equipamentos físicos. Alto Investimento.",
