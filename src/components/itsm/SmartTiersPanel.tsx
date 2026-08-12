@@ -933,15 +933,25 @@ export default function SmartTiersPanel() {
                     <span className="text-[11px] leading-tight">
                       <span className="font-semibold">Volume informado</span>
                       <span className="text-muted-foreground">
-                        {" "}— soma dos chamados atuais dos ativos informados no inventário, multiplicada pelo custo unitário.
+                        {" "}— volume de chamados informado abaixo, multiplicado pelo custo unitário.
                       </span>
                     </span>
                   </label>
                 </RadioGroup>
                 {(state.demandSource === "manual") && (
-                  <p className="text-[10px] text-muted-foreground">
-                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0))} ch/mês.
-                  </p>
+                  <div className="flex items-center gap-2 rounded border bg-muted/30 px-2 py-1.5">
+                    <Label htmlFor="vol-manual-monitor" className="text-[10px] text-muted-foreground flex-1">
+                      Chamados de Ativos / mês
+                    </Label>
+                    <Input
+                      id="vol-manual-monitor"
+                      type="number"
+                      min={0}
+                      value={state.volumeChamadosAtivosManual || 0}
+                      onChange={(e) => update("volumeChamadosAtivosManual", parseFloat(e.target.value) || 0)}
+                      className="h-7 w-28 text-xs"
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -1182,15 +1192,25 @@ export default function SmartTiersPanel() {
                     <span className="text-[11px] leading-tight">
                       <span className="font-semibold">Volume informado</span>
                       <span className="text-muted-foreground">
-                        {" "}— soma dos chamados atuais (ativos + usuários) informados, multiplicada pelo custo unitário.
+                        {" "}— volume de chamados informado abaixo, multiplicado pelo custo unitário.
                       </span>
                     </span>
                   </label>
                 </RadioGroup>
                 {(state.demandSource === "manual") && (
-                  <p className="text-[10px] text-muted-foreground">
-                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0))} ch/mês.
-                  </p>
+                  <div className="flex items-center gap-2 rounded border bg-muted/30 px-2 py-1.5">
+                    <Label htmlFor="vol-manual-flow" className="text-[10px] text-muted-foreground flex-1">
+                      Chamados de Ativos / mês
+                    </Label>
+                    <Input
+                      id="vol-manual-flow"
+                      type="number"
+                      min={0}
+                      value={state.volumeChamadosAtivosManual || 0}
+                      onChange={(e) => update("volumeChamadosAtivosManual", parseFloat(e.target.value) || 0)}
+                      className="h-7 w-28 text-xs"
+                    />
+                  </div>
                 )}
               </div>
             )}

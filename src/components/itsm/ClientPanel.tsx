@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Server, Network, Database, ShieldCheck, Gauge, Activity } from "lucide-react";
+import { Server, Network, Database, ShieldCheck, Gauge } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { ROTINAS_DEFAULT, type Rotina, type ComplexFlagKey } from "@/data/rotinas";
@@ -37,16 +37,6 @@ export default function ClientPanel({ state, update, results }: Props) {
     });
     return set;
   }, [rotinas]);
-  const totalAtivos =
-    (state.qtdServidores || 0) +
-    (state.qtdAtivosRede || 0) +
-    (state.qtdBancosDados || 0) +
-    (state.qtdSistemas || 0);
-  const semInfo = state.semVolumesAtuais;
-  const chamadosAtivosMes = semInfo ? 0 : state.volumeChamadosAtivosManual;
-  const chamadosPorAtivo = totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0;
-  const fmt = (n: number) =>
-    n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
   const niveis = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
   const descritivos = [
     "Ambiente Cloud Native, PaaS, sem equipamentos físicos. Alto Investimento.",
@@ -104,48 +94,6 @@ export default function ClientPanel({ state, update, results }: Props) {
               </div>
             </div>
             ))}
-          </section>
-
-          <section className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Volumes Atuais
-              </p>
-              <label htmlFor="sem-volumes" className="flex items-center gap-1.5 cursor-pointer">
-                <Checkbox
-                  id="sem-volumes"
-                  checked={semInfo}
-                  onCheckedChange={(v) => update("semVolumesAtuais", Boolean(v))}
-                />
-                <span className="text-[11px] text-muted-foreground">Não possui a informação</span>
-              </label>
-            </div>
-            <div className={`grid grid-cols-2 gap-2 ${semInfo ? "opacity-60" : ""}`}>
-              <div className="flex items-center gap-2 rounded-lg border p-2">
-                <Server className="h-4 w-4 shrink-0 text-emerald-500" />
-                <div className="flex-1 min-w-0">
-                  <Label className="text-[10px] text-muted-foreground leading-none truncate block">
-                    Chamados de Ativos / mês
-                  </Label>
-                  <Input
-                    type="number"
-                    disabled={semInfo}
-                    value={semInfo ? 0 : state.volumeChamadosAtivosManual}
-                    onChange={(e) => update("volumeChamadosAtivosManual", parseFloat(e.target.value) || 0)}
-                    className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-lg border p-2">
-                <Activity className="h-4 w-4 shrink-0 text-amber-500" />
-                <div className="flex-1 min-w-0">
-                  <Label className="text-[10px] text-muted-foreground leading-none truncate block">
-                    Chamados por Ativo
-                  </Label>
-                  <p className="text-sm font-semibold leading-tight">{fmt(chamadosPorAtivo)}</p>
-                </div>
-              </div>
-            </div>
           </section>
 
           <section className="space-y-2">
