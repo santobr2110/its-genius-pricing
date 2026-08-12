@@ -1968,6 +1968,7 @@ function LayerRoutineTable({
   totals,
   descricao,
   onToggle,
+  onToggleAll,
 }: {
   titulo: string;
   items: { id: string; grupo: string; rotina: string; automacao: boolean; off?: boolean; demanda: number; custo: number; venda: number }[];
