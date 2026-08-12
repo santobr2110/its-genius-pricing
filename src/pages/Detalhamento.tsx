@@ -26,7 +26,6 @@ import {
   OperationIcon as TierOperationIcon,
   PerformanceIcon as TierPerformanceIcon,
   EnterpriseIcon as TierEnterpriseIcon,
-  FieldServiceIcon as TierFieldIcon,
 } from "@/components/itsm/TierIcons";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
