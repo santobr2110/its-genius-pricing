@@ -43,7 +43,6 @@ export default function ConfigPanel({ state, update }: Props) {
           </AccordionTrigger>
           <AccordionContent className="pb-3">
             <div className="grid grid-cols-2 gap-3">
-              <NumInput label="Chamados/Usuário" value={state.taxaUsuario} onChange={(v) => update("taxaUsuario", v)} />
               <NumInput label="Chamados/Servidor" value={state.taxaServidor} onChange={(v) => update("taxaServidor", v)} />
               <NumInput label="Chamados/Rede" value={state.taxaRede} onChange={(v) => update("taxaRede", v)} />
               <NumInput label="Chamados/BD" value={state.taxaBancoDados} onChange={(v) => update("taxaBancoDados", v)} />

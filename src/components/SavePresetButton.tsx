@@ -78,12 +78,9 @@ export default function SavePresetButton() {
       (state.qtdBancosDados || 0) +
       (state.qtdSistemas || 0);
     const chamadosAtivosMes = state.semVolumesAtuais ? 0 : state.volumeChamadosAtivosManual;
-    const chamadosUsuariosMes = state.semVolumesAtuais ? 0 : state.volumeChamadosUsuariosManual;
     const volumes = {
       chamadosAtivosMes,
-      chamadosUsuariosMes,
       chamadosPorAtivo: totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0,
-      chamadosPorUsuario: state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0,
     };
     const escopo = {
       proposicao: readLs<EscopoProposicao>("escopo:proposicao", ESCOPO_DEFAULT),
