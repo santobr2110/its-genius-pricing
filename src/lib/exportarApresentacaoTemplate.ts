@@ -947,14 +947,6 @@ function buildCamadaMetrics(cam: CamadaSlideData): { label: string; value: strin
       sub: `${fmt(cam.horasN3.valorHora)}/h`,
     });
   }
-  // Field service
-  if (cam.field && out.length < 4) {
-    out.push({
-      label: "Field · profissionais",
-      value: String(cam.field.profissionais.reduce((s, p) => s + p.qtd, 0)),
-      sub: `${fmtNum(cam.field.chamadosEscalados, 1)} ch/mês`,
-    });
-  }
   return out.slice(0, 4);
 }
 
