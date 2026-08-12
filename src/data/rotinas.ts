@@ -65,9 +65,7 @@ export type AtivoTipo =
   | "Servidor"
   | "Ativo de Rede"
   | "Banco de Dados"
-  | "Firewall"
-  | "Equipamento"
-  | "Usuário";
+  | "Firewall";
 
 export const ATIVO_TIPOS: AtivoTipo[] = [
   "Ambiente",
@@ -75,8 +73,6 @@ export const ATIVO_TIPOS: AtivoTipo[] = [
   "Ativo de Rede",
   "Banco de Dados",
   "Firewall",
-  "Equipamento",
-  "Usuário",
 ];
 
 export type Abrangencia = "Ambiente" | "Individual";
@@ -84,8 +80,6 @@ export type Abrangencia = "Ambiente" | "Individual";
 export const ABRANGENCIAS: Abrangencia[] = ["Ambiente", "Individual"];
 
 export interface InventarioCounts {
-  qtdUsuarios: number;
-  qtdEquipamentos: number;
   qtdServidores: number;
   qtdAtivosRede: number;
   qtdBancosDados: number;
@@ -136,9 +130,7 @@ export function rotinaMultiplicador(
   // específico ("Ambiente"), considera-se o inventário total como gating.
   const qtdAtivo =
     r.ativo === "Ambiente"
-      ? inv.qtdUsuarios +
-        inv.qtdEquipamentos +
-        inv.qtdServidores +
+      ? inv.qtdServidores +
         inv.qtdAtivosRede +
         inv.qtdBancosDados +
         inv.qtdSistemas
@@ -164,10 +156,6 @@ export function inventarioMultiplicador(
       return inv.qtdBancosDados;
     case "Firewall":
       return inv.qtdSistemas;
-    case "Equipamento":
-      return inv.qtdEquipamentos;
-    case "Usuário":
-      return inv.qtdUsuarios;
     default:
       return 1;
   }
@@ -179,8 +167,6 @@ function ativoFromUnidade(unidade: string): AtivoTipo {
   if (u.includes("firewall")) return "Firewall";
   if (u.includes("ativo de rede")) return "Ativo de Rede";
   if (u.includes("servidor")) return "Servidor";
-  if (u.includes("equipamento")) return "Equipamento";
-  if (u.includes("usuário") || u.includes("usuario")) return "Usuário";
   return "Ambiente";
 }
 
