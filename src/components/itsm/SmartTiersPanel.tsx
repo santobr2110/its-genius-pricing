@@ -1060,7 +1060,6 @@ export default function SmartTiersPanel() {
             {rotinasMonitor.items.length > 0 && (
               <LayerRoutineTable
                 onToggle={toggleRotina}
-              onToggleAll={toggleRotinasEmLote}
                 onToggleAll={toggleRotinasEmLote}
                 titulo="Rotinas Técnicas Preventivas — Smart Monitor"
                 items={rotinasMonitor.items}
@@ -1112,7 +1111,6 @@ export default function SmartTiersPanel() {
               return g.items.length > 0 ? (
                 <LayerRoutineTable
                 onToggle={toggleRotina}
-              onToggleAll={toggleRotinasEmLote}
                 onToggleAll={toggleRotinasEmLote}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
@@ -1327,7 +1325,6 @@ export default function SmartTiersPanel() {
             {rotinasFlow.items.length > 0 && (
               <LayerRoutineTable
                 onToggle={toggleRotina}
-              onToggleAll={toggleRotinasEmLote}
                 onToggleAll={toggleRotinasEmLote}
                 titulo="Rotinas Técnicas Preventivas — Smart Flow"
                 items={rotinasFlow.items}
@@ -1339,7 +1336,6 @@ export default function SmartTiersPanel() {
               return g.items.length > 0 ? (
                 <LayerRoutineTable
                 onToggle={toggleRotina}
-              onToggleAll={toggleRotinasEmLote}
                 onToggleAll={toggleRotinasEmLote}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
@@ -1626,7 +1622,6 @@ export default function SmartTiersPanel() {
               return g.items.length > 0 ? (
                 <LayerRoutineTable
                 onToggle={toggleRotina}
-              onToggleAll={toggleRotinasEmLote}
                 onToggleAll={toggleRotinasEmLote}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
@@ -1882,7 +1877,6 @@ export default function SmartTiersPanel() {
               return g.items.length > 0 ? (
                 <LayerRoutineTable
                 onToggle={toggleRotina}
-              onToggleAll={toggleRotinasEmLote}
                 onToggleAll={toggleRotinasEmLote}
                   titulo="Rotinas Gerenciais Selbetti"
                   items={g.items}
@@ -2130,6 +2124,7 @@ function PerformanceBlock({
   hourRate,
   hourRateSell,
   onToggle,
+  onToggleAll,
 }: {
   titulo: string;
   vazio: string;
@@ -2141,8 +2136,11 @@ function PerformanceBlock({
   hourRate?: number;
   hourRateSell?: number;
   onToggle?: (id: string) => void;
+  onToggleAll?: (ids: string[], ativar: boolean) => void;
 }) {
   const isComplex = data.isComplex;
+  const ativosCount = data.items.filter((i) => !i.off).length;
+  const todosAtivos = data.items.length > 0 && ativosCount === data.items.length;
   return (
     <div className="rounded border bg-background p-2 space-y-1.5">
       <div className="flex items-center justify-between gap-1.5">
@@ -2163,7 +2161,18 @@ function PerformanceBlock({
           <table className="w-full text-[11px]">
             <thead className="bg-muted sticky top-0">
               <tr>
-                {onToggle && <th className="w-7 px-1 py-1" />}
+                {onToggle && (
+                  <th className="w-7 px-1 py-1">
+                    <input
+                      type="checkbox"
+                      className="h-3 w-3 accent-violet-600 cursor-pointer"
+                      checked={todosAtivos}
+                      ref={(el) => { if (el) el.indeterminate = ativosCount > 0 && !todosAtivos; }}
+                      onChange={() => onToggleAll?.(data.items.map((i) => i.id), !todosAtivos)}
+                      title={todosAtivos ? "Desativar todas as rotinas" : "Ativar todas as rotinas"}
+                    />
+                  </th>
+                )}
                 <th className="text-left px-2 py-1 font-medium">Rotina</th>
                 <th className="text-right px-2 py-1 font-medium w-16">
                   {isComplex ? "Exec/mês" : "Ch/mês"}
