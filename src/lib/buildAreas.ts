@@ -26,7 +26,6 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
   const humanFactor = human ? 1 - n0Factor : 0;
 
   const raw = {
-    usuarios: results.chamadosUsuarios,
     servidores: results.chamadosServidores,
     rede: results.chamadosRede,
     bd: results.chamadosBancoDados,
@@ -54,9 +53,8 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
   const totalN2 = results.volumeN2;
   const totalN3 = results.volumeN3;
 
-  const centralServico = buildArea([raw.usuarios, raw.sistemas]);
+  const centralServico = buildArea([raw.sistemas]);
   const monitoramento = buildArea([raw.servidores, raw.rede, raw.bd]);
-  const fieldService = buildArea([raw.usuarios]);
   const gestaoInfra = buildArea([raw.servidores, raw.rede, raw.bd]);
   const gestaoSistemas = buildArea([raw.sistemas]);
 
@@ -96,20 +94,6 @@ export function buildAreas(state: ITSMState, results: ITSMResults): AreaData[] {
       custoN3: onlyMonitor ? 0 : (totalN3 > 0 ? (monitoramento.n3 / totalN3) * custoN3Atendimento : 0),
       custoFerramentas: results.smartMonitor.custoMonitoramento,
       custoFerramentasLabel: "Infra Smart Monitor (ativos)",
-      custoExtra: 0,
-    },
-    {
-      nome: "Field Service de Microinformática",
-      icon: Truck,
-      chamadosBrutos: fieldService.bruto,
-      chamadosN0: 0,
-      chamadosN1: 0,
-      chamadosN2: fieldService.n2,
-      chamadosN3: fieldService.n3,
-      custoN1: 0,
-      custoN2: propCost(fieldService.bruto, fieldService.n2, totalN2, results.custoN2),
-      custoN3: totalN3 > 0 ? (fieldService.n3 / totalN3) * custoN3Atendimento : 0,
-      custoFerramentas: 0,
       custoExtra: 0,
     },
     {
