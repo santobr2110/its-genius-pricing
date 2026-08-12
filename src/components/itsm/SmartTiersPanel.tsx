@@ -1198,9 +1198,19 @@ export default function SmartTiersPanel() {
                   </label>
                 </RadioGroup>
                 {(state.demandSource === "manual") && (
-                  <p className="text-[10px] text-muted-foreground">
-                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0))} ch/mês.
-                  </p>
+                  <div className="flex items-center gap-2 rounded border bg-muted/30 px-2 py-1.5">
+                    <Label htmlFor="vol-manual-flow" className="text-[10px] text-muted-foreground flex-1">
+                      Chamados de Ativos / mês
+                    </Label>
+                    <Input
+                      id="vol-manual-flow"
+                      type="number"
+                      min={0}
+                      value={state.volumeChamadosAtivosManual || 0}
+                      onChange={(e) => update("volumeChamadosAtivosManual", parseFloat(e.target.value) || 0)}
+                      className="h-7 w-28 text-xs"
+                    />
+                  </div>
                 )}
               </div>
             )}
