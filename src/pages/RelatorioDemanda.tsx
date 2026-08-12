@@ -92,8 +92,6 @@ export default function RelatorioDemanda() {
     gmudData.operation.items.length > 0 || gmudData.performance.items.length > 0;
   const rotinasPorAtivo = useMemo(() => {
     const inv = {
-      qtdUsuarios: state.qtdUsuarios,
-      qtdEquipamentos: state.qtdEquipamentos,
       qtdServidores: state.qtdServidores,
       qtdAtivosRede: state.qtdAtivosRede,
       qtdBancosDados: state.qtdBancosDados,
@@ -110,7 +108,6 @@ export default function RelatorioDemanda() {
       complexErpMercado: state.complexErpMercado,
     };
     const buckets = {
-      usuarios: { cac: 0, count: 0 },
       servidores: { cac: 0, count: 0 },
       rede: { cac: 0, count: 0 },
       bd: { cac: 0, count: 0 },
@@ -137,7 +134,6 @@ export default function RelatorioDemanda() {
         : rNorm.ativo === "Ativo de Rede" ? "rede"
         : rNorm.ativo === "Banco de Dados" ? "bd"
         : rNorm.ativo === "Firewall" ? "firewall"
-        : rNorm.ativo === "Usuário" || rNorm.ativo === "Equipamento" ? "usuarios"
         : "ambiente";
       buckets[k].cac += cac;
       buckets[k].count += 1;
@@ -148,22 +144,20 @@ export default function RelatorioDemanda() {
   }, [rotinas, state]);
 
   // === Demanda por origem ===
-  const usuariosBruto = results.chamadosUsuarios;
   const ativosBruto =
     results.chamadosServidores + results.chamadosRede +
     results.chamadosBancoDados + results.chamadosSistemas;
   const reducaoN0 = state.reducaoN0 / 100;
-  const usuariosHumano = usuariosBruto * (1 - reducaoN0);
   const ativosHumano = ativosBruto * (1 - reducaoN0);
 
   // === Demanda por time (alocação efetiva conforme calculadora) ===
   const teamRows: TeamRow[] = [
     {
       name: "N1 — Suporte remoto",
-      origem: results.fieldService.active ? "Ativos (funil)" : "Usuários + Ativos (funil)",
-      demanda: results.volumeN1 + (results.fieldService.volumeTransbordoN1Remoto || 0) + (results.smartMonitor.chamadosAtivos * (state.percAlocacaoN1Monitor / 100)),
+      origem: "Ativos (funil)",
+      demanda: results.volumeN1 + (results.smartMonitor.chamadosAtivos * (state.percAlocacaoN1Monitor / 100)),
       capacidade: state.capacidadeChamadosN1,
-      custo: results.custoN1 + results.smartMonitor.custoN1Alocado + (results.fieldService.custoTransbordoN1Remoto || 0) + (results.fieldService.custoTriagemN1 || 0),
+      custo: results.custoN1 + results.smartMonitor.custoN1Alocado,
     },
     {
       name: "N2 — Especialistas remotos",
@@ -181,34 +175,7 @@ export default function RelatorioDemanda() {
     },
   ];
 
-  if (results.fieldService.active) {
-    teamRows.push(
-      {
-        name: "Field N1F",
-        origem: "Usuários (presencial)",
-        demanda: results.fieldService.volumeN1F,
-        capacidade: state.capacidadeFieldN1,
-        custo: results.fieldService.custoN1F,
-      },
-      {
-        name: "Field N2F",
-        origem: "Usuários (presencial)",
-        demanda: results.fieldService.volumeN2F + (results.fieldService.volumeTransbordoN2F || 0),
-        capacidade: state.capacidadeFieldN2,
-        custo: results.fieldService.custoN2F + (results.fieldService.custoTransbordoN2F || 0),
-      },
-      {
-        name: "Field N3F",
-        origem: "Usuários (presencial)",
-        demanda: results.fieldService.volumeN3F,
-        capacidade: state.capacidadeFieldN3,
-        custo: results.fieldService.custoN3F,
-      },
-    );
-  }
-
   // === Custos por camada de oferta ===
-  const custoEndpoint = state.custoFerramentaEndpoint * state.qtdEquipamentos;
   const custoProxies = (state.valorProxyInicial || 0) + (state.valorProxyAdicional || 0);
   const layerRows = [
     { layer: "Smart Monitor — monitoramento de ativos", custo: results.smartMonitor.custoMonitoramento },
@@ -219,7 +186,6 @@ export default function RelatorioDemanda() {
     { layer: "Smart Flow — atendentes no ITSM", custo: results.smartFlow.custoAtendentes },
     { layer: "Smart Flow — proxys dedicados", custo: results.smartFlow.custoProxys },
     { layer: "Smart Flow — horas N3 (automação + acionamento)", custo: results.smartFlow.custoN3 + results.smartFlow.custoN3Manut },
-    { layer: "Service Desk — ferramenta end-point", custo: custoEndpoint },
     { layer: "Atendimento N1 (funil)", custo: results.custoN1 },
     { layer: "Atendimento N2 (funil)", custo: results.custoN2 },
     { layer: "Atendimento N3 (funil + prevenção)", custo: results.custoN3 },
@@ -229,14 +195,12 @@ export default function RelatorioDemanda() {
     ...(gmudData.performance.totals.custo > 0
       ? [{ layer: "GMUDs — Performance (N2 + N3)", custo: gmudData.performance.totals.custo }]
       : []),
-    { layer: "Field Service de Microinformática (N1F + N2F + N3F + transbordo + triagem)", custo: results.fieldService.total },
     { layer: "Proxies de monitoramento (informativo)", custo: custoProxies },
   ];
   const custoGmudTotal = gmudData.operation.totals.custo + gmudData.performance.totals.custo;
   const custoOperacaoTotal = results.custoTotalOperacao + custoGmudTotal;
 
   const origemRows = [
-    { icon: Users, label: "Usuários (Service Desk)", bruto: usuariosBruto, humano: usuariosHumano, cac: rotinasPorAtivo.usuarios.cac, rotCount: rotinasPorAtivo.usuarios.count },
     { icon: Server, label: "Servidores", bruto: results.chamadosServidores, humano: results.chamadosServidores * (1 - reducaoN0), cac: rotinasPorAtivo.servidores.cac, rotCount: rotinasPorAtivo.servidores.count },
     { icon: Network, label: "Rede", bruto: results.chamadosRede, humano: results.chamadosRede * (1 - reducaoN0), cac: rotinasPorAtivo.rede.cac, rotCount: rotinasPorAtivo.rede.count },
     { icon: Database, label: "Banco de Dados", bruto: results.chamadosBancoDados, humano: results.chamadosBancoDados * (1 - reducaoN0), cac: rotinasPorAtivo.bd.cac, rotCount: rotinasPorAtivo.bd.count },
