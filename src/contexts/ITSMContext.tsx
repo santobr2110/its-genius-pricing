@@ -3,7 +3,6 @@ import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo }
 import { useITSMCalculator, ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { useN1TeamState, N1TeamState, N1TeamResults } from "@/hooks/useN1TeamState";
 import { useN2TeamState, N2TeamState, N2TeamResults } from "@/hooks/useN2TeamState";
-import { useFieldTeamsState, FieldTeamsState, FieldTeamsResults, FieldLevel } from "@/hooks/useFieldTeamsState";
 import type { PricingPreset } from "@/hooks/usePricingPresets";
 import { SMART_ITO_NS } from "@/lib/offerings";
 import { notifyPersistentStateRestored, usePersistentState } from "@/hooks/usePersistentState";
@@ -49,12 +48,6 @@ interface ITSMContextType {
   moveN2Professional: ReturnType<typeof useN2TeamState>["moveProfessional"];
   updateN2Config: ReturnType<typeof useN2TeamState>["updateTeamConfig"];
   n2Results: N2TeamResults;
-  fieldTeams: FieldTeamsState;
-  fieldResults: FieldTeamsResults;
-  updateFieldProfessional: ReturnType<typeof useFieldTeamsState>["updateProfessional"];
-  addFieldProfessional: ReturnType<typeof useFieldTeamsState>["addProfessional"];
-  removeFieldProfessional: ReturnType<typeof useFieldTeamsState>["removeProfessional"];
-  updateFieldLevelConfig: ReturnType<typeof useFieldTeamsState>["updateLevelConfig"];
   loadPreset: (preset: PricingPreset) => void;
   activePreset: ActivePresetStatus;
 }
@@ -65,7 +58,6 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const calc = useITSMCalculator();
   const n1 = useN1TeamState();
   const n2 = useN2TeamState();
-  const field = useFieldTeamsState();
   const activePreset = useActivePresetSession();
 
   // Aplica o "Perfil padrão" registrado em Administração para usuários novos
@@ -141,40 +133,6 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     }));
   }, [n2.results.custoTotalEquipe, n2.teamState.capacidadeChamadosTotal, calc.state.custoAnalistaN2, calc.state.capacidadeChamadosN2, calc.state.percGestaoN2, calc.setState]);
 
-  useEffect(() => {
-    const nextCusto = field.results.n1f.custoTotalEquipe;
-    const nextCapacidade = field.state.n1f.capacidadeChamadosTotal;
-    const nextCustoUm = field.results.n1f.custoUmProfissional;
-    if (
-      calc.state.custoEquipeFieldN1 === nextCusto &&
-      calc.state.capacidadeFieldN1 === nextCapacidade &&
-      calc.state.custoUmFieldN1 === nextCustoUm
-    ) return;
-    calc.setState((prev) => ({ ...prev, custoEquipeFieldN1: nextCusto, capacidadeFieldN1: nextCapacidade, custoUmFieldN1: nextCustoUm }));
-  }, [field.results.n1f.custoTotalEquipe, field.state.n1f.capacidadeChamadosTotal, field.results.n1f.custoUmProfissional, calc.state.custoEquipeFieldN1, calc.state.capacidadeFieldN1, calc.state.custoUmFieldN1, calc.setState]);
-  useEffect(() => {
-    const nextCusto = field.results.n2f.custoTotalEquipe;
-    const nextCapacidade = field.state.n2f.capacidadeChamadosTotal;
-    const nextCustoUm = field.results.n2f.custoUmProfissional;
-    if (
-      calc.state.custoEquipeFieldN2 === nextCusto &&
-      calc.state.capacidadeFieldN2 === nextCapacidade &&
-      calc.state.custoUmFieldN2 === nextCustoUm
-    ) return;
-    calc.setState((prev) => ({ ...prev, custoEquipeFieldN2: nextCusto, capacidadeFieldN2: nextCapacidade, custoUmFieldN2: nextCustoUm }));
-  }, [field.results.n2f.custoTotalEquipe, field.state.n2f.capacidadeChamadosTotal, field.results.n2f.custoUmProfissional, calc.state.custoEquipeFieldN2, calc.state.capacidadeFieldN2, calc.state.custoUmFieldN2, calc.setState]);
-  useEffect(() => {
-    const nextCusto = field.results.n3f.custoTotalEquipe;
-    const nextCapacidade = field.state.n3f.capacidadeChamadosTotal;
-    const nextCustoUm = field.results.n3f.custoUmProfissional;
-    if (
-      calc.state.custoEquipeFieldN3 === nextCusto &&
-      calc.state.capacidadeFieldN3 === nextCapacidade &&
-      calc.state.custoUmFieldN3 === nextCustoUm
-    ) return;
-    calc.setState((prev) => ({ ...prev, custoEquipeFieldN3: nextCusto, capacidadeFieldN3: nextCapacidade, custoUmFieldN3: nextCustoUm }));
-  }, [field.results.n3f.custoTotalEquipe, field.state.n3f.capacidadeChamadosTotal, field.results.n3f.custoUmProfissional, calc.state.custoEquipeFieldN3, calc.state.capacidadeFieldN3, calc.state.custoUmFieldN3, calc.setState]);
-
   const loadPreset = useCallback((preset: PricingPreset) => {
     // Em uma aba que já está editando uma precificação, "carregar" não faz
     // sentido (poderia sobrescrever silenciosamente o preset aberto).
@@ -183,7 +141,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
       return;
     }
     // Se o preset trouxer o snapshot completo de parâmetros (presets novos),
-    // restaura tudo (equipes Field, rotinas, GMUDs, cortes Smart Perf, escopo)
+    // restaura tudo (rotinas, GMUDs, cortes Smart Perf, escopo)
     // via mesmo mecanismo dos Perfis de Parâmetros.
     if (preset.allParams && Object.keys(preset.allParams).length > 0) {
       void applyParamsPayload(preset.allParams);
@@ -240,12 +198,6 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     moveN2Professional: n2.moveProfessional,
     updateN2Config: n2.updateTeamConfig,
     n2Results: n2.results,
-    fieldTeams: field.state,
-    fieldResults: field.results,
-    updateFieldProfessional: field.updateProfessional,
-    addFieldProfessional: field.addProfessional,
-    removeFieldProfessional: field.removeProfessional,
-    updateFieldLevelConfig: field.updateLevelConfig,
     loadPreset,
     activePreset,
   };
