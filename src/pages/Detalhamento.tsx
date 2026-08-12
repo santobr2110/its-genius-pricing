@@ -118,7 +118,6 @@ export default function Detalhamento() {
   const exportBlocked = !isSavedPricing || approvalBlocked;
   const sm = results.smartMonitor;
   const sf = results.smartFlow;
-  const fs = results.fieldService;
 
   // Dados de cadastro da precificação (via preset ativo)
   type PresetCadastro = {
@@ -229,7 +228,7 @@ export default function Detalhamento() {
     if (monitorVisible) componentNames.push("Monitor");
     if (flowVisible) componentNames.push("Flow");
   }
-  if (state.tierOperation) componentNames.push("Operation" + (state.tierFieldOperation ? " + Field Service de Microinformática" : ""));
+  if (state.tierOperation) componentNames.push("Operation");
   if (state.tierPerformance) componentNames.push("Performance");
   if (state.tierEnterprise) componentNames.push("Enterprise");
 
@@ -524,7 +523,6 @@ export default function Detalhamento() {
   const valorHoraN3Venda = state.valorHoraN3 * fatorVenda;
 
   const inv = {
-    qtdUsuarios: state.qtdUsuarios, qtdEquipamentos: state.qtdEquipamentos,
     qtdServidores: state.qtdServidores, qtdAtivosRede: state.qtdAtivosRede,
     qtdBancosDados: state.qtdBancosDados, qtdSistemas: state.qtdSistemas,
   };
@@ -540,9 +538,6 @@ export default function Detalhamento() {
   };
   const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
-  const hasServiceDesk =
-    (state.qtdUsuarios || 0) + (state.qtdEquipamentos || 0) > 0;
-  const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
 
   // Custo médio por chamado de rotina ponderado (mesma fórmula do painel principal)
   const custoChN3Mix = state.tempoMedioChamadoN3 * state.valorHoraN3;
@@ -579,16 +574,6 @@ export default function Detalhamento() {
         }
         return complexidade === "Padrão";
       })
-      // Sem infra (apenas service desk): apenas microinformática.
-      // Com infra + service desk: todas as rotinas (incluindo microinformática).
-      // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
-      .filter(r =>
-        n3OptionalScenario
-          ? r.grupo.toLowerCase().includes("microinform")
-          : hasServiceDesk && !state.tierFieldOperation
-            ? true
-            : !r.grupo.toLowerCase().includes("microinform"),
-      )
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -646,28 +631,10 @@ export default function Detalhamento() {
     : state.tierMonitor ? "Monitor"
     : null;
 
-  const rotinasField = useMemo(() => {
-    if (!state.tierFieldOperation || n3OptionalScenario) return [];
-    return normalizedRotinas
-      .filter(r => r.grupo.toLowerCase().includes("microinform"))
-      .filter(r => !r.gerencial)
-      .filter(r => (r.oferta === "Performance" ? state.tierPerformance : true))
-      .map(r => {
-        const rotina = normalizeOsRotina(r);
-        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-        const demanda = r.chamadosMes * mult;
-        const custo = rotinaCusto(r, demanda);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, oferta: r.oferta, demanda, mult, custo };
-      })
-      .filter(i => i.demanda > 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [normalizedRotinas, state]);
-
   const sumCusto = (arr: { custo: number }[]) => arr.reduce((a, b) => a + b.custo, 0);
   const custoRotinasOp = sumCusto(rotinasOp);
   const custoRotinasPerfPadrao = sumCusto(rotinasPerfPadrao);
   const custoRotinasPerfComplexo = sumCusto(rotinasPerfComplexo);
-  const custoRotinasField = sumCusto(rotinasField);
 
   // === GMUDs por camada ===
   const gmudInput = {
@@ -796,9 +763,6 @@ export default function Detalhamento() {
   const valorFlow = flowVisible ? tierPricing.venda.flow : 0;
   const custoOperacaoBase =
     results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
-  const valorFieldService = state.tierFieldOperation
-    ? tierPricing.venda.fieldService
-    : 0;
   const valorOperation = state.tierOperation ? tierPricing.venda.operation : 0;
   const valorPerformance = state.tierPerformance ? tierPricing.venda.performance : 0;
   // Rotinas Gerenciais Selbetti são cobradas em separado e são CUMULATIVAS entre
@@ -859,17 +823,8 @@ export default function Detalhamento() {
           label: state.tierPerformance ? "Serviço base (N1 + N2)" : "Serviço base (N1 + N2 + N3)",
           value: toSell(custoOperacaoBase),
         },
-        ...(valorFieldService > 0
-          ? [{ label: "Field Service de Microinformática", value: valorFieldService }]
-          : []),
         ...(gmudOperationData.totals.custo > 0
           ? [{ label: "GMUDs (Operation)", value: toSell(gmudOperationData.totals.custo) }]
-          : []),
-        ...(tierPricing.venda.endpointTooling > 0
-          ? [{
-              label: `Ferramenta de endpoint (${formatNumber(state.qtdEquipamentos || 0)} equip.)`,
-              value: tierPricing.venda.endpointTooling,
-            }]
           : []),
         ...(tierPricing.custo.residualBucket === "Operation" && tierPricing.venda.residual > 0.005
           ? [{ label: "Monitoramento de ativos (UM)", value: tierPricing.venda.residual }]
@@ -890,19 +845,6 @@ export default function Detalhamento() {
           : []),
       ]
     : [];
-  const valorFieldParts = state.tierFieldOperation
-    ? [
-        { label: "Equipe presencial (N1F + N2F + N3F)", value: toSell(fs.custoN1F + fs.custoN2F + fs.custoN3F) },
-        { label: "Triagem N1", value: toSell(fs.custoTriagemN1) },
-        ...(fs.overflowAtivo
-          ? [{ label: "Transbordo remoto (N1 + N2F)", value: toSell(fs.custoTransbordoN1Remoto + fs.custoTransbordoN2F) }]
-          : []),
-        ...(custoRotinasField > 0
-          ? [{ label: "Rotinas Field · Microinformática", value: toSell(custoRotinasField) }]
-          : []),
-      ]
-    : [];
-
   const horasAtendN3 = results.horasAtendimentoN3;
   const horasPrev = Math.max(0, horasTotaisN3 - horasAtendN3);
 
@@ -1089,26 +1031,7 @@ export default function Detalhamento() {
           ].filter((b) => b.horas > 0),
         };
       }
-      let field: FieldSlideData | undefined;
-      if (state.tierFieldOperation) {
-        field = {
-          profissionais: [
-            { nivel: "N1F", qtd: state.fieldDirectQtdN1, valor: toSell(fs.custoN1F) },
-            { nivel: "N2F", qtd: state.fieldDirectQtdN2, valor: toSell(fs.custoN2F) },
-            { nivel: "N3F", qtd: state.fieldDirectQtdN3, valor: toSell(fs.custoN3F) },
-          ],
-          equipamentos: state.qtdEquipamentos || 0,
-          chamadosEscalados: fs.volumeUsuariosEscalado,
-          overflowVolume: fs.overflowAtivo ? fs.volumeTransbordoN1Remoto : undefined,
-        };
-        if (rotinasField.length > 0) {
-          rotinasGrupos.push({
-            titulo: `Rotinas Field — Microinformática (${rotinasField.length})`,
-            items: rotinasField.map(rotinaToSlide),
-          });
-        }
-      }
-      return { metricas, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined, horasN3, field };
+      return { metricas, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined, horasN3 };
     };
 
     const performanceExtras = () => {
@@ -1196,8 +1119,6 @@ export default function Detalhamento() {
       if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts, flowExtras());
     }
     if (state.tierOperation) pushCamada("operation", valorOperation, valorOperationParts, operationExtras());
-    if (state.tierFieldOperation)
-      pushCamada("fieldService", valorFieldService, valorFieldParts);
     if (state.tierPerformance)
       pushCamada("performance", valorPerformance, valorPerformanceParts, performanceExtras());
     if (state.tierEnterprise)
@@ -1208,7 +1129,6 @@ export default function Detalhamento() {
     const camadaAtiva = {
       monitorVisible, flowVisible,
       operation: !!state.tierOperation,
-      fieldService: !!state.tierFieldOperation,
       performance: !!state.tierPerformance,
       enterprise: !!state.tierEnterprise,
     };
@@ -1398,7 +1318,7 @@ export default function Detalhamento() {
           {!flowVisible && (() => {
             const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
             const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
-            const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
+            const manualTotal = (state.volumeChamadosAtivosManual || 0);
             const niveisRisco = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
             const nivelRisco = state.criticidadeNivel ?? 2;
             return (
@@ -1575,7 +1495,7 @@ export default function Detalhamento() {
           {(() => {
             const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
             const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
-            const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
+            const manualTotal = (state.volumeChamadosAtivosManual || 0);
             const niveisRisco = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
             const nivelRisco = state.criticidadeNivel ?? 2;
             return (
@@ -1987,8 +1907,7 @@ export default function Detalhamento() {
           const camadaAtiva = {
             monitorVisible, flowVisible,
             operation: !!state.tierOperation,
-            fieldService: !!state.tierFieldOperation,
-            performance: !!state.tierPerformance,
+                  performance: !!state.tierPerformance,
             enterprise: !!state.tierEnterprise,
           };
           const computeItem = createItemAdicionalCalculator({ state, results, fatorVenda });
