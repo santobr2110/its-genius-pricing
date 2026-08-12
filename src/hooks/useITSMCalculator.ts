@@ -462,8 +462,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const effectiveDemandSource: "inventario" | "manual" =
       forceInventory ? "inventario" : (state.demandSource ?? "inventario");
     const manualVolume =
-      Math.max(0, state.volumeChamadosAtivosManual || 0) +
-      Math.max(0, state.volumeChamadosUsuariosManual || 0);
+      Math.max(0, state.volumeChamadosAtivosManual || 0);
     const smChamados = effectiveDemandSource === "manual" ? manualVolume : smChamadosInv;
     // Smart Monitor: mínimo de 10 itens cobrados pelo valor unitário;
     // a partir do 11º cada item adicional acrescenta o valor unitário.
@@ -531,70 +530,19 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const flHorasN3Manut = flowActive && !flowAdvanced ? Math.max(0, state.horasN3FlowManut || 0) : 0;
     const flCustoN3Manut = flHorasN3Manut * state.valorHoraN3;
 
-    const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
-
-    // === Triagem N1 para chamados Field (mesmo mecanismo do Smart Monitor) ===
-    // Apenas a parcela dentro da capacidade da equipe Field; o excedente
-    // (transbordo) já paga o custo cheio do N1 remoto mais adiante.
-    let custoFieldTriagemN1 = 0;
-
-    // === Field Service de Microinformática ===
-    // Demandas de usuários (já filtradas pelo N0) passam pelo N1 convencional
-    // e, quando Field está ativo, são também escaladas para a equipe Field
-    // distribuída entre N1F / N2F / N3F.
-    const fieldActive = state.tierOperation && state.tierFieldOperation;
-    const volumeUsuariosEscalado = fieldActive
-      ? chamadosUsuarios * (1 - state.reducaoN0 / 100)
-      : 0;
-    const fN1F = volumeUsuariosEscalado * (state.percFieldN1F / 100);
-    const fN2F = volumeUsuariosEscalado * (state.percFieldN2F / 100);
-    const fN3F = volumeUsuariosEscalado * (state.percFieldN3F / 100);
-
-    let custoFN1 = 0, custoFN2 = 0, custoFN3 = 0;
-    let overflowAtivo = false;
-    let volTransN1R = 0, volTransN2F = 0;
-    let custoTransN1R = 0, custoTransN2F = 0;
-
-    if (fieldActive) {
-      // Alocação direta: quantidade configurável de profissionais por nível.
-      custoFN1 = state.custoUmFieldN1 * state.fieldDirectQtdN1;
-      custoFN2 = state.custoUmFieldN2 * state.fieldDirectQtdN2;
-      custoFN3 = state.custoUmFieldN3 * state.fieldDirectQtdN3;
-
-      let volAbsorvido = volumeUsuariosEscalado;
-      if (state.qtdEquipamentos > state.fieldDirectEquipLimit && state.fieldDirectEquipLimit > 0) {
-        overflowAtivo = true;
-        const excedente = (state.qtdEquipamentos - state.fieldDirectEquipLimit) / state.qtdEquipamentos;
-        const volExcedente = volumeUsuariosEscalado * excedente;
-        volAbsorvido = volumeUsuariosEscalado - volExcedente;
-        volTransN1R = volExcedente;
-        const fracN2F = (state.percFieldN2F + state.percFieldN3F) / 100;
-        volTransN2F = volExcedente * fracN2F;
-        custoTransN1R = custoPorChamadoN1 * volTransN1R;
-        const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
-        custoTransN2F = cppFN2 * volTransN2F;
-      }
-      // Triagem N1 (mesmo mecanismo do Smart Monitor) sobre o volume absorvido pela equipe Field.
-      custoFieldTriagemN1 = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * volAbsorvido;
-    }
-    const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
-
     // Gate dos custos por camada ativa (mesma regra do SmartTiersPanel.totalSelecionado):
     // - N1 + N2 só entram quando Smart Operation está ativo
     // - N3 (pool contratado) entra quando Operation OU Performance está ativo
-    // - Endpoint tooling + Field Service entram apenas dentro do Smart Operation
     // Sem esse gate, cenários só com Smart Monitor/Flow incluíam toda a equipe N1/N2/N3
     // no custo total da operação, divergindo do preço exibido nas Camadas de Oferta.
     const includeN1N2 = state.tierOperation;
     const includeN3 = state.tierOperation || state.tierPerformance;
-    const includeOperationExtras = state.tierOperation;
     const custoTotalOperacao =
       (includeN1N2 ? custoN1 + custoN2 : 0) +
       (includeN3 ? custoN3 : 0) +
       smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys +
       flCustoMonit + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys +
-      custoMonitoramentoUM +
-      (includeOperationExtras ? custoEndpointTooling + custoFieldTotal : 0);
+      custoMonitoramentoUM;
     // ===== Composição do preço de venda (Markup Divisor único) =====
     // PV = Custo / (1 - Σ% / 100), onde Σ% = PIS+COFINS+ISS+Comissão+IRPJ/CSLL+Enc.Financ.+Lucro
     // Cada componente em R$ = PV × (% do componente / 100).
