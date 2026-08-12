@@ -933,7 +933,7 @@ export default function SmartTiersPanel() {
                     <span className="text-[11px] leading-tight">
                       <span className="font-semibold">Volume informado</span>
                       <span className="text-muted-foreground">
-                        {" "}— volume de chamados informado abaixo, multiplicado pelo custo unitário.
+                        {" "}— volume informado a ser considerado como demanda conforme campo abaixo.
                       </span>
                     </span>
                   </label>
@@ -1192,7 +1192,7 @@ export default function SmartTiersPanel() {
                     <span className="text-[11px] leading-tight">
                       <span className="font-semibold">Volume informado</span>
                       <span className="text-muted-foreground">
-                        {" "}— volume de chamados informado abaixo, multiplicado pelo custo unitário.
+                        {" "}— volume informado a ser considerado como demanda conforme campo abaixo.
                       </span>
                     </span>
                   </label>
