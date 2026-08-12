@@ -873,7 +873,7 @@ export default function Detalhamento() {
       valor: number,
       composicao: { label: string; value: number }[],
       extras: Partial<Pick<CamadaSlideData,
-        "metricas" | "recursos" | "horasN3" | "rotinasGrupos" | "field"
+        "metricas" | "recursos" | "horasN3" | "rotinasGrupos"
       >> = {},
     ) => {
       const esc = escopoFiltered[key];
