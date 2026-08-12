@@ -564,55 +564,6 @@ export default function SmartTiersPanel() {
     }
   }, [melhoriaPerfHardMin, melhoriaPerfHardMax]);
 
-  // Rotinas de Field Service de Microinformática (Microinformática) — agregam Operation + Performance
-  // num único bloco exibido dentro da composição de Field Service de Microinformática.
-  const rotinasField = useMemo(() => {
-    // No cenário sem infra, microinformática já é listada como rotina de Operation/Performance.
-    if (!state.tierFieldOperation || n3OptionalScenario) {
-      return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
-    }
-    const items = normalizedRotinas
-      .filter((r) => r.grupo.toLowerCase().includes("microinform"))
-      .filter((r) => (r.oferta === "Performance" ? state.tierPerformance : true))
-      .map((r) => {
-        const rotina = normalizeOsRotina(r);
-        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-        const demanda = r.chamadosMes * mult;
-        const cac = r.cac * mult;
-        const fatorAuto = r.automacao
-          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
-          : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
-        const venda = toSell(custo);
-        return {
-          id: r.id,
-          grupo: r.grupo,
-          rotina: r.rotina,
-          oferta: r.oferta,
-          automacao: r.automacao,
-          off: rotinaOff(r.id),
-          demanda,
-          cac,
-          custo,
-          venda,
-        };
-      })
-      .filter((i) => i.demanda > 0)
-      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
-    const totals = items.reduce(
-      (acc, i) => {
-        if (i.off) return acc;
-        acc.demanda += i.demanda;
-        acc.cac += i.cac;
-        acc.custo += i.custo;
-        acc.venda += i.venda;
-        return acc;
-      },
-      { demanda: 0, cac: 0, custo: 0, venda: 0 },
-    );
-    return { items, totals };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [normalizedRotinas, state, results, fatorVenda, rotinasOffSet]);
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
@@ -846,10 +797,6 @@ export default function SmartTiersPanel() {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
                       if (!state.tierFlow) update("tierFlow", true as any);
                     }
-                    // Ao desativar Smart Operation, desativa Field Service de Microinformática automaticamente
-                    if (t.id === "tierOperation" && !next && state.tierFieldOperation) {
-                      update("tierFieldOperation", false as any);
-                    }
                     // Smart Performance exige Smart Monitor + Flow + Operation ativos
                     if (t.id === "tierPerformance" && next) {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
@@ -971,14 +918,14 @@ export default function SmartTiersPanel() {
                     <span className="text-[11px] leading-tight">
                       <span className="font-semibold">Volume informado</span>
                       <span className="text-muted-foreground">
-                        {" "}— soma dos chamados atuais (ativos + usuários) informados no inventário, multiplicada pelo custo unitário.
+                        {" "}— soma dos chamados atuais dos ativos informados no inventário, multiplicada pelo custo unitário.
                       </span>
                     </span>
                   </label>
                 </RadioGroup>
                 {(state.demandSource === "manual") && (
                   <p className="text-[10px] text-muted-foreground">
-                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0))} ch/mês.
+                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0))} ch/mês.
                   </p>
                 )}
               </div>
@@ -1225,7 +1172,7 @@ export default function SmartTiersPanel() {
                 </RadioGroup>
                 {(state.demandSource === "manual") && (
                   <p className="text-[10px] text-muted-foreground">
-                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0))} ch/mês.
+                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0))} ch/mês.
                   </p>
                 )}
               </div>
@@ -1499,21 +1446,6 @@ export default function SmartTiersPanel() {
               </div>
             )}
 
-            {n3OptionalScenario && (
-              <label className="flex items-start gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
-                <Checkbox
-                  checked={state.tierOperationN3}
-                  onCheckedChange={() => update("tierOperationN3", !state.tierOperationN3 as any)}
-                  className="mt-0.5"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold">Incluir N3 (horas avulsas)</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Como não há infraestrutura no inventário, o N3 é opcional.
-                  </p>
-                </div>
-              </label>
-            )}
 
             {!state.tierPerformance && (
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
@@ -1672,7 +1604,6 @@ export default function SmartTiersPanel() {
                     : "Serviço base (N1 + N2 + N3)",
                   value: toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)),
                 },
-                ...(fsVenda > 0 ? [{ label: "Field Service de Microinformática", value: fsVenda }] : []),
                 ...(gmudOperation.venda > 0 ? [{ label: "GMUDs (Operation)", value: gmudOperation.venda }] : []),
                 ...(gerenciaisVendaIn("Operation") > 0
                   ? [{ label: "Rotinas Gerenciais Selbetti", value: gerenciaisVendaIn("Operation") }]
