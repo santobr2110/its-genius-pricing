@@ -941,7 +941,7 @@ export default function SmartTiersPanel() {
                 {(state.demandSource === "manual") && (
                   <div className="flex items-center gap-2 rounded border bg-muted/30 px-2 py-1.5">
                     <Label htmlFor="vol-manual-monitor" className="text-[10px] text-muted-foreground flex-1">
-                      Chamados de Ativos / mês
+                      Chamados a serem considerados no mês
                     </Label>
                     <Input
                       id="vol-manual-monitor"
@@ -1200,7 +1200,7 @@ export default function SmartTiersPanel() {
                 {(state.demandSource === "manual") && (
                   <div className="flex items-center gap-2 rounded border bg-muted/30 px-2 py-1.5">
                     <Label htmlFor="vol-manual-flow" className="text-[10px] text-muted-foreground flex-1">
-                      Chamados de Ativos / mês
+                      Chamados a serem considerados no mês
                     </Label>
                     <Input
                       id="vol-manual-flow"
