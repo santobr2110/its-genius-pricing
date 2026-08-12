@@ -12,8 +12,6 @@ import {
 
 export interface ITSMState {
   // Inventário
-  qtdUsuarios: number;
-  qtdEquipamentos: number;
   qtdServidores: number;
   qtdAtivosRede: number;
   qtdBancosDados: number;
@@ -22,7 +20,6 @@ export interface ITSMState {
   horasN3Monitor: number;
   horasN3MonitorManut: number;
   // Taxas de demanda
-  taxaUsuario: number;
   taxaServidor: number;
   taxaRede: number;
   taxaBancoDados: number;
@@ -57,7 +54,6 @@ export interface ITSMState {
   // Camadas de oferta
   percAlocacaoN1Monitor: number;
   custoAtivoMonitorado: number;
-  custoFerramentaEndpoint: number;
   // Smart Operation (monitoramento ativo + automação)
   custoAtivoOperacao: number;
   percAlocacaoN1Operation: number;
@@ -123,31 +119,6 @@ export interface ITSMState {
   qtdAtendentesFlowMin: number;
   qtdAtendentesFlowMax: number;
   custoAtendenteFlow: number;
-  // Field Service de Microinformática (sub-opção do Smart Operation)
-  tierFieldOperation: boolean;
-  percFieldN1F: number;
-  percFieldN2F: number;
-  percFieldN3F: number;
-  // Modo de alocação Field: "proporcional" (capacidade da equipe cadastrada)
-  // ou "direto" (1 profissional fixo por nível e transbordo via N1 remoto + N2F).
-  fieldAllocationMode: "proporcional" | "direto";
-  // Limite de equipamentos para considerar transbordo no modo direto.
-  fieldDirectEquipLimit: number;
-  // Quantidade de profissionais alocados diretamente por nível (modo direto).
-  fieldDirectQtdN1: number;
-  fieldDirectQtdN2: number;
-  fieldDirectQtdN3: number;
-  // Custo de 1 profissional Field por nível (alimentado pelo contexto).
-  custoUmFieldN1: number;
-  custoUmFieldN2: number;
-  custoUmFieldN3: number;
-  // Custos de equipes Field (preenchidos pelo contexto)
-  custoEquipeFieldN1: number;
-  custoEquipeFieldN2: number;
-  custoEquipeFieldN3: number;
-  capacidadeFieldN1: number;
-  capacidadeFieldN2: number;
-  capacidadeFieldN3: number;
   // Percentual do custo de chamado aplicado em rotinas automatizadas (0–100)
   percCustoRotinaAutomatizada: number;
   // Distribuição dos chamados gerados por rotinas entre os times (independente do funil)
@@ -157,7 +128,6 @@ export interface ITSMState {
   // Volumes atuais informados pelo cliente (não impactam precificação)
   semVolumesAtuais: boolean;
   volumeChamadosAtivosManual: number;
-  volumeChamadosUsuariosManual: number;
   // Distribuição da demanda de GMUDs entre N2 e N3
   percGmudN2: number;
   percGmudN3: number;
@@ -179,7 +149,6 @@ export interface ITSMState {
 }
 
 export interface ITSMResults {
-  totalChamadosUsuarios: number;
   totalChamadosInfra: number;
   volumeTotalBruto: number;
   chamadosResolvidosN0: number;
@@ -202,7 +171,6 @@ export interface ITSMResults {
   horasPrevencao: number;
   custoN3: number;
   // Chamados por categoria
-  chamadosUsuarios: number;
   chamadosServidores: number;
   chamadosRede: number;
   chamadosBancoDados: number;
@@ -261,31 +229,9 @@ export interface ITSMResults {
     total: number;
   };
   humanAttendanceActive: boolean;
-  // Field Service de Microinformática
-  fieldService: {
-    active: boolean;
-    volumeUsuariosEscalado: number;
-    volumeN1F: number;
-    volumeN2F: number;
-    volumeN3F: number;
-    custoN1F: number;
-    custoN2F: number;
-    custoN3F: number;
-    total: number;
-    custoTriagemN1: number;
-    mode: "proporcional" | "direto";
-    // Transbordo (modo direto)
-    overflowAtivo: boolean;
-    volumeTransbordoN1Remoto: number;
-    volumeTransbordoN2F: number;
-    custoTransbordoN1Remoto: number;
-    custoTransbordoN2F: number;
-  };
 }
 
 const DEFAULTS: ITSMState = {
-  qtdUsuarios: 500,
-  qtdEquipamentos: 0,
   qtdServidores: 50,
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
@@ -293,7 +239,6 @@ const DEFAULTS: ITSMState = {
   horasN3Mensais: 80,
   horasN3Monitor: 0,
   horasN3MonitorManut: 0,
-  taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
   taxaBancoDados: 0.8,
@@ -321,7 +266,6 @@ const DEFAULTS: ITSMState = {
   lucroPerc: 20,
   percAlocacaoN1Monitor: 30,
   custoAtivoMonitorado: 50,
-  custoFerramentaEndpoint: 25,
   custoAtivoOperacao: 80,
   percAlocacaoN1Operation: 50,
   valorProxyInicial: 0,
@@ -377,31 +321,12 @@ const DEFAULTS: ITSMState = {
   qtdAtendentesFlowMin: 1,
   qtdAtendentesFlowMax: 5,
   custoAtendenteFlow: 4000,
-  tierFieldOperation: false,
-  percFieldN1F: 60,
-  percFieldN2F: 30,
-  percFieldN3F: 10,
-  fieldAllocationMode: "proporcional",
-  fieldDirectEquipLimit: 100,
-  fieldDirectQtdN1: 1,
-  fieldDirectQtdN2: 1,
-  fieldDirectQtdN3: 1,
-  custoUmFieldN1: 0,
-  custoUmFieldN2: 0,
-  custoUmFieldN3: 0,
-  custoEquipeFieldN1: 0,
-  custoEquipeFieldN2: 0,
-  custoEquipeFieldN3: 0,
-  capacidadeFieldN1: 600,
-  capacidadeFieldN2: 200,
-  capacidadeFieldN3: 80,
   percCustoRotinaAutomatizada: 20,
   percRotinaN1: 30,
   percRotinaN2: 50,
   percRotinaN3: 20,
   semVolumesAtuais: true,
   volumeChamadosAtivosManual: 0,
-  volumeChamadosUsuariosManual: 0,
   percGmudN2: 70,
   percGmudN3: 30,
   itsmFlowList: ["ServiceNow", "Jira Service Management", "Zendesk", "Freshservice", "GLPI", "BMC Helix"],
