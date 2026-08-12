@@ -14,8 +14,6 @@ export const CALCULATOR_KEY = SMART_ITO_NS + "itsm:calculator:v1";
 /** Campos do calculator que são "Perfil de Cliente" ou input pontual da precificação. */
 export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   // Inventário
-  "qtdUsuarios",
-  "qtdEquipamentos",
   "qtdServidores",
   "qtdAtivosRede",
   "qtdBancosDados",
@@ -23,7 +21,6 @@ export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   // Override de volume manual
   "semVolumesAtuais",
   "volumeChamadosAtivosManual",
-  "volumeChamadosUsuariosManual",
   // Criticidade do ambiente (a escala em si é parâmetro: criticidadeEscala)
   "criticidadeNivel",
   // Complexidade do cliente (toggles)
@@ -42,8 +39,6 @@ export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   "tierOperationN3",
   "tierPerformance",
   "tierEnterprise",
-  "tierFieldOperation",
-  "tierFieldPerformance",
   // Horas N3 escolhidas para esta precificação (min/max permanecem parâmetros)
   "horasN3Mensais",
   "horasN3Monitor",
@@ -59,10 +54,6 @@ export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   "qtdAtendentesFlow",
   "qtdProxysFlow",
   "itsmFlowSelected",
-  // Field Service — quantidades escolhidas nesta precificação (modo direto)
-  "fieldDirectQtdN1",
-  "fieldDirectQtdN2",
-  "fieldDirectQtdN3",
   // Fonte de demanda escolhida nesta precificação
   "demandSource",
 ]);

@@ -54,7 +54,6 @@ import {
   type RotinaSlideItem,
   type RecursoSlideItem,
   type HorasN3Slide,
-  type FieldSlideData,
 } from "@/lib/exportarApresentacao";
 import { exportarApresentacaoTemplate } from "@/lib/exportarApresentacaoTemplate";
 import { toast } from "sonner";
@@ -83,7 +82,6 @@ const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon
   gold:    { ring: "border-yellow-500/80 dark:border-yellow-500/70", bg: "from-yellow-100/80 via-card to-amber-100/50 dark:from-yellow-950/60 dark:via-card dark:to-amber-950/40", chip: "bg-gradient-to-r from-yellow-500/25 to-amber-500/25 text-yellow-800 dark:text-yellow-200", icon: "bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600 text-yellow-950", bar: "from-yellow-300 via-amber-400 to-yellow-600", badge: "bg-gradient-to-r from-yellow-500 to-amber-600",   check: "text-yellow-700 dark:text-yellow-300", glow: "shadow-yellow-500/40", valueGrad: "from-yellow-600 to-amber-700 dark:from-yellow-300 dark:to-amber-300", blob1: "bg-yellow-400/35", blob2: "bg-amber-500/25" },
   // Diamond — Smart Enterprise
   diamond: { ring: "border-cyan-400/80 dark:border-cyan-400/70",    bg: "from-cyan-100/80 via-card to-sky-100/40 dark:from-cyan-950/60 dark:via-card dark:to-sky-950/30",          chip: "bg-gradient-to-r from-cyan-400/25 to-sky-500/25 text-cyan-800 dark:text-cyan-200",         icon: "bg-gradient-to-br from-cyan-200 via-sky-300 to-blue-500 text-cyan-950",   bar: "from-cyan-300 via-sky-400 to-blue-500",   badge: "bg-gradient-to-r from-cyan-500 to-sky-600",       check: "text-cyan-700 dark:text-cyan-300", glow: "shadow-cyan-500/40", valueGrad: "from-cyan-600 to-blue-600 dark:from-cyan-300 dark:to-sky-300",       blob1: "bg-cyan-400/35", blob2: "bg-sky-400/25" },
-  // Field Service de Microinformática — sub-oferta (mantém âmbar/laranja distinto)
   amber:   { ring: "border-amber-300/70 dark:border-amber-600/60",  bg: "from-amber-100/80 via-card to-orange-50/40 dark:from-amber-950/50 dark:via-card dark:to-orange-950/20",  chip: "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-300",   icon: "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white",  bar: "from-amber-400 via-orange-400 to-rose-500",   badge: "bg-gradient-to-r from-amber-500 to-orange-500",   check: "text-amber-600 dark:text-amber-400", glow: "shadow-amber-500/30", valueGrad: "from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300", blob1: "bg-amber-400/30", blob2: "bg-orange-400/20" },
 };
 

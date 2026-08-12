@@ -137,8 +137,7 @@ export default function ResumoCotacao() {
     (calcState.qtdBancosDados || 0) + (calcState.qtdSistemas || 0) > 0;
 
   // Rotinas preventivas — total de CACs (chamados/mês) com base no inventário.
-  // Separa rotinas de Microinformática (Field) das demais (Performance).
-  const { rotinasPerformance, rotinasField, horasRotinasN3 } = useMemo(() => {
+  const { rotinasPerformance, horasRotinasN3 } = useMemo(() => {
     const inv = {
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
       qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
@@ -154,23 +153,19 @@ export default function ResumoCotacao() {
       complexErpMercado: calcState.complexErpMercado,
     };
     let perf = 0;
-    let field = 0;
     // Horas do pool N3 consumidas pelas rotinas preventivas (não gerenciais,
-    // não Microinformática) — mesma regra do Relatório de Proposição.
+    // — mesma regra do Relatório de Proposição.
     let horasN3Rot = 0;
     const fa0 = Math.max(0, Math.min(100, calcState.percCustoRotinaAutomatizada ?? 100)) / 100;
     rotinas.forEach((r) => {
       const mult = rotinaMultiplicador(r, inv, flags);
       const ch = r.chamadosMes * mult;
-      if (r.grupo === "Microinformática") field += ch;
-      else {
-        perf += ch;
-        if (!(r as { gerencial?: boolean }).gerencial && ch > 0) {
-          horasN3Rot += ch * (r.horasExecucao ?? 1) * ((r as { automacao?: boolean }).automacao ? fa0 : 1);
-        }
+      perf += ch;
+      if (!(r as { gerencial?: boolean }).gerencial && ch > 0) {
+        horasN3Rot += ch * (r.horasExecucao ?? 1) * ((r as { automacao?: boolean }).automacao ? fa0 : 1);
       }
     });
-    return { rotinasPerformance: perf, rotinasField: field, horasRotinasN3: horasN3Rot };
+    return { rotinasPerformance: perf, horasRotinasN3: horasN3Rot };
   }, [rotinas, calcState]);
 
   // GMUDs — totais Operation + Performance

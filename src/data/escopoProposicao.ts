@@ -91,7 +91,7 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
     restricoes: [
       "Não inclui rotinas avançadas em ambientes complexos (HA, multi-site, 24x7, ERP)",
       "Horas N3 / Automação limitadas ao volume contratado mensalmente — não acumulam entre meses",
-      "Não inclui suporte presencial sem contratação do Field Service de Microinformática",
+      "Não inclui suporte presencial em campo",
       "Atendimentos fora do horário comercial seguem regras específicas de plantão",
     ],
   },

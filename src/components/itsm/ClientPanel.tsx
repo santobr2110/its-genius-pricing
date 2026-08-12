@@ -18,11 +18,6 @@ interface Props {
 
 const groups = [
   {
-    title: "Service Desk e Microinformática",
-    items: [
-    ],
-  },
-  {
     title: "Cloud / Datacenter",
     items: [
       { key: "qtdServidores" as const, label: "Servidores", icon: Server, color: "text-emerald-500" },
