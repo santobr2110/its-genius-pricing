@@ -394,30 +394,18 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const ajuste = escala[nivel] ?? 0;
     const adj = (t: number) => Math.max(0, t * (1 + ajuste));
     // Chamados por categoria
-    const chamadosUsuarios = state.qtdUsuarios * adj(state.taxaUsuario);
     const chamadosServidores = state.qtdServidores * adj(state.taxaServidor);
     const chamadosRede = state.qtdAtivosRede * adj(state.taxaRede);
     const chamadosBancoDados = state.qtdBancosDados * adj(state.taxaBancoDados);
     const chamadosSistemas = state.qtdSistemas * adj(state.taxaSistemas);
 
-    const totalChamadosUsuarios = chamadosUsuarios;
     const totalChamadosInfra = chamadosServidores + chamadosRede + chamadosBancoDados + chamadosSistemas;
 
-    const volumeTotalBruto = totalChamadosUsuarios + totalChamadosInfra;
+    const volumeTotalBruto = totalChamadosInfra;
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
 
-    // Quando Field Service de Microinformática está ativo, os chamados de USUÁRIOS passam pelo N1
-    // convencional (triagem) mas são escalados para a equipe Field nos níveis
-    // N2/N3 — portanto não devem ser contabilizados em N2/N3 remoto.
-    const fieldActiveCheck = state.tierOperation && state.tierFieldOperation;
-    const userHumano = chamadosUsuarios * (1 - state.reducaoN0 / 100);
-    // Quando Field está ativo, os chamados de usuários saem da base do funil
-    // remoto (N1 normal, N2 e N3) — eles passam pelo N1 apenas como triagem
-    // (mesmo mecanismo do Smart Monitor) e são atendidos pela equipe Field.
-    const baseFunil = fieldActiveCheck
-      ? Math.max(0, volumeAtendimentoHumano - userHumano)
-      : volumeAtendimentoHumano;
+    const baseFunil = volumeAtendimentoHumano;
     const volumeN1 = baseFunil * (state.percN1 / 100);
     const volumeN2 = baseFunil * (state.percN2 / 100);
     const volumeN3 = baseFunil * (state.percN3 / 100);
@@ -426,23 +414,9 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const humanAttendanceActive =
       state.tierOperation || state.tierPerformance || state.tierEnterprise;
 
-    // Cenário onde N3 se torna opcional: sem infra mas com service desk
-    const hasInfraInventory =
-      (state.qtdServidores || 0) +
-      (state.qtdAtivosRede || 0) +
-      (state.qtdBancosDados || 0) +
-      (state.qtdSistemas || 0) > 0;
-    const hasServiceDesk =
-      (state.qtdUsuarios || 0) +
-      (state.qtdEquipamentos || 0) > 0;
-    const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
-
-    // N3 atendido nas camadas superiores. Quando não há infra mas há service desk,
-    // o N3 torna-se opcional via tierOperationN3.
+    // N3 atendido nas camadas superiores.
     const n3Active =
-      state.tierEnterprise ||
-      ((state.tierPerformance || state.tierOperation) && !n3OptionalScenario) ||
-      (n3OptionalScenario && state.tierOperationN3);
+      state.tierEnterprise || state.tierPerformance || state.tierOperation;
 
     // === N1: Custo por Chamado ===
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
