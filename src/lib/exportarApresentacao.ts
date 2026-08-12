@@ -15,7 +15,6 @@ export interface CamadaSlideData {
   recursos?: RecursoSlideItem[];
   horasN3?: HorasN3Slide;
   rotinasGrupos?: RotinaGrupoSlide[];
-  field?: FieldSlideData;
 }
 
 export interface ItemAdicionalSlide {
@@ -57,19 +56,6 @@ export interface RotinaSlideItem {
 export interface RotinaGrupoSlide {
   titulo: string;
   items: RotinaSlideItem[];
-}
-
-export interface FieldProfissionalSlide {
-  nivel: string;
-  qtd: number;
-  valor: number;
-}
-
-export interface FieldSlideData {
-  profissionais: FieldProfissionalSlide[];
-  equipamentos: number;
-  chamadosEscalados: number;
-  overflowVolume?: number;
 }
 
 export interface ApresentacaoPayload {
@@ -623,7 +609,7 @@ function slideComposicao(
 }
 
 /* ===========================================================
- * Slides adicionais — Detalhamento operacional, Rotinas, Field
+ * Slides adicionais — Detalhamento operacional, Rotinas
  * (Modelo 1 · paleta verde hightech)
  * =========================================================== */
 
@@ -631,8 +617,7 @@ function camadaTemDetalhe(cam: CamadaSlideData): boolean {
   return !!(
     (cam.metricas && cam.metricas.length) ||
     (cam.recursos && cam.recursos.length) ||
-    (cam.horasN3 && cam.horasN3.blocos.length) ||
-    cam.field
+    (cam.horasN3 && cam.horasN3.blocos.length)
   );
 }
 
@@ -741,47 +726,6 @@ function slideCamadaDetalhe(
       }
     });
     y += 1.55;
-  }
-
-  // Field service
-  if (cam.field) {
-    const fld = cam.field;
-    slide.addText("EQUIPE FIELD SERVICE DE MICROINFORMÁTICA", {
-      x: 0.5, y, w: 9, h: 0.28, fontFace: FONT_BODY, fontSize: 9, bold: true,
-      color: C.warn, charSpacing: 3,
-    });
-    y += 0.3;
-    const profs = fld.profissionais;
-    const cardW = 9 / Math.max(1, profs.length) - 0.1;
-    profs.forEach((p, i) => {
-      const x = 0.5 + i * (cardW + 0.1);
-      slide.addShape("roundRect", {
-        x, y, w: cardW, h: 0.7, rectRadius: 0.08,
-        fill: { color: C.card }, line: { color: C.warn, width: 1 },
-      });
-      slide.addText(p.nivel, {
-        x: x + 0.15, y: y + 0.05, w: cardW - 0.3, h: 0.3,
-        fontFace: FONT_BODY, fontSize: 11, bold: true, color: C.warn, charSpacing: 3,
-      });
-      slide.addText(`${p.qtd} prof.`, {
-        x: x + 0.15, y: y + 0.32, w: cardW - 0.3, h: 0.25,
-        fontFace: FONT_TITLE, fontSize: 14, bold: true, color: C.text,
-      });
-      slide.addText(formatBRL(p.valor) + "/mês", {
-        x: x + 0.15, y: y + 0.5, w: cardW - 0.3, h: 0.2,
-        fontFace: FONT_BODY, fontSize: 9, color: C.primarySoft,
-      });
-    });
-    y += 0.8;
-    const info: string[] = [];
-    info.push(`Equipamentos cobertos: ${formatNumber(fld.equipamentos)}`);
-    info.push(`Chamados escalados ao Field: ${formatNumber(fld.chamadosEscalados, 1)}/mês`);
-    if (fld.overflowVolume && fld.overflowVolume > 0)
-      info.push(`Transbordo remoto: ${formatNumber(fld.overflowVolume, 1)} ch/mês via N1 remoto + N2F`);
-    slide.addText(info.join("   ·   "), {
-      x: 0.5, y, w: 9, h: 0.3, fontFace: FONT_BODY, fontSize: 9,
-      color: C.textMuted, italic: true,
-    });
   }
 
   addFooter(slide, page, total, data.ofertaNome);

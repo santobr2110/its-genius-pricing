@@ -12,8 +12,6 @@ import {
 
 export interface ITSMState {
   // Inventário
-  qtdUsuarios: number;
-  qtdEquipamentos: number;
   qtdServidores: number;
   qtdAtivosRede: number;
   qtdBancosDados: number;
@@ -22,7 +20,6 @@ export interface ITSMState {
   horasN3Monitor: number;
   horasN3MonitorManut: number;
   // Taxas de demanda
-  taxaUsuario: number;
   taxaServidor: number;
   taxaRede: number;
   taxaBancoDados: number;
@@ -57,7 +54,6 @@ export interface ITSMState {
   // Camadas de oferta
   percAlocacaoN1Monitor: number;
   custoAtivoMonitorado: number;
-  custoFerramentaEndpoint: number;
   // Smart Operation (monitoramento ativo + automação)
   custoAtivoOperacao: number;
   percAlocacaoN1Operation: number;
@@ -123,31 +119,6 @@ export interface ITSMState {
   qtdAtendentesFlowMin: number;
   qtdAtendentesFlowMax: number;
   custoAtendenteFlow: number;
-  // Field Service de Microinformática (sub-opção do Smart Operation)
-  tierFieldOperation: boolean;
-  percFieldN1F: number;
-  percFieldN2F: number;
-  percFieldN3F: number;
-  // Modo de alocação Field: "proporcional" (capacidade da equipe cadastrada)
-  // ou "direto" (1 profissional fixo por nível e transbordo via N1 remoto + N2F).
-  fieldAllocationMode: "proporcional" | "direto";
-  // Limite de equipamentos para considerar transbordo no modo direto.
-  fieldDirectEquipLimit: number;
-  // Quantidade de profissionais alocados diretamente por nível (modo direto).
-  fieldDirectQtdN1: number;
-  fieldDirectQtdN2: number;
-  fieldDirectQtdN3: number;
-  // Custo de 1 profissional Field por nível (alimentado pelo contexto).
-  custoUmFieldN1: number;
-  custoUmFieldN2: number;
-  custoUmFieldN3: number;
-  // Custos de equipes Field (preenchidos pelo contexto)
-  custoEquipeFieldN1: number;
-  custoEquipeFieldN2: number;
-  custoEquipeFieldN3: number;
-  capacidadeFieldN1: number;
-  capacidadeFieldN2: number;
-  capacidadeFieldN3: number;
   // Percentual do custo de chamado aplicado em rotinas automatizadas (0–100)
   percCustoRotinaAutomatizada: number;
   // Distribuição dos chamados gerados por rotinas entre os times (independente do funil)
@@ -157,7 +128,6 @@ export interface ITSMState {
   // Volumes atuais informados pelo cliente (não impactam precificação)
   semVolumesAtuais: boolean;
   volumeChamadosAtivosManual: number;
-  volumeChamadosUsuariosManual: number;
   // Distribuição da demanda de GMUDs entre N2 e N3
   percGmudN2: number;
   percGmudN3: number;
@@ -179,7 +149,6 @@ export interface ITSMState {
 }
 
 export interface ITSMResults {
-  totalChamadosUsuarios: number;
   totalChamadosInfra: number;
   volumeTotalBruto: number;
   chamadosResolvidosN0: number;
@@ -202,7 +171,6 @@ export interface ITSMResults {
   horasPrevencao: number;
   custoN3: number;
   // Chamados por categoria
-  chamadosUsuarios: number;
   chamadosServidores: number;
   chamadosRede: number;
   chamadosBancoDados: number;
@@ -261,31 +229,9 @@ export interface ITSMResults {
     total: number;
   };
   humanAttendanceActive: boolean;
-  // Field Service de Microinformática
-  fieldService: {
-    active: boolean;
-    volumeUsuariosEscalado: number;
-    volumeN1F: number;
-    volumeN2F: number;
-    volumeN3F: number;
-    custoN1F: number;
-    custoN2F: number;
-    custoN3F: number;
-    total: number;
-    custoTriagemN1: number;
-    mode: "proporcional" | "direto";
-    // Transbordo (modo direto)
-    overflowAtivo: boolean;
-    volumeTransbordoN1Remoto: number;
-    volumeTransbordoN2F: number;
-    custoTransbordoN1Remoto: number;
-    custoTransbordoN2F: number;
-  };
 }
 
 const DEFAULTS: ITSMState = {
-  qtdUsuarios: 500,
-  qtdEquipamentos: 0,
   qtdServidores: 50,
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
@@ -293,7 +239,6 @@ const DEFAULTS: ITSMState = {
   horasN3Mensais: 80,
   horasN3Monitor: 0,
   horasN3MonitorManut: 0,
-  taxaUsuario: 0.5,
   taxaServidor: 1.2,
   taxaRede: 0.3,
   taxaBancoDados: 0.8,
@@ -321,7 +266,6 @@ const DEFAULTS: ITSMState = {
   lucroPerc: 20,
   percAlocacaoN1Monitor: 30,
   custoAtivoMonitorado: 50,
-  custoFerramentaEndpoint: 25,
   custoAtivoOperacao: 80,
   percAlocacaoN1Operation: 50,
   valorProxyInicial: 0,
@@ -377,31 +321,12 @@ const DEFAULTS: ITSMState = {
   qtdAtendentesFlowMin: 1,
   qtdAtendentesFlowMax: 5,
   custoAtendenteFlow: 4000,
-  tierFieldOperation: false,
-  percFieldN1F: 60,
-  percFieldN2F: 30,
-  percFieldN3F: 10,
-  fieldAllocationMode: "proporcional",
-  fieldDirectEquipLimit: 100,
-  fieldDirectQtdN1: 1,
-  fieldDirectQtdN2: 1,
-  fieldDirectQtdN3: 1,
-  custoUmFieldN1: 0,
-  custoUmFieldN2: 0,
-  custoUmFieldN3: 0,
-  custoEquipeFieldN1: 0,
-  custoEquipeFieldN2: 0,
-  custoEquipeFieldN3: 0,
-  capacidadeFieldN1: 600,
-  capacidadeFieldN2: 200,
-  capacidadeFieldN3: 80,
   percCustoRotinaAutomatizada: 20,
   percRotinaN1: 30,
   percRotinaN2: 50,
   percRotinaN3: 20,
   semVolumesAtuais: true,
   volumeChamadosAtivosManual: 0,
-  volumeChamadosUsuariosManual: 0,
   percGmudN2: 70,
   percGmudN3: 30,
   itsmFlowList: ["ServiceNow", "Jira Service Management", "Zendesk", "Freshservice", "GLPI", "BMC Helix"],
@@ -469,30 +394,18 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const ajuste = escala[nivel] ?? 0;
     const adj = (t: number) => Math.max(0, t * (1 + ajuste));
     // Chamados por categoria
-    const chamadosUsuarios = state.qtdUsuarios * adj(state.taxaUsuario);
     const chamadosServidores = state.qtdServidores * adj(state.taxaServidor);
     const chamadosRede = state.qtdAtivosRede * adj(state.taxaRede);
     const chamadosBancoDados = state.qtdBancosDados * adj(state.taxaBancoDados);
     const chamadosSistemas = state.qtdSistemas * adj(state.taxaSistemas);
 
-    const totalChamadosUsuarios = chamadosUsuarios;
     const totalChamadosInfra = chamadosServidores + chamadosRede + chamadosBancoDados + chamadosSistemas;
 
-    const volumeTotalBruto = totalChamadosUsuarios + totalChamadosInfra;
+    const volumeTotalBruto = totalChamadosInfra;
     const chamadosResolvidosN0 = volumeTotalBruto * (state.reducaoN0 / 100);
     const volumeAtendimentoHumano = volumeTotalBruto - chamadosResolvidosN0;
 
-    // Quando Field Service de Microinformática está ativo, os chamados de USUÁRIOS passam pelo N1
-    // convencional (triagem) mas são escalados para a equipe Field nos níveis
-    // N2/N3 — portanto não devem ser contabilizados em N2/N3 remoto.
-    const fieldActiveCheck = state.tierOperation && state.tierFieldOperation;
-    const userHumano = chamadosUsuarios * (1 - state.reducaoN0 / 100);
-    // Quando Field está ativo, os chamados de usuários saem da base do funil
-    // remoto (N1 normal, N2 e N3) — eles passam pelo N1 apenas como triagem
-    // (mesmo mecanismo do Smart Monitor) e são atendidos pela equipe Field.
-    const baseFunil = fieldActiveCheck
-      ? Math.max(0, volumeAtendimentoHumano - userHumano)
-      : volumeAtendimentoHumano;
+    const baseFunil = volumeAtendimentoHumano;
     const volumeN1 = baseFunil * (state.percN1 / 100);
     const volumeN2 = baseFunil * (state.percN2 / 100);
     const volumeN3 = baseFunil * (state.percN3 / 100);
@@ -501,23 +414,9 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const humanAttendanceActive =
       state.tierOperation || state.tierPerformance || state.tierEnterprise;
 
-    // Cenário onde N3 se torna opcional: sem infra mas com service desk
-    const hasInfraInventory =
-      (state.qtdServidores || 0) +
-      (state.qtdAtivosRede || 0) +
-      (state.qtdBancosDados || 0) +
-      (state.qtdSistemas || 0) > 0;
-    const hasServiceDesk =
-      (state.qtdUsuarios || 0) +
-      (state.qtdEquipamentos || 0) > 0;
-    const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
-
-    // N3 atendido nas camadas superiores. Quando não há infra mas há service desk,
-    // o N3 torna-se opcional via tierOperationN3.
+    // N3 atendido nas camadas superiores.
     const n3Active =
-      state.tierEnterprise ||
-      ((state.tierPerformance || state.tierOperation) && !n3OptionalScenario) ||
-      (n3OptionalScenario && state.tierOperationN3);
+      state.tierEnterprise || state.tierPerformance || state.tierOperation;
 
     // === N1: Custo por Chamado ===
     const custoPosicaoN1 = state.custoPessoaN1 * 4 * (1 + state.percGestaoN1 / 100);
@@ -563,8 +462,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const effectiveDemandSource: "inventario" | "manual" =
       forceInventory ? "inventario" : (state.demandSource ?? "inventario");
     const manualVolume =
-      Math.max(0, state.volumeChamadosAtivosManual || 0) +
-      Math.max(0, state.volumeChamadosUsuariosManual || 0);
+      Math.max(0, state.volumeChamadosAtivosManual || 0);
     const smChamados = effectiveDemandSource === "manual" ? manualVolume : smChamadosInv;
     // Smart Monitor: mínimo de 10 itens cobrados pelo valor unitário;
     // a partir do 11º cada item adicional acrescenta o valor unitário.
@@ -632,70 +530,19 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const flHorasN3Manut = flowActive && !flowAdvanced ? Math.max(0, state.horasN3FlowManut || 0) : 0;
     const flCustoN3Manut = flHorasN3Manut * state.valorHoraN3;
 
-    const custoEndpointTooling = state.custoFerramentaEndpoint * state.qtdEquipamentos;
-
-    // === Triagem N1 para chamados Field (mesmo mecanismo do Smart Monitor) ===
-    // Apenas a parcela dentro da capacidade da equipe Field; o excedente
-    // (transbordo) já paga o custo cheio do N1 remoto mais adiante.
-    let custoFieldTriagemN1 = 0;
-
-    // === Field Service de Microinformática ===
-    // Demandas de usuários (já filtradas pelo N0) passam pelo N1 convencional
-    // e, quando Field está ativo, são também escaladas para a equipe Field
-    // distribuída entre N1F / N2F / N3F.
-    const fieldActive = state.tierOperation && state.tierFieldOperation;
-    const volumeUsuariosEscalado = fieldActive
-      ? chamadosUsuarios * (1 - state.reducaoN0 / 100)
-      : 0;
-    const fN1F = volumeUsuariosEscalado * (state.percFieldN1F / 100);
-    const fN2F = volumeUsuariosEscalado * (state.percFieldN2F / 100);
-    const fN3F = volumeUsuariosEscalado * (state.percFieldN3F / 100);
-
-    let custoFN1 = 0, custoFN2 = 0, custoFN3 = 0;
-    let overflowAtivo = false;
-    let volTransN1R = 0, volTransN2F = 0;
-    let custoTransN1R = 0, custoTransN2F = 0;
-
-    if (fieldActive) {
-      // Alocação direta: quantidade configurável de profissionais por nível.
-      custoFN1 = state.custoUmFieldN1 * state.fieldDirectQtdN1;
-      custoFN2 = state.custoUmFieldN2 * state.fieldDirectQtdN2;
-      custoFN3 = state.custoUmFieldN3 * state.fieldDirectQtdN3;
-
-      let volAbsorvido = volumeUsuariosEscalado;
-      if (state.qtdEquipamentos > state.fieldDirectEquipLimit && state.fieldDirectEquipLimit > 0) {
-        overflowAtivo = true;
-        const excedente = (state.qtdEquipamentos - state.fieldDirectEquipLimit) / state.qtdEquipamentos;
-        const volExcedente = volumeUsuariosEscalado * excedente;
-        volAbsorvido = volumeUsuariosEscalado - volExcedente;
-        volTransN1R = volExcedente;
-        const fracN2F = (state.percFieldN2F + state.percFieldN3F) / 100;
-        volTransN2F = volExcedente * fracN2F;
-        custoTransN1R = custoPorChamadoN1 * volTransN1R;
-        const cppFN2 = state.capacidadeFieldN2 > 0 ? state.custoEquipeFieldN2 / state.capacidadeFieldN2 : 0;
-        custoTransN2F = cppFN2 * volTransN2F;
-      }
-      // Triagem N1 (mesmo mecanismo do Smart Monitor) sobre o volume absorvido pela equipe Field.
-      custoFieldTriagemN1 = (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * volAbsorvido;
-    }
-    const custoFieldTotal = custoFN1 + custoFN2 + custoFN3 + custoTransN1R + custoTransN2F + custoFieldTriagemN1;
-
     // Gate dos custos por camada ativa (mesma regra do SmartTiersPanel.totalSelecionado):
     // - N1 + N2 só entram quando Smart Operation está ativo
     // - N3 (pool contratado) entra quando Operation OU Performance está ativo
-    // - Endpoint tooling + Field Service entram apenas dentro do Smart Operation
     // Sem esse gate, cenários só com Smart Monitor/Flow incluíam toda a equipe N1/N2/N3
     // no custo total da operação, divergindo do preço exibido nas Camadas de Oferta.
     const includeN1N2 = state.tierOperation;
     const includeN3 = state.tierOperation || state.tierPerformance;
-    const includeOperationExtras = state.tierOperation;
     const custoTotalOperacao =
       (includeN1N2 ? custoN1 + custoN2 : 0) +
       (includeN3 ? custoN3 : 0) +
       smCustoMonit + smCustoN1Aloc + smCustoN3 + smCustoN3Manut + smCustoAtendentes + smCustoProxys +
       flCustoMonit + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys +
-      custoMonitoramentoUM +
-      (includeOperationExtras ? custoEndpointTooling + custoFieldTotal : 0);
+      custoMonitoramentoUM;
     // ===== Composição do preço de venda (Markup Divisor único) =====
     // PV = Custo / (1 - Σ% / 100), onde Σ% = PIS+COFINS+ISS+Comissão+IRPJ/CSLL+Enc.Financ.+Lucro
     // Cada componente em R$ = PV × (% do componente / 100).
@@ -775,27 +622,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       total: (flowActive ? custoMonitoramentoUM : 0) + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys,
     };
 
-    const fieldService = {
-      active: fieldActive,
-      volumeUsuariosEscalado,
-      volumeN1F: fN1F,
-      volumeN2F: fN2F,
-      volumeN3F: fN3F,
-      custoN1F: custoFN1,
-      custoN2F: custoFN2,
-      custoN3F: custoFN3,
-      total: custoFieldTotal,
-      custoTriagemN1: custoFieldTriagemN1,
-      mode: state.fieldAllocationMode,
-      overflowAtivo,
-      volumeTransbordoN1Remoto: volTransN1R,
-      volumeTransbordoN2F: volTransN2F,
-      custoTransbordoN1Remoto: custoTransN1R,
-      custoTransbordoN2F: custoTransN2F,
-    };
-
     return {
-      totalChamadosUsuarios,
       totalChamadosInfra,
       volumeTotalBruto,
       chamadosResolvidosN0,
@@ -813,7 +640,6 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       horasAtendimentoN3,
       horasPrevencao,
       custoN3,
-      chamadosUsuarios,
       chamadosServidores,
       chamadosRede,
       chamadosBancoDados,
@@ -826,7 +652,6 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       smartMonitor,
       smartFlow,
       humanAttendanceActive,
-      fieldService,
       composicaoPreco,
     };
 }

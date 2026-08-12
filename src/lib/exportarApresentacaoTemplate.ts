@@ -49,7 +49,6 @@ const TIER_META: Record<
   operation: { tag: "SILVER", number: 3, tagColor: "5A6773" },
   performance: { tag: "GOLD", number: 4, tagColor: "A67A00" },
   enterprise: { tag: "PLATINUM", number: 5, tagColor: "3E5A54" },
-  fieldService: { tag: "FIELD", number: 6, tagColor: "0B4A32" },
 };
 
 /* ------------------------------------------------------------------ */
@@ -946,14 +945,6 @@ function buildCamadaMetrics(cam: CamadaSlideData): { label: string; value: strin
       label: "Horas N3",
       value: `${fmtNum(cam.horasN3.total, 1)}h`,
       sub: `${fmt(cam.horasN3.valorHora)}/h`,
-    });
-  }
-  // Field service
-  if (cam.field && out.length < 4) {
-    out.push({
-      label: "Field · profissionais",
-      value: String(cam.field.profissionais.reduce((s, p) => s + p.qtd, 0)),
-      sub: `${fmtNum(cam.field.chamadosEscalados, 1)} ch/mês`,
     });
   }
   return out.slice(0, 4);

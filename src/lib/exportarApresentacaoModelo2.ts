@@ -686,8 +686,7 @@ function camadaTemDetalhe(cam: CamadaSlideData): boolean {
   return !!(
     (cam.metricas && cam.metricas.length) ||
     (cam.recursos && cam.recursos.length) ||
-    (cam.horasN3 && cam.horasN3.blocos.length) ||
-    cam.field
+    (cam.horasN3 && cam.horasN3.blocos.length)
   );
 }
 
@@ -814,46 +813,6 @@ function slideCamadaDetalhe(
     y += 1.8;
   }
 
-  // Field
-  if (cam.field) {
-    const fld = cam.field;
-    slide.addText("EQUIPE FIELD SERVICE DE MICROINFORMÁTICA", {
-      x: 0.55, y, w: 12.3, h: 0.32, fontFace: FONT, fontSize: 10, bold: true,
-      color: C.orange, charSpacing: 3,
-    });
-    y += 0.36;
-    const profs = fld.profissionais;
-    const cardW = 12.3 / Math.max(1, profs.length) - 0.15;
-    profs.forEach((p, i) => {
-      const x = 0.55 + i * (cardW + 0.15);
-      slide.addShape("roundRect", {
-        x, y, w: cardW, h: 0.85, rectRadius: 0.12,
-        fill: { color: C.cardFill }, line: { color: C.orange, width: 1.25 },
-      });
-      slide.addText(p.nivel, {
-        x: x + 0.2, y: y + 0.08, w: cardW - 0.4, h: 0.32,
-        fontFace: FONT, fontSize: 12, bold: true, color: C.orange, charSpacing: 3,
-      });
-      slide.addText(`${p.qtd} prof.`, {
-        x: x + 0.2, y: y + 0.36, w: cardW - 0.4, h: 0.3,
-        fontFace: FONT, fontSize: 16, bold: true, color: C.white,
-      });
-      slide.addText(formatBRL(p.valor) + "/mês", {
-        x: x + 0.2, y: y + 0.6, w: cardW - 0.4, h: 0.24,
-        fontFace: FONT, fontSize: 10, color: C.greenSoft,
-      });
-    });
-    y += 0.95;
-    const info: string[] = [];
-    info.push(`Equipamentos cobertos: ${formatNumber(fld.equipamentos)}`);
-    info.push(`Chamados escalados ao Field: ${formatNumber(fld.chamadosEscalados, 1)}/mês`);
-    if (fld.overflowVolume && fld.overflowVolume > 0)
-      info.push(`Transbordo remoto: ${formatNumber(fld.overflowVolume, 1)} ch/mês via N1 remoto + N2F`);
-    slide.addText(info.join("   ·   "), {
-      x: 0.55, y, w: 12.3, h: 0.32, fontFace: FONT, fontSize: 10,
-      color: C.textMuted, italic: true,
-    });
-  }
 
   addPageFooter(slide, page, total, data.ofertaNome);
 }

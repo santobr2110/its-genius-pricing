@@ -16,7 +16,6 @@ import type { ApprovalRole, ApprovalTier } from "@/lib/approval/types";
 const OFFERINGS = [
   { code: "smart-ito", label: "Smart ITO" },
   { code: "profissionais", label: "Profissionais" },
-  { code: "field-service", label: "Field Service" },
 ];
 
 export default function AprovacoesAdmin() {

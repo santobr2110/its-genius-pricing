@@ -6,7 +6,6 @@ const RAW: Record<string, string> = {
   "itsm:calculator:v1": "Calculadora ITSM (inclui Equipe N3)",
   "itsm:n1team:v1": "Equipe N1",
   "itsm:n2team:v1": "Equipe N2",
-  "itsm:fieldteams:v1": "Field Service",
   "gestao-ti:rotinas": "Gestão de TI — Rotinas",
   "gestao-ti:gmuds": "Gestão de TI — GMUDs",
   "gestao-ti:rotinasOff": "Gestão de TI — Rotinas desativadas na precificação",

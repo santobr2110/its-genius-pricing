@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Activity } from "lucide-react";
+import { Server, Network, Database, ShieldCheck, Gauge, Activity } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { ROTINAS_DEFAULT, type Rotina, type ComplexFlagKey } from "@/data/rotinas";
@@ -17,13 +17,6 @@ interface Props {
 }
 
 const groups = [
-  {
-    title: "Service Desk e Microinformática",
-    items: [
-      { key: "qtdUsuarios" as const, label: "Usuários", icon: Users, color: "text-blue-500" },
-      { key: "qtdEquipamentos" as const, label: "Equipamento Desk/Note/Cel/Tablet", icon: Laptop, color: "text-indigo-500" },
-    ],
-  },
   {
     title: "Cloud / Datacenter",
     items: [
@@ -51,10 +44,7 @@ export default function ClientPanel({ state, update, results }: Props) {
     (state.qtdSistemas || 0);
   const semInfo = state.semVolumesAtuais;
   const chamadosAtivosMes = semInfo ? 0 : state.volumeChamadosAtivosManual;
-  const chamadosUsuariosMes = semInfo ? 0 : state.volumeChamadosUsuariosManual;
   const chamadosPorAtivo = totalAtivos > 0 ? chamadosAtivosMes / totalAtivos : 0;
-  const chamadosPorUsuario =
-    state.qtdUsuarios > 0 ? chamadosUsuariosMes / state.qtdUsuarios : 0;
   const fmt = (n: number) =>
     n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
   const niveis = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
@@ -147,36 +137,12 @@ export default function ClientPanel({ state, update, results }: Props) {
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-lg border p-2">
-                <Users className="h-4 w-4 shrink-0 text-blue-500" />
-                <div className="flex-1 min-w-0">
-                  <Label className="text-[10px] text-muted-foreground leading-none truncate block">
-                    Chamados de Usuários / mês
-                  </Label>
-                  <Input
-                    type="number"
-                    disabled={semInfo}
-                    value={semInfo ? 0 : state.volumeChamadosUsuariosManual}
-                    onChange={(e) => update("volumeChamadosUsuariosManual", parseFloat(e.target.value) || 0)}
-                    className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-lg border p-2">
                 <Activity className="h-4 w-4 shrink-0 text-amber-500" />
                 <div className="flex-1 min-w-0">
                   <Label className="text-[10px] text-muted-foreground leading-none truncate block">
                     Chamados por Ativo
                   </Label>
                   <p className="text-sm font-semibold leading-tight">{fmt(chamadosPorAtivo)}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-lg border p-2">
-                <Activity className="h-4 w-4 shrink-0 text-indigo-500" />
-                <div className="flex-1 min-w-0">
-                  <Label className="text-[10px] text-muted-foreground leading-none truncate block">
-                    Chamados por Usuário
-                  </Label>
-                  <p className="text-sm font-semibold leading-tight">{fmt(chamadosPorUsuario)}</p>
                 </div>
               </div>
             </div>

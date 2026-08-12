@@ -50,7 +50,6 @@ export const GROUPS: GroupDef[] = [
           "/financeiro",
           "/taxas-demanda",
           "/precificacoes",
-          "/field-service",
           "/gestao-ti",
           "/relatorio-demanda",
           "/resumo-cotacao",

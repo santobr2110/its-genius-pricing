@@ -7,7 +7,7 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
   "/": {
     title: "IT Solutions Pricing Portal - Ofertas IT Solutions",
     description:
-      "Dimensione equipes N1/N2/N3 e Field Service de Microinformática, modele demanda mensal e calcule preços de operações ITSM com markup divisor.",
+      "Dimensione equipes N1/N2/N3, modele demanda mensal e calcule preços de operações ITSM com markup divisor.",
   },
   "/detalhamento": {
     title: "Detalhamento de Custos — Smart ITO",
@@ -43,11 +43,6 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     title: "Precificações Salvas — Smart ITO",
     description:
       "Gerencie presets de precificação ITSM salvos para reuso em propostas comerciais.",
-  },
-  "/field-service": {
-    title: "Field Service de Microinformática — Smart ITO",
-    description:
-      "Dimensione equipes de Field Service de Microinformática N1/N2/N3 com capacidade e custo mensal por nível.",
   },
   "/gestao-ti": {
     title: "Gestão de TI — Smart ITO",

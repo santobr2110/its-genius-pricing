@@ -16,9 +16,7 @@ const OFFERING_SLUG = "smart-ito";
 
 export interface PresetVolumes {
   chamadosAtivosMes: number;
-  chamadosUsuariosMes: number;
   chamadosPorAtivo: number;
-  chamadosPorUsuario: number;
 }
 
 export interface PresetEscopo {

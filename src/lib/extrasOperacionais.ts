@@ -24,7 +24,6 @@ function normalizeOsRotina(rRaw: Rotina): Rotina {
 export interface ExtrasOperacionais {
   custoGmudOperation: number;
   custoGmudPerformance: number;
-  custoRotinasField: number;
   custoRotinasGerenciais: number;
   custoTotal: number;
 }
@@ -33,7 +32,6 @@ export interface ExtrasOperacionais {
  * Calcula os custos "extras" que NÃO entram em useITSMCalculator.custoTotalOperacao
  * mas que compõem o valor de venda das camadas Smart e do Relatório de Proposição:
  *  - GMUDs (Operation + Performance)
- *  - Rotinas de Field Service de Microinformática (oferta vinculada à camada)
  *  - Rotinas Gerenciais Selbetti — apenas quando a oferta vinculada está ativa
  *
  * Rotinas Operation/Performance/Monitor/Flow consomem horas do pool N3 já
@@ -46,8 +44,6 @@ export function computeExtrasOperacionais(
   gmuds: Gmud[],
 ): ExtrasOperacionais {
   const inv: InventarioCounts = {
-    qtdUsuarios: state.qtdUsuarios,
-    qtdEquipamentos: state.qtdEquipamentos,
     qtdServidores: state.qtdServidores,
     qtdAtivosRede: state.qtdAtivosRede,
     qtdBancosDados: state.qtdBancosDados,
@@ -72,13 +68,6 @@ export function computeExtrasOperacionais(
   const fatorAutoPerc =
     Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100;
 
-  const hasInfraInventory =
-    (inv.qtdServidores || 0) + (inv.qtdAtivosRede || 0) +
-    (inv.qtdBancosDados || 0) + (inv.qtdSistemas || 0) > 0;
-  const hasServiceDesk =
-    (inv.qtdUsuarios || 0) + (inv.qtdEquipamentos || 0) > 0;
-  const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
-
   // Rotinas gerenciais são CUMULATIVAS: uma gerencial vinculada a Monitor
   // continua sendo executada (e cobrada) quando apenas Flow/Operation/
   // Performance estão ativos. Usa exatamente o mesmo bucket dos relatórios.
@@ -100,27 +89,6 @@ export function computeExtrasOperacionais(
     custoRotinasGerenciais += demanda * horas * state.valorHoraN3 * fa;
   }
 
-  // === Rotinas Field Service de Microinformática ===
-  let custoRotinasField = 0;
-  if (state.tierFieldOperation && !n3OptionalScenario) {
-    for (const rRaw of rotinas) {
-      const r = normalizeLegacyRotina(rRaw);
-      if (!r.grupo.toLowerCase().includes("microinform")) continue;
-      if (r.oferta === "Performance" && !state.tierPerformance) continue;
-      if (r.gerencial) continue;
-      const rotina = normalizeOsRotina(rRaw);
-      const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-      const demanda = r.chamadosMes * mult;
-      if (demanda <= 0) continue;
-      const fa = r.automacao ? fatorAutoPerc : 1;
-      if (r.horasExecucao && r.horasExecucao > 0) {
-        custoRotinasField += demanda * r.horasExecucao * state.valorHoraN3 * fa;
-      } else {
-        custoRotinasField += demanda * custoPorChamadoMix * fa;
-      }
-    }
-  }
-
   // === GMUDs ===
   const gmudInput = {
     custoPorChamadoN2: results.custoPorChamadoN2,
@@ -136,12 +104,11 @@ export function computeExtrasOperacionais(
   const custoGmudPerformance = state.tierPerformance ? sumGmud(buckets.performance) : 0;
 
   const custoTotal =
-    custoGmudOperation + custoGmudPerformance + custoRotinasField + custoRotinasGerenciais;
+    custoGmudOperation + custoGmudPerformance + custoRotinasGerenciais;
 
   return {
     custoGmudOperation,
     custoGmudPerformance,
-    custoRotinasField,
     custoRotinasGerenciais,
     custoTotal,
   };

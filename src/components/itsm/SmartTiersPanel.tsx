@@ -272,8 +272,6 @@ export default function SmartTiersPanel() {
   }, [state.tierPerformance, state.horasN3PerformanceMin]);
 
   const inv = {
-    qtdUsuarios: state.qtdUsuarios,
-    qtdEquipamentos: state.qtdEquipamentos,
     qtdServidores: state.qtdServidores,
     qtdAtivosRede: state.qtdAtivosRede,
     qtdBancosDados: state.qtdBancosDados,
@@ -294,9 +292,6 @@ export default function SmartTiersPanel() {
   const hasInfraInventory =
     (inv.qtdServidores || 0) + (inv.qtdAtivosRede || 0) +
     (inv.qtdBancosDados || 0) + (inv.qtdSistemas || 0) > 0;
-  const hasServiceDesk =
-    (inv.qtdUsuarios || 0) + (inv.qtdEquipamentos || 0) > 0;
-  const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
 
   // Custo médio por chamado de rotina ponderado pela escala de rotinas
   // (independente do funil de chamados de usuários/infra).
@@ -325,16 +320,6 @@ export default function SmartTiersPanel() {
   const rotinasOperation = useMemo(() => {
     const items = normalizedRotinas
       .filter((r) => r.oferta === "Operation" && !r.gerencial)
-      // Sem infra (apenas service desk): apenas microinformática.
-      // Com infra + service desk: todas as rotinas (incluindo microinformática).
-      // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
-      .filter((r) =>
-        n3OptionalScenario
-          ? r.grupo.toLowerCase().includes("microinform")
-          : hasServiceDesk && !state.tierFieldOperation
-            ? true
-            : !r.grupo.toLowerCase().includes("microinform"),
-      )
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -374,13 +359,6 @@ export default function SmartTiersPanel() {
     const isComplex = complexidade === "Complexo";
     const items = normalizedRotinas
       .filter((r) => r.oferta === "Performance" && !r.gerencial && (r.complexidade ?? "Padrão") === complexidade)
-      .filter((r) =>
-        n3OptionalScenario
-          ? r.grupo.toLowerCase().includes("microinform")
-          : hasServiceDesk && !state.tierFieldOperation
-            ? true
-            : !r.grupo.toLowerCase().includes("microinform"),
-      )
       .map((r) => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -586,55 +564,6 @@ export default function SmartTiersPanel() {
     }
   }, [melhoriaPerfHardMin, melhoriaPerfHardMax]);
 
-  // Rotinas de Field Service de Microinformática (Microinformática) — agregam Operation + Performance
-  // num único bloco exibido dentro da composição de Field Service de Microinformática.
-  const rotinasField = useMemo(() => {
-    // No cenário sem infra, microinformática já é listada como rotina de Operation/Performance.
-    if (!state.tierFieldOperation || n3OptionalScenario) {
-      return { items: [], totals: { demanda: 0, cac: 0, custo: 0, venda: 0 } };
-    }
-    const items = normalizedRotinas
-      .filter((r) => r.grupo.toLowerCase().includes("microinform"))
-      .filter((r) => (r.oferta === "Performance" ? state.tierPerformance : true))
-      .map((r) => {
-        const rotina = normalizeOsRotina(r);
-        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-        const demanda = r.chamadosMes * mult;
-        const cac = r.cac * mult;
-        const fatorAuto = r.automacao
-          ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
-          : 1;
-        const custo = demanda * custoPorChamadoMix * fatorAuto;
-        const venda = toSell(custo);
-        return {
-          id: r.id,
-          grupo: r.grupo,
-          rotina: r.rotina,
-          oferta: r.oferta,
-          automacao: r.automacao,
-          off: rotinaOff(r.id),
-          demanda,
-          cac,
-          custo,
-          venda,
-        };
-      })
-      .filter((i) => i.demanda > 0)
-      .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
-    const totals = items.reduce(
-      (acc, i) => {
-        if (i.off) return acc;
-        acc.demanda += i.demanda;
-        acc.cac += i.cac;
-        acc.custo += i.custo;
-        acc.venda += i.venda;
-        return acc;
-      },
-      { demanda: 0, cac: 0, custo: 0, venda: 0 },
-    );
-    return { items, totals };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [normalizedRotinas, state, results, fatorVenda, rotinasOffSet]);
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
   const smN1Venda = toSell(sm.custoN1Alocado);
@@ -652,8 +581,6 @@ export default function SmartTiersPanel() {
   const sflProxysVenda = toSell(sfl.custoProxys);
   const sflTotalVenda = tierPricing.venda.flow + gerenciaisVendaIn("Flow");
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
-  const fs = results.fieldService;
-  const fsVenda = fs.active ? tierPricing.venda.fieldService : 0;
 
   // === GMUDs por camada ===
   const gmudInput = {
@@ -693,11 +620,6 @@ export default function SmartTiersPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
 
-  // Custo de ferramenta de endpoint (entra em custoTotalOperacao do calculador
-  // quando Smart Operation está ativo). Precisa ser refletido aqui para que o
-  // "Valor Total de Venda" das Camadas bata exatamente com o preço de venda
-  // calculado no Resumo de Cotação e na Listagem de Precificações.
-  const custoEndpointTooling = tierPricing.custo.endpointTooling;
   const smOperationVenda = state.tierOperation
     ? tierPricing.venda.operation + gerenciaisVendaIn("Operation")
     : 0;
@@ -737,7 +659,6 @@ export default function SmartTiersPanel() {
     state.tierFlow ? "Smart Flow" : null,
     state.tierOperation ? "Smart Operation" : null,
     state.tierPerformance ? "Smart Performance" : null,
-    (results.fieldService?.total || 0) > 0 ? "Field Service" : null,
   ].filter(Boolean) as string[];
   const custoTotalMensal =
     (state.tierMonitor ? (sm?.total || 0) : 0) +
@@ -876,10 +797,6 @@ export default function SmartTiersPanel() {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
                       if (!state.tierFlow) update("tierFlow", true as any);
                     }
-                    // Ao desativar Smart Operation, desativa Field Service de Microinformática automaticamente
-                    if (t.id === "tierOperation" && !next && state.tierFieldOperation) {
-                      update("tierFieldOperation", false as any);
-                    }
                     // Smart Performance exige Smart Monitor + Flow + Operation ativos
                     if (t.id === "tierPerformance" && next) {
                       if (!state.tierMonitor) update("tierMonitor", true as any);
@@ -1001,14 +918,14 @@ export default function SmartTiersPanel() {
                     <span className="text-[11px] leading-tight">
                       <span className="font-semibold">Volume informado</span>
                       <span className="text-muted-foreground">
-                        {" "}— soma dos chamados atuais (ativos + usuários) informados no inventário, multiplicada pelo custo unitário.
+                        {" "}— soma dos chamados atuais dos ativos informados no inventário, multiplicada pelo custo unitário.
                       </span>
                     </span>
                   </label>
                 </RadioGroup>
                 {(state.demandSource === "manual") && (
                   <p className="text-[10px] text-muted-foreground">
-                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0))} ch/mês.
+                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0))} ch/mês.
                   </p>
                 )}
               </div>
@@ -1255,7 +1172,7 @@ export default function SmartTiersPanel() {
                 </RadioGroup>
                 {(state.demandSource === "manual") && (
                   <p className="text-[10px] text-muted-foreground">
-                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0))} ch/mês.
+                    Atual: {formatNumber((state.volumeChamadosAtivosManual || 0))} ch/mês.
                   </p>
                 )}
               </div>
@@ -1529,23 +1446,8 @@ export default function SmartTiersPanel() {
               </div>
             )}
 
-            {n3OptionalScenario && (
-              <label className="flex items-start gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
-                <Checkbox
-                  checked={state.tierOperationN3}
-                  onCheckedChange={() => update("tierOperationN3", !state.tierOperationN3 as any)}
-                  className="mt-0.5"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold">Incluir N3 (horas avulsas)</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Como não há infraestrutura no inventário, o N3 é opcional.
-                  </p>
-                </div>
-              </label>
-            )}
 
-            {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && (
+            {!state.tierPerformance && (
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">
@@ -1672,174 +1574,6 @@ export default function SmartTiersPanel() {
             </div>
             )}
 
-            <div className="border-t pt-3 space-y-3">
-              <label className="flex items-start gap-2 rounded border bg-background px-2 py-1.5 cursor-pointer">
-                <Checkbox
-                  checked={state.tierFieldOperation}
-                  onCheckedChange={() => update("tierFieldOperation", !state.tierFieldOperation as any)}
-                  className="mt-0.5"
-                />
-                <MapPin className="h-3.5 w-3.5 text-orange-500 mt-0.5 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold">Adicionar Field Service de Microinformática</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Atendimento presencial N1/N2/N3 — chamados de usuários passam pelo N1 convencional e são escalados para a equipe Field.
-                  </p>
-                </div>
-              </label>
-              {state.tierFieldOperation && (
-                <div className="rounded-lg border border-orange-200 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-900 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold">Composição — Field Service de Microinformática</p>
-                    <span className="text-[11px] text-muted-foreground">
-                      {formatNumber(fs.volumeUsuariosEscalado, 1)} ch/mês escalados
-                    </span>
-                  </div>
-                  <>
-                    <div className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
-                        <Label className="text-[11px] text-muted-foreground">Limite de equipamentos (transbordo p/ remoto)</Label>
-                        <Input
-                          type="number"
-                          value={state.fieldDirectEquipLimit}
-                          onChange={(e) => update("fieldDirectEquipLimit", parseInt(e.target.value) || 0)}
-                          className="h-7 text-sm w-24 ml-auto"
-                        />
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {([
-                          ["fieldDirectQtdN1", "Field Junior"],
-                          ["fieldDirectQtdN2", "Field Pleno"],
-                          ["fieldDirectQtdN3", "Field Senior"],
-                        ] as const).map(([key, label]) => (
-                          <div key={key} className="flex items-center gap-2 rounded border bg-background px-2 py-1.5">
-                            <Label className="text-[11px] text-muted-foreground">{label}</Label>
-                            <FractionInput
-                              value={state[key] as number}
-                              onChange={(v) => update(key, v)}
-                              className="h-7 text-sm ml-auto"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                  </>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">
-                        {state.fieldDirectQtdN1} prof.
-                      </span>
-                      <span className="font-semibold">{formatBRL(toSell(fs.custoN1F))}</span>
-                    </div>
-                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">
-                        {state.fieldDirectQtdN2} prof.
-                      </span>
-                      <span className="font-semibold">{formatBRL(toSell(fs.custoN2F))}</span>
-                    </div>
-                    <div className="flex justify-between rounded border bg-background px-2 py-1.5">
-                      <span className="text-muted-foreground">
-                        {state.fieldDirectQtdN3} prof.
-                      </span>
-                      <span className="font-semibold">{formatBRL(toSell(fs.custoN3F))}</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between rounded border bg-background px-2 py-1.5 text-xs">
-                    <span className="text-muted-foreground">
-                      Triagem N1 ({state.percAlocacaoN1Monitor}% do custo/chamado)
-                    </span>
-                    <span className="font-semibold">{formatBRL(toSell(fs.custoTriagemN1))}</span>
-                  </div>
-                  {fs.overflowAtivo && (
-                    <div className="rounded border border-orange-300 bg-orange-100/60 dark:bg-orange-900/30 px-2 py-1.5 space-y-1">
-                      <p className="text-[11px] font-semibold text-orange-700 dark:text-orange-300">
-                        Transbordo remoto · {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial
-                      </p>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="flex justify-between rounded border bg-background px-2 py-1">
-                          <span className="text-muted-foreground">N1 remoto</span>
-                          <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN1Remoto))}</span>
-                        </div>
-                        <div className="flex justify-between rounded border bg-background px-2 py-1">
-                          <span className="text-muted-foreground">
-                            N2 Field ({formatNumber(fs.volumeTransbordoN2F, 1)} ch)
-                          </span>
-                          <span className="font-semibold">{formatBRL(toSell(fs.custoTransbordoN2F))}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {rotinasField.items.length > 0 && (
-                    <div className="rounded border bg-background p-2 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <ListChecks className="h-3.5 w-3.5 text-orange-600" />
-                          <p className="text-xs font-semibold">Rotinas Field (Microinformática)</p>
-                        </div>
-                        <span className="text-[10px] text-muted-foreground">
-                          custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
-                        </span>
-                      </div>
-                      <div className="max-h-56 overflow-auto rounded border">
-                        <table className="w-full text-[11px]">
-                          <thead className="bg-muted sticky top-0">
-                            <tr>
-                              <th className="w-7 px-1 py-1" />
-                              <th className="text-left px-2 py-1 font-medium">Rotina</th>
-                              <th className="text-left px-2 py-1 font-medium w-20">Oferta</th>
-                              <th className="text-right px-2 py-1 font-medium w-16">Ch/mês</th>
-                              <th className="text-right px-2 py-1 font-medium w-20">Custo</th>
-                              <th className="text-right px-2 py-1 font-medium w-20">Venda</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {rotinasField.items.map((i) => (
-                              <tr key={i.id} className={`border-t ${i.off ? "opacity-45" : ""}`}>
-                                <td className="px-1 py-1 text-center">
-                                  <input
-                                    type="checkbox"
-                                    className="h-3 w-3 accent-emerald-600 cursor-pointer"
-                                    checked={!i.off}
-                                    onChange={() => toggleRotina(i.id)}
-                                    title={i.off ? "Incluir rotina na precificação" : "Remover rotina da precificação"}
-                                  />
-                                </td>
-                                <td className={`px-2 py-1 ${i.off ? "line-through" : ""}`}>
-                                  {i.rotina}
-                                  {i.automacao && (
-                                    <span className="ml-1 text-[9px] text-primary">[auto]</span>
-                                  )}
-                                </td>
-                                <td className="px-2 py-1 text-[10px] text-muted-foreground">{i.oferta}</td>
-                                <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
-                                <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
-                                <td className="px-2 py-1 text-right tabular-nums font-semibold">{formatBRL(i.venda)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                          <tfoot className="bg-muted sticky bottom-0">
-                            <tr>
-                              <td className="px-2 py-1 font-semibold" colSpan={3}>Total</td>
-                              <td className="px-2 py-1 text-right font-semibold tabular-nums">
-                                {rotinasField.totals.demanda.toFixed(1)}
-                              </td>
-                              <td className="px-2 py-1 text-right font-semibold tabular-nums">
-                                {formatBRL(rotinasField.totals.custo)}
-                              </td>
-                              <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">
-                                {formatBRL(rotinasField.totals.venda)}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="text-xs font-semibold">Total Field Service de Microinformática (venda)</span>
-                    <span className="text-sm font-bold text-primary">{formatBRL(fsVenda)}</span>
-                  </div>
-                </div>
-              )}
-            </div>
             <GmudTable
               titulo="GMUDs vinculadas (Operation)"
               vazio="Nenhuma GMUD cadastrada para Operation."
@@ -1870,7 +1604,6 @@ export default function SmartTiersPanel() {
                     : "Serviço base (N1 + N2 + N3)",
                   value: toSell(operacaoCustoTotal - (state.tierPerformance ? results.custoN3 : 0)),
                 },
-                ...(fsVenda > 0 ? [{ label: "Field Service de Microinformática", value: fsVenda }] : []),
                 ...(gmudOperation.venda > 0 ? [{ label: "GMUDs (Operation)", value: gmudOperation.venda }] : []),
                 ...(gerenciaisVendaIn("Operation") > 0
                   ? [{ label: "Rotinas Gerenciais Selbetti", value: gerenciaisVendaIn("Operation") }]
@@ -1920,7 +1653,7 @@ export default function SmartTiersPanel() {
               ⓘ Os valores das rotinas acima são informativos — as horas consumidas saem do pool N3 contratado (slider abaixo) e <strong>já estão inclusas</strong> em "Atendimento N3" do Total Smart Performance. Não somam novamente.
             </p>
 
-            {(!n3OptionalScenario || state.tierOperationN3) && (
+            {(
             <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] text-muted-foreground">

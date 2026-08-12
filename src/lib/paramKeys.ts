@@ -14,7 +14,6 @@ const SMART_ITO_RAW = [
   "itsm:calculator:v1",
   "itsm:n1team:v1",
   "itsm:n2team:v1",
-  "itsm:fieldteams:v1",
   "gestao-ti:rotinas",
   "gestao-ti:gmuds",
   "gestao-ti:rotinasOff",

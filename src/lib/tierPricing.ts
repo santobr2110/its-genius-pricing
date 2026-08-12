@@ -63,8 +63,6 @@ export interface TierPricing {
     monitor: number;
     flow: number;
     operationBase: number;
-    endpointTooling: number;
-    fieldService: number;
     gmudOperation: number;
     gmudPerformance: number;
     performanceN3: number;
@@ -80,8 +78,6 @@ export interface TierPricing {
     flow: number;
     operation: number;
     performance: number;
-    fieldService: number;
-    endpointTooling: number;
     gmudOperation: number;
     gmudPerformance: number;
     gerenciais: number;
@@ -114,20 +110,13 @@ export function computeTierPricing(
     ? (results.custoN1 || 0) + (results.custoN2 || 0) +
       (state.tierPerformance ? 0 : results.custoN3 || 0)
     : 0;
-  const endpointTooling = state.tierOperation
-    ? (state.custoFerramentaEndpoint || 0) * (state.qtdEquipamentos || 0)
-    : 0;
-  const fieldService =
-    state.tierOperation && state.tierFieldOperation
-      ? (results.fieldService?.total || 0) + (extras.custoRotinasField || 0)
-      : 0;
   const gmudOperation = state.tierOperation ? extras.custoGmudOperation || 0 : 0;
   const gmudPerformance = state.tierPerformance ? extras.custoGmudPerformance || 0 : 0;
   const performanceN3 = state.tierPerformance ? results.custoN3 || 0 : 0;
   const gerenciais = extras.custoRotinasGerenciais || 0;
 
   const atribuido =
-    monitor + flow + operationBase + endpointTooling + fieldService +
+    monitor + flow + operationBase +
     gmudOperation + gmudPerformance + performanceN3 + gerenciais;
   const residual = Math.max(0, custoTotal - atribuido);
   const buckets = activeTierBuckets(state);
@@ -141,8 +130,7 @@ export function computeTierPricing(
 
   const custoMonitor = monitor + resMonitor;
   const custoFlow = flow + resFlow;
-  const custoOperation =
-    operationBase + endpointTooling + fieldService + gmudOperation + resOperation;
+  const custoOperation = operationBase + gmudOperation + resOperation;
   const custoPerformance = performanceN3 + gmudPerformance + resPerformance;
 
   const sell = (c: number) => c * fatorVenda;
@@ -153,8 +141,6 @@ export function computeTierPricing(
       monitor,
       flow,
       operationBase,
-      endpointTooling,
-      fieldService,
       gmudOperation,
       gmudPerformance,
       performanceN3,
@@ -170,8 +156,6 @@ export function computeTierPricing(
       flow: sell(custoFlow),
       operation: sell(custoOperation),
       performance: sell(custoPerformance),
-      fieldService: sell(fieldService),
-      endpointTooling: sell(endpointTooling),
       gmudOperation: sell(gmudOperation),
       gmudPerformance: sell(gmudPerformance),
       gerenciais: sell(gerenciais),

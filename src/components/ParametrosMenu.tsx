@@ -95,7 +95,7 @@ export default function ParametrosMenu({ scope = "ito" }: { scope?: "ito" | "pro
           <DialogHeader>
             <DialogTitle>Salvar perfil de parâmetros</DialogTitle>
             <DialogDescription>
-              Captura todos os parâmetros atuais de todas as calculadoras: Smart ITO (equipes N1/N2, Field Service, rotinas, GMUDs, cortes) e BodyShop - Alocação de Profissionais (impostos, markup, comissões, benefícios).
+              Captura todos os parâmetros atuais de todas as calculadoras: Smart ITO (equipes N1/N2, rotinas, GMUDs, cortes) e BodyShop - Alocação de Profissionais (impostos, markup, comissões, benefícios).
             </DialogDescription>
           </DialogHeader>
           <Input

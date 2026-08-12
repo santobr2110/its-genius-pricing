@@ -107,7 +107,6 @@ export function itemCamadaVisivel(
     monitorVisible: boolean;
     flowVisible: boolean;
     operation: boolean;
-    fieldService: boolean;
     performance: boolean;
     enterprise: boolean;
   },
@@ -116,7 +115,6 @@ export function itemCamadaVisivel(
     case "monitor": return opts.monitorVisible || opts.flowVisible;
     case "flow": return opts.flowVisible;
     case "operation": return opts.operation;
-    case "fieldService": return opts.fieldService;
     case "performance": return opts.performance;
     case "enterprise": return opts.enterprise;
     default: return false;

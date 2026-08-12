@@ -26,7 +26,6 @@ import {
   OperationIcon as TierOperationIcon,
   PerformanceIcon as TierPerformanceIcon,
   EnterpriseIcon as TierEnterpriseIcon,
-  FieldServiceIcon as TierFieldIcon,
 } from "@/components/itsm/TierIcons";
 import SortableNav from "@/components/SortableNav";
 import BackHomeButton from "@/components/BackHomeButton";
@@ -54,7 +53,6 @@ import {
   type RotinaSlideItem,
   type RecursoSlideItem,
   type HorasN3Slide,
-  type FieldSlideData,
 } from "@/lib/exportarApresentacao";
 import { exportarApresentacaoTemplate } from "@/lib/exportarApresentacaoTemplate";
 import { toast } from "sonner";
@@ -83,7 +81,6 @@ const TIER_THEMES: Record<string, { ring: string; bg: string; chip: string; icon
   gold:    { ring: "border-yellow-500/80 dark:border-yellow-500/70", bg: "from-yellow-100/80 via-card to-amber-100/50 dark:from-yellow-950/60 dark:via-card dark:to-amber-950/40", chip: "bg-gradient-to-r from-yellow-500/25 to-amber-500/25 text-yellow-800 dark:text-yellow-200", icon: "bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600 text-yellow-950", bar: "from-yellow-300 via-amber-400 to-yellow-600", badge: "bg-gradient-to-r from-yellow-500 to-amber-600",   check: "text-yellow-700 dark:text-yellow-300", glow: "shadow-yellow-500/40", valueGrad: "from-yellow-600 to-amber-700 dark:from-yellow-300 dark:to-amber-300", blob1: "bg-yellow-400/35", blob2: "bg-amber-500/25" },
   // Diamond — Smart Enterprise
   diamond: { ring: "border-cyan-400/80 dark:border-cyan-400/70",    bg: "from-cyan-100/80 via-card to-sky-100/40 dark:from-cyan-950/60 dark:via-card dark:to-sky-950/30",          chip: "bg-gradient-to-r from-cyan-400/25 to-sky-500/25 text-cyan-800 dark:text-cyan-200",         icon: "bg-gradient-to-br from-cyan-200 via-sky-300 to-blue-500 text-cyan-950",   bar: "from-cyan-300 via-sky-400 to-blue-500",   badge: "bg-gradient-to-r from-cyan-500 to-sky-600",       check: "text-cyan-700 dark:text-cyan-300", glow: "shadow-cyan-500/40", valueGrad: "from-cyan-600 to-blue-600 dark:from-cyan-300 dark:to-sky-300",       blob1: "bg-cyan-400/35", blob2: "bg-sky-400/25" },
-  // Field Service de Microinformática — sub-oferta (mantém âmbar/laranja distinto)
   amber:   { ring: "border-amber-300/70 dark:border-amber-600/60",  bg: "from-amber-100/80 via-card to-orange-50/40 dark:from-amber-950/50 dark:via-card dark:to-orange-950/20",  chip: "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-700 dark:text-amber-300",   icon: "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white",  bar: "from-amber-400 via-orange-400 to-rose-500",   badge: "bg-gradient-to-r from-amber-500 to-orange-500",   check: "text-amber-600 dark:text-amber-400", glow: "shadow-amber-500/30", valueGrad: "from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300", blob1: "bg-amber-400/30", blob2: "bg-orange-400/20" },
 };
 
@@ -118,7 +115,6 @@ export default function Detalhamento() {
   const exportBlocked = !isSavedPricing || approvalBlocked;
   const sm = results.smartMonitor;
   const sf = results.smartFlow;
-  const fs = results.fieldService;
 
   // Dados de cadastro da precificação (via preset ativo)
   type PresetCadastro = {
@@ -229,7 +225,7 @@ export default function Detalhamento() {
     if (monitorVisible) componentNames.push("Monitor");
     if (flowVisible) componentNames.push("Flow");
   }
-  if (state.tierOperation) componentNames.push("Operation" + (state.tierFieldOperation ? " + Field Service de Microinformática" : ""));
+  if (state.tierOperation) componentNames.push("Operation");
   if (state.tierPerformance) componentNames.push("Performance");
   if (state.tierEnterprise) componentNames.push("Enterprise");
 
@@ -524,7 +520,6 @@ export default function Detalhamento() {
   const valorHoraN3Venda = state.valorHoraN3 * fatorVenda;
 
   const inv = {
-    qtdUsuarios: state.qtdUsuarios, qtdEquipamentos: state.qtdEquipamentos,
     qtdServidores: state.qtdServidores, qtdAtivosRede: state.qtdAtivosRede,
     qtdBancosDados: state.qtdBancosDados, qtdSistemas: state.qtdSistemas,
   };
@@ -540,9 +535,6 @@ export default function Detalhamento() {
   };
   const algumComplexAtivo = COMPLEX_FLAG_KEYS.some((k) => complexFlags[k]);
 
-  const hasServiceDesk =
-    (state.qtdUsuarios || 0) + (state.qtdEquipamentos || 0) > 0;
-  const n3OptionalScenario = !hasInfraInventory && hasServiceDesk;
 
   // Custo médio por chamado de rotina ponderado (mesma fórmula do painel principal)
   const custoChN3Mix = state.tempoMedioChamadoN3 * state.valorHoraN3;
@@ -579,16 +571,6 @@ export default function Detalhamento() {
         }
         return complexidade === "Padrão";
       })
-      // Sem infra (apenas service desk): apenas microinformática.
-      // Com infra + service desk: todas as rotinas (incluindo microinformática).
-      // Com infra sem service desk: exclui microinformática (vai para Field Service de Microinformática).
-      .filter(r =>
-        n3OptionalScenario
-          ? r.grupo.toLowerCase().includes("microinform")
-          : hasServiceDesk && !state.tierFieldOperation
-            ? true
-            : !r.grupo.toLowerCase().includes("microinform"),
-      )
       .map(r => {
         const rotina = normalizeOsRotina(r);
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
@@ -646,28 +628,10 @@ export default function Detalhamento() {
     : state.tierMonitor ? "Monitor"
     : null;
 
-  const rotinasField = useMemo(() => {
-    if (!state.tierFieldOperation || n3OptionalScenario) return [];
-    return normalizedRotinas
-      .filter(r => r.grupo.toLowerCase().includes("microinform"))
-      .filter(r => !r.gerencial)
-      .filter(r => (r.oferta === "Performance" ? state.tierPerformance : true))
-      .map(r => {
-        const rotina = normalizeOsRotina(r);
-        const mult = rotinaMultiplicador(rotina, inv, complexFlags);
-        const demanda = r.chamadosMes * mult;
-        const custo = rotinaCusto(r, demanda);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, oferta: r.oferta, demanda, mult, custo };
-      })
-      .filter(i => i.demanda > 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [normalizedRotinas, state]);
-
   const sumCusto = (arr: { custo: number }[]) => arr.reduce((a, b) => a + b.custo, 0);
   const custoRotinasOp = sumCusto(rotinasOp);
   const custoRotinasPerfPadrao = sumCusto(rotinasPerfPadrao);
   const custoRotinasPerfComplexo = sumCusto(rotinasPerfComplexo);
-  const custoRotinasField = sumCusto(rotinasField);
 
   // === GMUDs por camada ===
   const gmudInput = {
@@ -727,11 +691,10 @@ export default function Detalhamento() {
     flowHorasAutomacao: (state.horasN3FlowManut || 0) > 0 || (sf.custoN3Manut || 0) > 0,
     flowHorasN3Opcional: (state.horasN3Flow || 0) > 0 || (sf.custoN3 || 0) > 0,
     opRotinas: custoRotinasOp > 0,
-    opN3: (!n3OptionalScenario || state.tierOperationN3) && (state.horasN3Mensais || 0) > 0,
+    opN3: (state.horasN3Mensais || 0) > 0,
     perfRotinas: (custoRotinasPerfPadrao + custoRotinasPerfComplexo) > 0,
     perfHorasN3: (state.horasN3Mensais || 0) > 0,
     perfComplexo: algumComplexAtivo,
-    fieldRotinas: custoRotinasField > 0,
   };
   const incluidoRules: Record<CamadaKey, Array<{ test: RegExp; keep: boolean }>> = {
     monitor: [
@@ -752,9 +715,6 @@ export default function Detalhamento() {
       { test: /ambientes?\s+complex|HA,\s*multi-?site|complex/i, keep: incluidosFlags.perfComplexo },
       { test: /hora.*n3|n3.*dedicad|hora.*automa/i, keep: incluidosFlags.perfHorasN3 },
     ],
-    fieldService: [
-      { test: /rotina/i, keep: incluidosFlags.fieldRotinas },
-    ],
     enterprise: [],
   };
   const filterIncluidos = (key: CamadaKey, items: string[]) =>
@@ -770,7 +730,6 @@ export default function Detalhamento() {
     monitor: { ...escopo.monitor, incluidos: filterIncluidos("monitor", escopo.monitor.incluidos) },
     flow: { ...escopo.flow, incluidos: filterIncluidos("flow", escopo.flow.incluidos) },
     operation: { ...escopo.operation, incluidos: filterIncluidos("operation", escopo.operation.incluidos) },
-    fieldService: { ...escopo.fieldService, incluidos: filterIncluidos("fieldService", escopo.fieldService.incluidos) },
     performance: { ...escopo.performance, incluidos: filterIncluidos("performance", escopo.performance.incluidos) },
     enterprise: { ...escopo.enterprise, incluidos: escopo.enterprise.incluidos.filter((t) => (t || "").trim()) },
   };
@@ -796,9 +755,6 @@ export default function Detalhamento() {
   const valorFlow = flowVisible ? tierPricing.venda.flow : 0;
   const custoOperacaoBase =
     results.custoN1 + results.custoN2 + (state.tierPerformance ? 0 : results.custoN3);
-  const valorFieldService = state.tierFieldOperation
-    ? tierPricing.venda.fieldService
-    : 0;
   const valorOperation = state.tierOperation ? tierPricing.venda.operation : 0;
   const valorPerformance = state.tierPerformance ? tierPricing.venda.performance : 0;
   // Rotinas Gerenciais Selbetti são cobradas em separado e são CUMULATIVAS entre
@@ -859,17 +815,8 @@ export default function Detalhamento() {
           label: state.tierPerformance ? "Serviço base (N1 + N2)" : "Serviço base (N1 + N2 + N3)",
           value: toSell(custoOperacaoBase),
         },
-        ...(valorFieldService > 0
-          ? [{ label: "Field Service de Microinformática", value: valorFieldService }]
-          : []),
         ...(gmudOperationData.totals.custo > 0
           ? [{ label: "GMUDs (Operation)", value: toSell(gmudOperationData.totals.custo) }]
-          : []),
-        ...(tierPricing.venda.endpointTooling > 0
-          ? [{
-              label: `Ferramenta de endpoint (${formatNumber(state.qtdEquipamentos || 0)} equip.)`,
-              value: tierPricing.venda.endpointTooling,
-            }]
           : []),
         ...(tierPricing.custo.residualBucket === "Operation" && tierPricing.venda.residual > 0.005
           ? [{ label: "Monitoramento de ativos (UM)", value: tierPricing.venda.residual }]
@@ -890,19 +837,6 @@ export default function Detalhamento() {
           : []),
       ]
     : [];
-  const valorFieldParts = state.tierFieldOperation
-    ? [
-        { label: "Equipe presencial (N1F + N2F + N3F)", value: toSell(fs.custoN1F + fs.custoN2F + fs.custoN3F) },
-        { label: "Triagem N1", value: toSell(fs.custoTriagemN1) },
-        ...(fs.overflowAtivo
-          ? [{ label: "Transbordo remoto (N1 + N2F)", value: toSell(fs.custoTransbordoN1Remoto + fs.custoTransbordoN2F) }]
-          : []),
-        ...(custoRotinasField > 0
-          ? [{ label: "Rotinas Field · Microinformática", value: toSell(custoRotinasField) }]
-          : []),
-      ]
-    : [];
-
   const horasAtendN3 = results.horasAtendimentoN3;
   const horasPrev = Math.max(0, horasTotaisN3 - horasAtendN3);
 
@@ -938,7 +872,7 @@ export default function Detalhamento() {
       valor: number,
       composicao: { label: string; value: number }[],
       extras: Partial<Pick<CamadaSlideData,
-        "metricas" | "recursos" | "horasN3" | "rotinasGrupos" | "field"
+        "metricas" | "recursos" | "horasN3" | "rotinasGrupos"
       >> = {},
     ) => {
       const esc = escopoFiltered[key];
@@ -1068,7 +1002,7 @@ export default function Detalhamento() {
         });
       }
       let horasN3: HorasN3Slide | undefined;
-      if ((!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && state.horasN3Mensais > 0) {
+      if (!state.tierPerformance && state.horasN3Mensais > 0) {
         const total = state.horasN3Mensais;
         const distOp = computeN3Distribution({
           total,
@@ -1089,26 +1023,7 @@ export default function Detalhamento() {
           ].filter((b) => b.horas > 0),
         };
       }
-      let field: FieldSlideData | undefined;
-      if (state.tierFieldOperation) {
-        field = {
-          profissionais: [
-            { nivel: "N1F", qtd: state.fieldDirectQtdN1, valor: toSell(fs.custoN1F) },
-            { nivel: "N2F", qtd: state.fieldDirectQtdN2, valor: toSell(fs.custoN2F) },
-            { nivel: "N3F", qtd: state.fieldDirectQtdN3, valor: toSell(fs.custoN3F) },
-          ],
-          equipamentos: state.qtdEquipamentos || 0,
-          chamadosEscalados: fs.volumeUsuariosEscalado,
-          overflowVolume: fs.overflowAtivo ? fs.volumeTransbordoN1Remoto : undefined,
-        };
-        if (rotinasField.length > 0) {
-          rotinasGrupos.push({
-            titulo: `Rotinas Field — Microinformática (${rotinasField.length})`,
-            items: rotinasField.map(rotinaToSlide),
-          });
-        }
-      }
-      return { metricas, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined, horasN3, field };
+      return { metricas, rotinasGrupos: rotinasGrupos.length ? rotinasGrupos : undefined, horasN3 };
     };
 
     const performanceExtras = () => {
@@ -1133,7 +1048,7 @@ export default function Detalhamento() {
         });
       }
       let horasN3: HorasN3Slide | undefined;
-      if ((!n3OptionalScenario || state.tierOperationN3) && state.horasN3Mensais > 0) {
+      if (state.horasN3Mensais > 0) {
         const total = state.horasN3Mensais;
         // Mesma cascata da tela (fonte única) — as parcelas fecham no total.
         const distPerf = computeN3Distribution({
@@ -1196,8 +1111,6 @@ export default function Detalhamento() {
       if (flowVisible) pushCamada("flow", valorFlow, valorFlowParts, flowExtras());
     }
     if (state.tierOperation) pushCamada("operation", valorOperation, valorOperationParts, operationExtras());
-    if (state.tierFieldOperation)
-      pushCamada("fieldService", valorFieldService, valorFieldParts);
     if (state.tierPerformance)
       pushCamada("performance", valorPerformance, valorPerformanceParts, performanceExtras());
     if (state.tierEnterprise)
@@ -1208,7 +1121,6 @@ export default function Detalhamento() {
     const camadaAtiva = {
       monitorVisible, flowVisible,
       operation: !!state.tierOperation,
-      fieldService: !!state.tierFieldOperation,
       performance: !!state.tierPerformance,
       enterprise: !!state.tierEnterprise,
     };
@@ -1398,7 +1310,7 @@ export default function Detalhamento() {
           {!flowVisible && (() => {
             const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
             const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
-            const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
+            const manualTotal = (state.volumeChamadosAtivosManual || 0);
             const niveisRisco = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
             const nivelRisco = state.criticidadeNivel ?? 2;
             return (
@@ -1575,7 +1487,7 @@ export default function Detalhamento() {
           {(() => {
             const forceInv = state.tierOperation || state.tierPerformance || state.tierEnterprise;
             const src = forceInv ? "inventario" : (state.demandSource ?? "inventario");
-            const manualTotal = (state.volumeChamadosAtivosManual || 0) + (state.volumeChamadosUsuariosManual || 0);
+            const manualTotal = (state.volumeChamadosAtivosManual || 0);
             const niveisRisco = ["Muito Baixo", "Baixo", "Padrão", "Alto", "Muito Alto"];
             const nivelRisco = state.criticidadeNivel ?? 2;
             return (
@@ -1753,7 +1665,7 @@ export default function Detalhamento() {
             </>
           )}
 
-          {(!n3OptionalScenario || state.tierOperationN3) && !state.tierPerformance && state.horasN3Mensais > 0 && (
+          {!state.tierPerformance && state.horasN3Mensais > 0 && (
             <N3HoursBox
               total={state.horasN3Mensais}
               consumidas={horasAtendN3}
@@ -1767,61 +1679,6 @@ export default function Detalhamento() {
             />
           )}
 
-          {/* FIELD SERVICE — sub-oferta dentro do Smart Operation */}
-          {state.tierFieldOperation && (
-            <div className="mt-5 rounded-2xl border-2 border-amber-300/70 dark:border-amber-700/60 bg-gradient-to-br from-amber-50/60 via-background/40 to-orange-50/40 dark:from-amber-950/30 dark:to-orange-950/20 p-4 space-y-3 shadow-inner">
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="rounded-xl p-2 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 text-white shadow-md">
-                  <Wrench className="h-4 w-4" strokeWidth={2.5} />
-                </div>
-                <div className="flex-1 min-w-[160px]">
-                  <p className="text-sm font-extrabold tracking-tight">{escopo.fieldService.titulo}</p>
-                  <p className="text-[11px] text-muted-foreground italic">{escopo.fieldService.tagline}</p>
-                </div>
-                {valorFieldService > 0 && (
-                  <div className="report-price text-right shrink-0">
-                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Valor mensal</p>
-                    <p className="text-base font-extrabold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300 bg-clip-text text-transparent tabular-nums">{formatBRL(valorFieldService)}</p>
-                  </div>
-                )}
-              </div>
-              {escopo.fieldService.descricao && (
-                <p className="text-xs text-muted-foreground leading-relaxed">{escopo.fieldService.descricao}</p>
-              )}
-              {escopoFiltered.fieldService.incluidos.length > 0 && (
-                <>
-                  <SubTitle>O que está incluído</SubTitle>
-                  <ul className="space-y-1.5">
-                    {escopoFiltered.fieldService.incluidos.map((t, i) => (
-                      <Bullet key={i} color="amber">{t}</Bullet>
-                    ))}
-                  </ul>
-                </>
-              )}
-              <SubTitle>Equipe presencial alocada</SubTitle>
-              <div className="grid grid-cols-3 gap-2">
-                <Stat label="N1F" value={`${state.fieldDirectQtdN1} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN1F)} />
-                <Stat label="N2F" value={`${state.fieldDirectQtdN2} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN2F)} />
-                <Stat label="N3F" value={`${state.fieldDirectQtdN3} prof.`} subClassName="report-price" sub={formatBRL(fs.custoN3F)} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Stat label="Equipamentos cobertos" value={formatNumber(state.qtdEquipamentos)} />
-                <Stat label="Chamados escalados ao Field" value={`${formatNumber(fs.volumeUsuariosEscalado, 1)}/mês`} />
-              </div>
-              {fs.overflowAtivo && (
-                <div className="rounded-lg border border-amber-300 bg-amber-100/40 dark:bg-amber-900/20 p-3 text-xs">
-                  <strong>Transbordo ativo:</strong> {formatNumber(fs.volumeTransbordoN1Remoto, 1)} ch/mês excedem capacidade presencial e são tratados via N1 remoto + N2F.
-                </div>
-              )}
-              {rotinasField.length > 0 && (
-                <>
-                  <SubTitle>Rotinas Field — Microinformática ({rotinasField.length})</SubTitle>
-                  <RoutineList items={rotinasField} accent="amber" />
-                </>
-              )}
-              <CompositionBox title="Composição Field Service de Microinformática" total={valorFieldService} parts={valorFieldParts} color="amber" />
-            </div>
-          )}
           <CompositionBox title="Composição do valor mensal" total={valorOperation} parts={valorOperationParts} color="silver" />
         </TierBlock>
 
@@ -1874,7 +1731,7 @@ export default function Detalhamento() {
             </>
           )}
 
-          {state.tierPerformance && (!n3OptionalScenario || state.tierOperationN3) && state.horasN3Mensais > 0 && (
+          {state.tierPerformance && state.horasN3Mensais > 0 && (
             <N3HoursBox
               total={state.horasN3Mensais}
               consumidas={horasAtendN3}
@@ -1958,7 +1815,7 @@ export default function Detalhamento() {
               )}
               {state.tierOperation && (
                 <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Operation{state.tierFieldOperation ? " (com Field Service de Microinformática)" : ""}</span>
+                  <span className="text-muted-foreground">Operation</span>
                   <span className="font-semibold tabular-nums">{formatBRL(valorOperation)}</span>
                 </div>
               )}
@@ -1987,8 +1844,7 @@ export default function Detalhamento() {
           const camadaAtiva = {
             monitorVisible, flowVisible,
             operation: !!state.tierOperation,
-            fieldService: !!state.tierFieldOperation,
-            performance: !!state.tierPerformance,
+                  performance: !!state.tierPerformance,
             enterprise: !!state.tierEnterprise,
           };
           const computeItem = createItemAdicionalCalculator({ state, results, fatorVenda });
@@ -2058,7 +1914,6 @@ export default function Detalhamento() {
           if (monitorVisible) ativos.push("monitor");
           if (flowVisible) ativos.push("flow");
           if (state.tierOperation) ativos.push("operation");
-          if (state.tierFieldOperation) ativos.push("fieldService");
           if (state.tierPerformance) ativos.push("performance");
           if (state.tierEnterprise) ativos.push("enterprise");
           const ultima = ativos.length > 0 ? [ativos[ativos.length - 1]] : [];

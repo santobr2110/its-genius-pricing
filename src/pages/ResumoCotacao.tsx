@@ -137,10 +137,8 @@ export default function ResumoCotacao() {
     (calcState.qtdBancosDados || 0) + (calcState.qtdSistemas || 0) > 0;
 
   // Rotinas preventivas — total de CACs (chamados/mês) com base no inventário.
-  // Separa rotinas de Microinformática (Field) das demais (Performance).
-  const { rotinasPerformance, rotinasField, horasRotinasN3 } = useMemo(() => {
+  const { rotinasPerformance, horasRotinasN3 } = useMemo(() => {
     const inv = {
-      qtdUsuarios: calcState.qtdUsuarios, qtdEquipamentos: calcState.qtdEquipamentos,
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
       qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
     };
@@ -155,23 +153,19 @@ export default function ResumoCotacao() {
       complexErpMercado: calcState.complexErpMercado,
     };
     let perf = 0;
-    let field = 0;
     // Horas do pool N3 consumidas pelas rotinas preventivas (não gerenciais,
-    // não Microinformática) — mesma regra do Relatório de Proposição.
+    // — mesma regra do Relatório de Proposição.
     let horasN3Rot = 0;
     const fa0 = Math.max(0, Math.min(100, calcState.percCustoRotinaAutomatizada ?? 100)) / 100;
     rotinas.forEach((r) => {
       const mult = rotinaMultiplicador(r, inv, flags);
       const ch = r.chamadosMes * mult;
-      if (r.grupo === "Microinformática") field += ch;
-      else {
-        perf += ch;
-        if (!(r as { gerencial?: boolean }).gerencial && ch > 0) {
-          horasN3Rot += ch * (r.horasExecucao ?? 1) * ((r as { automacao?: boolean }).automacao ? fa0 : 1);
-        }
+      perf += ch;
+      if (!(r as { gerencial?: boolean }).gerencial && ch > 0) {
+        horasN3Rot += ch * (r.horasExecucao ?? 1) * ((r as { automacao?: boolean }).automacao ? fa0 : 1);
       }
     });
-    return { rotinasPerformance: perf, rotinasField: field, horasRotinasN3: horasN3Rot };
+    return { rotinasPerformance: perf, horasRotinasN3: horasN3Rot };
   }, [rotinas, calcState]);
 
   // GMUDs — totais Operation + Performance
@@ -250,7 +244,6 @@ export default function ResumoCotacao() {
   const gerenciaisCustoIn = (tier: "Monitor" | "Flow" | "Operation" | "Performance"): number => {
     let total = 0;
     const inv = {
-      qtdUsuarios: calcState.qtdUsuarios, qtdEquipamentos: calcState.qtdEquipamentos,
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
       qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
     };
@@ -299,8 +292,6 @@ export default function ResumoCotacao() {
   const pctOwner = n3Dist.pct(n3Dist.owner);
   const pctLivre = n3Dist.pct(n3Dist.tecnicas);
 
-  // Custo extra: Endpoint Tooling (entra no custoTotalOperacao do calculador).
-  const custoEndpointTooling = (calcState.custoFerramentaEndpoint || 0) * (calcState.qtdEquipamentos || 0);
 
   type Row = {
     camada: string;
@@ -401,38 +392,6 @@ export default function ResumoCotacao() {
       horasN3: horasN3,
       valor: toSell(custo),
       custo,
-    });
-  }
-  if (custoEndpointTooling > 0) {
-    layerRows.push({
-      camada: "Ferramenta de Endpoint",
-      reativos: 0, rotinas: 0, gmuds: 0, horasN3: 0,
-      valor: tp.venda.endpointTooling,
-      custo: tp.custo.endpointTooling,
-      nota: buildNota([
-        ["Equipamentos", formatNumber(calcState.qtdEquipamentos || 0)],
-        ["Custo unitário/mês", formatBRL(calcState.custoFerramentaEndpoint || 0)],
-      ]),
-    });
-  }
-  if ((computed.fieldService?.total || 0) > 0) {
-    const fs = computed.fieldService;
-    const custo = (fs.total || 0) + extrasResumo.custoRotinasField;
-    const analistas: string[] = [];
-    if ((calcState.fieldDirectQtdN1 || 0) > 0) analistas.push(`N1: ${calcState.fieldDirectQtdN1}`);
-    if ((calcState.fieldDirectQtdN2 || 0) > 0) analistas.push(`N2: ${calcState.fieldDirectQtdN2}`);
-    if ((calcState.fieldDirectQtdN3 || 0) > 0) analistas.push(`N3: ${calcState.fieldDirectQtdN3}`);
-    const totalAnalistas = (calcState.fieldDirectQtdN1 || 0) + (calcState.fieldDirectQtdN2 || 0) + (calcState.fieldDirectQtdN3 || 0);
-    layerRows.push({
-      camada: "Field Service",
-      reativos: (fs.volumeN1F || 0) + (fs.volumeN2F || 0) + (fs.volumeN3F || 0),
-      rotinas: rotinasField, gmuds: 0, horasN3: 0,
-      valor: toSell(custo),
-      custo,
-      nota: buildNota([
-        ["Analistas (total)", totalAnalistas || 0],
-        ["Distribuição", analistas.length ? analistas.join(", ") : ""],
-      ]),
     });
   }
   if (calcState.tierEnterprise) {

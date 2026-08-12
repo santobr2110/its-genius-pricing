@@ -65,9 +65,7 @@ export type AtivoTipo =
   | "Servidor"
   | "Ativo de Rede"
   | "Banco de Dados"
-  | "Firewall"
-  | "Equipamento"
-  | "Usuário";
+  | "Firewall";
 
 export const ATIVO_TIPOS: AtivoTipo[] = [
   "Ambiente",
@@ -75,8 +73,6 @@ export const ATIVO_TIPOS: AtivoTipo[] = [
   "Ativo de Rede",
   "Banco de Dados",
   "Firewall",
-  "Equipamento",
-  "Usuário",
 ];
 
 export type Abrangencia = "Ambiente" | "Individual";
@@ -84,8 +80,6 @@ export type Abrangencia = "Ambiente" | "Individual";
 export const ABRANGENCIAS: Abrangencia[] = ["Ambiente", "Individual"];
 
 export interface InventarioCounts {
-  qtdUsuarios: number;
-  qtdEquipamentos: number;
   qtdServidores: number;
   qtdAtivosRede: number;
   qtdBancosDados: number;
@@ -136,9 +130,7 @@ export function rotinaMultiplicador(
   // específico ("Ambiente"), considera-se o inventário total como gating.
   const qtdAtivo =
     r.ativo === "Ambiente"
-      ? inv.qtdUsuarios +
-        inv.qtdEquipamentos +
-        inv.qtdServidores +
+      ? inv.qtdServidores +
         inv.qtdAtivosRede +
         inv.qtdBancosDados +
         inv.qtdSistemas
@@ -164,10 +156,6 @@ export function inventarioMultiplicador(
       return inv.qtdBancosDados;
     case "Firewall":
       return inv.qtdSistemas;
-    case "Equipamento":
-      return inv.qtdEquipamentos;
-    case "Usuário":
-      return inv.qtdUsuarios;
     default:
       return 1;
   }
@@ -179,8 +167,6 @@ function ativoFromUnidade(unidade: string): AtivoTipo {
   if (u.includes("firewall")) return "Firewall";
   if (u.includes("ativo de rede")) return "Ativo de Rede";
   if (u.includes("servidor")) return "Servidor";
-  if (u.includes("equipamento")) return "Equipamento";
-  if (u.includes("usuário") || u.includes("usuario")) return "Usuário";
   return "Ambiente";
 }
 
@@ -274,18 +260,6 @@ export const ROTINAS_DEFAULT: Rotina[] = [
   r("fw-4", "Firewall", "Health Check", "Operation", "Por Firewall", false, "Quinzenal"),
   r("cl-1", "Cloud", "Análise de capacidade cloud", "Performance", "Por Ambiente", false, "Semestral"),
   r("cl-2", "Cloud", "Health check da tecnologia", "Operation", "Por Ambiente", false, "Semanal"),
-  r("mi-1", "Microinformática", "Acompanhamento dos vencimentos dos contratos", "Performance", "Ambiente", false, "Semestral"),
-  r("mi-2", "Microinformática", "Análise da parte elétrica do datacenter", "Performance", "Ambiente", false, "Trimestral"),
-  r("mi-3", "Microinformática", "Análise da qualidade da rede sem fio", "Operation", "Ambiente", false, "Semanal"),
-  r("mi-4", "Microinformática", "Avaliar organização e identificação do cabeamento", "Performance", "Ambiente", false, "Semanal"),
-  r("mi-5", "Microinformática", "Manutenção preventiva dos Ativos", "Operation", "Ambiente", false, "Trimestral"),
-  r("mi-6", "Microinformática", "Organização do datacenter", "Operation", "Ambiente", false, "Mensal"),
-  r("mi-7", "Microinformática", "Revisão de vida útil dos equipamentos de usuários", "Performance", "Ambiente", false, "Mensal"),
-  r("mi-8", "Microinformática", "Revisar documentação do ambiente, para manter atualizada", "Operation", "Ambiente", false, "Semestral"),
-  r("mi-9", "Microinformática", "Revisar Estoque de Periféricos para Atendimento aos Usuários", "Performance", "Ambiente", false, "Quinzenal"),
-  r("mi-10", "Microinformática", "Revisar Inventário de Hardwares e Softwares", "Operation", "Ambiente", false, "Mensal"),
-  r("mi-11", "Microinformática", "Revisar Lista de Softwares Homologados", "Operation", "Ambiente", false, "Mensal"),
-  r("mi-12", "Microinformática", "Revisar permissões de acesso físico ao datacenter", "Operation", "Ambiente", false, "Mensal"),
   r("net-1", "Network", "Switches | Health Check", "Operation", "Por Ativo de Rede", false, "Mensal"),
   r("lnx-1", "Sistema Operacional Linux", "Health Check", "Operation", "Servidor (Ambiente)", true, "Semanal"),
   r("win-1", "Sistema Operacional Windows", "Análise de segurança/compliance do Active Directory (AD)", "Operation", "Servidor (Ambiente)", false, "Mensal"),
