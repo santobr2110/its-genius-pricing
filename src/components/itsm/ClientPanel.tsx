@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Users, Server, Network, Database, ShieldCheck, Laptop, Gauge, Activity } from "lucide-react";
+import { Server, Network, Database, ShieldCheck, Gauge, Activity } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { ROTINAS_DEFAULT, type Rotina, type ComplexFlagKey } from "@/data/rotinas";
