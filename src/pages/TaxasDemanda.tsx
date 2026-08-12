@@ -383,32 +383,6 @@ export default function TaxasDemanda() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Service Desk</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Parâmetros de ferramentas usadas pelo Service Desk.
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Custo ferramenta end-point (R$/mês por equipamento)</Label>
-                <Input
-                  type="number"
-                  step={1}
-                  min={0}
-                  value={state.custoFerramentaEndpoint}
-                  onChange={(e) => update("custoFerramentaEndpoint", parseFloat(e.target.value) || 0)}
-                  className="h-9"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Aplicado sobre o nº de Equipamentos Desk/Note/Cel/Tablet — compõe custo de gestão.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader className="pb-3">
@@ -527,16 +501,6 @@ export default function TaxasDemanda() {
           </CardHeader>
           <CardContent className="space-y-3">
             <RateRow
-              icon={Users}
-              label="Usuários"
-              description="Chamados originados pelos usuários finais (suporte ao usuário)"
-              value={state.taxaUsuario}
-              qty={state.qtdUsuarios}
-              qtyLabel="Inventário de usuários"
-              onChange={set("taxaUsuario")}
-              ajuste={ajusteCriticidade}
-            />
-            <RateRow
               icon={Server}
               label="Servidores"
               description="Chamados gerados por servidores físicos/virtuais"
@@ -579,18 +543,7 @@ export default function TaxasDemanda() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs text-muted-foreground font-medium">Total Usuários</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-foreground">
-                {results.totalChamadosUsuarios.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
-              </p>
-              <p className="text-xs text-muted-foreground">chamados/mês</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs text-muted-foreground font-medium">Total Infraestrutura</CardTitle>
