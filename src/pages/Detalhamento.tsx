@@ -733,7 +733,6 @@ export default function Detalhamento() {
     monitor: { ...escopo.monitor, incluidos: filterIncluidos("monitor", escopo.monitor.incluidos) },
     flow: { ...escopo.flow, incluidos: filterIncluidos("flow", escopo.flow.incluidos) },
     operation: { ...escopo.operation, incluidos: filterIncluidos("operation", escopo.operation.incluidos) },
-    fieldService: { ...escopo.fieldService, incluidos: filterIncluidos("fieldService", escopo.fieldService.incluidos) },
     performance: { ...escopo.performance, incluidos: filterIncluidos("performance", escopo.performance.incluidos) },
     enterprise: { ...escopo.enterprise, incluidos: escopo.enterprise.incluidos.filter((t) => (t || "").trim()) },
   };
