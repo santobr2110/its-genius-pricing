@@ -14,7 +14,6 @@ import ConfiguracoesImpostos from "./pages/ConfiguracoesImpostos";
 import ConfiguracoesComissoes from "./pages/ConfiguracoesComissoes";
 import TaxasDemanda from "./pages/TaxasDemanda";
 import Precificacoes from "./pages/Precificacoes";
-import FieldService from "./pages/FieldService";
 import GestaoTI from "./pages/GestaoTI";
 import RelatorioDemanda from "./pages/RelatorioDemanda";
 import ResumoCotacao from "./pages/ResumoCotacao";
@@ -54,7 +53,7 @@ function GlobalActivePresetBanner() {
   // Mostra o banner em todas as rotas Smart ITO (compartilham o workspace).
   const SHOW_ON = [
     "/ito", "/detalhamento", "/equipe-n1", "/equipe-n2", "/equipe-n3",
-    "/financeiro", "/taxas-demanda", "/precificacoes", "/field-service",
+    "/financeiro", "/taxas-demanda", "/precificacoes",
     "/gestao-ti", "/relatorio-demanda", "/resumo-cotacao", "/escopo", "/perfis-parametros",
   ];
   if (!SHOW_ON.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
@@ -92,7 +91,6 @@ const App = () => (
               <Route path="/financeiro/comissoes" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.financeiro"><ConfiguracoesComissoes /></ProtectedRoute>} />
               <Route path="/taxas-demanda" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.taxas_demanda"><TaxasDemanda /></ProtectedRoute>} />
               <Route path="/precificacoes" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.precificacoes"><Precificacoes /></ProtectedRoute>} />
-              <Route path="/field-service" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.field_service"><FieldService /></ProtectedRoute>} />
               <Route path="/gestao-ti" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />
               <Route path="/relatorio-demanda" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.relatorio_demanda"><RelatorioDemanda /></ProtectedRoute>} />
               <Route path="/resumo-cotacao" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.resumo_cotacao"><ResumoCotacao /></ProtectedRoute>} />

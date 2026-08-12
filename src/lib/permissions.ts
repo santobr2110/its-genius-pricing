@@ -18,7 +18,6 @@ export type PermissionKey =
   | "page.financeiro"
   | "page.taxas_demanda"
   | "page.precificacoes"
-  | "page.field_service"
   | "page.gestao_ti"
   | "page.relatorio_demanda"
   | "page.resumo_cotacao"
@@ -31,7 +30,6 @@ export type PermissionKey =
   | "page.equipe_n3.write"
   | "page.financeiro.write"
   | "page.taxas_demanda.write"
-  | "page.field_service.write"
   | "page.gestao_ti.write"
   | "page.escopo.write"
   | "pricing.edit"
@@ -87,7 +85,6 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.equipe_n1",         label: "Equipe N1",                         group: "ITO › Smart ITO › Páginas" },
   { key: "page.equipe_n2",         label: "Equipe N2",                         group: "ITO › Smart ITO › Páginas" },
   { key: "page.equipe_n3",         label: "Equipe N3",                         group: "ITO › Smart ITO › Páginas" },
-  { key: "page.field_service",     label: "Field Service de Microinformática",                     group: "ITO › Smart ITO › Páginas" },
   { key: "page.gestao_ti",         label: "Gestão de TI",                      group: "ITO › Smart ITO › Páginas" },
   { key: "page.financeiro",        label: "Financeiro",                        group: "ITO › Smart ITO › Páginas" },
   { key: "page.taxas_demanda",     label: "Métricas e Parâmetros",             group: "ITO › Smart ITO › Páginas" },
@@ -100,7 +97,6 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.equipe_n1.write",     label: "Editar Equipe N1",                 group: "ITO › Smart ITO › Páginas" },
   { key: "page.equipe_n2.write",     label: "Editar Equipe N2",                 group: "ITO › Smart ITO › Páginas" },
   { key: "page.equipe_n3.write",     label: "Editar Equipe N3",                 group: "ITO › Smart ITO › Páginas" },
-  { key: "page.field_service.write", label: "Editar Field Service de Microinformática",             group: "ITO › Smart ITO › Páginas" },
   { key: "page.gestao_ti.write",     label: "Editar Gestão de TI",              group: "ITO › Smart ITO › Páginas" },
   { key: "page.financeiro.write",    label: "Editar Financeiro",                group: "ITO › Smart ITO › Páginas" },
   { key: "page.taxas_demanda.write", label: "Editar Métricas e Parâmetros",     group: "ITO › Smart ITO › Páginas" },
