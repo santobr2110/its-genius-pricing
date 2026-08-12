@@ -222,8 +222,6 @@ function GmudDistribuicaoPanel() {
 export default function GestaoTI() {
   const { state: itsm, update: updateItsm } = useITSMContext();
   const inventario: InventarioCounts = {
-    qtdUsuarios: itsm.qtdUsuarios,
-    qtdEquipamentos: itsm.qtdEquipamentos,
     qtdServidores: itsm.qtdServidores,
     qtdAtivosRede: itsm.qtdAtivosRede,
     qtdBancosDados: itsm.qtdBancosDados,
@@ -467,8 +465,6 @@ export default function GestaoTI() {
     return { byOferta, automatizadosCount, automatizadosChamados, totalChamados, totalDemanda, automatizadosDemanda };
   }, [
     rotinas,
-    inventario.qtdUsuarios,
-    inventario.qtdEquipamentos,
     inventario.qtdServidores,
     inventario.qtdAtivosRede,
     inventario.qtdBancosDados,

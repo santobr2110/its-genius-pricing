@@ -225,8 +225,7 @@ export default function RelatorioDemanda() {
 
   // === Distribuição N0/N1/N2/N3 — Previsão vs Cliente ===
   const clienteAtivos = state.semVolumesAtuais ? 0 : (state.volumeChamadosAtivosManual || 0);
-  const clienteUsuarios = state.semVolumesAtuais ? 0 : (state.volumeChamadosUsuariosManual || 0);
-  const clienteTotal = clienteAtivos + clienteUsuarios;
+  const clienteTotal = clienteAtivos;
   // Aplica o mesmo funil (N0 + ratios N1/N2/N3) sobre o total informado pelo cliente
   const clienteN0 = clienteTotal * reducaoN0;
   const clienteHumano = clienteTotal - clienteN0;
@@ -641,7 +640,6 @@ export default function RelatorioDemanda() {
             { label: "Smart Operation", on: state.tierOperation, icon: Server },
             { label: "Performance", on: state.tierPerformance, icon: Server },
             { label: "Enterprise", on: state.tierEnterprise, icon: Server },
-            { label: "Field Service de Microinformática", on: state.tierFieldOperation, icon: MapPin },
           ].map(({ label, on, icon: Icon }) => (
             <div key={label} className={`flex items-center gap-2 px-3 py-2 rounded-md border text-xs ${on ? "bg-primary/10 border-primary/30 text-foreground" : "bg-muted/30 text-muted-foreground"}`}>
               <Icon className="h-3.5 w-3.5" /> {label}
