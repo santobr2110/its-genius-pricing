@@ -63,8 +63,6 @@ export interface TierPricing {
     monitor: number;
     flow: number;
     operationBase: number;
-    endpointTooling: number;
-    fieldService: number;
     gmudOperation: number;
     gmudPerformance: number;
     performanceN3: number;
@@ -80,8 +78,6 @@ export interface TierPricing {
     flow: number;
     operation: number;
     performance: number;
-    fieldService: number;
-    endpointTooling: number;
     gmudOperation: number;
     gmudPerformance: number;
     gerenciais: number;
