@@ -82,12 +82,12 @@ export default function ResumoCotacaoServiceDesk() {
           <Table>
             <TableBody>
               <TableRow><TableCell>Modalidade</TableCell><TableCell className="text-right">{MODALIDADE_LABEL[state.modalidade]}</TableCell></TableRow>
-              <TableRow><TableCell>Ferramenta ITSM</TableCell><TableCell className="text-right">{ITSM_TIPO_LABEL[state.itsmTipo]}</TableCell></TableRow>
+              <TableRow><TableCell>Ferramenta ITSM (gestão de chamados)</TableCell><TableCell className="text-right">{ITSM_TIPO_LABEL[state.itsmTipo]}</TableCell></TableRow>
               <TableRow><TableCell>Regime de custo</TableCell><TableCell className="text-right">{REGIME_LABEL[results.regime]}</TableCell></TableRow>
               <TableRow><TableCell>Janela de atendimento</TableCell><TableCell className="text-right">{JANELA_LABEL[state.janelaCobertura]}</TableCell></TableRow>
-              <TableRow><TableCell>Nível de SLA</TableCell><TableCell className="text-right">{SLA_LABEL[state.nivelSLA]}</TableCell></TableRow>
+              <TableRow><TableCell>Nível de SLA (acordo de nível de serviço)</TableCell><TableCell className="text-right">{SLA_LABEL[state.nivelSLA]}</TableCell></TableRow>
               <TableRow><TableCell>Usuários atendidos</TableCell><TableCell className="text-right">{vol(state.qtdUsuariosPadrao + state.qtdUsuariosVIP)}</TableCell></TableRow>
-              <TableRow><TableCell>FTE contratado</TableCell><TableCell className="text-right">{vol(results.cobertura.fteContratado)}</TableCell></TableRow>
+              <TableRow><TableCell>FTE contratado (profissionais em tempo integral)</TableCell><TableCell className="text-right">{vol(results.cobertura.fteContratado)}</TableCell></TableRow>
             </TableBody>
           </Table>
         </CardContent>
@@ -99,7 +99,7 @@ export default function ResumoCotacaoServiceDesk() {
           <Table>
             <TableBody>
               <TableRow><TableCell>Equipe</TableCell><TableCell className="text-right">{brl(results.custoEquipe)}</TableCell></TableRow>
-              <TableRow><TableCell>Plataforma de atendimento (UM)</TableCell><TableCell className="text-right">{brl(results.custoPlataforma)}</TableCell></TableRow>
+              <TableRow><TableCell>Plataforma de atendimento (por Unidade de Medida — UM)</TableCell><TableCell className="text-right">{brl(results.custoPlataforma)}</TableCell></TableRow>
               <TableRow><TableCell>Bolsa de horas de escalonamento</TableCell><TableCell className="text-right">{brl(results.custoBolsaHoras)}</TableCell></TableRow>
               <TableRow><TableCell>Canais adicionais</TableCell><TableCell className="text-right">{brl(results.custoCanaisAdicionais)}</TableCell></TableRow>
               <TableRow><TableCell>Base de Conhecimento</TableCell><TableCell className="text-right">{brl(results.custoBaseConhecimento)}</TableCell></TableRow>

@@ -23,6 +23,7 @@ import { JANELA_LABEL, type JanelaCobertura } from "@/lib/servicedesk/coberturaF
 import { CANAIS_ALL, CANAL_LABEL, type CanalKey } from "@/lib/servicedesk/funilAtendimento";
 import { SLA_LABEL, type NivelSLA, type SitePresencial } from "@/lib/servicedesk/types";
 import SalvarPrecificacaoSD from "@/components/servicedesk/SalvarPrecificacaoSD";
+import Sigla from "@/components/servicedesk/Sigla";
 
 function Gate({
   n, titulo, descricao, children, badge,
@@ -107,7 +108,7 @@ export default function ServiceDeskCalculadora() {
             <p className="text-sm font-semibold">{REGIME_LABEL[results.regime]}</p>
           </div>
           <div className="border-l pl-4">
-            <p className="text-xs text-muted-foreground">FTE contratado</p>
+            <p className="text-xs text-muted-foreground"><Sigla termo="FTE">FTE</Sigla> contratado (pessoas em tempo integral)</p>
             <p className="text-sm font-semibold">
               {vol(results.cobertura.fteContratado)}
               {results.cobertura.pisoAplicado && (
@@ -132,7 +133,7 @@ export default function ServiceDeskCalculadora() {
           <p className="text-xs text-muted-foreground">{regimeExplicacao(results.regime)}</p>
         </Gate>
 
-        <Gate n="2" titulo="Ferramenta ITSM">
+        <Gate n="2" titulo="Ferramenta ITSM" descricao="ITSM (IT Service Management) é a plataforma de gestão de chamados usada na operação.">
           <Select value={state.itsmTipo} onValueChange={(v) => update("itsmTipo", v as ItsmTipo)}>
             <SelectTrigger className="h-9 w-80"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -153,7 +154,7 @@ export default function ServiceDeskCalculadora() {
           </div>
         </Gate>
 
-        <Gate n="3" titulo="Cobertura" descricao="O FTE vinculante é sempre o MAIOR entre volume e piso da janela.">
+        <Gate n="3" titulo="Cobertura (janela de atendimento)" descricao="O FTE (profissional em tempo integral) vinculante é sempre o MAIOR entre o calculado por volume e o piso mínimo da janela de atendimento.">
           <div className="grid gap-3 md:grid-cols-4">
             <div className="space-y-1">
               <Label className="text-xs">Janela de atendimento</Label>
@@ -166,22 +167,22 @@ export default function ServiceDeskCalculadora() {
                 </SelectContent>
               </Select>
             </div>
-            <NumField label="Piso mínimo (FTE)" step={0.5}
+            <NumField label="Piso mínimo de pessoas (FTE)" step={0.5}
               value={state.pisosCobertura[state.janelaCobertura]?.min ?? 0}
               onChange={(v) => update("pisosCobertura", {
                 ...state.pisosCobertura,
                 [state.janelaCobertura]: { ...state.pisosCobertura[state.janelaCobertura], min: v },
               })} />
-            <NumField label="Teto de referência (FTE)" step={0.5}
+            <NumField label="Teto de referência de pessoas (FTE)" step={0.5}
               value={state.pisosCobertura[state.janelaCobertura]?.max ?? 0}
               onChange={(v) => update("pisosCobertura", {
                 ...state.pisosCobertura,
                 [state.janelaCobertura]: { ...state.pisosCobertura[state.janelaCobertura], max: v },
               })} />
-            <NumField label="Horas/mês por FTE" value={state.horasMesFTE} onChange={(v) => update("horasMesFTE", v)} />
+            <NumField label="Horas/mês por profissional (FTE)" value={state.horasMesFTE} onChange={(v) => update("horasMesFTE", v)} />
           </div>
           <div className="rounded-md bg-muted/50 p-3 text-xs">
-            FTE por volume: <strong>{vol(results.cobertura.fteVolume)}</strong> · Piso:{" "}
+            <Sigla termo="FTE">FTE</Sigla> por volume: <strong>{vol(results.cobertura.fteVolume)}</strong> · Piso:{" "}
             <strong>{vol(results.cobertura.ftePiso)}</strong> · Contratado:{" "}
             <strong>{vol(results.cobertura.fteContratado)}</strong>
             {results.cobertura.acimaDoMax && (
@@ -199,23 +200,24 @@ export default function ServiceDeskCalculadora() {
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             <NumField label="% desvio por autoatendimento" value={state.pctAutoatendimento} onChange={(v) => update("pctAutoatendimento", v)} suffix="%" />
-            <NumField label="% resolvido na triagem (N0)" value={state.pctTriagem} onChange={(v) => update("pctTriagem", v)} suffix="%" />
-            <NumField label="Produtividade (chamados/FTE/mês)" value={state.produtividadeChamadosFTE} onChange={(v) => update("produtividadeChamadosFTE", v)} />
+            <NumField label="% resolvido na triagem (N0 — autoatendimento/triagem)" value={state.pctTriagem} onChange={(v) => update("pctTriagem", v)} suffix="%" />
+            <NumField label="Produtividade (chamados por profissional/mês)" value={state.produtividadeChamadosFTE} onChange={(v) => update("produtividadeChamadosFTE", v)} />
           </div>
           <div className="rounded-md bg-muted/50 p-3 text-xs">
             Bruto {vol(results.funil.volumeBruto)} → autoatendimento −{vol(results.funil.desviadoAutoatendimento)} →
             triagem −{vol(results.funil.resolvidoTriagem)} → <strong>N1 {vol(results.funil.chamadosN1)}</strong> →
-            escalonados {vol(results.funil.chamadosEscalonados)} · UM {vol(results.umTotal)} ·
+            escalonados {vol(results.funil.chamadosEscalonados)} ·{" "}
+            <Sigla termo="UM">UM</Sigla> {vol(results.umTotal)} ·
             plataforma {brl(results.custoPlataforma)}
           </div>
         </Gate>
 
-        <Gate n="5" titulo="Escalonamento (bolsa de horas)">
+        <Gate n="5" titulo="Escalonamento (bolsa de horas)" descricao="Pacote mensal de horas técnicas de N2/N3, distribuído por prioridade entre chamados, rotinas, melhoria e horas técnicas.">
           <div className="grid gap-3 md:grid-cols-4">
-            <NumField label="% escalonado do N1" value={state.pctEscalonado} onChange={(v) => update("pctEscalonado", v)} suffix="%" />
+            <NumField label="% escalonado do N1 (1º nível) para N2/N3" value={state.pctEscalonado} onChange={(v) => update("pctEscalonado", v)} suffix="%" />
             <NumField label="Bolsa de horas / mês" value={state.bolsaHorasEscalonamento} onChange={(v) => update("bolsaHorasEscalonamento", v)} />
             <NumField label="Tempo médio por escalonamento (h)" step={0.1} value={state.tempoMedioEscalonamentoH} onChange={(v) => update("tempoMedioEscalonamentoH", v)} />
-            <NumField label="Valor hora N2/N3" value={state.valorHoraEscalonamento} onChange={(v) => update("valorHoraEscalonamento", v)} />
+            <NumField label="Valor hora do especialista N2/N3" value={state.valorHoraEscalonamento} onChange={(v) => update("valorHoraEscalonamento", v)} />
           </div>
           <div className="space-y-2">
             <Label className="text-xs">
@@ -280,7 +282,7 @@ export default function ServiceDeskCalculadora() {
           )}
         </Gate>
 
-        <Gate n="8" titulo="SLA">
+        <Gate n="8" titulo="SLA — Acordo de Nível de Serviço" descricao="Níveis mais exigentes de prazo aplicam um fator multiplicador sobre o custo total.">
           <div className="grid gap-3 md:grid-cols-4">
             <div className="space-y-1">
               <Label className="text-xs">Nível de SLA</Label>

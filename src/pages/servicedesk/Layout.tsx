@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { PermissionKey } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 import { ServiceDeskProvider } from "@/contexts/ServiceDeskContext";
+import GlossarioSD from "@/components/servicedesk/GlossarioSD";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -102,8 +103,9 @@ export default function ServiceDeskLayout() {
             </div>
           </div>
         </header>
-        <main className="px-6 py-6">
+        <main className="space-y-4 px-6 py-6">
           <Outlet />
+          <GlossarioSD />
         </main>
       </div>
     </ServiceDeskProvider>

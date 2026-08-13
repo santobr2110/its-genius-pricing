@@ -25,9 +25,9 @@ export default function EquipeServiceDesk() {
                   <TableHead>Cargo</TableHead>
                   <TableHead className="w-20">Qtd</TableHead>
                   <TableHead className="w-32">Salário base</TableHead>
-                  <TableHead className="w-24">Encargos %</TableHead>
+                  <TableHead className="w-24">Encargos % (INSS, FGTS, férias, 13º)</TableHead>
                   <TableHead className="w-32">Benefícios</TableHead>
-                  <TableHead className="w-28">Indiretos %</TableHead>
+                  <TableHead className="w-28">Indiretos % (estrutura e gestão)</TableHead>
                   <TableHead className="w-24">Escala</TableHead>
                   <TableHead className="w-24" />
                 </TableRow>
