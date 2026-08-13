@@ -5,9 +5,9 @@
  * `DefaultsAdminTab` para snapshotar e aplicar parâmetros por escopo
  * (Smart ITO vs BodyShop).
  */
-import { SMART_ITO_NS, SMART_SERVICE_DESK_NS } from "@/lib/offerings";
+import { SMART_ITO_NS } from "@/lib/offerings";
 
-export type ParamOffering = "smart-ito" | "profissionais-alocados" | "smart-service-desk";
+export type ParamOffering = "smart-ito" | "profissionais-alocados";
 
 // ---- Smart ITO ----
 const SMART_ITO_RAW = [
@@ -56,36 +56,14 @@ export const BODYSHOP_PARAM_KEYS: string[] = [
   ...BODYSHOP_RAW,
 ];
 
-// ---- Smart Service Desk ----
-const SMART_SERVICE_DESK_RAW = [
-  "sd:state:v1",
-  "team:v1",
-  "sd:itensAdicionais",
-  "sd:rotinasOff",
-  "sd:escopo",
-] as const;
-
-export const SMART_SERVICE_DESK_PARAM_KEYS: string[] = SMART_SERVICE_DESK_RAW.map(
-  (k) => SMART_SERVICE_DESK_NS + k,
-);
-
-/** Chaves do Service Desk que pertencem à precificação (nunca ao perfil padrão). */
-export const SD_PRICING_OWNED_PARAM_KEYS: string[] = [
-  "sd:rotinasOff",
-  "sd:escopo",
-].map((k) => SMART_SERVICE_DESK_NS + k);
-
 // União usada por código legado (ex.: SaveDefaultsButton sem oferta).
 export const ALL_PARAM_KEYS: string[] = [
   ...SMART_ITO_PARAM_KEYS,
   ...BODYSHOP_PARAM_KEYS,
-  ...SMART_SERVICE_DESK_PARAM_KEYS,
 ];
 
 export function keysForOffering(offering: ParamOffering): string[] {
-  if (offering === "smart-ito") return SMART_ITO_PARAM_KEYS;
-  if (offering === "smart-service-desk") return SMART_SERVICE_DESK_PARAM_KEYS;
-  return BODYSHOP_PARAM_KEYS;
+  return offering === "smart-ito" ? SMART_ITO_PARAM_KEYS : BODYSHOP_PARAM_KEYS;
 }
 
 /**
@@ -108,12 +86,11 @@ export const PRICING_OWNED_PARAM_KEYS: string[] = [
 export const OFFERING_LABEL: Record<ParamOffering, string> = {
   "smart-ito": "Smart ITO",
   "profissionais-alocados": "BodyShop",
-  "smart-service-desk": "Smart Service Desk",
 };
 
 /** Mapeia um path do app para a oferta correspondente. */
 export function offeringFromPath(pathname: string): ParamOffering {
-  if (pathname.startsWith("/profissionais-alocados")) return "profissionais-alocados";
-  if (pathname.startsWith("/service-desk")) return "smart-service-desk";
-  return "smart-ito";
+  return pathname.startsWith("/profissionais-alocados")
+    ? "profissionais-alocados"
+    : "smart-ito";
 }

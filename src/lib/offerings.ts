@@ -64,22 +64,6 @@ export const GROUPS: GroupDef[] = [
         routes: ["/profissionais-alocados"],
       },
       {
-        slug: "smart-service-desk",
-        name: "Smart Service Desk",
-        status: "active",
-        routePrefix: "/service-desk",
-        routes: [
-          "/service-desk",
-          "/service-desk/equipe",
-          "/service-desk/parametros",
-          "/service-desk/financeiro",
-          "/service-desk/precificacoes",
-          "/service-desk/perfis-parametros",
-          "/service-desk/relatorio-demanda",
-          "/service-desk/resumo-cotacao",
-        ],
-      },
-      {
         slug: "pacote-horas",
         name: "Pacote de Horas",
         status: "coming_soon",
@@ -146,7 +130,3 @@ export const SMART_ITO_ACCESS_KEY = offeringAccessKey("ito", "smart-ito");
 export const PACOTE_HORAS_ACCESS_KEY = offeringAccessKey("ito", "pacote-horas");
 export const BODYSHOP_ACCESS_KEY = offeringAccessKey("ito", "bodyshop");
 export const PROFISSIONAIS_ALOCADOS_ACCESS_KEY = offeringAccessKey("ito", "profissionais-alocados");
-export const SMART_SERVICE_DESK_ACCESS_KEY = offeringAccessKey("ito", "smart-service-desk");
-
-/** Namespace de dados da oferta Smart Service Desk. */
-export const SMART_SERVICE_DESK_NS = dataNamespace("ito", "smart-service-desk");

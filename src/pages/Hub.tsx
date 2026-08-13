@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users, BriefcaseBusiness, Headset } from "lucide-react";
+import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users, BriefcaseBusiness } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +9,6 @@ import {
   SMART_ITO_ACCESS_KEY,
   PACOTE_HORAS_ACCESS_KEY,
   PROFISSIONAIS_ALOCADOS_ACCESS_KEY,
-  SMART_SERVICE_DESK_ACCESS_KEY,
 } from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";
 
@@ -63,15 +62,6 @@ const GROUPS: GroupCard[] = [
         icon: BriefcaseBusiness,
         available: true,
         permissionKey: PROFISSIONAIS_ALOCADOS_ACCESS_KEY as PermissionKey,
-      },
-      {
-        id: "smart-service-desk",
-        title: "Smart Service Desk",
-        description: "Precificação de service desk: cobertura, canais, SLA e bolsa de horas.",
-        to: "/service-desk",
-        icon: Headset,
-        available: true,
-        permissionKey: SMART_SERVICE_DESK_ACCESS_KEY as PermissionKey,
       },
       {
         id: "pacote-horas",
