@@ -31,6 +31,14 @@ import MinhasAprovacoes from "./pages/MinhasAprovacoes";
 import MinhasSolicitacoes from "./pages/MinhasSolicitacoes";
 import EmBreve from "./pages/EmBreve";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
+import ServiceDeskLayout from "./pages/servicedesk/Layout";
+import SDCalculadora from "./pages/servicedesk/Calculadora";
+import SDEquipe from "./pages/servicedesk/EquipeServiceDesk";
+import SDParametros from "./pages/servicedesk/ParametrosServiceDesk";
+import SDFinanceiro from "./pages/servicedesk/FinanceiroServiceDesk";
+import SDPrecificacoes from "./pages/servicedesk/PrecificacoesServiceDesk";
+import SDRelatorioDemanda from "./pages/servicedesk/RelatorioDemandaServiceDesk";
+import SDResumoCotacao from "./pages/servicedesk/ResumoCotacaoServiceDesk";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
 import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
@@ -120,6 +128,23 @@ const App = () => (
                 <Route path="selecao-ia" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_ia"><PrecificacaoIA /></ProtectedRoute>} />
                 <Route path="precificacao-ia" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_ia"><PrecificacaoIA /></ProtectedRoute>} />
                 <Route path="cotacoes" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.cotacoes"><CotacoesSalvas /></ProtectedRoute>} />
+              </Route>
+              <Route
+                path="/service-desk"
+                element={
+                  <ProtectedRoute group="ito" offering="smart-service-desk">
+                    <ServiceDeskLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.calculadora"><SDCalculadora /></ProtectedRoute>} />
+                <Route path="calculadora" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.calculadora"><SDCalculadora /></ProtectedRoute>} />
+                <Route path="equipe" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.equipe"><SDEquipe /></ProtectedRoute>} />
+                <Route path="parametros" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.parametros"><SDParametros /></ProtectedRoute>} />
+                <Route path="financeiro" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.financeiro"><SDFinanceiro /></ProtectedRoute>} />
+                <Route path="relatorio-demanda" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.relatorio"><SDRelatorioDemanda /></ProtectedRoute>} />
+                <Route path="resumo-cotacao" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.resumo"><SDResumoCotacao /></ProtectedRoute>} />
+                <Route path="precificacoes" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.precificacoes"><SDPrecificacoes /></ProtectedRoute>} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

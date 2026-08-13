@@ -9,6 +9,7 @@ export type PermissionKey =
   | "offering.ito.pacote-horas.access"
   | "offering.ito.bodyshop.access"
   | "offering.ito.profissionais-alocados.access"
+  | "offering.ito.smart-service-desk.access"
   // Páginas e ações da oferta Smart ITO (ITO)
   | "page.home"
   | "page.detalhamento"
@@ -55,7 +56,28 @@ export type PermissionKey =
   // Profissionais Alocados — ações
   | "prof.pricing.save"
   | "prof.pricing.delete"
-  | "prof.pricing.export";
+  | "prof.pricing.export"
+  // Smart Service Desk — páginas
+  | "page.sd.calculadora"
+  | "page.sd.equipe"
+  | "page.sd.parametros"
+  | "page.sd.financeiro"
+  | "page.sd.precificacoes"
+  | "page.sd.relatorio_demanda"
+  | "page.sd.resumo_cotacao"
+  // Smart Service Desk — escrita
+  | "page.sd.calculadora.write"
+  | "page.sd.equipe.write"
+  | "page.sd.parametros.write"
+  | "page.sd.financeiro.write"
+  // Smart Service Desk — ações
+  | "sd.pricing.edit"
+  | "sd.pricing.save"
+  | "sd.pricing.delete"
+  | "sd.pricing.export"
+  | "sd.params.save_defaults"
+  | "sd.financeiro.edit"
+  | "sd.teams.edit";
 
 export interface PermissionDef {
   key: PermissionKey;
@@ -68,6 +90,7 @@ export interface PermissionDef {
     | "ITO › Smart ITO › Equipes"
     | "ITO › Smart ITO › Financeiro"
     | "ITO › Profissionais Alocados"
+    | "ITO › Smart Service Desk"
     | "Administração";
 }
 
@@ -122,6 +145,25 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "prof.pricing.save",                  label: "Salvar cotações (Profissionais)",        group: "ITO › Profissionais Alocados" },
   { key: "prof.pricing.delete",                label: "Excluir cotações (Profissionais)",       group: "ITO › Profissionais Alocados" },
   { key: "prof.pricing.export",                label: "Exportar propostas (Profissionais)",     group: "ITO › Profissionais Alocados" },
+  { key: "offering.ito.smart-service-desk.access", label: "Acessar Oferta Smart Service Desk", group: "Ofertas" },
+  { key: "page.sd.calculadora",        label: "Calculadora Service Desk",            group: "ITO › Smart Service Desk" },
+  { key: "page.sd.calculadora.write",  label: "Editar Calculadora Service Desk",     group: "ITO › Smart Service Desk" },
+  { key: "page.sd.equipe",             label: "Equipe Service Desk",                 group: "ITO › Smart Service Desk" },
+  { key: "page.sd.equipe.write",       label: "Editar Equipe Service Desk",          group: "ITO › Smart Service Desk" },
+  { key: "page.sd.parametros",         label: "Métricas e Parâmetros (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "page.sd.parametros.write",   label: "Editar Métricas e Parâmetros (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "page.sd.financeiro",         label: "Financeiro (Service Desk)",           group: "ITO › Smart Service Desk" },
+  { key: "page.sd.financeiro.write",   label: "Editar Financeiro (Service Desk)",    group: "ITO › Smart Service Desk" },
+  { key: "page.sd.precificacoes",      label: "Precificações salvas (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "page.sd.relatorio_demanda",  label: "Relatório de Demanda (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "page.sd.resumo_cotacao",     label: "Resumo de Cotação (Service Desk)",    group: "ITO › Smart Service Desk" },
+  { key: "sd.pricing.edit",            label: "Editar parâmetros de precificação (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "sd.pricing.save",            label: "Salvar precificações (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "sd.pricing.delete",          label: "Remover precificações (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "sd.pricing.export",          label: "Exportar propostas (Service Desk)",   group: "ITO › Smart Service Desk" },
+  { key: "sd.params.save_defaults",    label: "Salvar parâmetros padrão (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "sd.financeiro.edit",         label: "Editar configurações financeiras (Service Desk)", group: "ITO › Smart Service Desk" },
+  { key: "sd.teams.edit",              label: "Editar equipe (Service Desk)",        group: "ITO › Smart Service Desk" },
 ];
 
 export const PERMISSION_GROUPS = Array.from(new Set(PERMISSIONS.map((p) => p.group)));

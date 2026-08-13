@@ -103,6 +103,7 @@ export default function DefaultsAdminTab() {
     if (key.startsWith("prof.fin.") || key.startsWith("prof.financeiro.")) {
       return "profissionais-alocados";
     }
+    if (key.startsWith("ito.smart-service-desk.")) return "smart-service-desk";
     if (key.startsWith("ito.smart-ito.")) return "smart-ito";
     if (key === "financeiro.codigoProduto" || key === "financeiro.cidadeIss") {
       return "smart-ito";
@@ -112,6 +113,7 @@ export default function DefaultsAdminTab() {
   const rowsByOffering: Record<ParamOffering | "outros", DefaultRow[]> = {
     "smart-ito": [],
     "profissionais-alocados": [],
+    "smart-service-desk": [],
     outros: [],
   };
   rows.forEach((r) => rowsByOffering[classifyOffering(r.key)].push(r));
