@@ -142,8 +142,8 @@ const App = () => (
                 <Route path="equipe" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.equipe"><SDEquipe /></ProtectedRoute>} />
                 <Route path="parametros" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.parametros"><SDParametros /></ProtectedRoute>} />
                 <Route path="financeiro" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.financeiro"><SDFinanceiro /></ProtectedRoute>} />
-                <Route path="relatorio-demanda" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.relatorio"><SDRelatorioDemanda /></ProtectedRoute>} />
-                <Route path="resumo-cotacao" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.resumo"><SDResumoCotacao /></ProtectedRoute>} />
+                <Route path="relatorio-demanda" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.relatorio_demanda"><SDRelatorioDemanda /></ProtectedRoute>} />
+                <Route path="resumo-cotacao" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.resumo_cotacao"><SDResumoCotacao /></ProtectedRoute>} />
                 <Route path="precificacoes" element={<ProtectedRoute group="ito" offering="smart-service-desk" permission="page.sd.precificacoes"><SDPrecificacoes /></ProtectedRoute>} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
