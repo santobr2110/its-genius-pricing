@@ -8,6 +8,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import WriteFence from "@/components/auth/WriteFence";
 import { useServiceDesk } from "@/contexts/ServiceDeskContext";
 import { brl, vol } from "@/lib/servicedesk/format";
+import Sigla from "@/components/servicedesk/Sigla";
 import type { AtendimentoFaixa } from "@/lib/servicedesk/custoAtendimentoUM";
 
 export default function ParametrosServiceDesk() {
@@ -37,9 +38,11 @@ export default function ParametrosServiceDesk() {
       <div className="mx-auto max-w-6xl space-y-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Custo de atendimento por UM</CardTitle>
+            <CardTitle className="text-base">Custo de atendimento por UM (Unidade de Medida)</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Pesos por tipo de usuário/estação e faixas marginais progressivas.
+              Cada usuário e estação vale um peso; a soma ponderada é o total de UM (Unidade de
+              Medida). As faixas são marginais e progressivas: cada faixa é cobrada apenas sobre a
+              parcela de UM que cai dentro dela.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -62,9 +65,9 @@ export default function ParametrosServiceDesk() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>De (UM)</TableHead>
-                  <TableHead>Até (UM)</TableHead>
-                  <TableHead>Custo por UM</TableHead>
+                  <TableHead>De (<Sigla termo="UM">UM</Sigla>)</TableHead>
+                  <TableHead>Até (<Sigla termo="UM">UM</Sigla>)</TableHead>
+                  <TableHead>Custo por <Sigla termo="UM">UM</Sigla> (R$/mês)</TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
@@ -88,8 +91,9 @@ export default function ParametrosServiceDesk() {
               <Plus className="h-3.5 w-3.5" /> Adicionar faixa
             </Button>
             <div className="rounded-md bg-muted/50 p-3 text-xs">
-              UM total <strong>{vol(results.umTotal)}</strong> · custo {brl(results.custoPlataforma)} ·
-              médio por UM {brl(results.custoMedioPorUM)}
+              <Sigla termo="UM">UM</Sigla> total <strong>{vol(results.umTotal)}</strong> · custo{" "}
+              {brl(results.custoPlataforma)} · médio por <Sigla termo="UM">UM</Sigla>{" "}
+              {brl(results.custoMedioPorUM)}
             </div>
           </CardContent>
         </Card>

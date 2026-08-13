@@ -16,10 +16,7 @@ export default function Sigla({ termo: sigla, children }: SiglaProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <abbr
-          title=""
-          className="cursor-help underline decoration-dotted underline-offset-2 no-underline-hover"
-        >
+        <abbr title="" className="cursor-help underline decoration-dotted underline-offset-2">
           {label}
         </abbr>
       </TooltipTrigger>
