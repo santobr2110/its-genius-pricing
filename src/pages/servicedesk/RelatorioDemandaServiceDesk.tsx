@@ -27,8 +27,8 @@ export default function RelatorioDemandaServiceDesk() {
               <TableRow><TableCell>Volume bruto de contatos</TableCell><TableCell className="text-right">{vol(results.funil.volumeBruto)}</TableCell></TableRow>
               <TableRow><TableCell>Desviado por autoatendimento</TableCell><TableCell className="text-right">−{vol(results.funil.desviadoAutoatendimento)}</TableCell></TableRow>
               <TableRow><TableCell>Resolvido na triagem (N0)</TableCell><TableCell className="text-right">−{vol(results.funil.resolvidoTriagem)}</TableCell></TableRow>
-              <TableRow className="font-semibold"><TableCell>Atendidos no N1</TableCell><TableCell className="text-right">{vol(results.funil.chamadosN1)}</TableCell></TableRow>
-              <TableRow><TableCell>Escalonados para N2/N3</TableCell><TableCell className="text-right">{vol(results.funil.chamadosEscalonados)}</TableCell></TableRow>
+              <TableRow className="font-semibold"><TableCell>Atendidos no N1 (primeiro nível)</TableCell><TableCell className="text-right">{vol(results.funil.chamadosN1)}</TableCell></TableRow>
+              <TableRow><TableCell>Escalonados para N2/N3 (especialistas)</TableCell><TableCell className="text-right">{vol(results.funil.chamadosEscalonados)}</TableCell></TableRow>
               <TableRow><TableCell>Taxa total de desvio</TableCell><TableCell className="text-right">{pct(results.funil.taxaDesvioTotalPct)}</TableCell></TableRow>
             </TableBody>
           </Table>
@@ -38,9 +38,9 @@ export default function RelatorioDemandaServiceDesk() {
               <TableRow><TableHead>Dimensionamento</TableHead><TableHead className="text-right">Valor</TableHead></TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow><TableCell>FTE por volume</TableCell><TableCell className="text-right">{vol(results.cobertura.fteVolume)}</TableCell></TableRow>
+              <TableRow><TableCell>FTE por volume (profissionais em tempo integral)</TableCell><TableCell className="text-right">{vol(results.cobertura.fteVolume)}</TableCell></TableRow>
               <TableRow><TableCell>Piso mínimo da janela</TableCell><TableCell className="text-right">{vol(results.cobertura.ftePiso)}</TableCell></TableRow>
-              <TableRow className="font-semibold"><TableCell>FTE contratado (vinculante)</TableCell><TableCell className="text-right">{vol(results.cobertura.fteContratado)}</TableCell></TableRow>
+              <TableRow className="font-semibold"><TableCell>FTE contratado (vinculante — maior entre volume e piso)</TableCell><TableCell className="text-right">{vol(results.cobertura.fteContratado)}</TableCell></TableRow>
               <TableRow><TableCell>Unidades de medida (UM)</TableCell><TableCell className="text-right">{vol(results.umTotal)}</TableCell></TableRow>
               <TableRow><TableCell>Custo de plataforma</TableCell><TableCell className="text-right">{brl(results.custoPlataforma)}</TableCell></TableRow>
               <TableRow><TableCell>Canais contratados</TableCell><TableCell className="text-right">{state.canais.map((c) => CANAL_LABEL[c]).join(", ") || "—"}</TableCell></TableRow>

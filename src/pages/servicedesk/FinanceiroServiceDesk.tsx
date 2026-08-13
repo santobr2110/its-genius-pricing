@@ -11,7 +11,7 @@ const CAMPOS: { key: keyof ServiceDeskState; label: string }[] = [
   { key: "cofinsPerc", label: "COFINS (%)" },
   { key: "issPerc", label: "ISS (%)" },
   { key: "comissaoPerc", label: "Comissão (%)" },
-  { key: "irpjCsllPerc", label: "IRPJ / CSLL (%)" },
+  { key: "irpjCsllPerc", label: "IRPJ / CSLL — imposto de renda e contribuição social (%)" },
   { key: "encFinancPerc", label: "Encargos financeiros (%)" },
   { key: "lucroPerc", label: "Lucro (%)" },
 ];
@@ -27,7 +27,7 @@ export default function FinanceiroServiceDesk() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Configuração financeira — Smart Service Desk</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Markup divisor: preço de venda = custo ÷ (1 − Σ%). Isolado da configuração do Smart ITO.
+              Markup divisor: o preço de venda = custo ÷ (1 − soma dos percentuais). Impostos, comissão e lucro incidem sobre o preço final, não sobre o custo. Isolado da configuração do Smart ITO.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -41,7 +41,7 @@ export default function FinanceiroServiceDesk() {
                 </div>
               ))}
               <div className="space-y-1">
-                <Label className="text-xs">Σ percentuais</Label>
+                <Label className="text-xs">Σ percentuais (soma de impostos, comissão e lucro)</Label>
                 <p className="flex h-8 items-center text-sm font-semibold">{pct(c.totalPercentuais)}</p>
               </div>
             </div>
@@ -58,7 +58,7 @@ export default function FinanceiroServiceDesk() {
               <Linha label="Lucro" valor={brl(c.lucro)} />
               <Linha label="Rentabilidade" valor={pct(c.rentabilidadePct)} />
               <Linha destaque label="Preço de venda mensal" valor={brl(c.precoVenda)} />
-              <Linha destaque label="Valores únicos (setup)" valor={brl(results.custoOneTime)} />
+              <Linha destaque label="Valores únicos (cobrança única de implantação)" valor={brl(results.custoOneTime)} />
             </div>
           </CardContent>
         </Card>
