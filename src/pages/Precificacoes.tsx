@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink } from "lucide-react";
+import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,16 @@ export default function Precificacoes() {
   });
   const [saving, setSaving] = useState(false);
   const [defaultParams, setDefaultParams] = useState<ParamPayload | null>(null);
+  const [query, setQuery] = useState("");
+
+  const filteredPresets = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return presets;
+    return presets.filter((p) =>
+      [p.name, p.clientName, p.quoteCode, p.salesforceCode]
+        .some((v) => (v ?? "").toLowerCase().includes(q)),
+    );
+  }, [presets, query]);
 
   useEffect(() => {
     let cancelled = false;
@@ -129,11 +139,27 @@ export default function Precificacoes() {
 
       <main className="mx-auto max-w-[1400px] p-4">
         <Card className="p-4">
+          {presets.length > 0 && (
+            <div className="relative mb-3 max-w-sm">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar por nome ou cliente..."
+                className="h-8 pl-8 text-xs"
+              />
+            </div>
+          )}
           {presets.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-40" />
               <p className="text-sm">Nenhuma precificação salva ainda.</p>
               <p className="text-xs mt-1">Use o botão "Salvar" no cabeçalho da calculadora.</p>
+            </div>
+          ) : filteredPresets.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Search className="h-10 w-10 mx-auto mb-3 opacity-40" />
+              <p className="text-sm">Nenhuma precificação encontrada para "{query}".</p>
             </div>
           ) : (
             <Table>
@@ -151,7 +177,7 @@ export default function Precificacoes() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {presets.map((p) => (
+                {filteredPresets.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="font-mono text-[11px]">
                       {p.quoteCode || <span className="text-muted-foreground italic">—</span>}
