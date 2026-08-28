@@ -30,13 +30,18 @@ export const SMART_ITO_PARAM_KEYS: string[] = SMART_ITO_RAW.map(
   (k) => SMART_ITO_NS + k,
 );
 
-// Chaves Smart ITO gravadas sem namespace (compatibilidade histórica:
-// página `/financeiro/impostos`).
-const SMART_ITO_UNNAMESPACED = [
+// Chaves de Financeiro (Smart ITO). São gravadas pelo `usePersistentState`
+// COM o namespace da oferta; mantemos também a variante crua por
+// compatibilidade histórica com perfis salvos antes do namespace.
+const SMART_ITO_FINANCEIRO = [
   "financeiro.codigoProduto",
   "financeiro.cidadeIss",
 ] as const;
-SMART_ITO_PARAM_KEYS.push(...SMART_ITO_UNNAMESPACED);
+SMART_ITO_PARAM_KEYS.push(
+  ...SMART_ITO_FINANCEIRO.map((k) => SMART_ITO_NS + k),
+  ...SMART_ITO_FINANCEIRO,
+);
+
 
 // ---- BodyShop (Profissionais Alocados) ----
 // Chaves namespeadas por SMART_ITO_NS por razões históricas (usePersistentState),
@@ -55,6 +60,7 @@ export const BODYSHOP_PARAM_KEYS: string[] = [
   ...BODYSHOP_NAMESPACED.map((k) => SMART_ITO_NS + k),
   ...BODYSHOP_RAW,
 ];
+
 
 // União usada por código legado (ex.: SaveDefaultsButton sem oferta).
 export const ALL_PARAM_KEYS: string[] = [

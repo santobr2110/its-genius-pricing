@@ -119,7 +119,7 @@ export async function snapshotCurrentPricingParams(
   return out;
 }
 
-/** Aplica um payload de parâmetros: nuvem + localStorage + notifica hooks. */
+/** Aplica um payload de parâmetros: nuvem + storage local + notifica hooks. */
 export async function applyParamsPayload(payload: ParamPayload): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   // Ao aplicar um perfil, preservamos os campos de Perfil de Cliente
@@ -129,6 +129,23 @@ export async function applyParamsPayload(payload: ParamPayload): Promise<void> {
   // limpar inventário/tiers/horas selecionadas.
   const safePayload = await mergeCalculatorPreservingClientProfile(payload, user?.id);
   const entries = Object.entries(safePayload);
+  const activePresetId = getActivePresetId();
+
+  // Modo "precificação aberta": o estado vive em sessionStorage sob chaves
+  // prefixadas por `preset.<id>.` e a nuvem é gerenciada por
+  // `useActivePresetSession` (pricing_presets.payload). Escrever em
+  // localStorage/user_app_state aqui não teria efeito nenhum na tela.
+  if (activePresetId) {
+    if (typeof window !== "undefined") {
+      for (const [key, value] of entries) {
+        const storageKey = withPresetPrefix(key, activePresetId);
+        try { window.sessionStorage.setItem(storageKey, JSON.stringify(value)); } catch { /* ignore */ }
+        notifyPersistentStateRestored(storageKey, value);
+      }
+    }
+    return;
+  }
+
   if (user && entries.length) {
     const rows = entries.map(([key, value]) => ({
       user_id: user.id,
@@ -158,9 +175,19 @@ async function mergeCalculatorPreservingClientProfile(
   const incoming = payload[CALCULATOR_KEY];
   if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) return payload;
 
-  // Lê o calculator atual (nuvem → localStorage)
+  // Lê o calculator atual (preset da aba → nuvem → localStorage)
   let current: Record<string, unknown> | null = null;
-  if (userId) {
+  const activePresetId = getActivePresetId();
+  if (activePresetId && typeof window !== "undefined") {
+    const raw = window.sessionStorage.getItem(withPresetPrefix(CALCULATOR_KEY, activePresetId));
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") current = parsed as Record<string, unknown>;
+      } catch { /* ignore */ }
+    }
+  }
+  if (!current && !activePresetId && userId) {
     const { data } = await supabase
       .from("user_app_state")
       .select("value")
@@ -169,7 +196,7 @@ async function mergeCalculatorPreservingClientProfile(
       .maybeSingle();
     if (data?.value && typeof data.value === "object") current = data.value as Record<string, unknown>;
   }
-  if (!current && typeof window !== "undefined") {
+  if (!current && !activePresetId && typeof window !== "undefined") {
     const raw = window.localStorage.getItem(CALCULATOR_KEY);
     if (raw) {
       try { current = JSON.parse(raw); } catch { /* ignore */ }
@@ -190,6 +217,7 @@ async function mergeCalculatorPreservingClientProfile(
   }
   return { ...payload, [CALCULATOR_KEY]: merged };
 }
+
 
 export function useParameterProfiles({
   autoLoad = true,
