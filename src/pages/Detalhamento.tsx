@@ -56,6 +56,11 @@ import {
 } from "@/lib/exportarApresentacao";
 import { exportarApresentacaoTemplate } from "@/lib/exportarApresentacaoTemplate";
 import { toast } from "sonner";
+
+/** Exportação de apresentação (.pptx) desabilitada durante a reformulação do modelo. */
+const APRESENTACAO_PPTX_DISABLED = true;
+const APRESENTACAO_PPTX_DISABLED_REASON =
+  "Exportação de apresentação temporariamente desabilitada (modelo em reformulação).";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
