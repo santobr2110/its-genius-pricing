@@ -56,6 +56,11 @@ import {
 } from "@/lib/exportarApresentacao";
 import { exportarApresentacaoTemplate } from "@/lib/exportarApresentacaoTemplate";
 import { toast } from "sonner";
+
+/** Exportação de apresentação (.pptx) desabilitada durante a reformulação do modelo. */
+const APRESENTACAO_PPTX_DISABLED = true;
+const APRESENTACAO_PPTX_DISABLED_REASON =
+  "Exportação de apresentação temporariamente desabilitada (modelo em reformulação).";
 import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
@@ -862,6 +867,9 @@ export default function Detalhamento() {
   const horasMelhoriaPerf = Math.max(melhoriaPerfHardMin, Math.min(melhoriaPerfHardMax, Math.round(horasMelhoriaPerfRaw || 0)));
 
   // ============================================================
+  // Exportação de apresentação temporariamente desabilitada (modelo em reformulação).
+  // Para reativar, basta trocar a flag abaixo para false.
+  // ============================================================
   // Exportação de Apresentação (.pptx)
   // Monta payload com camadas ativas, composições e itens adicionais
   // ============================================================
@@ -1151,6 +1159,10 @@ export default function Detalhamento() {
     return payload;
   };
   const handleExportPresentation = async () => {
+    if (APRESENTACAO_PPTX_DISABLED) {
+      toast.error(APRESENTACAO_PPTX_DISABLED_REASON);
+      return;
+    }
     if (exportBlocked) {
       toast.error(exportDisabledReason ?? "Exportação bloqueada.");
       return;
@@ -1196,11 +1208,15 @@ export default function Detalhamento() {
                 <DropdownMenuItem
                   onClick={handleExportPresentation}
                   className="gap-2"
-                  disabled={exportBlocked}
-                  title={exportDisabledReason}
+                  disabled={APRESENTACAO_PPTX_DISABLED || exportBlocked}
+                  title={
+                    APRESENTACAO_PPTX_DISABLED
+                      ? APRESENTACAO_PPTX_DISABLED_REASON
+                      : exportDisabledReason
+                  }
                 >
                   <Presentation className="h-4 w-4" />
-                  Apresentação (PPTX)
+                  Apresentação (PPTX){APRESENTACAO_PPTX_DISABLED ? " — em reformulação" : ""}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
