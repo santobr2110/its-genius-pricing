@@ -1200,11 +1200,15 @@ export default function Detalhamento() {
                 <DropdownMenuItem
                   onClick={handleExportPresentation}
                   className="gap-2"
-                  disabled={exportBlocked}
-                  title={exportDisabledReason}
+                  disabled={APRESENTACAO_PPTX_DISABLED || exportBlocked}
+                  title={
+                    APRESENTACAO_PPTX_DISABLED
+                      ? APRESENTACAO_PPTX_DISABLED_REASON
+                      : exportDisabledReason
+                  }
                 >
                   <Presentation className="h-4 w-4" />
-                  Apresentação (PPTX)
+                  Apresentação (PPTX){APRESENTACAO_PPTX_DISABLED ? " — em reformulação" : ""}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
