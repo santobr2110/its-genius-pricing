@@ -1151,6 +1151,10 @@ export default function Detalhamento() {
     return payload;
   };
   const handleExportPresentation = async () => {
+    if (APRESENTACAO_PPTX_DISABLED) {
+      toast.error(APRESENTACAO_PPTX_DISABLED_REASON);
+      return;
+    }
     if (exportBlocked) {
       toast.error(exportDisabledReason ?? "Exportação bloqueada.");
       return;
