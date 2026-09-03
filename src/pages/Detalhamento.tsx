@@ -862,6 +862,9 @@ export default function Detalhamento() {
   const horasMelhoriaPerf = Math.max(melhoriaPerfHardMin, Math.min(melhoriaPerfHardMax, Math.round(horasMelhoriaPerfRaw || 0)));
 
   // ============================================================
+  // Exportação de apresentação temporariamente desabilitada (modelo em reformulação).
+  // Para reativar, basta trocar a flag abaixo para false.
+  // ============================================================
   // Exportação de Apresentação (.pptx)
   // Monta payload com camadas ativas, composições e itens adicionais
   // ============================================================
