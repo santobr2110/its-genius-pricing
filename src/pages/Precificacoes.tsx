@@ -276,6 +276,15 @@ export default function Precificacoes() {
                         <Button
                           size="icon"
                           variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => startTransfer(p)}
+                          title="Transferir para outro usuário"
+                        >
+                          <UserRoundCog className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
                           className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => setConfirmDel(p)}
                         >
