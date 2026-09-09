@@ -259,9 +259,6 @@ export default function SmartTiersPanel() {
     if ((state.horasN3Flow || 0) < (state.horasN3FlowMin || 0)) {
       update("horasN3Flow", state.horasN3FlowMin as any);
     }
-    if ((state.qtdAtendentesFlow || 0) < (state.qtdAtendentesFlowMin || 0)) {
-      update("qtdAtendentesFlow", state.qtdAtendentesFlowMin as any);
-    }
     if ((state.qtdProxysFlow || 0) < 1) {
       update("qtdProxysFlow", 1 as any);
     } else if ((state.qtdProxysFlow || 0) > Math.max(1, state.qtdProxysMonitorMax || 1)) {
@@ -592,7 +589,6 @@ export default function SmartTiersPanel() {
   const sflN1Venda = toSell(sfl.custoN1Alocado);
   const sflN3Venda = toSell(sfl.custoN3);
   const sflN3ManutVenda = toSell(sfl.custoN3Manut);
-  const sflAtendentesVenda = toSell(sfl.custoAtendentes);
   const sflProxysVenda = toSell(sfl.custoProxys);
   const sflTotalVenda = tierPricing.venda.flow + gerenciaisVendaIn("Flow");
   const operacaoCustoTotal = results.custoN1 + results.custoN2 + results.custoN3;
@@ -735,7 +731,6 @@ export default function SmartTiersPanel() {
     if (!flowAdvanced) return;
     if ((state.horasN3FlowManut || 0) !== 0) update("horasN3FlowManut", 0);
     if ((state.horasN3Flow || 0) !== 0) update("horasN3Flow", 0);
-    if ((state.qtdAtendentesFlow || 0) !== 0) update("qtdAtendentesFlow", 0);
   }, [flowAdvanced, state.horasN3FlowManut, state.horasN3Flow, state.qtdAtendentesFlow]);
 
   return (
@@ -1227,102 +1222,6 @@ export default function SmartTiersPanel() {
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-[11px] text-muted-foreground">
-                      Automação / Manutenção ({formatBRL(toSell(state.valorHoraN3))}/h)
-                    </Label>
-                    <span className="text-xs font-semibold">
-                      {formatNumber(state.horasN3FlowManut)}h · {formatBRL(sflN3ManutVenda)}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[Math.min(state.horasN3FlowManutMax, Math.max(state.horasN3FlowManutMin, state.horasN3FlowManut || 0))]}
-                    onValueChange={([v]) => update("horasN3FlowManut", v)}
-                    min={state.horasN3FlowManutMin}
-                    max={state.horasN3FlowManutMax}
-                    step={1}
-                    disabled={flowAdvanced}
-                  />
-                  {!flowAdvanced && rotinasFlow.items.length > 0 && (() => {
-                    const purchased = state.horasN3FlowManut || 0;
-                    const used = horasRotinasFlow;
-                    const overflow = used > purchased;
-                    const pct = purchased > 0 ? Math.min(100, (used / purchased) * 100) : 0;
-                    return (
-                      <div className="space-y-1 pt-1">
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span className="text-muted-foreground">
-                            Consumido por Rotinas Técnicas Preventivas — Smart Flow ({rotinasFlow.items.length})
-                          </span>
-                          <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
-                            {formatNumber(used, 1)}h / {formatNumber(purchased)}h
-                          </span>
-                        </div>
-                        <div className="h-1.5 rounded-full border bg-muted overflow-hidden">
-                          <div
-                            className={overflow ? "bg-destructive h-full" : "bg-cyan-500 h-full"}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        {overflow && (
-                          <p className="text-[10px] text-destructive">Horas insuficientes — aumente o slider.</p>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-[11px] text-muted-foreground">
-                      Acionamento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
-                    </Label>
-                    <span className="text-xs font-semibold">
-                      {formatNumber(state.horasN3Flow)}h · {formatBRL(sflN3Venda)}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[Math.min(state.horasN3FlowMax, Math.max(state.horasN3FlowMin, state.horasN3Flow || 0))]}
-                    onValueChange={([v]) => update("horasN3Flow", v)}
-                    min={state.horasN3FlowMin}
-                    max={state.horasN3FlowMax}
-                    step={1}
-                    disabled={flowAdvanced}
-                  />
-                </div>
-              </div>
-            </div>
-            {/* Grupo: Recursos do Flow (Atendentes ITSM + Proxys) */}
-            <div className="rounded-lg border border-sky-200/70 dark:border-sky-900/50 bg-sky-100/30 dark:bg-sky-950/10 p-2 space-y-2">
-              <div className="flex items-center justify-between px-1">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-sky-800 dark:text-sky-300">
-                  Recursos
-                </p>
-                {flowAdvanced && (
-                  <span className="text-[10px] text-muted-foreground italic">
-                    atendentes desativados pela oferta Operation
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-[11px] text-muted-foreground">
-                      Atendentes no ITSM ({formatBRL(toSell(state.custoAtendenteFlow))}/acesso)
-                    </Label>
-                    <span className="text-xs font-semibold">
-                      {state.qtdAtendentesFlow} · {formatBRL(sflAtendentesVenda)}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[Math.min(state.qtdAtendentesFlowMax, Math.max(state.qtdAtendentesFlowMin, state.qtdAtendentesFlow || 0))]}
-                    onValueChange={([v]) => update("qtdAtendentesFlow", v)}
-                    min={state.qtdAtendentesFlowMin}
-                    max={state.qtdAtendentesFlowMax}
-                    step={1}
-                    disabled={flowAdvanced}
-                  />
-                </div>
                 <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
