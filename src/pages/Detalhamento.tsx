@@ -789,7 +789,6 @@ export default function Detalhamento() {
   const valorMonitorParts = monitorVisible
     ? [
         { label: "Monitoramento de ativos", value: toSell(sm.custoMonitoramento) },
-        { label: "N1 alocado (triagem)", value: toSell(sm.custoN1Alocado) },
         ...(sm.custoN3Manut > 0 ? [{ label: "Manutenção e Automação (N3)", value: toSell(sm.custoN3Manut) }] : []),
         ...(sm.custoN3 > 0 ? [{ label: "Atendimento N3 (horas opcionais)", value: toSell(sm.custoN3) }] : []),
         ...(sm.custoAtendentes > 0
@@ -909,7 +908,6 @@ export default function Detalhamento() {
       const metricas = [
         { label: "Total de ativos", value: formatNumber(sm.ativos) },
         { label: "Ch. monitoramento", value: `${formatNumber(sm.chamadosAtivos, 1)}/mês` },
-        { label: "Alocação N1", value: `${state.percAlocacaoN1Monitor}%` },
       ];
       const recursos: RecursoSlideItem[] = [];
       if (sm.qtdAtendentes > 0)
@@ -1360,10 +1358,9 @@ export default function Detalhamento() {
             <Comp icon={Database} label="Bancos de Dados" qtd={state.qtdBancosDados} ativo />
             <Comp icon={Shield} label="Firewall / Sistemas" qtd={state.qtdSistemas} ativo />
           </ul>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
             <Stat label="Total de ativos" value={formatNumber(sm.ativos)} />
             <Stat label="Chamados de monitoramento" value={`${formatNumber(sm.chamadosAtivos, 1)}/mês`} />
-            <Stat label="Alocação N1 sobre monitor" value={`${state.percAlocacaoN1Monitor}%`} />
           </div>
 
           {(sm.qtdAtendentes > 0 || sm.qtdProxys > 0) && (

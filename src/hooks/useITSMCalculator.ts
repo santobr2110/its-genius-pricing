@@ -500,9 +500,8 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
         Math.max(0, qtdProxys - 1) * Math.max(0, state.valorProxyAdicional || 0)
       : 0;
     // Smart Monitor só cobra alocação de N1 quando opera sozinho.
-    const smCustoN1Aloc = monitorBilling
-      ? (state.percAlocacaoN1Monitor / 100) * custoPorChamadoN1 * smChamados
-      : 0;
+    // Alocação de N1 removida da oferta Smart Monitor.
+    const smCustoN1Aloc = 0;
     // N3 opcional dentro do Smart Monitor (horas mensais avulsas) — desabilitado em camadas superiores
     const smHorasN3 = monitorBilling ? Math.max(0, state.horasN3Monitor || 0) : 0;
     const smCustoN3 = smHorasN3 * state.valorHoraN3;

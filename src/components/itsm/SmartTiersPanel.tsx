@@ -578,7 +578,6 @@ export default function SmartTiersPanel() {
 
 
   const smMonitVenda = toSell(sm.custoMonitoramento);
-  const smN1Venda = toSell(sm.custoN1Alocado);
   const smN3Venda = toSell(sm.custoN3);
   const smN3ManutVenda = toSell(sm.custoN3Manut);
   const smAtendentesVenda = toSell(sm.custoAtendentes);
@@ -862,19 +861,12 @@ export default function SmartTiersPanel() {
                 {formatNumber(sm.ativos)} ativos · {formatNumber(sm.chamadosAtivos, 1)} ch/mês
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 gap-2 text-xs">
               <div className={`flex justify-between rounded border px-2 py-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                 <span className="text-muted-foreground">Monitoramento por ativo</span>
                 <span className="font-semibold">{formatBRL(smMonitVenda)}</span>
               </div>
-              <div className={`flex justify-between rounded border px-2 py-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
-                <span className="text-muted-foreground">
-                  {monitorAdvanced
-                    ? "Alocação N1 (absorvida pela camada superior)"
-                    : `Alocação N1 (${state.percAlocacaoN1Monitor}%)`}
-                </span>
-                <span className="font-semibold">{formatBRL(smN1Venda)}</span>
-              </div>
+            </div>
             </div>
             {!monitorAdvanced && (
               <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
