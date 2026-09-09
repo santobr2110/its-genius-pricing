@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink, Search } from "lucide-react";
+import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink, Search, UserRoundCog } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
