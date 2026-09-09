@@ -281,5 +281,17 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
     [refresh],
   );
 
-  return { presets, loading, save, overwrite, rename, remove, refresh, updateSalesforceCode, updateCommercial };
+  const transferOwnership = useCallback(
+    async (id: string, newOwnerId: string) => {
+      const { error } = await supabase.rpc("transfer_pricing_preset", {
+        _preset_id: id,
+        _new_owner: newOwnerId,
+      });
+      if (!error) refresh();
+      return error ? { error: error.message } : {};
+    },
+    [refresh],
+  );
+
+  return { presets, loading, save, overwrite, rename, remove, refresh, updateSalesforceCode, updateCommercial, transferOwnership };
 }
