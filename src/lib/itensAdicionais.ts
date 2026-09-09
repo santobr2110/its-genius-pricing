@@ -52,10 +52,8 @@ export function createItemAdicionalCalculator(ctx: ItemAdicionalCtx) {
       cppN2 * chamadosLiq * (state.percN2 / 100) +
       cN3perChamado * chamadosLiq * (state.percN3 / 100);
     const custoMonit = custoPorUMMarginal * peso;
-    const custoN1Aloc =
-      state.tierMonitor && !state.tierOperation
-        ? ((state.percAlocacaoN1Monitor || 0) / 100) * cppN1 * chamadosLiq
-        : 0;
+    // Alocação de N1 removida da oferta Smart Monitor.
+    const custoN1Aloc = 0;
     return {
       valor: (custoIncidentes + custoMonit + custoN1Aloc) * fatorVenda,
       detalhe: `${chamadosLiq.toFixed(1)} ch/mês previstos`,

@@ -214,21 +214,6 @@ export default function TaxasDemanda() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Monitor</Label>
-                  <Input
-                    type="number"
-                    step={1}
-                    min={0}
-                    max={100}
-                    value={state.percAlocacaoN1Monitor}
-                    onChange={(e) => update("percAlocacaoN1Monitor", parseFloat(e.target.value) || 0)}
-                    className="h-9"
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    Variável <code>percAlocacaoN1Monitor</code> · % × custo por chamado N1 × chamados de Servidores+Rede+Firewall (parcela de N1 alocada quando Operation está inativo).
-                  </p>
-                </div>
-                <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Valor Proxy Inicial — Smart Monitor (R$/mês)</Label>
                   <Input
                     type="number"

@@ -155,9 +155,9 @@ export default function RelatorioDemanda() {
     {
       name: "N1 — Suporte remoto",
       origem: "Ativos (funil)",
-      demanda: results.volumeN1 + (results.smartMonitor.chamadosAtivos * (state.percAlocacaoN1Monitor / 100)),
+      demanda: results.volumeN1,
       capacidade: state.capacidadeChamadosN1,
-      custo: results.custoN1 + results.smartMonitor.custoN1Alocado,
+      custo: results.custoN1,
     },
     {
       name: "N2 — Especialistas remotos",
@@ -179,7 +179,6 @@ export default function RelatorioDemanda() {
   const custoProxies = (state.valorProxyInicial || 0) + (state.valorProxyAdicional || 0);
   const layerRows = [
     { layer: "Smart Monitor — monitoramento de ativos", custo: results.smartMonitor.custoMonitoramento },
-    { layer: "Smart Monitor — N1 alocado (triagem)", custo: results.smartMonitor.custoN1Alocado },
     { layer: "Smart Monitor — N3 horas avulsas", custo: results.smartMonitor.custoN3 },
     { layer: "Smart Flow — monitoramento integrado ao ITSM", custo: results.smartFlow.custoMonitoramento },
     { layer: "Smart Flow — N1 alocado (triagem)", custo: results.smartFlow.custoN1Alocado },
