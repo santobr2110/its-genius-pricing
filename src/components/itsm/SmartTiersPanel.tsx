@@ -265,7 +265,7 @@ export default function SmartTiersPanel() {
       update("qtdProxysFlow", Math.max(1, state.qtdProxysMonitorMax || 1) as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.tierFlow, state.horasN3FlowManutMin, state.horasN3FlowMin, state.qtdAtendentesFlowMin, state.qtdProxysMonitorMax]);
+  }, [state.tierFlow, state.horasN3FlowManutMin, state.horasN3FlowMin, state.qtdProxysMonitorMax]);
 
   useEffect(() => {
     if (!state.tierOperation || state.tierPerformance) return;
@@ -731,7 +731,7 @@ export default function SmartTiersPanel() {
     if (!flowAdvanced) return;
     if ((state.horasN3FlowManut || 0) !== 0) update("horasN3FlowManut", 0);
     if ((state.horasN3Flow || 0) !== 0) update("horasN3Flow", 0);
-  }, [flowAdvanced, state.horasN3FlowManut, state.horasN3Flow, state.qtdAtendentesFlow]);
+  }, [flowAdvanced, state.horasN3FlowManut, state.horasN3Flow]);
 
   return (
     <Card>
