@@ -941,6 +941,14 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_approval_approver: { Args: { _request_id: string }; Returns: boolean }
       is_approval_requester: { Args: { _request_id: string }; Returns: boolean }
+      list_pricing_transfer_targets: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          id: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -960,6 +968,10 @@ export type Database = {
       }
       revert_app_default: {
         Args: { _key: string; _version: number }
+        Returns: undefined
+      }
+      transfer_pricing_preset: {
+        Args: { _new_owner: string; _preset_id: string }
         Returns: undefined
       }
     }
