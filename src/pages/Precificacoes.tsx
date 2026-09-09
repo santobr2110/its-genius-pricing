@@ -350,6 +350,38 @@ export default function Precificacoes() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!transferPreset} onOpenChange={(o) => !o && setTransferPreset(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Transferir precificação</DialogTitle>
+            <DialogDescription>
+              "{transferPreset?.name}" passará a pertencer ao usuário escolhido e sairá da sua lista.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1 py-2">
+            <Label>Novo responsável</Label>
+            <Select value={targetId} onValueChange={setTargetId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o usuário" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {targets.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.full_name || t.email || t.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferPreset(null)} disabled={transferring}>Cancelar</Button>
+            <Button onClick={confirmTransfer} disabled={!targetId || transferring}>
+              {transferring ? "Transferindo..." : "Transferir"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
