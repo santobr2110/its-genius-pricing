@@ -306,7 +306,7 @@ const DEFAULTS: ITSMState = {
   tierPerformance: false,
   tierEnterprise: false,
   custoAtivoFlow: 0,
-  percAlocacaoN1Flow: 0,
+  percAlocacaoN1Flow: 20,
   valorProxyInicialFlow: 0,
   valorProxyAdicionalFlow: 0,
   qtdProxysFlow: 1,
@@ -512,9 +512,8 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     // === Smart Flow (clone independente do Smart Monitor) ===
     // Custo por ativo legado no Smart Flow também substituído pelo custo unificado por UM.
     const flCustoMonit = 0;
-    const flCustoAtendentes = flowActive && !flowAdvanced
-      ? Math.max(0, state.qtdAtendentesFlow || 0) * Math.max(0, state.custoAtendenteFlow || 0)
-      : 0;
+    // Atendentes no ITSM removidos da oferta Smart Flow — não há mais cobrança.
+    const flCustoAtendentes = 0;
     const flQtdProxys = flowActive ? Math.max(1, Math.floor(state.qtdProxysFlow || 1)) : 0;
     // Os proxys do Flow sempre usam os mesmos valores unitários do Smart Monitor.
     const flProxyIni = Math.max(0, state.valorProxyInicial || 0);
@@ -616,7 +615,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       horasN3Manut: flHorasN3Manut,
       custoN3Manut: flCustoN3Manut,
       custoAtendentes: flCustoAtendentes,
-      qtdAtendentes: flowActive && !flowAdvanced ? (state.qtdAtendentesFlow || 0) : 0,
+      qtdAtendentes: 0,
       custoProxys: flCustoProxys,
       qtdProxys: flQtdProxys,
       total: (flowActive ? custoMonitoramentoUM : 0) + flCustoN1Aloc + flCustoN3 + flCustoN3Manut + flCustoAtendentes + flCustoProxys,

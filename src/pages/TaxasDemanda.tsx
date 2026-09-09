@@ -314,44 +314,6 @@ export default function TaxasDemanda() {
                     Variável <code>percAlocacaoN1Flow</code> · % × custo por chamado N1 × chamados de Servidores+Rede+Firewall (parcela de N1 alocada quando Operation está inativo).
                   </p>
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Custo por Atendente no ITSM — Smart Flow (R$/mês)</Label>
-                  <Input
-                    type="number"
-                    step={100}
-                    min={0}
-                    value={state.custoAtendenteFlow}
-                    onChange={(e) => update("custoAtendenteFlow", parseFloat(e.target.value) || 0)}
-                    className="h-9"
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    Variável <code>custoAtendenteFlow</code> · custo mensal de 1 acesso, multiplicado pela quantidade do slider "Atendentes no ITSM" do Smart Flow.
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Atendentes — Mínimo / Máximo — Smart Flow</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="number"
-                      step={1}
-                      min={0}
-                      value={state.qtdAtendentesFlowMin}
-                      onChange={(e) => update("qtdAtendentesFlowMin", Math.max(0, Math.floor(parseFloat(e.target.value) || 0)))}
-                      className="h-9"
-                    />
-                    <Input
-                      type="number"
-                      step={1}
-                      min={1}
-                      value={state.qtdAtendentesFlowMax}
-                      onChange={(e) => update("qtdAtendentesFlowMax", Math.max(1, Math.floor(parseFloat(e.target.value) || 1)))}
-                      className="h-9"
-                    />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Variáveis <code>qtdAtendentesFlowMin</code> / <code>qtdAtendentesFlowMax</code> · limites do slider "Atendentes no ITSM" da camada Smart Flow.
-                  </p>
-                </div>
               </div>
             </div>
 
