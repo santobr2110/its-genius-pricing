@@ -867,7 +867,7 @@ export default function SmartTiersPanel() {
                 <span className="font-semibold">{formatBRL(smMonitVenda)}</span>
               </div>
             </div>
-            </div>
+
             {!monitorAdvanced && (
               <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
