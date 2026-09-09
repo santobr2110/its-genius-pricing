@@ -49,7 +49,7 @@ function fmtDate(ts: number) {
 }
 
 export default function Precificacoes() {
-  const { presets, remove, updateCommercial } = usePricingPresets();
+  const { presets, remove, updateCommercial, transferOwnership } = usePricingPresets();
   const { loadPreset } = useITSMContext();
   const [confirmDel, setConfirmDel] = useState<PricingPreset | null>(null);
   const [editPreset, setEditPreset] = useState<PricingPreset | null>(null);
@@ -65,6 +65,30 @@ export default function Precificacoes() {
   const [saving, setSaving] = useState(false);
   const [defaultParams, setDefaultParams] = useState<ParamPayload | null>(null);
   const [query, setQuery] = useState("");
+  const [transferPreset, setTransferPreset] = useState<PricingPreset | null>(null);
+  const [targets, setTargets] = useState<{ id: string; full_name: string | null; email: string | null }[]>([]);
+  const [targetId, setTargetId] = useState("");
+  const [transferring, setTransferring] = useState(false);
+
+  const startTransfer = async (p: PricingPreset) => {
+    setTransferPreset(p);
+    setTargetId("");
+    const { data } = await supabase.rpc("list_pricing_transfer_targets");
+    setTargets((data ?? []) as { id: string; full_name: string | null; email: string | null }[]);
+  };
+
+  const confirmTransfer = async () => {
+    if (!transferPreset || !targetId) return;
+    setTransferring(true);
+    const res = await transferOwnership(transferPreset.id, targetId);
+    setTransferring(false);
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
+    toast.success("Precificação transferida.");
+    setTransferPreset(null);
+  };
 
   const filteredPresets = useMemo(() => {
     const q = query.trim().toLowerCase();
