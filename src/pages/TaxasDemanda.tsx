@@ -497,7 +497,7 @@ export default function TaxasDemanda() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-foreground">
-                {results.totalChamadosInfra.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+                {results.totalChamadosInfra.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
               </p>
               <p className="text-xs text-muted-foreground">chamados/mês</p>
             </CardContent>
@@ -508,7 +508,7 @@ export default function TaxasDemanda() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold text-primary">
-                {results.volumeTotalBruto.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}
+                {results.volumeTotalBruto.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}
               </p>
               <p className="text-xs text-muted-foreground">chamados/mês</p>
             </CardContent>
