@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink, Search } from "lucide-react";
+import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink, Search, UserRoundCog } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,7 +49,7 @@ function fmtDate(ts: number) {
 }
 
 export default function Precificacoes() {
-  const { presets, remove, updateCommercial } = usePricingPresets();
+  const { presets, remove, updateCommercial, transferOwnership } = usePricingPresets();
   const { loadPreset } = useITSMContext();
   const [confirmDel, setConfirmDel] = useState<PricingPreset | null>(null);
   const [editPreset, setEditPreset] = useState<PricingPreset | null>(null);
@@ -63,6 +65,30 @@ export default function Precificacoes() {
   const [saving, setSaving] = useState(false);
   const [defaultParams, setDefaultParams] = useState<ParamPayload | null>(null);
   const [query, setQuery] = useState("");
+  const [transferPreset, setTransferPreset] = useState<PricingPreset | null>(null);
+  const [targets, setTargets] = useState<{ id: string; full_name: string | null; email: string | null }[]>([]);
+  const [targetId, setTargetId] = useState("");
+  const [transferring, setTransferring] = useState(false);
+
+  const startTransfer = async (p: PricingPreset) => {
+    setTransferPreset(p);
+    setTargetId("");
+    const { data } = await supabase.rpc("list_pricing_transfer_targets");
+    setTargets((data ?? []) as { id: string; full_name: string | null; email: string | null }[]);
+  };
+
+  const confirmTransfer = async () => {
+    if (!transferPreset || !targetId) return;
+    setTransferring(true);
+    const res = await transferOwnership(transferPreset.id, targetId);
+    setTransferring(false);
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
+    toast.success("Precificação transferida.");
+    setTransferPreset(null);
+  };
 
   const filteredPresets = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -250,6 +276,15 @@ export default function Precificacoes() {
                         <Button
                           size="icon"
                           variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => startTransfer(p)}
+                          title="Transferir para outro usuário"
+                        >
+                          <UserRoundCog className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
                           className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => setConfirmDel(p)}
                         >
@@ -311,6 +346,38 @@ export default function Precificacoes() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditPreset(null)} disabled={saving}>Cancelar</Button>
             <Button onClick={saveEdit} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!transferPreset} onOpenChange={(o) => !o && setTransferPreset(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle>Transferir precificação</DialogTitle>
+            <DialogDescription>
+              "{transferPreset?.name}" passará a pertencer ao usuário escolhido e sairá da sua lista.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1 py-2">
+            <Label>Novo responsável</Label>
+            <Select value={targetId} onValueChange={setTargetId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o usuário" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {targets.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.full_name || t.email || t.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTransferPreset(null)} disabled={transferring}>Cancelar</Button>
+            <Button onClick={confirmTransfer} disabled={!targetId || transferring}>
+              {transferring ? "Transferindo..." : "Transferir"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
