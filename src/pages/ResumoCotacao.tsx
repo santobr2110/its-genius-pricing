@@ -333,7 +333,6 @@ export default function ResumoCotacao() {
       nota: buildNota([
         ["Ativos monitorados", formatNumber(sm.ativos || 0)],
         ["Proxys", sm.qtdProxys || 0],
-        ["Atendentes ITSM", sm.qtdAtendentes || 0],
         ["Horas N3 atendimento", (sm.horasN3 || 0) ? `${formatNumber(sm.horasN3)}h` : 0],
         ["Horas Automação/Manutenção", (sm.horasN3Manut || 0) ? `${formatNumber(sm.horasN3Manut)}h` : 0],
       ]),
@@ -353,7 +352,6 @@ export default function ResumoCotacao() {
         ["Monitor consolidado", calcState.tierMonitor && hasInfraInventory ? formatBRL(toSell(monitorCusto)) : ""],
         ["Ativos monitorados", formatNumber(sf.ativos || 0)],
         ["Proxys", sf.qtdProxys || 0],
-        ["Atendentes ITSM", sf.qtdAtendentes || 0],
         ["Horas N3 atendimento", ((sf.horasN3 as number) || 0) ? `${formatNumber(sf.horasN3 as number)}h` : 0],
         ["Horas Automação/Manutenção", ((sf.horasN3Manut as number) || 0) ? `${formatNumber(sf.horasN3Manut as number)}h` : 0],
       ]),

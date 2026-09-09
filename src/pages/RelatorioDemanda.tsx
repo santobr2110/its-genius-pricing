@@ -183,7 +183,6 @@ export default function RelatorioDemanda() {
     { layer: "Smart Monitor — N3 horas avulsas", custo: results.smartMonitor.custoN3 },
     { layer: "Smart Flow — monitoramento integrado ao ITSM", custo: results.smartFlow.custoMonitoramento },
     { layer: "Smart Flow — N1 alocado (triagem)", custo: results.smartFlow.custoN1Alocado },
-    { layer: "Smart Flow — atendentes no ITSM", custo: results.smartFlow.custoAtendentes },
     { layer: "Smart Flow — proxys dedicados", custo: results.smartFlow.custoProxys },
     { layer: "Smart Flow — horas N3 (automação + acionamento)", custo: results.smartFlow.custoN3 + results.smartFlow.custoN3Manut },
     { layer: "Atendimento N1 (funil)", custo: results.custoN1 },
