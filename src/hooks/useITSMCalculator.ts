@@ -452,8 +452,8 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     // ativa, TODOS os custos do Smart Monitor são zerados — ele só cobra quando
     // opera sozinho.
     const monitorBilling = monitorActive && !monitorAdvanced;
-    const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas;
-    const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas;
+    const smAtivos = state.qtdServidores + state.qtdAtivosRede + state.qtdSistemas + state.qtdBancosDados;
+    const smChamadosBrutos = chamadosServidores + chamadosRede + chamadosSistemas + chamadosBancoDados;
     // Considera chamados evitados pelo N0 (modo inventário).
     const smChamadosInv = smChamadosBrutos * (1 - state.reducaoN0 / 100);
     // Fonte de demanda efetiva para Monitor/Flow.
