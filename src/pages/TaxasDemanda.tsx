@@ -299,6 +299,20 @@ export default function TaxasDemanda() {
                     Variável <code>percAlocacaoN1Flow</code> · % × custo por chamado N1 × chamados de Servidores+Rede+Firewall (parcela de N1 alocada quando Operation está inativo).
                   </p>
                 </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Custo mensal do atendente no ITSM (R$)</Label>
+                  <Input
+                    type="number"
+                    step={50}
+                    min={0}
+                    value={state.custoAtendenteFlow}
+                    onChange={(e) => update("custoAtendenteFlow", parseFloat(e.target.value) || 0)}
+                    className="h-9"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Variável <code>custoAtendenteFlow</code> · base de custo dos itens adicionais “Atendente dedicado adicional no ITSM” e “ITSM” na proposta.
+                  </p>
+                </div>
               </div>
             </div>
 
