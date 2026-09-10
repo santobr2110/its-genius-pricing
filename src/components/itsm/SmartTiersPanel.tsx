@@ -1214,6 +1214,69 @@ export default function SmartTiersPanel() {
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Automação / Manutenção ({formatBRL(toSell(state.valorHoraN3))}/h)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {formatNumber(state.horasN3FlowManut)}h · {formatBRL(sflN3ManutVenda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.horasN3FlowManutMax, Math.max(state.horasN3FlowManutMin, state.horasN3FlowManut || 0))]}
+                    onValueChange={([v]) => update("horasN3FlowManut", v)}
+                    min={state.horasN3FlowManutMin}
+                    max={state.horasN3FlowManutMax}
+                    step={1}
+                    disabled={flowAdvanced}
+                  />
+                  {!flowAdvanced && rotinasFlow.items.length > 0 && (() => {
+                    const purchased = state.horasN3FlowManut || 0;
+                    const used = horasRotinasFlow;
+                    const overflow = used > purchased;
+                    const pct = purchased > 0 ? Math.min(100, (used / purchased) * 100) : 0;
+                    return (
+                      <div className="space-y-1 pt-1">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-muted-foreground">
+                            Consumido por Rotinas Técnicas Preventivas — Smart Flow ({rotinasFlow.items.length})
+                          </span>
+                          <span className={overflow ? "font-semibold text-destructive" : "font-semibold"}>
+                            {formatNumber(used, 1)}h / {formatNumber(purchased)}h
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full border bg-muted overflow-hidden">
+                          <div
+                            className={overflow ? "bg-destructive h-full" : "bg-sky-500 h-full"}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        {overflow && (
+                          <p className="text-[10px] text-destructive">Horas insuficientes — aumente o slider.</p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-muted-foreground">
+                      Acionamento N3 ({formatBRL(toSell(state.valorHoraN3))}/h)
+                    </Label>
+                    <span className="text-xs font-semibold">
+                      {formatNumber(state.horasN3Flow)}h · {formatBRL(sflN3Venda)}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[Math.min(state.horasN3FlowMax, Math.max(state.horasN3FlowMin, state.horasN3Flow || 0))]}
+                    onValueChange={([v]) => update("horasN3Flow", v)}
+                    min={state.horasN3FlowMin}
+                    max={state.horasN3FlowMax}
+                    step={1}
+                    disabled={flowAdvanced}
+                  />
+                </div>
                 <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
