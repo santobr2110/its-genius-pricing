@@ -1156,6 +1156,21 @@ export default function Detalhamento() {
     };
     return payload;
   };
+  const handleExportDocx = async () => {
+    if (exportBlocked) {
+      toast.error(exportDisabledReason ?? "Exportação bloqueada.");
+      return;
+    }
+    try {
+      const { exportarProposicaoDocx } = await import("@/lib/exportarProposicaoDocx");
+      await exportarProposicaoDocx();
+      toast.success("Relatório exportado em Word (.docx).");
+    } catch (e) {
+      console.error(e);
+      toast.error("Falha ao gerar o Word: " + (e as Error).message);
+    }
+  };
+
   const handleExportPresentation = async () => {
     if (APRESENTACAO_PPTX_DISABLED) {
       toast.error(APRESENTACAO_PPTX_DISABLED_REASON);
@@ -1194,6 +1209,15 @@ export default function Detalhamento() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem
+                  onClick={handleExportDocx}
+                  className="gap-2"
+                  disabled={exportBlocked}
+                  title={exportDisabledReason}
+                >
+                  <FileDown className="h-4 w-4" />
+                  Anexo Contratual (Word)
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleExportPDF}
                   className="gap-2"
