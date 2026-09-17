@@ -7,7 +7,6 @@
  * marcadores. O resultado é um documento limpo, sem molduras nem cores.
  */
 
-type Node_ = { html: string };
 
 const MAX_HEADING_LEN = 80;
 
