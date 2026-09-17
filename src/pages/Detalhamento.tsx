@@ -1195,6 +1195,15 @@ export default function Detalhamento() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem
+                  onClick={handleExportDocx}
+                  className="gap-2"
+                  disabled={exportBlocked}
+                  title={exportDisabledReason}
+                >
+                  <FileDown className="h-4 w-4" />
+                  Anexo Contratual (Word)
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={handleExportPDF}
                   className="gap-2"
                   disabled={exportBlocked}
