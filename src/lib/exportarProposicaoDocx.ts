@@ -205,9 +205,15 @@ function chapterTitle(section: Element): { title: string; node: Element | null }
   return { title: "", node: null };
 }
 
-function buildDocumentHtml(root: HTMLElement): string {
+function buildDocumentHtml(rootEl: HTMLElement): string {
+  // Em modo somente leitura o conteúdo é envolvido pelo WriteFence
+  // (faixa de aviso + wrapper). Descemos até o wrapper real e ignoramos
+  // banners de status para preservar capa e capítulos.
+  const fenceRoot = rootEl.querySelector<HTMLElement>("[data-readonly-fence-root]");
+  const root = fenceRoot ?? rootEl;
+
   const sections = Array.from(root.children).filter(
-    (c) => !isHidden(c) && textOf(c).length > 0,
+    (c) => !isHidden(c) && textOf(c).length > 0 && c.getAttribute("role") !== "status",
   ) as HTMLElement[];
 
   // Capa: primeira seção (título da oferta).
