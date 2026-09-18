@@ -149,13 +149,16 @@ function renderBlock(el: Element, em: Emitter, sub: { n: number }) {
       continue;
     }
     if (tag === "dl") {
-      const kids = Array.from(child.children);
-      for (let i = 0; i < kids.length; i++) {
-        if (kids[i].tagName.toLowerCase() === "dt") {
-          const label = textOf(kids[i]);
-          const value = kids[i + 1] && kids[i + 1].tagName.toLowerCase() === "dd" ? textOf(kids[i + 1]) : "";
-          if (label) em.pushKV(label, value);
-        }
+      // Os pares dt/dd podem estar embrulhados em divs de layout, então
+      // buscamos todos os <dt> em profundidade e pegamos o <dd> associado.
+      const terms = Array.from(child.querySelectorAll("dt")).filter((dt) => !isHidden(dt));
+      for (const dt of terms) {
+        const label = textOf(dt);
+        if (!label) continue;
+        let dd: Element | null = dt.nextElementSibling;
+        while (dd && dd.tagName.toLowerCase() !== "dd") dd = dd.nextElementSibling;
+        if (!dd) dd = dt.parentElement?.querySelector("dd") ?? null;
+        em.pushKV(label, dd ? textOf(dd) : "");
       }
       continue;
     }
