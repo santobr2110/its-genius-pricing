@@ -41,6 +41,7 @@ function blockChildren(el: Element): Element[] {
   return Array.from(el.children).filter((c) => {
     const tag = c.tagName.toLowerCase();
     if (tag === "svg" || tag === "script" || tag === "style" || tag === "button") return false;
+    if (c.hasAttribute("data-docx-skip")) return false;
     if (isHidden(c)) return false;
     return textOf(c).length > 0 || tag === "table";
   });
