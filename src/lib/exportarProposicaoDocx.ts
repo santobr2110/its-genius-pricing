@@ -41,6 +41,7 @@ function blockChildren(el: Element): Element[] {
   return Array.from(el.children).filter((c) => {
     const tag = c.tagName.toLowerCase();
     if (tag === "svg" || tag === "script" || tag === "style" || tag === "button") return false;
+    if (c.hasAttribute("data-docx-skip")) return false;
     if (isHidden(c)) return false;
     return textOf(c).length > 0 || tag === "table";
   });
@@ -148,13 +149,16 @@ function renderBlock(el: Element, em: Emitter, sub: { n: number }) {
       continue;
     }
     if (tag === "dl") {
-      const kids = Array.from(child.children);
-      for (let i = 0; i < kids.length; i++) {
-        if (kids[i].tagName.toLowerCase() === "dt") {
-          const label = textOf(kids[i]);
-          const value = kids[i + 1] && kids[i + 1].tagName.toLowerCase() === "dd" ? textOf(kids[i + 1]) : "";
-          if (label) em.pushKV(label, value);
-        }
+      // Os pares dt/dd podem estar embrulhados em divs de layout, então
+      // buscamos todos os <dt> em profundidade e pegamos o <dd> associado.
+      const terms = Array.from(child.querySelectorAll("dt")).filter((dt) => !isHidden(dt));
+      for (const dt of terms) {
+        const label = textOf(dt);
+        if (!label) continue;
+        let dd: Element | null = dt.nextElementSibling;
+        while (dd && dd.tagName.toLowerCase() !== "dd") dd = dd.nextElementSibling;
+        if (!dd) dd = dt.parentElement?.querySelector("dd") ?? null;
+        em.pushKV(label, dd ? textOf(dd) : "");
       }
       continue;
     }
@@ -201,9 +205,15 @@ function chapterTitle(section: Element): { title: string; node: Element | null }
   return { title: "", node: null };
 }
 
-function buildDocumentHtml(root: HTMLElement): string {
+function buildDocumentHtml(rootEl: HTMLElement): string {
+  // Em modo somente leitura o conteúdo é envolvido pelo WriteFence
+  // (faixa de aviso + wrapper). Descemos até o wrapper real e ignoramos
+  // banners de status para preservar capa e capítulos.
+  const fenceRoot = rootEl.querySelector<HTMLElement>("[data-readonly-fence-root]");
+  const root = fenceRoot ?? rootEl;
+
   const sections = Array.from(root.children).filter(
-    (c) => !isHidden(c) && textOf(c).length > 0,
+    (c) => !isHidden(c) && textOf(c).length > 0 && c.getAttribute("role") !== "status",
   ) as HTMLElement[];
 
   // Capa: primeira seção (título da oferta).
