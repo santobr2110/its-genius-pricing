@@ -572,6 +572,12 @@ export default function ResumoCotacao() {
             </div>
           </div>
 
+          <p className="text-[11px] mb-2" style={{ color: "#000" }}>
+            <strong>Modelo de monitoramento:</strong>{" "}
+            {state.modeloObservabilidade === "niveis"
+              ? `Observabilidade em níveis — nível ${state.nivelObservabilidade ?? "M2"}`
+              : "Monitoramento clássico"}
+          </p>
           {/* Resumo da oferta */}
           <table className="w-full text-[10px] border-collapse" style={{ color: "#000" }}>
             <thead>
