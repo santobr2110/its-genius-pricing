@@ -9,6 +9,23 @@ import {
   type MonitorFaixa,
   type MonitorPesos,
 } from "@/lib/custoMonitoramentoUM";
+import {
+  DEFAULT_NIVEIS,
+  DEFAULT_OBS_CUSTO_HORA,
+  DEFAULT_OBS_CUSTO_PROXY,
+  DEFAULT_OBS_FAIXAS,
+  DEFAULT_OBS_NVPS,
+  DEFAULT_OBS_PESOS,
+  DEFAULT_PORTES,
+  computeCustoObservabilidadeNiveis,
+  type ModeloObservabilidade,
+  type NivelConfig,
+  type NivelObservabilidade,
+  type ObsFaixaVolume,
+  type ObsNvpsPorAtivo,
+  type ObsPesos,
+  type PorteAmbiente,
+} from "@/lib/custoObservabilidadeNiveis";
 
 export interface ITSMState {
   // Inventário
@@ -146,6 +163,19 @@ export interface ITSMState {
   monitorPesos: MonitorPesos;
   monitorFaixas: MonitorFaixa[];
   monitorPisoMensal: number;
+  // === Observabilidade em níveis (modelo novo, campos isolados) ===
+  modeloObservabilidade: ModeloObservabilidade;
+  nivelObservabilidade: NivelObservabilidade;
+  obsPesos: ObsPesos;
+  obsNvpsPorAtivo: ObsNvpsPorAtivo;
+  obsFaixas: ObsFaixaVolume[];
+  obsNiveis: Record<NivelObservabilidade, NivelConfig>;
+  obsPortes: PorteAmbiente[];
+  obsNvpsMedido: number;
+  obsHorasManutencao: number;
+  obsQtdProxies: number;
+  obsCustoHora: number;
+  obsCustoProxy: number;
 }
 
 export interface ITSMResults {
@@ -335,7 +365,21 @@ const DEFAULTS: ITSMState = {
   monitorPesos: DEFAULT_MONITOR_PESOS,
   monitorFaixas: DEFAULT_MONITOR_FAIXAS,
   monitorPisoMensal: DEFAULT_MONITOR_PISO,
+  modeloObservabilidade: "classico",
+  nivelObservabilidade: "M2",
+  obsPesos: DEFAULT_OBS_PESOS,
+  obsNvpsPorAtivo: DEFAULT_OBS_NVPS,
+  obsFaixas: DEFAULT_OBS_FAIXAS,
+  obsNiveis: DEFAULT_NIVEIS,
+  obsPortes: DEFAULT_PORTES,
+  obsNvpsMedido: 0,
+  obsHorasManutencao: 0,
+  obsQtdProxies: 0,
+  obsCustoHora: DEFAULT_OBS_CUSTO_HORA,
+  obsCustoProxy: DEFAULT_OBS_CUSTO_PROXY,
 };
+
+export const ITSM_DEFAULTS = DEFAULTS;
 
 export function useITSMCalculator() {
   const [state, setState] = usePersistentState<ITSMState>("itsm:calculator:v1", DEFAULTS);
@@ -486,7 +530,32 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       monitorFaixas,
       monitorPiso,
     );
-    const custoMonitoramentoUM = monitoramentoUMActive ? monitorCalc.custoTotal : 0;
+    // Bifurcação limpa entre modelos: apenas UM deles produz custo de monitoramento.
+    const modeloNiveis = state.modeloObservabilidade === "niveis";
+    const obsCalc = modeloNiveis
+      ? computeCustoObservabilidadeNiveis({
+          inv: {
+            qtdServidores: state.qtdServidores || 0,
+            qtdBancosDados: state.qtdBancosDados || 0,
+            qtdSistemas: state.qtdSistemas || 0,
+            qtdAtivosRede: state.qtdAtivosRede || 0,
+          },
+          nivel: state.nivelObservabilidade ?? "M2",
+          pesos: state.obsPesos ?? DEFAULT_OBS_PESOS,
+          nvpsPorAtivo: state.obsNvpsPorAtivo ?? DEFAULT_OBS_NVPS,
+          faixas: state.obsFaixas ?? DEFAULT_OBS_FAIXAS,
+          niveis: state.obsNiveis ?? DEFAULT_NIVEIS,
+          portes: state.obsPortes ?? DEFAULT_PORTES,
+          nvpsMedido: state.obsNvpsMedido ?? 0,
+          horas: state.obsHorasManutencao ?? 0,
+          qtdProxies: state.obsQtdProxies ?? 0,
+          custoHora: state.obsCustoHora ?? DEFAULT_OBS_CUSTO_HORA,
+          custoProxy: state.obsCustoProxy ?? DEFAULT_OBS_CUSTO_PROXY,
+        })
+      : null;
+    const custoMonitoramentoUM = monitoramentoUMActive
+      ? (obsCalc ? obsCalc.custoTotal : monitorCalc.custoTotal)
+      : 0;
     // A cobrança por camada legada (custoAtivoMonitorado × ativos e custoAtivoFlow/Operacao × ativos)
     // foi substituída pelo custo unificado por UM. Zeramos as parcelas legadas
     // para evitar dupla contagem na composição do custo total.
@@ -494,8 +563,9 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     // Atendentes no ITSM migrou para Smart Flow — Smart Monitor não cobra mais.
     const smCustoAtendentes = 0;
     // Custo de proxys: 1 = inicial; n>1 = inicial + adicional*(n-1)
-    const qtdProxys = monitorBilling ? Math.max(1, Math.floor(state.qtdProxysMonitor || 1)) : 0;
-    const smCustoProxys = monitorBilling
+    // No modelo de níveis, proxies e horas de manutenção vêm de obs* (dentro do custo de monitoramento).
+    const qtdProxys = monitorBilling && !modeloNiveis ? Math.max(1, Math.floor(state.qtdProxysMonitor || 1)) : 0;
+    const smCustoProxys = monitorBilling && !modeloNiveis
       ? Math.max(0, state.valorProxyInicial || 0) +
         Math.max(0, qtdProxys - 1) * Math.max(0, state.valorProxyAdicional || 0)
       : 0;
@@ -505,7 +575,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     // N3 opcional dentro do Smart Monitor (horas mensais avulsas) — desabilitado em camadas superiores
     const smHorasN3 = monitorBilling ? Math.max(0, state.horasN3Monitor || 0) : 0;
     const smCustoN3 = smHorasN3 * state.valorHoraN3;
-    const smHorasN3Manut = monitorBilling ? Math.max(0, state.horasN3MonitorManut || 0) : 0;
+    const smHorasN3Manut = monitorBilling && !modeloNiveis ? Math.max(0, state.horasN3MonitorManut || 0) : 0;
     const smCustoN3Manut = smHorasN3Manut * state.valorHoraN3;
 
     // === Smart Flow (clone independente do Smart Monitor) ===
@@ -513,11 +583,11 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     const flCustoMonit = 0;
     // Atendentes no ITSM removidos da oferta Smart Flow — não há mais cobrança.
     const flCustoAtendentes = 0;
-    const flQtdProxys = flowActive ? Math.max(1, Math.floor(state.qtdProxysFlow || 1)) : 0;
+    const flQtdProxys = flowActive && !modeloNiveis ? Math.max(1, Math.floor(state.qtdProxysFlow || 1)) : 0;
     // Os proxys do Flow sempre usam os mesmos valores unitários do Smart Monitor.
     const flProxyIni = Math.max(0, state.valorProxyInicial || 0);
     const flProxyAdd = Math.max(0, state.valorProxyAdicional || 0);
-    const flCustoProxys = flowActive
+    const flCustoProxys = flowActive && !modeloNiveis
       ? flProxyIni + Math.max(0, flQtdProxys - 1) * flProxyAdd
       : 0;
     const flCustoN1Aloc = flowActive && !state.tierOperation
@@ -525,7 +595,7 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       : 0;
     const flHorasN3 = flowActive && !flowAdvanced ? Math.max(0, state.horasN3Flow || 0) : 0;
     const flCustoN3 = flHorasN3 * state.valorHoraN3;
-    const flHorasN3Manut = flowActive && !flowAdvanced ? Math.max(0, state.horasN3FlowManut || 0) : 0;
+    const flHorasN3Manut = flowActive && !flowAdvanced && !modeloNiveis ? Math.max(0, state.horasN3FlowManut || 0) : 0;
     const flCustoN3Manut = flHorasN3Manut * state.valorHoraN3;
 
     // Gate dos custos por camada ativa (mesma regra do SmartTiersPanel.totalSelecionado):

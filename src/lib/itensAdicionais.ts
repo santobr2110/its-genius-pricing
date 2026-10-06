@@ -12,6 +12,10 @@
 // ============================================================
 import type { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { computeCustoPorUMMarginal } from "@/lib/custoMonitoramentoUM";
+import {
+  DEFAULT_NIVEIS, DEFAULT_OBS_FAIXAS, DEFAULT_OBS_NVPS, DEFAULT_OBS_PESOS, DEFAULT_PORTES,
+  computeCustoObservabilidadeNiveis, computeCustoPorUMMarginalNiveis,
+} from "@/lib/custoObservabilidadeNiveis";
 import type { ItemAdicional, CamadaKey } from "@/data/escopoProposicao";
 
 export interface ItemAdicionalCtx {
@@ -38,7 +42,29 @@ export function createItemAdicionalCalculator(ctx: ItemAdicionalCtx) {
     (state.qtdBancosDados || 0) * pesos.bancoDados +
     (state.qtdSistemas || 0) * pesos.firewall +
     (state.qtdAtivosRede || 0) * pesos.ativosRede;
-  const custoPorUMMarginal = computeCustoPorUMMarginal(umInvAtual, faixas);
+  const custoPorUMMarginal = (() => {
+    if (state.modeloObservabilidade !== "niveis") return computeCustoPorUMMarginal(umInvAtual, faixas);
+    // Modelo de níveis: UM e faixas próprias, considerando nível e fator de carga.
+    const nivel = state.nivelObservabilidade ?? "M2";
+    const obs = computeCustoObservabilidadeNiveis({
+      inv: {
+        qtdServidores: state.qtdServidores || 0,
+        qtdBancosDados: state.qtdBancosDados || 0,
+        qtdSistemas: state.qtdSistemas || 0,
+        qtdAtivosRede: state.qtdAtivosRede || 0,
+      },
+      nivel,
+      pesos: state.obsPesos ?? DEFAULT_OBS_PESOS,
+      nvpsPorAtivo: state.obsNvpsPorAtivo ?? DEFAULT_OBS_NVPS,
+      faixas: state.obsFaixas ?? DEFAULT_OBS_FAIXAS,
+      niveis: state.obsNiveis ?? DEFAULT_NIVEIS,
+      portes: state.obsPortes ?? DEFAULT_PORTES,
+      nvpsMedido: state.obsNvpsMedido ?? 0,
+    });
+    return computeCustoPorUMMarginalNiveis(
+      obs.umTotal, nivel, state.obsFaixas ?? DEFAULT_OBS_FAIXAS, state.obsNiveis ?? DEFAULT_NIVEIS, obs.fatorCarga,
+    );
+  })();
 
   const cppN1 = results.custoPorChamadoN1;
   const cppN2 = results.custoPorChamadoN2;
