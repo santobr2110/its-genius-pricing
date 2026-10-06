@@ -1,4 +1,6 @@
 import { useCallback } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -127,6 +129,41 @@ function FractionInput({
   );
 }
 
+function ModeloObservabilidadeSelector() {
+  const { state, update } = useITSMContext();
+  const atual = state.modeloObservabilidade ?? "classico";
+  const opts = [
+    { id: "classico" as const, titulo: "Monitoramento clássico", desc: "Precificação por ponderação de ativos e faixas de volume. Modelo atual, usado nas precificações existentes." },
+    { id: "niveis" as const, titulo: "Observabilidade em níveis (M1–M4)", desc: "Acrescenta nível de profundidade contratado e carga de coleta do ambiente (NVPS). Modelo novo." },
+  ];
+  const escolher = (id: "classico" | "niveis") => {
+    if (id === atual) return;
+    update("modeloObservabilidade", id);
+    toast.info("O valor do monitoramento será recalculado por outra metodologia. Os dados do outro modelo foram preservados.");
+  };
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Modelo de observabilidade</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {opts.map((o) => (
+          <button key={o.id} type="button" onClick={() => escolher(o.id)}
+            className={`rounded-lg border p-3 text-left transition ${atual === o.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}>
+            <p className="text-xs font-semibold text-foreground">{o.titulo}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{o.desc}</p>
+          </button>
+        ))}
+      </div>
+      {atual === "niveis" && (
+        <p className="text-[11px] text-muted-foreground">
+          Nível contratado: <strong className="text-foreground">{state.nivelObservabilidade ?? "M2"}</strong>.
+          Proxies e horas de automação/manutenção do monitoramento são definidos em{" "}
+          <Link to="/niveis-observabilidade" className="text-primary hover:underline">Níveis de Observabilidade</Link>.
+        </p>
+      )}
+    </div>
+  );
+}
+
 const TIERS: {
   id: keyof ITSMState;
   label: string;
@@ -149,6 +186,7 @@ export default function SmartTiersPanel() {
   const { results, state, update, activePreset, extrasOperacionais } = useITSMContext();
   const sm = results.smartMonitor;
   const sfl = results.smartFlow;
+  const obsNiveis = state.modeloObservabilidade === "niveis";
   // Totalizadores canônicos por camada (mesma fonte usada em Proposição,
   // Resumo de Cotação e Apresentação).
   const tierPricing = useMemo(
