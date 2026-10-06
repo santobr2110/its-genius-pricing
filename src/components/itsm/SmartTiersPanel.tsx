@@ -1,3 +1,4 @@
+import { computeCustoObservabilidadeNiveis } from "@/lib/custoObservabilidadeNiveis";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import { NIVEL_INFO, PISO_NIVEL_POR_CAMADA, nivelAbaixoDoPiso, type NivelObservabilidade } from "@/lib/custoObservabilidadeNiveis";
@@ -204,6 +205,12 @@ export default function SmartTiersPanel() {
   const obsProx = Math.min(obsPMax, Math.max(obsPMin, state.obsQtdProxies ?? 0));
   const obsCustoHora = state.obsCustoHora ?? 90;
   const obsCustoProxy = state.obsCustoProxy ?? 35;
+  const obsCalcView = useMemo(() => obsNiveis ? computeCustoObservabilidadeNiveis({
+    inv: { qtdServidores: state.qtdServidores || 0, qtdBancosDados: state.qtdBancosDados || 0, qtdSistemas: state.qtdSistemas || 0, qtdAtivosRede: state.qtdAtivosRede || 0 },
+    nivel: state.nivelObservabilidade ?? "M2",
+    pesos: state.obsPesos, nvpsPorAtivo: state.obsNvpsPorAtivo, faixas: state.obsFaixas,
+    niveis: state.obsNiveis, portes: state.obsPortes, nvpsMedido: state.obsNvpsMedido ?? 0,
+  }) : null, [obsNiveis, state]);
   const obsNivelSelect = (camada: "Monitor" | "Flow") => {
     const nv = state.nivelObservabilidade ?? "M2";
     const dom = state.tierEnterprise ? "Enterprise" : state.tierPerformance ? "Performance" : state.tierOperation ? "Operation" : state.tierFlow ? "Flow" : camada;
@@ -225,6 +232,13 @@ export default function SmartTiersPanel() {
           </Select>
         </div>
         <p className="text-[10px] text-muted-foreground">"{NIVEL_INFO[nv].pergunta}"</p>
+        {obsCalcView && (
+          <div className="grid grid-cols-3 gap-2 pt-1 border-t">
+            <div><p className="text-[10px] text-muted-foreground">NVPS {obsCalcView.nvpsOrigem === "medido" ? "medido" : "calculado"}</p><p className="text-xs font-semibold">{formatNumber(obsCalcView.nvpsPrevisto)} · {obsCalcView.porte.nome}</p></div>
+            <div><p className="text-[10px] text-muted-foreground">UM total</p><p className="text-xs font-semibold">{formatNumber(obsCalcView.umTotal)}</p></div>
+            <div><p className="text-[10px] text-muted-foreground">Preço médio / UM</p><p className="text-xs font-semibold">{formatBRL(toSell(obsCalcView.custoMedioPorUM))}</p></div>
+          </div>
+        )}
         {abaixo && <p className="text-[10px] font-medium text-destructive">Abaixo do piso mínimo ({piso}) para Smart {dom}.</p>}
       </div>
     );
