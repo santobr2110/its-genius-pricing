@@ -251,11 +251,15 @@ export default function NiveisObservabilidade() {
                     </tbody>
                   </table>
                   <div className="grid gap-3 sm:grid-cols-4">
-                    <div className="space-y-1"><Label className="text-xs">Horas de manutenção/automação</Label><Num value={horas} onChange={(v) => update("obsHorasManutencao", v)} /></div>
+                    <div className="space-y-1"><Label className="text-xs">Mín. horas Automação/Manutenção</Label><Num value={state.obsHorasManutencaoMin ?? 0} onChange={(v) => update("obsHorasManutencaoMin", Math.floor(v))} /></div>
+                    <div className="space-y-1"><Label className="text-xs">Máx. horas Automação/Manutenção</Label><Num value={state.obsHorasManutencaoMax ?? 40} onChange={(v) => update("obsHorasManutencaoMax", Math.max(1, Math.floor(v)))} /></div>
                     <div className="space-y-1"><Label className="text-xs">Custo por hora (R$)</Label><Num value={custoHora} onChange={(v) => update("obsCustoHora", v)} /></div>
-                    <div className="space-y-1"><Label className="text-xs">Quantidade de proxies</Label><Num value={proxies} onChange={(v) => update("obsQtdProxies", Math.floor(v))} /></div>
+                    <div />
+                    <div className="space-y-1"><Label className="text-xs">Mín. proxies</Label><Num value={state.obsQtdProxiesMin ?? 0} onChange={(v) => update("obsQtdProxiesMin", Math.floor(v))} /></div>
+                    <div className="space-y-1"><Label className="text-xs">Máx. proxies</Label><Num value={state.obsQtdProxiesMax ?? 20} onChange={(v) => update("obsQtdProxiesMax", Math.max(1, Math.floor(v)))} /></div>
                     <div className="space-y-1"><Label className="text-xs">Custo por proxy (R$)</Label><Num value={custoProxy} onChange={(v) => update("obsCustoProxy", v)} /></div>
                   </div>
+                  <p className="text-[11px] text-muted-foreground">Horas ({formatNumber(horas)}h) e proxies ({formatNumber(proxies)}) são escolhidos nos sliders da tela de Camadas, dentro destes limites.</p>
                 </CardContent>
               </Card>
 

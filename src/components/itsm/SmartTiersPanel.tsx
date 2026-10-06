@@ -156,7 +156,7 @@ function ModeloObservabilidadeSelector() {
       {atual === "niveis" && (
         <p className="text-[11px] text-muted-foreground">
           Nível contratado: <strong className="text-foreground">{state.nivelObservabilidade ?? "M2"}</strong>.
-          Proxies e horas de automação/manutenção do monitoramento são definidos em{" "}
+          Limites dos sliders e custos unitários em{" "}
           <Link to="/niveis-observabilidade" className="text-primary hover:underline">Níveis de Observabilidade</Link>.
         </p>
       )}
@@ -195,6 +195,33 @@ export default function SmartTiersPanel() {
   );
   const fatorVenda = tierPricing.fatorVenda;
   const toSell = (c: number) => c * fatorVenda;
+  // === Observabilidade em níveis: sliders de horas e proxies (mesmo formato do clássico) ===
+  const obsHMin = Math.max(0, state.obsHorasManutencaoMin ?? 0);
+  const obsHMax = Math.max(obsHMin + 1, state.obsHorasManutencaoMax ?? 40);
+  const obsPMin = Math.max(0, state.obsQtdProxiesMin ?? 0);
+  const obsPMax = Math.max(obsPMin + 1, state.obsQtdProxiesMax ?? 20);
+  const obsHoras = Math.min(obsHMax, Math.max(obsHMin, state.obsHorasManutencao ?? 0));
+  const obsProx = Math.min(obsPMax, Math.max(obsPMin, state.obsQtdProxies ?? 0));
+  const obsCustoHora = state.obsCustoHora ?? 90;
+  const obsCustoProxy = state.obsCustoProxy ?? 35;
+  const obsHorasCard = (disabled: boolean) => (
+    <div className={`rounded border px-2 py-1.5 space-y-1.5 ${disabled ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+      <div className="flex items-center justify-between">
+        <Label className="text-[11px] text-muted-foreground">Automação / Manutenção ({formatBRL(toSell(obsCustoHora))}/h)</Label>
+        <span className="text-xs font-semibold">{formatNumber(obsHoras)}h · {formatBRL(toSell(obsHoras * obsCustoHora))}</span>
+      </div>
+      <Slider value={[obsHoras]} onValueChange={([v]) => update("obsHorasManutencao", v)} min={obsHMin} max={obsHMax} step={1} disabled={disabled} />
+    </div>
+  );
+  const obsProxiesCard = (disabled: boolean) => (
+    <div className={`rounded border px-2 py-1.5 space-y-1.5 ${disabled ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+      <div className="flex items-center justify-between">
+        <Label className="text-[11px] text-muted-foreground">Proxys ({formatBRL(toSell(obsCustoProxy))}/proxy)</Label>
+        <span className="text-xs font-semibold">{obsProx} · {formatBRL(toSell(obsProx * obsCustoProxy))}</span>
+      </div>
+      <Slider value={[obsProx]} onValueChange={([v]) => update("obsQtdProxies", v)} min={obsPMin} max={obsPMax} step={1} disabled={disabled} />
+    </div>
+  );
 
   const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
@@ -994,6 +1021,7 @@ export default function SmartTiersPanel() {
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {obsNiveis && obsHorasCard(monitorAdvanced)}
                 <div className={`${obsNiveis ? "hidden " : ""}rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
@@ -1061,6 +1089,12 @@ export default function SmartTiersPanel() {
             </div>
 
             {/* Grupo: Recursos */}
+            {obsNiveis && (
+              <div className="rounded-lg border border-amber-200/70 dark:border-amber-900/50 bg-amber-100/30 dark:bg-amber-950/10 p-2 space-y-2">
+                <p className="px-1 text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">Recursos</p>
+                {obsProxiesCard(monitorAdvanced)}
+              </div>
+            )}
             <div className={`${obsNiveis ? "hidden " : ""}rounded-lg border border-amber-200/70 dark:border-amber-900/50 bg-amber-100/30 dark:bg-amber-950/10 p-2 space-y-2`}>
               <div className="flex items-center justify-between px-1">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
@@ -1253,6 +1287,7 @@ export default function SmartTiersPanel() {
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {obsNiveis && obsHorasCard(flowAdvanced)}
                 <div className={`${obsNiveis ? "hidden " : ""}rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
@@ -1316,6 +1351,7 @@ export default function SmartTiersPanel() {
                     disabled={flowAdvanced}
                   />
                 </div>
+                {obsNiveis && obsProxiesCard(false)}
                 <div className={`${obsNiveis ? "hidden " : ""}rounded border bg-background px-2 py-1.5 space-y-1.5`}>
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">

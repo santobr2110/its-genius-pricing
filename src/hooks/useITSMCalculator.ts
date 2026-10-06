@@ -174,6 +174,10 @@ export interface ITSMState {
   obsNvpsMedido: number;
   obsHorasManutencao: number;
   obsQtdProxies: number;
+  obsHorasManutencaoMin: number;
+  obsHorasManutencaoMax: number;
+  obsQtdProxiesMin: number;
+  obsQtdProxiesMax: number;
   obsCustoHora: number;
   obsCustoProxy: number;
 }
@@ -375,6 +379,10 @@ const DEFAULTS: ITSMState = {
   obsNvpsMedido: 0,
   obsHorasManutencao: 0,
   obsQtdProxies: 0,
+  obsHorasManutencaoMin: 0,
+  obsHorasManutencaoMax: 40,
+  obsQtdProxiesMin: 0,
+  obsQtdProxiesMax: 20,
   obsCustoHora: DEFAULT_OBS_CUSTO_HORA,
   obsCustoProxy: DEFAULT_OBS_CUSTO_PROXY,
 };
