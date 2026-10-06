@@ -156,7 +156,7 @@ function ModeloObservabilidadeSelector() {
       {atual === "niveis" && (
         <p className="text-[11px] text-muted-foreground">
           Nível contratado: <strong className="text-foreground">{state.nivelObservabilidade ?? "M2"}</strong>.
-          Proxies e horas de automação/manutenção do monitoramento são definidos em{" "}
+          Limites dos sliders e custos unitários em{" "}
           <Link to="/niveis-observabilidade" className="text-primary hover:underline">Níveis de Observabilidade</Link>.
         </p>
       )}
