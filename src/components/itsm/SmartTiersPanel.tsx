@@ -772,6 +772,7 @@ export default function SmartTiersPanel() {
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
+        <ModeloObservabilidadeSelector />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {TIERS.map((t) => {
             const Icon = t.icon;
@@ -955,7 +956,7 @@ export default function SmartTiersPanel() {
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                <div className={`${obsNiveis ? "hidden " : ""}rounded border px-2 py-1.5 space-y-1.5 ${monitorAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
                       Automação / Manutenção ({formatBRL(toSell(state.valorHoraN3))}/h)
@@ -1022,7 +1023,7 @@ export default function SmartTiersPanel() {
             </div>
 
             {/* Grupo: Recursos */}
-            <div className="rounded-lg border border-amber-200/70 dark:border-amber-900/50 bg-amber-100/30 dark:bg-amber-950/10 p-2 space-y-2">
+            <div className={`${obsNiveis ? "hidden " : ""}rounded-lg border border-amber-200/70 dark:border-amber-900/50 bg-amber-100/30 dark:bg-amber-950/10 p-2 space-y-2`}>
               <div className="flex items-center justify-between px-1">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
                   Recursos
@@ -1214,7 +1215,7 @@ export default function SmartTiersPanel() {
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <div className={`rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
+                <div className={`${obsNiveis ? "hidden " : ""}rounded border px-2 py-1.5 space-y-1.5 ${flowAdvanced ? "opacity-50 bg-muted/30" : "bg-background"}`}>
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
                       Automação / Manutenção ({formatBRL(toSell(state.valorHoraN3))}/h)
@@ -1277,7 +1278,7 @@ export default function SmartTiersPanel() {
                     disabled={flowAdvanced}
                   />
                 </div>
-                <div className="rounded border bg-background px-2 py-1.5 space-y-1.5">
+                <div className={`${obsNiveis ? "hidden " : ""}rounded border bg-background px-2 py-1.5 space-y-1.5`}>
                   <div className="flex items-center justify-between">
                     <Label className="text-[11px] text-muted-foreground">
                       Proxys ({formatBRL(toSell(state.valorProxyInicial))} inicial · {formatBRL(toSell(state.valorProxyAdicional))} adic. · valores do Smart Monitor)
