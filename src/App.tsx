@@ -13,6 +13,7 @@ import ConfiguracoesFinanceiras from "./pages/ConfiguracoesFinanceiras";
 import ConfiguracoesImpostos from "./pages/ConfiguracoesImpostos";
 import ConfiguracoesComissoes from "./pages/ConfiguracoesComissoes";
 import TaxasDemanda from "./pages/TaxasDemanda";
+import NiveisObservabilidade from "./pages/NiveisObservabilidade";
 import Precificacoes from "./pages/Precificacoes";
 import GestaoTI from "./pages/GestaoTI";
 import RelatorioDemanda from "./pages/RelatorioDemanda";
@@ -89,6 +90,7 @@ const App = () => (
               <Route path="/financeiro" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.financeiro"><ConfiguracoesFinanceiras /></ProtectedRoute>} />
               <Route path="/financeiro/impostos" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.financeiro"><ConfiguracoesImpostos /></ProtectedRoute>} />
               <Route path="/financeiro/comissoes" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.financeiro"><ConfiguracoesComissoes /></ProtectedRoute>} />
+              <Route path="/niveis-observabilidade" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.niveis_observabilidade"><NiveisObservabilidade /></ProtectedRoute>} />
               <Route path="/taxas-demanda" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.taxas_demanda"><TaxasDemanda /></ProtectedRoute>} />
               <Route path="/precificacoes" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.precificacoes"><Precificacoes /></ProtectedRoute>} />
               <Route path="/gestao-ti" element={<ProtectedRoute group="ito" offering="smart-ito" permission="page.gestao_ti"><GestaoTI /></ProtectedRoute>} />

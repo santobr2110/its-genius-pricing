@@ -53,6 +53,7 @@ import type { PermissionKey } from "@/lib/permissions";
 export type NavItemId =
   | "home"
   | "taxas"
+  | "niveis-obs"
   | "financeiro"
   | "gestao-ti"
   | "escopo"
@@ -74,6 +75,7 @@ interface PageDef {
 const PAGES: Record<NavItemId, PageDef> = {
   home: { id: "home", to: "/", label: "Início", icon: Activity },
   taxas: { id: "taxas", to: "/taxas-demanda", label: "Métricas e Parâmetros", icon: TrendingUp },
+  "niveis-obs": { id: "niveis-obs", to: "/niveis-observabilidade", label: "Níveis de Observabilidade", icon: Gauge },
   financeiro: { id: "financeiro", to: "/financeiro", label: "Financeiro", icon: DollarSign },
   "gestao-ti": { id: "gestao-ti", to: "/gestao-ti", label: "Gestão de TI", icon: ServerCog },
   escopo: { id: "escopo", to: "/escopo", label: "Escopo", icon: ClipboardList },
@@ -89,6 +91,7 @@ const PAGES: Record<NavItemId, PageDef> = {
 const PAGE_PERMISSION: Record<NavItemId, PermissionKey> = {
   home: "page.home",
   taxas: "page.taxas_demanda",
+  "niveis-obs": "page.niveis_observabilidade",
   financeiro: "page.financeiro",
   "gestao-ti": "page.gestao_ti",
   escopo: "page.escopo",
@@ -127,7 +130,7 @@ const SLOTS: Slot[] = [
     label: "Configurações",
     shortLabel: "Configurações",
     icon: Settings2,
-    items: ["taxas", "financeiro", "gestao-ti", "escopo"],
+    items: ["taxas", "niveis-obs", "financeiro", "gestao-ti", "escopo"],
   },
   {
     kind: "menu",
