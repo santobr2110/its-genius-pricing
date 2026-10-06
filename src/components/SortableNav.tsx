@@ -22,6 +22,7 @@ import {
   Users,
   DollarSign,
   TrendingUp,
+  Gauge,
   Server,
   Clock,
   FolderOpen,
