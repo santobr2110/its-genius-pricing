@@ -110,30 +110,9 @@ export default function NiveisObservabilidade() {
                 </Button>
               </div>
 
-              {/* 1. Nível */}
-              <Card>
-                <CardHeader className="pb-3"><CardTitle className="text-base">1. Nível de observabilidade contratado</CardTitle></CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    {NIVEIS.map((n) => (
-                      <button key={n} type="button" onClick={() => update("nivelObservabilidade", n)}
-                        className={`rounded-lg border p-3 text-left transition ${nivel === n ? "border-primary bg-primary/5 ring-1 ring-primary" : "hover:bg-muted/50"}`}>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={nivel === n ? "default" : "secondary"}>{n}</Badge>
-                          <span className="text-xs font-semibold">{NIVEL_INFO[n].titulo}</span>
-                        </div>
-                        <p className="mt-2 text-[11px] text-muted-foreground">"{NIVEL_INFO[n].pergunta}"</p>
-                        {n === "M4" && <p className="mt-1 text-[10px] text-muted-foreground italic">Fora do modelo por UM · opcional em todas as camadas</p>}
-                      </button>
-                    ))}
-                  </div>
-                  {camada && (
-                    <p className={`text-xs ${abaixo ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                      Camada Smart {camada}: piso mínimo {piso}.{abaixo ? ` O nível ${nivel} está abaixo do piso.` : ""}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+              <p className="text-xs text-muted-foreground">
+                Nível contratado: <strong className="text-foreground">{nivel} · {NIVEL_INFO[nivel].titulo}</strong> — escolhido na tela de Camadas (quadros Smart Monitor / Flow).
+              </p>
 
               {/* 2. Inventário */}
               <Card>
@@ -163,7 +142,7 @@ export default function NiveisObservabilidade() {
 
               {/* 3. NVPS */}
               <Card>
-                <CardHeader className="pb-3"><CardTitle className="text-base">3. Carga de coleta do ambiente (NVPS)</CardTitle></CardHeader>
+                <CardHeader className="pb-3"><CardTitle className="text-base">2. Carga de coleta do ambiente (NVPS)</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
@@ -204,7 +183,7 @@ export default function NiveisObservabilidade() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between">
-                    4. Curva base de custo por faixa de volume
+                    3. Curva base de custo por faixa de volume
                     <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={() => {
                       const de = faixas.length ? faixas[faixas.length - 1].ate : 0;
                       update("obsFaixas", [...faixas, { de, ate: de + 100, custoBaseUM: 0 }]);
@@ -235,7 +214,7 @@ export default function NiveisObservabilidade() {
 
               {/* 5. Fatores */}
               <Card>
-                <CardHeader className="pb-3"><CardTitle className="text-base">5. Fatores por nível e componentes adicionais</CardTitle></CardHeader>
+                <CardHeader className="pb-3"><CardTitle className="text-base">4. Fatores por nível e componentes adicionais</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <table className="w-full text-xs">
                     <thead className="text-muted-foreground"><tr className="text-left"><th className="py-1">Nível</th><th>Fator de plataforma</th><th>Piso de manutenção (R$/UM)</th></tr></thead>
@@ -265,7 +244,7 @@ export default function NiveisObservabilidade() {
 
               {/* 6. Memória */}
               <Card>
-                <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Calculator className="h-4 w-4" /> 6. Memória de cálculo</CardTitle></CardHeader>
+                <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Calculator className="h-4 w-4" /> 5. Memória de cálculo</CardTitle></CardHeader>
                 <CardContent>
                   <ol className="space-y-2 text-xs font-mono">
                     <li>1. Inventário → UM ponderada: <strong>{formatNumber(calc.umTotal, 1)} UM</strong></li>

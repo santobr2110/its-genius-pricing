@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
+import { NIVEL_INFO, PISO_NIVEL_POR_CAMADA, nivelAbaixoDoPiso, type NivelObservabilidade } from "@/lib/custoObservabilidadeNiveis";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -155,8 +156,7 @@ function ModeloObservabilidadeSelector() {
       </div>
       {atual === "niveis" && (
         <p className="text-[11px] text-muted-foreground">
-          Nível contratado: <strong className="text-foreground">{state.nivelObservabilidade ?? "M2"}</strong>.
-          Limites dos sliders e custos unitários em{" "}
+          Escolha o nível contratado nos quadros do Smart Monitor e Smart Flow. Limites dos sliders e custos unitários em{" "}
           <Link to="/niveis-observabilidade" className="text-primary hover:underline">Níveis de Observabilidade</Link>.
         </p>
       )}
@@ -204,6 +204,31 @@ export default function SmartTiersPanel() {
   const obsProx = Math.min(obsPMax, Math.max(obsPMin, state.obsQtdProxies ?? 0));
   const obsCustoHora = state.obsCustoHora ?? 90;
   const obsCustoProxy = state.obsCustoProxy ?? 35;
+  const obsNivelSelect = (camada: "Monitor" | "Flow") => {
+    const nv = state.nivelObservabilidade ?? "M2";
+    const dom = state.tierEnterprise ? "Enterprise" : state.tierPerformance ? "Performance" : state.tierOperation ? "Operation" : state.tierFlow ? "Flow" : camada;
+    const piso = PISO_NIVEL_POR_CAMADA[dom];
+    const abaixo = nivelAbaixoDoPiso(nv, piso);
+    return (
+      <div className="rounded-lg border bg-background px-3 py-2 space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <Label className="text-[11px] font-semibold text-foreground">Nível de observabilidade contratado</Label>
+          <Select value={nv} onValueChange={(v) => update("nivelObservabilidade", v as NivelObservabilidade)}>
+            <SelectTrigger className="h-8 w-[300px] text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {(["M1", "M2", "M3", "M4"] as const).map((n) => (
+                <SelectItem key={n} value={n} className="text-xs">
+                  {n} · {NIVEL_INFO[n].titulo}{n === "M4" ? " (fora do modelo por UM)" : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <p className="text-[10px] text-muted-foreground">"{NIVEL_INFO[nv].pergunta}"</p>
+        {abaixo && <p className="text-[10px] font-medium text-destructive">Abaixo do piso mínimo ({piso}) para Smart {dom}.</p>}
+      </div>
+    );
+  };
   const obsHorasCard = (disabled: boolean) => (
     <div className={`rounded border px-2 py-1.5 space-y-1.5 ${disabled ? "opacity-50 bg-muted/30" : "bg-background"}`}>
       <div className="flex items-center justify-between">
@@ -1008,6 +1033,7 @@ export default function SmartTiersPanel() {
                 )}
               </div>
             )}
+            {obsNiveis && obsNivelSelect("Monitor")}
             {/* Grupo: Horas N3 / Automação */}
             <div className="rounded-lg border border-amber-200/70 dark:border-amber-900/50 bg-amber-100/30 dark:bg-amber-950/10 p-2 space-y-2">
               <div className="flex items-center justify-between px-1">
@@ -1274,6 +1300,7 @@ export default function SmartTiersPanel() {
                 )}
               </div>
             )}
+            {obsNiveis && obsNivelSelect("Flow")}
             {/* Grupo: Horas N3 / Automação do Flow (automação + N3 opcional) */}
             <div className="rounded-lg border border-sky-200/70 dark:border-sky-900/50 bg-sky-100/30 dark:bg-sky-950/10 p-2 space-y-2">
               <div className="flex items-center justify-between px-1">
