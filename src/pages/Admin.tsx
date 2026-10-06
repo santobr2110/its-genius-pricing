@@ -94,6 +94,7 @@ const PERMISSION_TREE: GroupNode[] = [
               { read: "page.equipe_n3",         write: "page.equipe_n3.write",         label: "Equipe N3" },
               { read: "page.gestao_ti",         write: "page.gestao_ti.write",         label: "Gestão de TI" },
               { read: "page.financeiro",        write: "page.financeiro.write",        label: "Financeiro" },
+              { read: "page.niveis_observabilidade", write: "page.niveis_observabilidade.write", label: "Níveis de Observabilidade" },
               { read: "page.taxas_demanda",     write: "page.taxas_demanda.write",     label: "Métricas e Parâmetros" },
               { read: "page.precificacoes",                                            label: "Precificações salvas" },
               { read: "page.relatorio_demanda",                                        label: "Relatório de Demanda" },

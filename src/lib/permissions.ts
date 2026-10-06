@@ -17,6 +17,7 @@ export type PermissionKey =
   | "page.equipe_n3"
   | "page.financeiro"
   | "page.taxas_demanda"
+  | "page.niveis_observabilidade"
   | "page.precificacoes"
   | "page.gestao_ti"
   | "page.relatorio_demanda"
@@ -30,6 +31,7 @@ export type PermissionKey =
   | "page.equipe_n3.write"
   | "page.financeiro.write"
   | "page.taxas_demanda.write"
+  | "page.niveis_observabilidade.write"
   | "page.gestao_ti.write"
   | "page.escopo.write"
   | "pricing.edit"
@@ -88,6 +90,7 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.gestao_ti",         label: "Gestão de TI",                      group: "ITO › Smart ITO › Páginas" },
   { key: "page.financeiro",        label: "Financeiro",                        group: "ITO › Smart ITO › Páginas" },
   { key: "page.taxas_demanda",     label: "Métricas e Parâmetros",             group: "ITO › Smart ITO › Páginas" },
+  { key: "page.niveis_observabilidade", label: "Níveis de Observabilidade", group: "ITO › Smart ITO › Páginas" },
   { key: "page.precificacoes",     label: "Precificações salvas",              group: "ITO › Smart ITO › Páginas" },
   { key: "page.relatorio_demanda", label: "Relatório de Demanda",              group: "ITO › Smart ITO › Páginas" },
   { key: "page.resumo_cotacao",    label: "Resumo de Cotação",                 group: "ITO › Smart ITO › Páginas" },
@@ -100,6 +103,7 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.gestao_ti.write",     label: "Editar Gestão de TI",              group: "ITO › Smart ITO › Páginas" },
   { key: "page.financeiro.write",    label: "Editar Financeiro",                group: "ITO › Smart ITO › Páginas" },
   { key: "page.taxas_demanda.write", label: "Editar Métricas e Parâmetros",     group: "ITO › Smart ITO › Páginas" },
+  { key: "page.niveis_observabilidade.write", label: "Editar Níveis de Observabilidade", group: "ITO › Smart ITO › Páginas" },
   { key: "page.escopo.write",        label: "Editar Escopo da Proposição",      group: "ITO › Smart ITO › Páginas" },
   { key: "pricing.edit",           label: "Editar parâmetros de precificação", group: "ITO › Smart ITO › Precificação" },
   { key: "pricing.save_preset",    label: "Salvar precificações",              group: "ITO › Smart ITO › Precificação" },

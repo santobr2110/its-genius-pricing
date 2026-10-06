@@ -39,6 +39,10 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     description:
       "Configure taxas e parâmetros mensais de geração de chamados por categoria de inventário.",
   },
+  "/niveis-observabilidade": {
+    title: "Níveis de Observabilidade — Smart ITO",
+    description: "Precificação de observabilidade por nível M1–M4 e carga de coleta (NVPS).",
+  },
   "/precificacoes": {
     title: "Precificações Salvas — Smart ITO",
     description:

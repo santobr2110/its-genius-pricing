@@ -56,6 +56,12 @@ export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   "itsmFlowSelected",
   // Fonte de demanda escolhida nesta precificação
   "demandSource",
+  // Observabilidade em níveis — escolhas desta precificação
+  "modeloObservabilidade",
+  "nivelObservabilidade",
+  "obsNvpsMedido",
+  "obsHorasManutencao",
+  "obsQtdProxies",
 ]);
 
 /**

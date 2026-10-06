@@ -26,6 +26,7 @@ const ITO_PATHS = new Set([
   "/equipe-n3",
   "/financeiro",
   "/taxas-demanda",
+  "/niveis-observabilidade",
   "/precificacoes",
   "/gestao-ti",
   "/relatorio-demanda",

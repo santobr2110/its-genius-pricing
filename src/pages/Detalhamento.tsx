@@ -1301,6 +1301,12 @@ export default function Detalhamento() {
                 { label: "Especialista BU", value: presetCadastro.bu_specialist },
                 { label: "Arquiteto BU", value: presetCadastro.bu_architect },
                 {
+                  label: "Modelo de monitoramento",
+                  value: state.modeloObservabilidade === "niveis"
+                    ? `Observabilidade em níveis — ${state.nivelObservabilidade ?? "M2"}`
+                    : "Monitoramento clássico",
+                },
+                {
                   label: "Emitido em",
                   value: new Date().toLocaleDateString("pt-BR"),
                 },
