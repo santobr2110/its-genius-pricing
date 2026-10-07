@@ -125,8 +125,12 @@ export default function Detalhamento() {
     ? `Exportação bloqueada: rentabilidade de ${Number(state.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
     : undefined;
   const exportBlocked = !isSavedPricing || approvalBlocked;
-  const sm = results.smartMonitor;
-  const sf = results.smartFlow;
+  // No modelo de níveis, os proxys exibidos nos relatórios são os do novo modelo (cobrados no monitoramento).
+  const obsProxyOverride = obsNiveisAtivo
+    ? { qtdProxys: obsEf.proxies, custoProxys: obsEf.proxies * obsCustoProxyRel }
+    : {};
+  const sm = { ...results.smartMonitor, ...obsProxyOverride };
+  const sf = { ...results.smartFlow, ...obsProxyOverride };
 
   // Dados de cadastro da precificação (via preset ativo)
   type PresetCadastro = {
@@ -920,9 +924,7 @@ export default function Detalhamento() {
       if (sm.qtdAtendentes > 0)
         recursos.push({ label: "Atendentes no ITSM", qtd: sm.qtdAtendentes, detalhe: "acessos", valor: toSell(sm.custoAtendentes) });
       if (sm.qtdProxys > 0)
-        recursos.push({ label: "Proxys de monitoramento", qtd: sm.qtdProxys, detalhe: sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adic.`, valor: toSell(sm.custoProxys) });
-      if (obsNiveisAtivo && obsEf.proxies > 0)
-        recursos.push({ label: "Proxys de monitoramento", qtd: obsEf.proxies, detalhe: "proxies", valor: toSell(obsEf.proxies * obsCustoProxyRel) });
+        recursos.push({ label: "Proxys de monitoramento", qtd: sm.qtdProxys, detalhe: obsNiveisAtivo ? "proxies" : sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adic.`, valor: toSell(sm.custoProxys) });
       let horasN3: HorasN3Slide | undefined;
       if (!state.tierOperation && (hManutMonitorRel > 0 || state.horasN3Monitor > 0)) {
         const hManut = hManutMonitorRel;
