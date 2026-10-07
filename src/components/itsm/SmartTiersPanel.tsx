@@ -1,4 +1,4 @@
-import { computeCustoObservabilidadeNiveis } from "@/lib/custoObservabilidadeNiveis";
+import { computeCustoObservabilidadeNiveis, obsEfetivos } from "@/lib/custoObservabilidadeNiveis";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import { NIVEL_INFO, PISO_NIVEL_POR_CAMADA, nivelAbaixoDoPiso, type NivelObservabilidade } from "@/lib/custoObservabilidadeNiveis";
@@ -201,8 +201,7 @@ export default function SmartTiersPanel() {
   const obsHMax = Math.max(obsHMin + 1, state.obsHorasManutencaoMax ?? 40);
   const obsPMin = Math.max(0, state.obsQtdProxiesMin ?? 0);
   const obsPMax = Math.max(obsPMin + 1, state.obsQtdProxiesMax ?? 20);
-  const obsHoras = Math.min(obsHMax, Math.max(obsHMin, state.obsHorasManutencao ?? 0));
-  const obsProx = Math.min(obsPMax, Math.max(obsPMin, state.obsQtdProxies ?? 0));
+  const { horas: obsHoras, proxies: obsProx } = obsEfetivos(state);
   const obsCustoHora = state.obsCustoHora ?? 90;
   const obsCustoProxy = state.obsCustoProxy ?? 35;
   const obsCalcView = useMemo(() => obsNiveis ? computeCustoObservabilidadeNiveis({
