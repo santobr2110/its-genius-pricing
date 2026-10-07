@@ -13,7 +13,7 @@ import { formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import {
   DEFAULT_NIVEIS, DEFAULT_OBS_CUSTO_HORA, DEFAULT_OBS_CUSTO_PROXY, DEFAULT_OBS_FAIXAS,
   DEFAULT_OBS_NVPS, DEFAULT_OBS_PESOS, DEFAULT_PORTES, NIVEL_INFO, PISO_NIVEL_POR_CAMADA,
-  computeCustoObservabilidadeNiveis, nivelAbaixoDoPiso,
+  computeCustoObservabilidadeNiveis, nivelAbaixoDoPiso, obsEfetivos,
   type NivelObservabilidade, type ObsPesos,
 } from "@/lib/custoObservabilidadeNiveis";
 
@@ -41,8 +41,7 @@ export default function NiveisObservabilidade() {
   const faixas = state.obsFaixas ?? DEFAULT_OBS_FAIXAS;
   const niveis = state.obsNiveis ?? DEFAULT_NIVEIS;
   const portes = state.obsPortes ?? DEFAULT_PORTES;
-  const horas = state.obsHorasManutencao ?? 0;
-  const proxies = state.obsQtdProxies ?? 0;
+  const { horas, proxies } = obsEfetivos(state);
   const custoHora = state.obsCustoHora ?? DEFAULT_OBS_CUSTO_HORA;
   const custoProxy = state.obsCustoProxy ?? DEFAULT_OBS_CUSTO_PROXY;
 

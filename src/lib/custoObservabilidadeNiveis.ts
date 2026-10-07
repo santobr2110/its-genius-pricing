@@ -201,3 +201,18 @@ export function computeCustoPorUMMarginalNiveis(
   }
   return (tarifa * cfg.fatorPlataforma + cfg.pisoManutencao) * fatorCarga;
 }
+
+/** Horas e proxies efetivos do modelo de níveis: valor do slider limitado ao mínimo/máximo configurado. */
+export function obsEfetivos(s: {
+  obsHorasManutencao?: number; obsHorasManutencaoMin?: number; obsHorasManutencaoMax?: number;
+  obsQtdProxies?: number; obsQtdProxiesMin?: number; obsQtdProxiesMax?: number;
+}): { horas: number; proxies: number } {
+  const hMin = Math.max(0, s.obsHorasManutencaoMin ?? 0);
+  const hMax = Math.max(hMin + 1, s.obsHorasManutencaoMax ?? 40);
+  const pMin = Math.max(0, s.obsQtdProxiesMin ?? 0);
+  const pMax = Math.max(pMin + 1, s.obsQtdProxiesMax ?? 20);
+  return {
+    horas: Math.min(hMax, Math.max(hMin, s.obsHorasManutencao ?? 0)),
+    proxies: Math.min(pMax, Math.max(pMin, s.obsQtdProxies ?? 0)),
+  };
+}

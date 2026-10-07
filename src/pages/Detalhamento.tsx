@@ -1,3 +1,4 @@
+import { obsEfetivos } from "@/lib/custoObservabilidadeNiveis";
 import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { computeTierPricing, gerencialBucket as gerencialBucketFor } from "@/lib/tierPricing";
@@ -99,6 +100,12 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 
 export default function Detalhamento() {
   const { state, results, activePreset, extrasOperacionais } = useITSMContext();
+  // Modelo de níveis: horas de automação e proxies vêm de obs* (os campos clássicos não são cobrados).
+  const obsNiveisAtivo = state.modeloObservabilidade === "niveis";
+  const obsEf = obsEfetivos(state);
+  const obsCustoHoraRel = state.obsCustoHora ?? 90;
+  const obsCustoProxyRel = state.obsCustoProxy ?? 35;
+  const hManutMonitorRel = obsNiveisAtivo ? obsEf.horas : Math.max(0, state.horasN3MonitorManut || 0);
   const isSavedPricing = !!activePreset.activeId;
   const approval = usePricingApproval({
     offering: "smart-ito",
@@ -690,10 +697,10 @@ export default function Detalhamento() {
   // (atendentes=0, proxys=0, horas N3=0, rotinas vazias etc.).
   // ============================================================
   const incluidosFlags = {
-    monitorProxys: (sm.qtdProxys || 0) > 0,
+    monitorProxys: obsNiveisAtivo ? obsEf.proxies > 0 : (sm.qtdProxys || 0) > 0,
     flowAtendentes: (sf.qtdAtendentes || 0) > 0,
-    flowProxys: (state.qtdProxysFlow || 0) > 0 || (sf.qtdProxys || 0) > 0,
-    flowHorasAutomacao: (state.horasN3FlowManut || 0) > 0 || (sf.custoN3Manut || 0) > 0,
+    flowProxys: obsNiveisAtivo ? obsEf.proxies > 0 : (state.qtdProxysFlow || 0) > 0 || (sf.qtdProxys || 0) > 0,
+    flowHorasAutomacao: obsNiveisAtivo ? obsEf.horas > 0 : (state.horasN3FlowManut || 0) > 0 || (sf.custoN3Manut || 0) > 0,
     flowHorasN3Opcional: (state.horasN3Flow || 0) > 0 || (sf.custoN3 || 0) > 0,
     opRotinas: custoRotinasOp > 0,
     opN3: (state.horasN3Mensais || 0) > 0,
@@ -914,16 +921,18 @@ export default function Detalhamento() {
         recursos.push({ label: "Atendentes no ITSM", qtd: sm.qtdAtendentes, detalhe: "acessos", valor: toSell(sm.custoAtendentes) });
       if (sm.qtdProxys > 0)
         recursos.push({ label: "Proxys de monitoramento", qtd: sm.qtdProxys, detalhe: sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adic.`, valor: toSell(sm.custoProxys) });
+      if (obsNiveisAtivo && obsEf.proxies > 0)
+        recursos.push({ label: "Proxys de monitoramento", qtd: obsEf.proxies, detalhe: "proxies", valor: toSell(obsEf.proxies * obsCustoProxyRel) });
       let horasN3: HorasN3Slide | undefined;
-      if (!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0)) {
-        const hManut = state.horasN3MonitorManut || 0;
+      if (!state.tierOperation && (hManutMonitorRel > 0 || state.horasN3Monitor > 0)) {
+        const hManut = hManutMonitorRel;
         const hAcion = state.horasN3Monitor || 0;
         horasN3 = {
           total: hManut + hAcion,
           valorHora: valorHoraN3Venda,
           modo: "monitor",
           blocos: [
-            { titulo: "Manutenção e Automação", horas: hManut, valor: toSell(sm.custoN3Manut), descricao: "Ajustes, automações e tunings da plataforma de monitoramento." },
+            { titulo: "Manutenção e Automação", horas: hManut, valor: toSell(obsNiveisAtivo ? hManut * obsCustoHoraRel : sm.custoN3Manut), descricao: "Ajustes, automações e tunings da plataforma de monitoramento." },
             { titulo: "Atendimento N3", horas: hAcion, valor: toSell(sm.custoN3), descricao: "Horas para tratamento de incidentes detectados." },
           ].filter((b) => b.horas > 0),
         };
@@ -1428,8 +1437,9 @@ export default function Detalhamento() {
               </div>
             </div>
           )}
-          {!state.tierOperation && (state.horasN3MonitorManut > 0 || state.horasN3Monitor > 0) && (() => {
-            const hManut = Math.max(0, state.horasN3MonitorManut || 0);
+          {!state.tierOperation && (hManutMonitorRel > 0 || state.horasN3Monitor > 0) && (() => {
+            const hManut = hManutMonitorRel;
+            const valorManut = (obsNiveisAtivo ? hManut * obsCustoHoraRel : sm.custoN3Manut) * fatorVenda;
             const hAcion = Math.max(0, state.horasN3Monitor || 0);
             const hTotal = hManut + hAcion;
             const pctManut = hTotal > 0 ? (hManut / hTotal) * 100 : 0;
@@ -1441,7 +1451,7 @@ export default function Detalhamento() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
                     <span className="font-semibold">
-                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}</span>
+                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(valorManut + sm.custoN3 * fatorVenda)}</span>
                     </span>
                   </div>
                 <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
@@ -1455,7 +1465,7 @@ export default function Detalhamento() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
                     <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
-                    <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(sm.custoN3Manut * fatorVenda)}</span></div>
+                    <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(valorManut)}</span></div>
                     <div className="text-[10px] text-muted-foreground">Ajustes e tunings do monitoramento.</div>
                   </div>
                   <div className="rounded bg-amber-500/10 border border-amber-500/30 px-2 py-1.5">
@@ -1592,8 +1602,9 @@ export default function Detalhamento() {
             </div>
           )}
 
-          {!state.tierOperation && (sf.horasN3Manut > 0 || sf.horasN3 > 0) && (() => {
-            const hManut = Math.max(0, sf.horasN3Manut || 0);
+          {!state.tierOperation && ((obsNiveisAtivo ? obsEf.horas : sf.horasN3Manut) > 0 || sf.horasN3 > 0) && (() => {
+            const hManut = obsNiveisAtivo ? obsEf.horas : Math.max(0, sf.horasN3Manut || 0);
+            const valorManut = (obsNiveisAtivo ? hManut * obsCustoHoraRel : sf.custoN3Manut) * fatorVenda;
             const hAcion = Math.max(0, sf.horasN3 || 0);
             const hTotal = hManut + hAcion;
             const pctManut = hTotal > 0 ? (hManut / hTotal) * 100 : 0;
@@ -1605,7 +1616,7 @@ export default function Detalhamento() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
                     <span className="font-semibold">
-                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(hTotal * state.valorHoraN3 * fatorVenda)}</span>
+                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(valorManut + sf.custoN3 * fatorVenda)}</span>
                     </span>
                   </div>
                   <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
@@ -1619,7 +1630,7 @@ export default function Detalhamento() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
                       <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
-                      <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(sf.custoN3Manut * fatorVenda)}</span></div>
+                      <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(valorManut)}</span></div>
                       <div className="text-[10px] text-muted-foreground">Tratamento contínuo e automações de eventos.</div>
                     </div>
                     <div className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-1.5">

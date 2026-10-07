@@ -18,6 +18,7 @@ import {
   DEFAULT_OBS_PESOS,
   DEFAULT_PORTES,
   computeCustoObservabilidadeNiveis,
+  obsEfetivos,
   type ModeloObservabilidade,
   type NivelConfig,
   type NivelObservabilidade,
@@ -555,8 +556,8 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
           niveis: state.obsNiveis ?? DEFAULT_NIVEIS,
           portes: state.obsPortes ?? DEFAULT_PORTES,
           nvpsMedido: state.obsNvpsMedido ?? 0,
-          horas: state.obsHorasManutencao ?? 0,
-          qtdProxies: state.obsQtdProxies ?? 0,
+          horas: obsEfetivos(state).horas,
+          qtdProxies: obsEfetivos(state).proxies,
           custoHora: state.obsCustoHora ?? DEFAULT_OBS_CUSTO_HORA,
           custoProxy: state.obsCustoProxy ?? DEFAULT_OBS_CUSTO_PROXY,
         })
