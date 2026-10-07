@@ -1,4 +1,4 @@
-import { obsEfetivos } from "@/lib/custoObservabilidadeNiveis";
+import { obsEfetivos, computeCustoObservabilidadeNiveis, NIVEL_INFO } from "@/lib/custoObservabilidadeNiveis";
 import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { computeTierPricing, gerencialBucket as gerencialBucketFor } from "@/lib/tierPricing";
@@ -105,6 +105,22 @@ export default function Detalhamento() {
   const obsEf = obsEfetivos(state);
   const obsCustoHoraRel = state.obsCustoHora ?? 90;
   const obsCustoProxyRel = state.obsCustoProxy ?? 35;
+  const obsCalcRel = obsNiveisAtivo ? computeCustoObservabilidadeNiveis({
+    inv: { qtdServidores: state.qtdServidores || 0, qtdBancosDados: state.qtdBancosDados || 0, qtdSistemas: state.qtdSistemas || 0, qtdAtivosRede: state.qtdAtivosRede || 0 },
+    nivel: state.nivelObservabilidade ?? "M2", pesos: state.obsPesos, nvpsPorAtivo: state.obsNvpsPorAtivo,
+    faixas: state.obsFaixas, niveis: state.obsNiveis, portes: state.obsPortes, nvpsMedido: state.obsNvpsMedido ?? 0,
+  }) : null;
+  const obsNivelRel = state.nivelObservabilidade ?? "M2";
+  const obsInfoBlock = obsCalcRel ? (
+    <div className="mt-4">
+      <SubTitle>Observabilidade contratada</SubTitle>
+      <div className="grid grid-cols-3 gap-2 rounded border bg-background/70 p-3 text-xs">
+        <div><div className="text-[10px] text-muted-foreground">Nível de observabilidade</div><div className="font-semibold">{obsNivelRel} · {NIVEL_INFO[obsNivelRel].titulo}</div></div>
+        <div><div className="text-[10px] text-muted-foreground">NVPS {obsCalcRel.nvpsOrigem === "medido" ? "medido" : "calculado"}</div><div className="font-semibold">{formatNumber(obsCalcRel.nvpsPrevisto, 0)}</div></div>
+        <div><div className="text-[10px] text-muted-foreground">Porte do ambiente</div><div className="font-semibold">{obsCalcRel.porte.nome}</div></div>
+      </div>
+    </div>
+  ) : null;
   const hManutMonitorRel = obsNiveisAtivo ? obsEf.horas : Math.max(0, state.horasN3MonitorManut || 0);
   const isSavedPricing = !!activePreset.activeId;
   const approval = usePricingApproval({
@@ -1439,6 +1455,7 @@ export default function Detalhamento() {
               </div>
             </div>
           )}
+          {obsInfoBlock}
           {!state.tierOperation && (hManutMonitorRel > 0 || state.horasN3Monitor > 0) && (() => {
             const hManut = hManutMonitorRel;
             const valorManut = (obsNiveisAtivo ? hManut * obsCustoHoraRel : sm.custoN3Manut) * fatorVenda;
@@ -1604,6 +1621,7 @@ export default function Detalhamento() {
             </div>
           )}
 
+          {!(monitorVisible && !unifiedMonitorFlow) && obsInfoBlock}
           {!state.tierOperation && ((obsNiveisAtivo ? obsEf.horas : sf.horasN3Manut) > 0 || sf.horasN3 > 0) && (() => {
             const hManut = obsNiveisAtivo ? obsEf.horas : Math.max(0, sf.horasN3Manut || 0);
             const valorManut = (obsNiveisAtivo ? hManut * obsCustoHoraRel : sf.custoN3Manut) * fatorVenda;
