@@ -1,3 +1,4 @@
+import { obsEfetivos } from "@/lib/custoObservabilidadeNiveis";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FileText, FileDown } from "lucide-react";
@@ -124,8 +125,12 @@ export default function ResumoCotacao() {
 
   // ===== Composição financeira (mesma fórmula das Camadas de Oferta) =====
   const meses = parseMonths(commercial?.contract_term);
-  const sm = computed.smartMonitor;
-  const sf = computed.smartFlow;
+  // Modelo de níveis: horas de automação e proxys vêm do novo modelo.
+  const obsNivRes = calcState.modeloObservabilidade === "niveis";
+  const obsEfRes = obsEfetivos(calcState);
+  const obsOv = obsNivRes ? { qtdProxys: obsEfRes.proxies, horasN3Manut: obsEfRes.horas } : {};
+  const sm = { ...computed.smartMonitor, ...obsOv };
+  const sf = { ...computed.smartFlow, ...obsOv };
   const totalEncargosPerc =
     (calcState.pisPerc || 0) + (calcState.cofinsPerc || 0) + (calcState.issPerc || 0) +
     (calcState.comissaoPerc || 0) + (calcState.irpjCsllPerc || 0) + (calcState.encFinancPerc || 0) +
