@@ -921,6 +921,8 @@ export default function Detalhamento() {
         recursos.push({ label: "Atendentes no ITSM", qtd: sm.qtdAtendentes, detalhe: "acessos", valor: toSell(sm.custoAtendentes) });
       if (sm.qtdProxys > 0)
         recursos.push({ label: "Proxys de monitoramento", qtd: sm.qtdProxys, detalhe: sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adic.`, valor: toSell(sm.custoProxys) });
+      if (obsNiveisAtivo && obsEf.proxies > 0)
+        recursos.push({ label: "Proxys de monitoramento", qtd: obsEf.proxies, detalhe: "proxies", valor: toSell(obsEf.proxies * obsCustoProxyRel) });
       let horasN3: HorasN3Slide | undefined;
       if (!state.tierOperation && (hManutMonitorRel > 0 || state.horasN3Monitor > 0)) {
         const hManut = hManutMonitorRel;
@@ -1600,8 +1602,9 @@ export default function Detalhamento() {
             </div>
           )}
 
-          {!state.tierOperation && (sf.horasN3Manut > 0 || sf.horasN3 > 0) && (() => {
-            const hManut = Math.max(0, sf.horasN3Manut || 0);
+          {!state.tierOperation && ((obsNiveisAtivo ? obsEf.horas : sf.horasN3Manut) > 0 || sf.horasN3 > 0) && (() => {
+            const hManut = obsNiveisAtivo ? obsEf.horas : Math.max(0, sf.horasN3Manut || 0);
+            const valorManut = (obsNiveisAtivo ? hManut * obsCustoHoraRel : sf.custoN3Manut) * fatorVenda;
             const hAcion = Math.max(0, sf.horasN3 || 0);
             const hTotal = hManut + hAcion;
             const pctManut = hTotal > 0 ? (hManut / hTotal) * 100 : 0;
@@ -1613,7 +1616,7 @@ export default function Detalhamento() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-muted-foreground">Total contratado</span>
                     <span className="font-semibold">
-                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(valorManut + sm.custoN3 * fatorVenda)}</span>
+                      {formatNumber(hTotal)}h<span className="report-price"> · {formatBRL(valorManut + sf.custoN3 * fatorVenda)}</span>
                     </span>
                   </div>
                   <div className="flex h-3 overflow-hidden rounded-full border bg-muted">
@@ -1627,7 +1630,7 @@ export default function Detalhamento() {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded bg-sky-500/10 border border-sky-500/30 px-2 py-1.5">
                       <div className="text-muted-foreground text-[10px]">Manutenção e Automação · {pctManut.toFixed(0)}%</div>
-                      <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(sf.custoN3Manut * fatorVenda)}</span></div>
+                      <div className="font-semibold">{formatNumber(hManut)}h<span className="report-price"> · {formatBRL(valorManut)}</span></div>
                       <div className="text-[10px] text-muted-foreground">Tratamento contínuo e automações de eventos.</div>
                     </div>
                     <div className="rounded bg-cyan-500/10 border border-cyan-500/30 px-2 py-1.5">
