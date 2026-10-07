@@ -125,8 +125,12 @@ export default function Detalhamento() {
     ? `Exportação bloqueada: rentabilidade de ${Number(state.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
     : undefined;
   const exportBlocked = !isSavedPricing || approvalBlocked;
-  const sm = results.smartMonitor;
-  const sf = results.smartFlow;
+  // No modelo de níveis, os proxys exibidos nos relatórios são os do novo modelo (cobrados no monitoramento).
+  const obsProxyOverride = obsNiveisAtivo
+    ? { qtdProxys: obsEf.proxies, custoProxys: obsEf.proxies * obsCustoProxyRel }
+    : {};
+  const sm = { ...results.smartMonitor, ...obsProxyOverride };
+  const sf = { ...results.smartFlow, ...obsProxyOverride };
 
   // Dados de cadastro da precificação (via preset ativo)
   type PresetCadastro = {
@@ -920,9 +924,7 @@ export default function Detalhamento() {
       if (sm.qtdAtendentes > 0)
         recursos.push({ label: "Atendentes no ITSM", qtd: sm.qtdAtendentes, detalhe: "acessos", valor: toSell(sm.custoAtendentes) });
       if (sm.qtdProxys > 0)
-        recursos.push({ label: "Proxys de monitoramento", qtd: sm.qtdProxys, detalhe: sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adic.`, valor: toSell(sm.custoProxys) });
-      if (obsNiveisAtivo && obsEf.proxies > 0)
-        recursos.push({ label: "Proxys de monitoramento", qtd: obsEf.proxies, detalhe: "proxies", valor: toSell(obsEf.proxies * obsCustoProxyRel) });
+        recursos.push({ label: "Proxys de monitoramento", qtd: sm.qtdProxys, detalhe: obsNiveisAtivo ? "proxies" : sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adic.`, valor: toSell(sm.custoProxys) });
       let horasN3: HorasN3Slide | undefined;
       if (!state.tierOperation && (hManutMonitorRel > 0 || state.horasN3Monitor > 0)) {
         const hManut = hManutMonitorRel;
@@ -964,7 +966,7 @@ export default function Detalhamento() {
       if (sf.qtdAtendentes > 0)
         recursos.push({ label: "Atendentes no ITSM", qtd: sf.qtdAtendentes, detalhe: "acessos", valor: toSell(sf.custoAtendentes) });
       if (sf.qtdProxys > 0)
-        recursos.push({ label: "Proxys da camada Flow", qtd: sf.qtdProxys, detalhe: sf.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sf.qtdProxys - 1} adic.`, valor: toSell(sf.custoProxys) });
+        recursos.push({ label: "Proxys da camada Flow", qtd: sf.qtdProxys, detalhe: obsNiveisAtivo ? "proxies" : sf.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sf.qtdProxys - 1} adic.`, valor: toSell(sf.custoProxys) });
       let horasN3: HorasN3Slide | undefined;
       if (!state.tierOperation && (sf.horasN3Manut > 0 || sf.horasN3 > 0)) {
         const hManut = sf.horasN3Manut || 0;
@@ -1425,7 +1427,7 @@ export default function Detalhamento() {
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Proxys de monitoramento</div>
                       <div className="text-lg font-bold leading-tight">{formatNumber(sm.qtdProxys)}</div>
                       <div className="text-[11px] text-muted-foreground">
-                        {sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adicional${sm.qtdProxys - 1 > 1 ? "is" : ""}`}
+                        {obsNiveisAtivo ? `${sm.qtdProxys} proxies` : sm.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sm.qtdProxys - 1} adicional${sm.qtdProxys - 1 > 1 ? "is" : ""}`}
                       </div>
                     </div>
                     <div className="report-price text-right">
@@ -1589,7 +1591,7 @@ export default function Detalhamento() {
                       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Proxys da camada Flow</div>
                       <div className="text-lg font-bold leading-tight">{formatNumber(sf.qtdProxys)}</div>
                       <div className="text-[11px] text-muted-foreground">
-                        {sf.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sf.qtdProxys - 1} adicional${sf.qtdProxys - 1 > 1 ? "is" : ""}`}
+                        {obsNiveisAtivo ? `${sf.qtdProxys} proxies` : sf.qtdProxys === 1 ? "1 inicial" : `1 inicial + ${sf.qtdProxys - 1} adicional${sf.qtdProxys - 1 > 1 ? "is" : ""}`}
                       </div>
                     </div>
                     <div className="report-price text-right">
