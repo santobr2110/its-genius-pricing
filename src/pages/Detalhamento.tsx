@@ -1621,7 +1621,7 @@ export default function Detalhamento() {
             </div>
           )}
 
-          {!state.tierMonitor && obsInfoBlock}
+          {!(monitorVisible && !unifiedMonitorFlow) && obsInfoBlock}
           {!state.tierOperation && ((obsNiveisAtivo ? obsEf.horas : sf.horasN3Manut) > 0 || sf.horasN3 > 0) && (() => {
             const hManut = obsNiveisAtivo ? obsEf.horas : Math.max(0, sf.horasN3Manut || 0);
             const valorManut = (obsNiveisAtivo ? hManut * obsCustoHoraRel : sf.custoN3Manut) * fatorVenda;
