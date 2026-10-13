@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Loader2, Printer, Stamp } from "lucide-react";
+import { FileDown, FileText, Loader2, Printer, Stamp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTreinamentoCotacoes } from "@/hooks/useTreinamentoCotacoes";
 import { useTreinamentoResultado } from "./useTreinamentoResultado";
+import { gerarPropostaDocx } from "@/lib/treinamento/propostaDocx";
 import type { TrainingCourseContent } from "@/lib/treinamento/types";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -74,6 +75,25 @@ export default function TreinamentoProposta() {
     } catch (e) { toast.error((e as Error).message); } finally { setEmitindo(false); }
   };
 
+  const baixarWord = async () => {
+    try {
+      const blob = await gerarPropostaDocx({
+        cliente: st.atual.cliente, contato: d.contato, email: d.email, codigo: st.atual.codigo, versao: emissoes.length || null,
+        emissao: dataBR(hojeISO), validade: dataBR(validaAte), validadeDias: d.validadeDias,
+        condicoesPagamento: d.condicoesPagamento, observacoes: d.observacoes, total: res.precoFinalTotal,
+        itens: itens.map((l) => {
+          const curso = l.cursoOriginal ?? l.curso!;
+          return { curso, conteudo: contentById.get(curso.id), modalidade: MOD[l.linha.modalidade] ?? l.linha.modalidade, alunos: l.linha.alunos, somenteExame: l.linha.somenteExame, precoPorAluno: l.precoFinalPorAluno, total: l.precoFinal };
+        }),
+      });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `Proposta Treinamento - ${st.atual.cliente || "cliente"}${st.atual.codigo ? ` - ${st.atual.codigo}` : ""}.docx`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    } catch (e) { toast.error((e as Error).message); }
+  };
+
   return (
     <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
       <div className="space-y-4 print:hidden">
@@ -89,6 +109,7 @@ export default function TreinamentoProposta() {
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !podeEmitir}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar valores)</Button>
               <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir / salvar PDF</Button>
+              <Button variant="outline" onClick={baixarWord} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
             </div>
             {!salvo && <p className="text-xs text-muted-foreground">Salve a cotação no Configurador para poder emitir.</p>}
           </CardContent>
