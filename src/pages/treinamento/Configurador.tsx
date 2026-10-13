@@ -85,6 +85,7 @@ export default function Configurador() {
 
   // Atualiza o código exibido depois que a lista recarrega.
   const codigoAtual = atual.codigo ?? cot.lista.find((x) => x.id === atual.id)?.quote_code ?? null;
+  const paramsPendentes = cad.params.filter((p) => p.status === "simulado" || p.status === "a_confirmar");
 
   if (cad.loading || tax.loading) return <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Carregando…</p>;
   if (cad.error) return <p className="text-sm text-destructive">Você não tem acesso ao cadastro de cursos do Treinamento. Peça a permissão "Acessar Treinamento" a um administrador.</p>;
@@ -113,6 +114,12 @@ export default function Configurador() {
               <Button size="sm" onClick={adicionar} disabled={vendaveis.length === 0}><Plus className="h-4 w-4 mr-1" /> Adicionar item</Button>
             </CardHeader>
             <CardContent className="space-y-3">
+              {paramsPendentes.length > 0 && (
+                <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">
+                  <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600 mr-1">a confirmar</Badge>
+                  Valores simulados em uso: {paramsPendentes.map((p) => p.label).join(" · ")}
+                </p>
+              )}
               {linhas.length === 0 && <p className="text-sm text-muted-foreground">Adicione cursos, combos, extras ou exames para montar a proposta.</p>}
               {res.linhas.map((r) => (
                 <LinhaEditor key={r.linha.id} r={r} vendaveis={vendaveis} onChange={(p) => upd(r.linha.id, p)} onRemove={() => setLinhas(linhas.filter((l) => l.id !== r.linha.id))} />
@@ -192,7 +199,11 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
     <div className="rounded-lg border bg-background p-3 space-y-3">
       <div className="grid grid-cols-2 md:grid-cols-[2fr_1fr_90px_90px_auto] gap-2 items-end">
         <div className="space-y-1 col-span-2 md:col-span-1">
-          <Label className="text-xs">Item</Label>
+          <Label className="text-xs flex items-center gap-1">Item
+            {orig && (orig.campos_a_confirmar.length > 0 || orig.custo_pendente) && (
+              <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600" title={orig.campos_a_confirmar.join(", ")}>a confirmar</Badge>
+            )}
+          </Label>
           <Select value={linha.courseId} onValueChange={(v) => {
             const c = vendaveis.find((x) => x.id === v);
             onChange({ courseId: v, somenteExame: false, alunos: Math.max(linha.alunos, c?.min_alunos ?? 1) });
