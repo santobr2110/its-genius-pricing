@@ -114,7 +114,7 @@ export default function CadastroTributarioTab() {
           <CardTitle className="text-base">Cadastro tributário compartilhado</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
             Códigos de produto e alíquotas por município, com vigência. Fonte oficial usada por Smart ITO, BodyShop e Treinamento;
-            Smart ITO e BodyShop continuam com a tabela atual de Impostos.
+            alterações aqui valem para todas as precificações.
           </p>
         </div>
         <Button size="sm" className="gap-1" onClick={addCode}><Plus className="h-3.5 w-3.5" /> Código</Button>
