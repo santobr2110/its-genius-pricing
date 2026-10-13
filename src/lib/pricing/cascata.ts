@@ -1,6 +1,6 @@
 // Motor de cascata compartilhado (markup divisor): PV = custo / (1 − Σ%/100).
 // Mesma fórmula do Smart ITO (useITSMCalculator / recomputeComposicaoComExtras).
-// Fase 1A: usado apenas pelo Treinamento; Smart ITO e BodyShop seguem com o código atual.
+// Fase 1B: Smart ITO, BodyShop e Treinamento usam este módulo (adaptadores REGRA_* abaixo).
 
 export interface CascataParams {
   pisPerc: number; cofinsPerc: number; issPerc: number;
