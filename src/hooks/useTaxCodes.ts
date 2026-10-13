@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { TaxCode, TaxRate } from "@/lib/pricing/taxRates";
 
-/** Cadastro tributário compartilhado (Fase 1A: usado só pelo Treinamento). */
+/** Cadastro tributário compartilhado por todas as ofertas. */
 export function useTaxCodes() {
   const qc = useQueryClient();
   const q = useQuery({

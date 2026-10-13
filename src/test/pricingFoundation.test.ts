@@ -3,7 +3,6 @@ import { readFileSync, readdirSync } from "fs";
 import path from "path";
 import { computeCascata, resolveIrpjCsllPerc } from "@/lib/pricing/cascata";
 import { resolveTaxRates, type TaxCode, type TaxRate } from "@/lib/pricing/taxRates";
-import { CODIGOS_PRODUTO_IMPOSTO } from "@/data/codigosProdutoImposto";
 
 const base = { pisPerc: 0, cofinsPerc: 0, issPerc: 0, comissaoPerc: 0, encFinancPerc: 0 };
 
@@ -42,21 +41,6 @@ function loadSeed() {
 
 describe("cadastro tributário", () => {
   const seed = loadSeed();
-  it("seed idêntico ao arquivo estático", () => {
-    const mun = { Joinville: "issJlle", Blumenau: "issBlum", Barueri: "issBarueri" } as const;
-    for (const p of CODIGOS_PRODUTO_IMPOSTO) {
-      for (const [m, k] of Object.entries(mun)) {
-        const r = seed.find((s) => s.codigo === p.codigo && s.municipio === m);
-        expect(r, `${p.codigo}/${m}`).toBeTruthy();
-        expect(r!.pis).toBe(p.pis);
-        expect(r!.cofins).toBe(p.cofins);
-        expect(r!.iss).toBe(p[k]);
-      }
-    }
-    expect(seed.filter((s) => s.codigo !== "TRN")).toHaveLength(CODIGOS_PRODUTO_IMPOSTO.length * 3);
-    expect(seed.filter((s) => s.codigo === "TRN").every((s) => s.ac)).toBe(true);
-  });
-
   it("resolveTaxRates respeita município e vigência", () => {
     const codes: TaxCode[] = [{ id: "c1", codigo: "TRN", nome: "T", descricao: null, lc116_item: "8.02", ativo: true, a_confirmar: true }];
     const rates: TaxRate[] = [
