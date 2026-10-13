@@ -48,7 +48,7 @@ function CodeRow({ code, rates, refresh }: { code: TaxCode; rates: TaxRate[]; re
         <Button size="sm" variant="ghost" className="h-8 text-destructive" onClick={removeCode}><Trash2 className="h-3.5 w-3.5" /></Button>
       </div>
       <div className="flex items-center gap-2">
-        {c.a_confirmar && <Badge variant="outline" className="text-[10px] border-warning text-warning">alíquotas a confirmar com Fiscal</Badge>}
+        {c.a_confirmar && <Badge variant="outline" className="text-[10px]">alíquotas a confirmar com Fiscal</Badge>}
         <Button size="sm" variant="link" className="h-6 px-0 text-xs" onClick={() => setOpen(!open)}>
           {open ? "Ocultar" : "Ver"} alíquotas ({rates.length})
         </Button>
