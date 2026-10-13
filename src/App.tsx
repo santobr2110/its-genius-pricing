@@ -31,7 +31,10 @@ import AprovacaoToken from "./pages/AprovacaoToken";
 import MinhasAprovacoes from "./pages/MinhasAprovacoes";
 import MinhasSolicitacoes from "./pages/MinhasSolicitacoes";
 import EmBreve from "./pages/EmBreve";
-import TreinamentoEmConstrucao from "./pages/treinamento/TreinamentoEmConstrucao";
+import TreinamentoLayout from "./pages/treinamento/Layout";
+import TreinamentoConfigurador from "./pages/treinamento/Configurador";
+import TreinamentoProposta from "./pages/treinamento/Proposta";
+import TreinamentoCotacoes from "./pages/treinamento/Cotacoes";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
@@ -103,7 +106,11 @@ const App = () => (
               <Route path="/cloud" element={<ProtectedRoute group="cloud"><EmBreve /></ProtectedRoute>} />
               <Route path="/observabilidade" element={<ProtectedRoute group="observabilidade"><EmBreve /></ProtectedRoute>} />
               {/* Treinamento (Fase 1A): gate provisório = acesso ao Smart ITO */}
-              <Route path="/observabilidade/treinamento" element={<ProtectedRoute group="ito" offering="smart-ito"><TreinamentoEmConstrucao /></ProtectedRoute>} />
+              <Route path="/observabilidade/treinamento" element={<ProtectedRoute group="ito" offering="smart-ito"><TreinamentoLayout /></ProtectedRoute>}>
+                <Route index element={<TreinamentoConfigurador />} />
+                <Route path="proposta" element={<TreinamentoProposta />} />
+                <Route path="cotacoes" element={<TreinamentoCotacoes />} />
+              </Route>
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}
               <Route
