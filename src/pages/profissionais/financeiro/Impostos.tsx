@@ -11,9 +11,7 @@ import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { usePersistentState } from "@/hooks/usePersistentState";
-import { CIDADES_ISS, CidadeISS, getIssPercByCidade } from "@/data/codigosProdutoImposto";
-import { useCodigosProdutoImposto } from "@/hooks/useCodigosProdutoImposto";
-import ProdutosImpostoManager from "@/components/itsm/ProdutosImpostoManager";
+import ProdutoFiscalCard from "@/components/financeiro/ProdutoFiscalCard";
 import type { ProfFinState } from "@/hooks/useProfFinanceiro";
 
 const BASE = "/profissionais-alocados/financeiro";
@@ -37,75 +35,12 @@ export default function FinanceiroImpostosProf() {
   const pv = comp.precoVenda;
   const invalid = comp.totalEncargosPerc >= 100;
 
-  const { lista: produtos } = useCodigosProdutoImposto();
-  const [codigoProduto, setCodigoProduto] = usePersistentState<string>("prof.financeiro.codigoProduto", produtos[0]?.codigo ?? "");
-  const [cidadeIss, setCidadeIss] = usePersistentState<CidadeISS>("prof.financeiro.cidadeIss", "jlle");
-  const produto = produtos.find(p => p.codigo === codigoProduto) ?? produtos[0];
-  const issAtual = produto ? getIssPercByCidade(produto, cidadeIss) : 0;
-
-  useEffect(() => {
-    if (!produto) return;
-    if (state.pisPerc !== produto.pis) update("pisPerc", produto.pis);
-    if (state.cofinsPerc !== produto.cofins) update("cofinsPerc", produto.cofins);
-    if (state.issPerc !== issAtual) update("issPerc", issAtual);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [produto?.codigo, cidadeIss]);
-
-  if (!produto) return <div className="p-6">Carregando códigos de produto…</div>;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <FinanceiroSubNav basePath={BASE} />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2"><Package className="h-4 w-4 text-primary" /> Código do Produto para Faturamento</CardTitle>
-              <p className="text-xs text-muted-foreground">Selecione o código fiscal do produto. PIS, COFINS e ISS do Markup Divisor serão preenchidos automaticamente.</p>
-            </div>
-            <ProdutosImpostoManager />
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium">Código / Descrição</Label>
-              <Select value={codigoProduto} onValueChange={setCodigoProduto}>
-                <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                <SelectContent className="max-h-[60vh]">
-                  {produtos.map((p) => (
-                    <SelectItem key={p.codigo} value={p.codigo}>
-                      <span className="font-mono text-xs mr-2">{p.codigo}</span>
-                      <span className="text-xs">{p.descricao}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium flex items-center gap-1"><MapPin className="h-3 w-3" /> Município do ISS</Label>
-              <RadioGroup value={cidadeIss} onValueChange={(v) => setCidadeIss(v as CidadeISS)} className="flex gap-1 rounded-md border bg-background p-1">
-                {CIDADES_ISS.map((c) => (
-                  <label key={c.value} className={`flex-1 flex items-center justify-center gap-1.5 rounded px-2 py-1.5 text-xs cursor-pointer transition-colors ${cidadeIss === c.value ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted"}`}>
-                    <RadioGroupItem value={c.value} className="sr-only" />
-                    {c.label}
-                    <span className="tabular-nums opacity-80">({getIssPercByCidade(produto, c.value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%)</span>
-                  </label>
-                ))}
-              </RadioGroup>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
-            <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">BU Deb.</p><p className="font-mono font-semibold text-foreground">{produto.buDeb}</p></div>
-            <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Cta Contábil</p><p className="font-mono font-semibold text-foreground">{produto.ctaContabil}</p></div>
-            <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Cod.Serv.ISS</p><p className="font-mono font-semibold text-foreground">{produto.codServIss}</p></div>
-            <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">PIS / COFINS</p><p className="font-semibold text-foreground tabular-nums">{produto.pis.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}% / {produto.cofins.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%</p></div>
-            <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">ISS aplicado</p><p className="font-bold text-primary tabular-nums">{issAtual.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%<span className="ml-1 text-[10px] text-muted-foreground">({CIDADES_ISS.find(c => c.value === cidadeIss)?.short})</span></p></div>
-          </div>
-        </CardContent>
-      </Card>
+      <ProdutoFiscalCard storagePrefix="prof.financeiro" current={state} onApply={(r) => { update("pisPerc", r.pisPerc); update("cofinsPerc", r.cofinsPerc); update("issPerc", r.issPerc); }} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
