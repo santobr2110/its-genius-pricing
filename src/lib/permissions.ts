@@ -61,7 +61,10 @@ export type PermissionKey =
   // Observabilidade › Treinamento
   | "page.trn.view"
   | "page.trn.admin"
-  | "page.trn.params";
+  | "page.trn.params"
+  | "page.trn.quote"
+  | "page.trn.proposal"
+  | "page.trn.approve";
 
 export interface PermissionDef {
   key: PermissionKey;
@@ -134,6 +137,9 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.trn.view",  label: "Acessar Treinamento (cursos e parâmetros)", group: "Observabilidade › Treinamento" },
   { key: "page.trn.admin", label: "Administrar Treinamento (cursos, conteúdo, combos, parâmetros)", group: "Observabilidade › Treinamento" },
   { key: "page.trn.params", label: "Ver/editar convenção de IR/CSLL no configurador de Treinamento", group: "Observabilidade › Treinamento" },
+  { key: "page.trn.quote", label: "Montar e salvar cotações de Treinamento", group: "Observabilidade › Treinamento" },
+  { key: "page.trn.proposal", label: "Emitir proposta de Treinamento", group: "Observabilidade › Treinamento" },
+  { key: "page.trn.approve", label: "Aprovar descontos de Treinamento fora da faixa", group: "Observabilidade › Treinamento" },
 ];
 
 export const PERMISSION_GROUPS = Array.from(new Set(PERMISSIONS.map((p) => p.group)));

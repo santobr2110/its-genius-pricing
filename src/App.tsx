@@ -106,7 +106,7 @@ const App = () => (
               <Route path="/cloud" element={<ProtectedRoute group="cloud"><EmBreve /></ProtectedRoute>} />
               <Route path="/observabilidade" element={<ProtectedRoute group="observabilidade"><EmBreve /></ProtectedRoute>} />
               {/* Treinamento (Fase 1A): gate provisório = acesso ao Smart ITO */}
-              <Route path="/observabilidade/treinamento" element={<ProtectedRoute group="ito" offering="smart-ito"><TreinamentoLayout /></ProtectedRoute>}>
+              <Route path="/observabilidade/treinamento" element={<ProtectedRoute permission="page.trn.view"><TreinamentoLayout /></ProtectedRoute>}>
                 <Route index element={<TreinamentoConfigurador />} />
                 <Route path="proposta" element={<TreinamentoProposta />} />
                 <Route path="cotacoes" element={<TreinamentoCotacoes />} />
