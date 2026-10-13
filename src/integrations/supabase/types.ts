@@ -389,6 +389,53 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_products: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          grupo_slug: string
+          id: string
+          nome: string
+          observacao: string | null
+          offering_slug: string
+          part_number_interno: string | null
+          sku_faturamento: string | null
+          tax_product_code_id: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          grupo_slug: string
+          id?: string
+          nome: string
+          observacao?: string | null
+          offering_slug: string
+          part_number_interno?: string | null
+          sku_faturamento?: string | null
+          tax_product_code_id?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          grupo_slug?: string
+          id?: string
+          nome?: string
+          observacao?: string | null
+          offering_slug?: string
+          part_number_interno?: string | null
+          sku_faturamento?: string | null
+          tax_product_code_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_products_tax_product_code_id_fkey"
+            columns: ["tax_product_code_id"]
+            isOneToOne: false
+            referencedRelation: "tax_product_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_precificacao: {
         Row: {
           atualizado_em: string
@@ -867,6 +914,86 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string
+        }
+        Relationships: []
+      }
+      tax_product_code_rates: {
+        Row: {
+          a_confirmar: boolean
+          cofins_perc: number
+          created_at: string
+          id: string
+          iss_perc: number
+          municipio: string
+          pis_perc: number
+          tax_product_code_id: string
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          a_confirmar?: boolean
+          cofins_perc?: number
+          created_at?: string
+          id?: string
+          iss_perc?: number
+          municipio: string
+          pis_perc?: number
+          tax_product_code_id: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Update: {
+          a_confirmar?: boolean
+          cofins_perc?: number
+          created_at?: string
+          id?: string
+          iss_perc?: number
+          municipio?: string
+          pis_perc?: number
+          tax_product_code_id?: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_product_code_rates_tax_product_code_id_fkey"
+            columns: ["tax_product_code_id"]
+            isOneToOne: false
+            referencedRelation: "tax_product_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_product_codes: {
+        Row: {
+          a_confirmar: boolean
+          ativo: boolean
+          codigo: string
+          created_at: string
+          descricao: string | null
+          id: string
+          lc116_item: string | null
+          nome: string
+        }
+        Insert: {
+          a_confirmar?: boolean
+          ativo?: boolean
+          codigo: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          lc116_item?: string | null
+          nome: string
+        }
+        Update: {
+          a_confirmar?: boolean
+          ativo?: boolean
+          codigo?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          lc116_item?: string | null
+          nome?: string
         }
         Relationships: []
       }

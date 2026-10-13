@@ -1,0 +1,293 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`não-regressão BodyShop > com extras (benefício) 1`] = `
+{
+  "custoTotal": 26340,
+  "markupDivisorPct": 43.27,
+  "valorHora": 276.3718,
+  "valorSprint": 22109.7429,
+  "valorVenda": 46430.4601,
+}
+`;
+
+exports[`não-regressão BodyShop > sem extras 1`] = `
+{
+  "custoTotal": 24840,
+  "markupDivisorPct": 43.27,
+  "valorHora": 260.6331,
+  "valorSprint": 20850.6459,
+  "valorVenda": 43786.3564,
+}
+`;
+
+exports[`não-regressão Observabilidade M1–M4 > M1 1`] = `
+{
+  "custoAntesCarga": 1048.511,
+  "custoFaixas": 1553.94,
+  "custoHoras": 900,
+  "custoMedioPorUM": 7.6355,
+  "custoMonitoramento": 1174.3323,
+  "custoProxies": 105,
+  "custoTotal": 2179.3323,
+  "fatorCarga": 1.12,
+  "foraDoModeloUM": false,
+  "nvpsOrigem": "estimado",
+  "nvpsPrevisto": 468,
+  "porte": {
+    "fatorCarga": 1.12,
+    "limiteSuperior": 1000,
+    "nome": "Medium",
+  },
+  "umTotal": 153.8,
+}
+`;
+
+exports[`não-regressão Observabilidade M1–M4 > M2 1`] = `
+{
+  "custoAntesCarga": 1615.46,
+  "custoFaixas": 1553.94,
+  "custoHoras": 900,
+  "custoMedioPorUM": 11.7641,
+  "custoMonitoramento": 1809.3152,
+  "custoProxies": 105,
+  "custoTotal": 2814.3152,
+  "fatorCarga": 1.12,
+  "foraDoModeloUM": false,
+  "nvpsOrigem": "estimado",
+  "nvpsPrevisto": 468,
+  "porte": {
+    "fatorCarga": 1.12,
+    "limiteSuperior": 1000,
+    "nome": "Medium",
+  },
+  "umTotal": 153.8,
+}
+`;
+
+exports[`não-regressão Observabilidade M1–M4 > M3 1`] = `
+{
+  "custoAntesCarga": 1793.924,
+  "custoFaixas": 1553.94,
+  "custoHoras": 900,
+  "custoMedioPorUM": 13.0637,
+  "custoMonitoramento": 2009.1949,
+  "custoProxies": 105,
+  "custoTotal": 3014.1949,
+  "fatorCarga": 1.12,
+  "foraDoModeloUM": false,
+  "nvpsOrigem": "estimado",
+  "nvpsPrevisto": 468,
+  "porte": {
+    "fatorCarga": 1.12,
+    "limiteSuperior": 1000,
+    "nome": "Medium",
+  },
+  "umTotal": 153.8,
+}
+`;
+
+exports[`não-regressão Observabilidade M1–M4 > M4 1`] = `
+{
+  "custoAntesCarga": 0,
+  "custoFaixas": 1553.94,
+  "custoHoras": 900,
+  "custoMedioPorUM": 0,
+  "custoMonitoramento": 0,
+  "custoProxies": 105,
+  "custoTotal": 1005,
+  "fatorCarga": 1.12,
+  "foraDoModeloUM": true,
+  "nvpsOrigem": "estimado",
+  "nvpsPrevisto": 468,
+  "porte": {
+    "fatorCarga": 1.12,
+    "limiteSuperior": 1000,
+    "nome": "Medium",
+  },
+  "umTotal": 153.8,
+}
+`;
+
+exports[`não-regressão Smart ITO > flow com extras 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 319.4918,
+    "comissao": 909.4868,
+    "custo": 5911.664,
+    "custoPerc": 55.51,
+    "encFinanc": 0,
+    "irpjCsll": 1096.922,
+    "iss": 212.9946,
+    "lucro": 2129.9456,
+    "margemContribuicao": 3226.8676,
+    "pis": 69.2232,
+    "precoVenda": 10649.728,
+    "receitaLiquida": 10048.0183,
+    "resultadoOperacional": 2129.9456,
+    "totalEncargosPerc": 44.49,
+  },
+  "custoTotalOperacao": 5911.664,
+  "precoVendaMensal": 10649.728,
+}
+`;
+
+exports[`não-regressão Smart ITO > flow sem extras 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 184.381,
+    "comissao": 524.8714,
+    "custo": 3411.664,
+    "custoPerc": 55.51,
+    "encFinanc": 0,
+    "irpjCsll": 633.0416,
+    "iss": 122.9207,
+    "lucro": 1229.207,
+    "margemContribuicao": 1862.2486,
+    "pis": 39.9492,
+    "precoVenda": 6146.0349,
+    "receitaLiquida": 5798.784,
+    "resultadoOperacional": 1229.207,
+    "totalEncargosPerc": 44.49,
+  },
+  "custoTotalOperacao": 3411.664,
+  "precoVendaMensal": 6146.0349,
+}
+`;
+
+exports[`não-regressão Smart ITO > monitor com extras 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 302.4104,
+    "comissao": 860.8615,
+    "custo": 5595.6,
+    "custoPerc": 55.51,
+    "encFinanc": 0,
+    "irpjCsll": 1038.2756,
+    "iss": 201.6069,
+    "lucro": 2016.0692,
+    "margemContribuicao": 3054.3448,
+    "pis": 65.5222,
+    "precoVenda": 10080.3459,
+    "receitaLiquida": 9510.8063,
+    "resultadoOperacional": 2016.0692,
+    "totalEncargosPerc": 44.49,
+  },
+  "custoTotalOperacao": 5595.6,
+  "precoVendaMensal": 10080.3459,
+}
+`;
+
+exports[`não-regressão Smart ITO > monitor sem extras 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 167.2996,
+    "comissao": 476.2462,
+    "custo": 3095.6,
+    "custoPerc": 55.51,
+    "encFinanc": 0,
+    "irpjCsll": 574.3952,
+    "iss": 111.5331,
+    "lucro": 1115.3306,
+    "margemContribuicao": 1689.7258,
+    "pis": 36.2482,
+    "precoVenda": 5576.6529,
+    "receitaLiquida": 5261.572,
+    "resultadoOperacional": 1115.3306,
+    "totalEncargosPerc": 44.49,
+  },
+  "custoTotalOperacao": 3095.6,
+  "precoVendaMensal": 5576.6529,
+}
+`;
+
+exports[`não-regressão Smart ITO > operation com extras 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 982.8997,
+    "comissao": 2797.9877,
+    "custo": 18186.92,
+    "custoPerc": 55.51,
+    "encFinanc": 0,
+    "irpjCsll": 3374.6222,
+    "iss": 655.2664,
+    "lucro": 6552.6644,
+    "margemContribuicao": 9927.2865,
+    "pis": 212.9616,
+    "precoVenda": 32763.3219,
+    "receitaLiquida": 30912.1942,
+    "resultadoOperacional": 6552.6644,
+    "totalEncargosPerc": 44.49,
+  },
+  "custoTotalOperacao": 18186.92,
+  "precoVendaMensal": 32763.3219,
+}
+`;
+
+exports[`não-regressão Smart ITO > operation sem extras 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 847.7889,
+    "comissao": 2413.3723,
+    "custo": 15686.92,
+    "custoPerc": 55.51,
+    "encFinanc": 0,
+    "irpjCsll": 2910.7418,
+    "iss": 565.1926,
+    "lucro": 5651.9258,
+    "margemContribuicao": 8562.6676,
+    "pis": 183.6876,
+    "precoVenda": 28259.6289,
+    "receitaLiquida": 26662.9599,
+    "resultadoOperacional": 5651.9258,
+    "totalEncargosPerc": 44.49,
+  },
+  "custoTotalOperacao": 15686.92,
+  "precoVendaMensal": 28259.6289,
+}
+`;
+
+exports[`não-regressão Smart ITO > performance com extras 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 982.8997,
+    "comissao": 2797.9877,
+    "custo": 18186.92,
+    "custoPerc": 55.51,
+    "encFinanc": 0,
+    "irpjCsll": 3374.6222,
+    "iss": 655.2664,
+    "lucro": 6552.6644,
+    "margemContribuicao": 9927.2865,
+    "pis": 212.9616,
+    "precoVenda": 32763.3219,
+    "receitaLiquida": 30912.1942,
+    "resultadoOperacional": 6552.6644,
+    "totalEncargosPerc": 44.49,
+  },
+  "custoTotalOperacao": 18186.92,
+  "precoVendaMensal": 32763.3219,
+}
+`;
+
+exports[`não-regressão Smart ITO > performance sem extras 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 847.7889,
+    "comissao": 2413.3723,
+    "custo": 15686.92,
+    "custoPerc": 55.51,
+    "encFinanc": 0,
+    "irpjCsll": 2910.7418,
+    "iss": 565.1926,
+    "lucro": 5651.9258,
+    "margemContribuicao": 8562.6676,
+    "pis": 183.6876,
+    "precoVenda": 28259.6289,
+    "receitaLiquida": 26662.9599,
+    "resultadoOperacional": 5651.9258,
+    "totalEncargosPerc": 44.49,
+  },
+  "custoTotalOperacao": 15686.92,
+  "precoVendaMensal": 28259.6289,
+}
+`;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users, BriefcaseBusiness } from "lucide-react";
+import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users, BriefcaseBusiness, GraduationCap } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import {
   SMART_ITO_ACCESS_KEY,
   PACOTE_HORAS_ACCESS_KEY,
   PROFISSIONAIS_ALOCADOS_ACCESS_KEY,
+  TREINAMENTO_PROVISORIO_GATE,
 } from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";
 
@@ -105,7 +106,17 @@ const GROUPS: GroupCard[] = [
     glow: "shadow-[0_0_40px_-10px_rgba(20,184,166,0.6)]",
     accent: "text-teal-400",
     ring: "group-hover:ring-teal-400/50",
-    offerings: [],
+    offerings: [
+      {
+        id: "treinamento",
+        title: "Treinamento",
+        description: "Cursos oficiais Zabbix e corporativo Grafana.",
+        to: "/observabilidade/treinamento",
+        icon: GraduationCap,
+        available: true,
+        permissionKey: TREINAMENTO_PROVISORIO_GATE as PermissionKey,
+      },
+    ],
   },
 ];
 
@@ -122,7 +133,7 @@ export default function Hub() {
     return () => obs.disconnect();
   }, []);
   const visibleGroups = GROUPS
-    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey))
+    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey) || (g.id === "observabilidade" && can(TREINAMENTO_PROVISORIO_GATE as PermissionKey)))
     .map((g) => ({
       ...g,
       offerings: g.offerings.filter((o) => !o.permissionKey || can(o.permissionKey)),

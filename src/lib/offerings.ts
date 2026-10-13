@@ -75,7 +75,15 @@ export const GROUPS: GroupDef[] = [
   },
   { slug: "datacenter",     name: "Datacenter",     status: "coming_soon", route: "/datacenter",     offerings: [] },
   { slug: "cloud",          name: "Cloud",          status: "coming_soon", route: "/cloud",          offerings: [] },
-  { slug: "observabilidade",name: "Observabilidade",status: "coming_soon", route: "/observabilidade",offerings: [] },
+  { slug: "observabilidade",name: "Observabilidade",status: "coming_soon", route: "/observabilidade",offerings: [
+    {
+      slug: "treinamento",
+      name: "Treinamento",
+      status: "active",
+      routePrefix: "/observabilidade/treinamento",
+      routes: ["/observabilidade/treinamento"],
+    },
+  ] },
 ];
 
 export function findGroup(slug: string): GroupDef | undefined {
@@ -130,4 +138,7 @@ export const GROUP_ACCESS_KEYS: Record<GroupSlug, string> = {
 export const SMART_ITO_ACCESS_KEY = offeringAccessKey("ito", "smart-ito");
 export const PACOTE_HORAS_ACCESS_KEY = offeringAccessKey("ito", "pacote-horas");
 export const BODYSHOP_ACCESS_KEY = offeringAccessKey("ito", "bodyshop");
+export const TREINAMENTO_ACCESS_KEY = offeringAccessKey("observabilidade", "treinamento");
+/** Gate provisório do Treinamento (Fase 1A): mesmos perfis com acesso ao Smart ITO. */
+export const TREINAMENTO_PROVISORIO_GATE = SMART_ITO_ACCESS_KEY;
 export const PROFISSIONAIS_ALOCADOS_ACCESS_KEY = offeringAccessKey("ito", "profissionais-alocados");

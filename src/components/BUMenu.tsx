@@ -8,13 +8,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users, Package, BriefcaseBusiness } from "lucide-react";
+import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users, Package, BriefcaseBusiness, GraduationCap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   GROUP_ACCESS_KEYS,
   PACOTE_HORAS_ACCESS_KEY,
   SMART_ITO_ACCESS_KEY,
   PROFISSIONAIS_ALOCADOS_ACCESS_KEY,
+  TREINAMENTO_PROVISORIO_GATE,
 } from "@/lib/offerings";
 import type { PermissionKey } from "@/lib/permissions";
 
@@ -64,7 +65,9 @@ const GROUPS_MENU: GroupItem[] = [
   },
   { id: "datacenter", label: "Datacenter", icon: Server, offerings: [] },
   { id: "cloud", label: "Cloud", icon: Cloud, offerings: [] },
-  { id: "observabilidade", label: "Observabilidade", icon: Activity, offerings: [] },
+  { id: "observabilidade", label: "Observabilidade", icon: Activity, offerings: [
+    { id: "treinamento", label: "Treinamento", description: "Zabbix e Grafana", to: "/observabilidade/treinamento", icon: GraduationCap, permissionKey: TREINAMENTO_PROVISORIO_GATE },
+  ] },
 ];
 
 const GROUP_ROUTE: Record<GroupSlug, string> = {
@@ -79,7 +82,7 @@ export default function BUMenu() {
   const { can } = useAuth();
 
   const visibleGroups = GROUPS_MENU
-    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey))
+    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey) || (g.id === "observabilidade" && can(TREINAMENTO_PROVISORIO_GATE as PermissionKey)))
     .map((g) => ({
       ...g,
       offerings: g.offerings.filter((o) => !o.permissionKey || can(o.permissionKey as PermissionKey)),
@@ -88,11 +91,12 @@ export default function BUMenu() {
   const currentGroupId: GroupSlug | null =
     pathname === "/datacenter" ? "datacenter"
     : pathname === "/cloud" ? "cloud"
-    : pathname === "/observabilidade" ? "observabilidade"
+    : (pathname === "/observabilidade" || pathname.startsWith("/observabilidade/")) ? "observabilidade"
     : (pathname === "/pacote-horas" || pathname.startsWith("/profissionais-alocados") || ITO_PATHS.has(pathname)) ? "ito"
     : null;
   const currentOfferingId: string | null =
-    pathname === "/pacote-horas" ? "pacote-horas"
+    pathname.startsWith("/observabilidade/treinamento") ? "treinamento"
+    : pathname === "/pacote-horas" ? "pacote-horas"
     : pathname.startsWith("/profissionais-alocados") ? "profissionais-alocados"
     : ITO_PATHS.has(pathname) ? "ito"
     : null;

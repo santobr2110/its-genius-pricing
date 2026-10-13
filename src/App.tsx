@@ -31,6 +31,7 @@ import AprovacaoToken from "./pages/AprovacaoToken";
 import MinhasAprovacoes from "./pages/MinhasAprovacoes";
 import MinhasSolicitacoes from "./pages/MinhasSolicitacoes";
 import EmBreve from "./pages/EmBreve";
+import TreinamentoEmConstrucao from "./pages/treinamento/TreinamentoEmConstrucao";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
@@ -101,6 +102,8 @@ const App = () => (
               <Route path="/datacenter" element={<ProtectedRoute group="datacenter"><EmBreve /></ProtectedRoute>} />
               <Route path="/cloud" element={<ProtectedRoute group="cloud"><EmBreve /></ProtectedRoute>} />
               <Route path="/observabilidade" element={<ProtectedRoute group="observabilidade"><EmBreve /></ProtectedRoute>} />
+              {/* Treinamento (Fase 1A): gate provisório = acesso ao Smart ITO */}
+              <Route path="/observabilidade/treinamento" element={<ProtectedRoute group="ito" offering="smart-ito"><TreinamentoEmConstrucao /></ProtectedRoute>} />
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}
               <Route
