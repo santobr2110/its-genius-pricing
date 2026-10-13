@@ -34,7 +34,11 @@ export function useTreinamentoCotacoes() {
   const salvar = useCallback(async (id: string | null, name: string, clientName: string, payload: TreinamentoPayload) => {
     if (!user) throw new Error("Sessão expirada");
     if (id) {
-      const { error } = await supabase.from("pricing_presets").update({ name, client_name: clientName || null, payload: payload as never }).eq("id", id);
+      // Preserva as versões de proposta já emitidas (valores congelados).
+      const { data: atual } = await supabase.from("pricing_presets").select("payload").eq("id", id).maybeSingle();
+      const emissoes = (atual?.payload as { emissoes?: unknown[] } | null)?.emissoes;
+      const merged = emissoes ? { ...payload, emissoes } : payload;
+      const { error } = await supabase.from("pricing_presets").update({ name, client_name: clientName || null, payload: merged as never }).eq("id", id);
       if (error) throw error;
       await refresh();
       return id;
