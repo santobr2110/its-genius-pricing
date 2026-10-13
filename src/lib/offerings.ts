@@ -139,6 +139,6 @@ export const SMART_ITO_ACCESS_KEY = offeringAccessKey("ito", "smart-ito");
 export const PACOTE_HORAS_ACCESS_KEY = offeringAccessKey("ito", "pacote-horas");
 export const BODYSHOP_ACCESS_KEY = offeringAccessKey("ito", "bodyshop");
 export const TREINAMENTO_ACCESS_KEY = offeringAccessKey("observabilidade", "treinamento");
-/** Gate provisório do Treinamento (Fase 1A): mesmos perfis com acesso ao Smart ITO. */
-export const TREINAMENTO_PROVISORIO_GATE = SMART_ITO_ACCESS_KEY;
+/** Gate do Treinamento (Fase 5): permissão própria page.trn.view. */
+export const TREINAMENTO_PROVISORIO_GATE = "page.trn.view";
 export const PROFISSIONAIS_ALOCADOS_ACCESS_KEY = offeringAccessKey("ito", "profissionais-alocados");
