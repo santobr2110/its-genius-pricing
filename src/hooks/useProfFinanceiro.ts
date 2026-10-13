@@ -67,7 +67,7 @@ export interface ProfComposicao {
   custoPerc: number;
 }
 
-function computeComposicao(state: ProfFinState, custo: number): ProfComposicao {
+export function computeComposicao(state: ProfFinState, custo: number): ProfComposicao {
   const totalEncargosPerc =
     state.pisPerc + state.cofinsPerc + state.issPerc +
     state.irpjCsllPerc + state.encFinancPerc +

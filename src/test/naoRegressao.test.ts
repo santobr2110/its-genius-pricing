@@ -46,3 +46,35 @@ describe("não-regressão Observabilidade M1–M4", () => {
     });
   }
 });
+
+// ---- Fase 1B: cenários adicionais congelados ANTES da migração para computeCascata ----
+import { computeComposicao, PROF_FIN_DEFAULTS } from "@/hooks/useProfFinanceiro";
+
+describe("não-regressão Fase 1B — bordas de Σ", () => {
+  const altos = { pisPerc: 30, cofinsPerc: 30, issPerc: 20, comissaoPerc: 10, irpjCsllPerc: 5, encFinancPerc: 3, lucroPerc: 2 }; // Σ = 100
+  it("Smart ITO Σ = 100 (sem preço)", () => {
+    const s = { ...base, ...CAMADAS.operation, ...altos };
+    expect(pick(computeITSMResults(s))).toMatchSnapshot();
+    expect(pick(recomputeComposicaoComExtras(s, computeITSMResults(s), 2500))).toMatchSnapshot();
+  });
+  it("Smart ITO Σ = 99,5", () => {
+    const s = { ...base, ...CAMADAS.flow, ...altos, lucroPerc: 1.5 };
+    expect(pick(recomputeComposicaoComExtras(s, computeITSMResults(s), 777))).toMatchSnapshot();
+  });
+  it("Smart ITO percentuais negativos/NaN viram 0", () => {
+    const s = { ...base, ...CAMADAS.monitor, pisPerc: -5, cofinsPerc: NaN as unknown as number };
+    expect(pick(computeITSMResults(s))).toMatchSnapshot();
+  });
+  it("BodyShop teto 99 (Σ 120 e Σ negativo)", () => {
+    const input = { salario: 9000, encargosPct: 70, overheadPct: 10, horasMensais: 160 };
+    expect(round(calcularPrecificacao({ ...input, markupDivisorPct: 120 }))).toMatchSnapshot();
+    expect(round(calcularPrecificacao({ ...input, markupDivisorPct: -10 }))).toMatchSnapshot();
+    expect(round(calcularPrecificacao({ ...input, markupDivisorPct: 99.5, beneficio: 800 }))).toMatchSnapshot();
+  });
+  it("BodyShop composição financeira (defaults, Σ alto, negativos)", () => {
+    expect(round(computeComposicao(PROF_FIN_DEFAULTS, 25000))).toMatchSnapshot();
+    expect(round(computeComposicao({ ...PROF_FIN_DEFAULTS, lucroPerc: 95 }, 25000))).toMatchSnapshot();
+    expect(round(computeComposicao({ ...PROF_FIN_DEFAULTS, pisPerc: -2, comissaoPerc: 0 }, 18000))).toMatchSnapshot();
+    expect(round(computeComposicao(PROF_FIN_DEFAULTS, 0))).toMatchSnapshot();
+  });
+});
