@@ -142,11 +142,16 @@ export default function Detalhamento() {
     : undefined;
   const exportBlocked = !isSavedPricing || approvalBlocked;
   // No modelo de níveis, os proxys exibidos nos relatórios são os do novo modelo (cobrados no monitoramento).
-  const obsProxyOverride = obsNiveisAtivo
-    ? { qtdProxys: obsEf.proxies, custoProxys: obsEf.proxies * obsCustoProxyRel }
-    : {};
-  const sm = { ...results.smartMonitor, ...obsProxyOverride };
-  const sf = { ...results.smartFlow, ...obsProxyOverride };
+  // O custo dos proxys já está dentro do monitoramento: separamos a parcela (sem somar
+  // duas vezes) e a atribuímos a uma única camada (Flow quando ativo, senão Monitor).
+  const obsCustoProxiesTot = obsEf.proxies * obsCustoProxyRel;
+  const obsProxyOverride = (r: { custoMonitoramento: number }, recebe: boolean) =>
+    !obsNiveisAtivo ? {}
+    : recebe
+      ? { qtdProxys: obsEf.proxies, custoProxys: obsCustoProxiesTot, custoMonitoramento: Math.max(0, r.custoMonitoramento - obsCustoProxiesTot) }
+      : { qtdProxys: 0, custoProxys: 0 };
+  const sm = { ...results.smartMonitor, ...obsProxyOverride(results.smartMonitor, !state.tierFlow) };
+  const sf = { ...results.smartFlow, ...obsProxyOverride(results.smartFlow, true) };
 
   // Dados de cadastro da precificação (via preset ativo)
   type PresetCadastro = {
