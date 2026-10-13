@@ -99,7 +99,7 @@ export default function Configurador() {
           <div className="flex flex-wrap items-center gap-2">
             {codigoAtual && <Badge variant="outline" className="font-mono">{codigoAtual}</Badge>}
             <Button variant="outline" onClick={nova}><FilePlus2 className="h-4 w-4 mr-1" /> Nova</Button>
-            <Button onClick={salvar} disabled={salvando || linhas.length === 0}><Save className="h-4 w-4 mr-1" /> Salvar</Button>
+            <Button onClick={salvar} disabled={salvando || linhas.length === 0 || !can("page.trn.quote")}><Save className="h-4 w-4 mr-1" /> Salvar</Button>
           </div>
         </CardContent>
       </Card>

@@ -10,6 +10,7 @@ import { FileText, Loader2, Printer, Stamp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTreinamentoCotacoes } from "@/hooks/useTreinamentoCotacoes";
 import { useTreinamentoResultado } from "./useTreinamentoResultado";
 import type { TrainingCourseContent } from "@/lib/treinamento/types";
@@ -31,6 +32,8 @@ export interface EmissaoTRN {
 export default function TreinamentoProposta() {
   const { cad, st, res, loading } = useTreinamentoResultado();
   const cot = useTreinamentoCotacoes();
+  const { can } = useAuth();
+  const podeEmitir = can("page.trn.proposal");
   const [dados, setDados] = usePersistentState<DadosProposta>("observabilidade.treinamento.proposta", DADOS_PADRAO);
   const d = { ...DADOS_PADRAO, ...dados };
   const [emitindo, setEmitindo] = useState(false);
@@ -84,7 +87,7 @@ export default function TreinamentoProposta() {
             <div><Label>Condições de pagamento</Label><Textarea rows={2} value={d.condicoesPagamento} onChange={(e) => setDados({ ...d, condicoesPagamento: e.target.value })} /></div>
             <div><Label>Observações</Label><Textarea rows={3} value={d.observacoes} onChange={(e) => setDados({ ...d, observacoes: e.target.value })} /></div>
             <div className="flex flex-col gap-2 pt-2">
-              <Button onClick={emitir} disabled={emitindo}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar valores)</Button>
+              <Button onClick={emitir} disabled={emitindo || !podeEmitir}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar valores)</Button>
               <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir / salvar PDF</Button>
             </div>
             {!salvo && <p className="text-xs text-muted-foreground">Salve a cotação no Configurador para poder emitir.</p>}
