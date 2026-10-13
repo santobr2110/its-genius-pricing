@@ -60,7 +60,8 @@ export type PermissionKey =
   | "prof.pricing.export"
   // Observabilidade › Treinamento
   | "page.trn.view"
-  | "page.trn.admin";
+  | "page.trn.admin"
+  | "page.trn.params";
 
 export interface PermissionDef {
   key: PermissionKey;
@@ -132,6 +133,7 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "prof.pricing.export",                label: "Exportar propostas (Profissionais)",     group: "ITO › Profissionais Alocados" },
   { key: "page.trn.view",  label: "Acessar Treinamento (cursos e parâmetros)", group: "Observabilidade › Treinamento" },
   { key: "page.trn.admin", label: "Administrar Treinamento (cursos, conteúdo, combos, parâmetros)", group: "Observabilidade › Treinamento" },
+  { key: "page.trn.params", label: "Ver/editar convenção de IR/CSLL no configurador de Treinamento", group: "Observabilidade › Treinamento" },
 ];
 
 export const PERMISSION_GROUPS = Array.from(new Set(PERMISSIONS.map((p) => p.group)));

@@ -232,7 +232,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
       </div>
 
       {custo.erros.map((e, i) => <p key={i} className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {e}</p>)}
-      {r.avisos.map((a, i) => <p key={i} className="text-xs text-amber-700 dark:text-amber-400 flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {a}</p>)}
+      {r.avisos.map((a, i) => <p key={i} className="text-xs text-muted-foreground flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {a}</p>)}
 
       {preco && cascata && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 rounded-md bg-muted/40 p-2 text-xs">
@@ -244,7 +244,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
         </div>
       )}
       {ref != null && difRef != null && (
-        <p className={`text-xs ${Math.abs(difRef) > 20 ? "text-amber-700 dark:text-amber-400 font-medium" : "text-muted-foreground"}`}>
+        <p className={`text-xs ${Math.abs(difRef) > 20 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
           Mercado praticado: {brl(ref)} por aluno · calculado {brl(r.precoFinalPorAluno)} ({difRef > 0 ? "+" : ""}{difRef.toFixed(1)}%)
         </p>
       )}
@@ -263,7 +263,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
             </div>
             <div className="space-y-1">
               <p className="font-semibold">Cascata (preço de tabela {brl(preco.precoTurma)})</p>
-              <Linha l={`PIS ${pct(r.preco!.cascata.totalEncargosPerc ? (cascata.pis / cascata.precoVenda) * 100 : 0)}`} v={brl(cascata.pis)} />
+              <Linha l="PIS" v={brl(cascata.pis)} />
               <Linha l="COFINS" v={brl(cascata.cofins)} />
               <Linha l="ISS" v={brl(cascata.iss)} />
               <Linha l="Comissão" v={brl(cascata.comissao)} />
