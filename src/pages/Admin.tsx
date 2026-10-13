@@ -143,7 +143,7 @@ interface UserRow {
 }
 
 export default function Admin() {
-  const { user, refresh } = useAuth();
+  const { user, refresh, can } = useAuth();
   const [roles, setRoles] = useState<RoleRow[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
