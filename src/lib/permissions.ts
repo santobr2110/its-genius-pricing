@@ -57,7 +57,10 @@ export type PermissionKey =
   // Profissionais Alocados — ações
   | "prof.pricing.save"
   | "prof.pricing.delete"
-  | "prof.pricing.export";
+  | "prof.pricing.export"
+  // Observabilidade › Treinamento
+  | "page.trn.view"
+  | "page.trn.admin";
 
 export interface PermissionDef {
   key: PermissionKey;
@@ -70,7 +73,8 @@ export interface PermissionDef {
     | "ITO › Smart ITO › Equipes"
     | "ITO › Smart ITO › Financeiro"
     | "ITO › Profissionais Alocados"
-    | "Administração";
+    | "Administração"
+    | "Observabilidade › Treinamento";
 }
 
 export const PERMISSIONS: PermissionDef[] = [
@@ -126,6 +130,8 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "prof.pricing.save",                  label: "Salvar cotações (Profissionais)",        group: "ITO › Profissionais Alocados" },
   { key: "prof.pricing.delete",                label: "Excluir cotações (Profissionais)",       group: "ITO › Profissionais Alocados" },
   { key: "prof.pricing.export",                label: "Exportar propostas (Profissionais)",     group: "ITO › Profissionais Alocados" },
+  { key: "page.trn.view",  label: "Acessar Treinamento (cursos e parâmetros)", group: "Observabilidade › Treinamento" },
+  { key: "page.trn.admin", label: "Administrar Treinamento (cursos, conteúdo, combos, parâmetros)", group: "Observabilidade › Treinamento" },
 ];
 
 export const PERMISSION_GROUPS = Array.from(new Set(PERMISSIONS.map((p) => p.group)));
