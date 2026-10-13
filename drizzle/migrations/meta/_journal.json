@@ -15,6 +15,20 @@
       "when": 1791915185460,
       "tag": "0001_treinamento_fase1a_cadastros",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791916947294,
+      "tag": "0002_treinamento_fase2_modelo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791917026510,
+      "tag": "0003_treinamento_fase2_seed",
+      "breakpoints": true
     }
   ]
 }

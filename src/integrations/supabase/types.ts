@@ -997,6 +997,258 @@ export type Database = {
         }
         Relationships: []
       }
+      training_combo_items: {
+        Row: {
+          combo_id: string
+          course_id: string
+          id: string
+          ordem: number
+        }
+        Insert: {
+          combo_id: string
+          course_id: string
+          id?: string
+          ordem?: number
+        }
+        Update: {
+          combo_id?: string
+          course_id?: string
+          id?: string
+          ordem?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_combo_items_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_combo_items_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_course_content: {
+        Row: {
+          a_confirmar: boolean
+          course_id: string
+          cronograma: Json
+          descricao: string | null
+          disponibilidade_texto: string | null
+          entregavel: string | null
+          exame_descricao: string | null
+          formato: string | null
+          habilidades: Json
+          horario: string | null
+          impacto_individual: string | null
+          impacto_organizacional: string | null
+          link_mais_informacoes: string | null
+          pre_requisito: string | null
+          produtos_cobertos: string | null
+          publico_alvo: string | null
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          a_confirmar?: boolean
+          course_id: string
+          cronograma?: Json
+          descricao?: string | null
+          disponibilidade_texto?: string | null
+          entregavel?: string | null
+          exame_descricao?: string | null
+          formato?: string | null
+          habilidades?: Json
+          horario?: string | null
+          impacto_individual?: string | null
+          impacto_organizacional?: string | null
+          link_mais_informacoes?: string | null
+          pre_requisito?: string | null
+          produtos_cobertos?: string | null
+          publico_alvo?: string | null
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          a_confirmar?: boolean
+          course_id?: string
+          cronograma?: Json
+          descricao?: string | null
+          disponibilidade_texto?: string | null
+          entregavel?: string | null
+          exame_descricao?: string | null
+          formato?: string | null
+          habilidades?: Json
+          horario?: string | null
+          impacto_individual?: string | null
+          impacto_organizacional?: string | null
+          link_mais_informacoes?: string | null
+          pre_requisito?: string | null
+          produtos_cobertos?: string | null
+          publico_alvo?: string | null
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_course_content_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: true
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_courses: {
+        Row: {
+          ativo: boolean
+          campos_a_confirmar: string[]
+          catalog_product_id: string | null
+          created_at: string
+          custo_cloud_aluno: number
+          custo_material_aluno: number
+          custo_pendente: boolean
+          dias: number | null
+          exame_course_id: string | null
+          fabricante: string
+          horas_execucao: number
+          id: string
+          max_alunos: number | null
+          min_alunos: number
+          nivel_instrutor: string | null
+          nome: string
+          ordem: number
+          part_number_interno: string | null
+          permite_somente_exame: boolean
+          piso_preco_aluno: number | null
+          preco_referencia_mercado: number | null
+          prerequisito_course_id: string | null
+          slug: string
+          tipo: string
+          updated_at: string
+          valor_fabricante: number | null
+        }
+        Insert: {
+          ativo?: boolean
+          campos_a_confirmar?: string[]
+          catalog_product_id?: string | null
+          created_at?: string
+          custo_cloud_aluno?: number
+          custo_material_aluno?: number
+          custo_pendente?: boolean
+          dias?: number | null
+          exame_course_id?: string | null
+          fabricante: string
+          horas_execucao?: number
+          id?: string
+          max_alunos?: number | null
+          min_alunos?: number
+          nivel_instrutor?: string | null
+          nome: string
+          ordem?: number
+          part_number_interno?: string | null
+          permite_somente_exame?: boolean
+          piso_preco_aluno?: number | null
+          preco_referencia_mercado?: number | null
+          prerequisito_course_id?: string | null
+          slug: string
+          tipo: string
+          updated_at?: string
+          valor_fabricante?: number | null
+        }
+        Update: {
+          ativo?: boolean
+          campos_a_confirmar?: string[]
+          catalog_product_id?: string | null
+          created_at?: string
+          custo_cloud_aluno?: number
+          custo_material_aluno?: number
+          custo_pendente?: boolean
+          dias?: number | null
+          exame_course_id?: string | null
+          fabricante?: string
+          horas_execucao?: number
+          id?: string
+          max_alunos?: number | null
+          min_alunos?: number
+          nivel_instrutor?: string | null
+          nome?: string
+          ordem?: number
+          part_number_interno?: string | null
+          permite_somente_exame?: boolean
+          piso_preco_aluno?: number | null
+          preco_referencia_mercado?: number | null
+          prerequisito_course_id?: string | null
+          slug?: string
+          tipo?: string
+          updated_at?: string
+          valor_fabricante?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_courses_catalog_product_id_fkey"
+            columns: ["catalog_product_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_courses_exame_course_id_fkey"
+            columns: ["exame_course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_courses_prerequisito_course_id_fkey"
+            columns: ["prerequisito_course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_params: {
+        Row: {
+          descricao: string | null
+          key: string
+          label: string
+          ordem: number
+          status: string
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          descricao?: string | null
+          key: string
+          label: string
+          ordem?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          descricao?: string | null
+          key?: string
+          label?: string
+          ordem?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       user_app_state: {
         Row: {
           key: string
