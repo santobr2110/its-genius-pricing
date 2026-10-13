@@ -1,3 +1,4 @@
+import { composicaoSmartITO, percsFromState } from "@/lib/pricing/cascata";
 import type { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import {
   type Rotina,
@@ -126,54 +127,16 @@ export function recomputeComposicaoComExtras(
 ): ITSMResults {
   if (custoExtras <= 0) return results;
 
-  const pisPerc = Math.max(0, state.pisPerc || 0);
-  const cofinsPerc = Math.max(0, state.cofinsPerc || 0);
-  const issPerc = Math.max(0, state.issPerc || 0);
-  const comissaoPerc = Math.max(0, state.comissaoPerc || 0);
-  const irpjCsllPerc = Math.max(0, state.irpjCsllPerc || 0);
-  const encFinancPerc = Math.max(0, state.encFinancPerc || 0);
-  const lucroPerc = Math.max(0, state.lucroPerc || 0);
-  const totalEncargosPerc =
-    pisPerc + cofinsPerc + issPerc + comissaoPerc + irpjCsllPerc + encFinancPerc + lucroPerc;
-  const custoPerc = 100 - totalEncargosPerc;
-  const fatorDivisor = custoPerc > 0 ? custoPerc / 100 : 0;
-
+  // Fase 1B: núcleo compartilhado (src/lib/pricing/cascata.ts, REGRA_SMART_ITO).
   const custoTotalOperacao = results.custoTotalOperacao + custoExtras;
-  const precoVendaMensal = fatorDivisor > 0 ? custoTotalOperacao / fatorDivisor : 0;
-  const valorPis = (precoVendaMensal * pisPerc) / 100;
-  const valorCofins = (precoVendaMensal * cofinsPerc) / 100;
-  const valorIss = (precoVendaMensal * issPerc) / 100;
-  const valorComissao = (precoVendaMensal * comissaoPerc) / 100;
-  const valorIrpjCsll = (precoVendaMensal * irpjCsllPerc) / 100;
-  const valorEncFinanc = (precoVendaMensal * encFinancPerc) / 100;
-  const valorLucro = (precoVendaMensal * lucroPerc) / 100;
-  const valorImpostos = valorPis + valorCofins + valorIss + valorIrpjCsll + valorEncFinanc;
-  const valorMargem = valorLucro;
-  const precoPreImposto = precoVendaMensal - (valorPis + valorCofins + valorIss);
-
+  const c = composicaoSmartITO(custoTotalOperacao, percsFromState(state));
   return {
     ...results,
     custoTotalOperacao,
-    precoVendaMensal,
-    precoPreImposto,
-    valorImpostos,
-    valorMargem,
-    composicaoPreco: {
-      custo: custoTotalOperacao,
-      pis: valorPis,
-      cofins: valorCofins,
-      iss: valorIss,
-      comissao: valorComissao,
-      irpjCsll: valorIrpjCsll,
-      encFinanc: valorEncFinanc,
-      lucro: valorLucro,
-      precoVenda: precoVendaMensal,
-      totalEncargosPerc,
-      custoPerc,
-      receitaLiquida: precoPreImposto,
-      margemContribuicao:
-        precoVendaMensal - custoTotalOperacao - (valorPis + valorCofins + valorIss + valorComissao),
-      resultadoOperacional: valorLucro,
-    },
+    precoVendaMensal: c.precoVenda,
+    precoPreImposto: c.precoPreImposto,
+    valorImpostos: c.valorImpostos,
+    valorMargem: c.valorMargem,
+    composicaoPreco: c.composicao,
   };
 }

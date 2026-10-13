@@ -1,3 +1,4 @@
+import { cascataNucleo, percsFromState, REGRA_BODYSHOP_FINANCEIRO } from "@/lib/pricing/cascata";
 import { useEffect, useState, useCallback } from "react";
 import { DEFAULT_COMISSAO_TIERS, comissaoFromRent, type ComissaoTier } from "@/lib/comissaoRentabilidade";
 import { PERSISTENT_STATE_RESTORED_EVENT } from "./usePersistentState";
@@ -67,24 +68,20 @@ export interface ProfComposicao {
   custoPerc: number;
 }
 
-function computeComposicao(state: ProfFinState, custo: number): ProfComposicao {
-  const totalEncargosPerc =
-    state.pisPerc + state.cofinsPerc + state.issPerc +
-    state.irpjCsllPerc + state.encFinancPerc +
-    state.comissaoPerc + state.lucroPerc;
-  const denom = 1 - Math.min(99.999, totalEncargosPerc) / 100;
-  const precoVenda = denom > 0 ? custo / denom : 0;
-  const pct = (p: number) => (precoVenda * p) / 100;
+export function computeComposicao(state: ProfFinState, custo: number): ProfComposicao {
+  // Fase 1B: núcleo compartilhado com REGRA_BODYSHOP_FINANCEIRO (teto Σ 99,999).
+  const r = cascataNucleo(custo, percsFromState(state), REGRA_BODYSHOP_FINANCEIRO);
+  const precoVenda = r.precoVenda;
   return {
-    pis: pct(state.pisPerc),
-    cofins: pct(state.cofinsPerc),
-    iss: pct(state.issPerc),
-    irpjCsll: pct(state.irpjCsllPerc),
-    encFinanc: pct(state.encFinancPerc),
-    comissao: pct(state.comissaoPerc),
-    lucro: pct(state.lucroPerc),
+    pis: r.valores.pis,
+    cofins: r.valores.cofins,
+    iss: r.valores.iss,
+    irpjCsll: r.valores.irpjCsll,
+    encFinanc: r.valores.encFinanc,
+    comissao: r.valores.comissao,
+    lucro: r.valores.lucro,
     precoVenda,
-    totalEncargosPerc,
+    totalEncargosPerc: r.totalEncargosPerc,
     custoPerc: precoVenda > 0 ? (custo / precoVenda) * 100 : 0,
   };
 }

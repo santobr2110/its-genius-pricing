@@ -20,6 +20,188 @@ exports[`não-regressão BodyShop > sem extras 1`] = `
 }
 `;
 
+exports[`não-regressão Fase 1B — bordas de Σ > BodyShop composição financeira (defaults, Σ alto, negativos) 1`] = `
+{
+  "cofins": 3805.3275,
+  "comissao": 3665.1312,
+  "custoPerc": 49.93,
+  "encFinanc": 0,
+  "irpjCsll": 5507.7108,
+  "iss": 1251.7525,
+  "lucro": 10014.0196,
+  "pis": 826.1566,
+  "precoVenda": 50070.0981,
+  "totalEncargosPerc": 50.07,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > BodyShop composição financeira (defaults, Σ alto, negativos) 2`] = `
+{
+  "cofins": 189999999.9988,
+  "comissao": 182999999.9988,
+  "custoPerc": 0.001,
+  "encFinanc": 0,
+  "irpjCsll": 274999999.9982,
+  "iss": 62499999.9996,
+  "lucro": 2374999999.9844,
+  "pis": 41249999.9997,
+  "precoVenda": 2499999999.9836,
+  "totalEncargosPerc": 125.07,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > BodyShop composição financeira (defaults, Σ alto, negativos) 3`] = `
+{
+  "cofins": 2246.3054,
+  "comissao": 0,
+  "custoPerc": 60.9,
+  "encFinanc": 0,
+  "irpjCsll": 3251.2315,
+  "iss": 738.9163,
+  "lucro": 5911.33,
+  "pis": -591.133,
+  "precoVenda": 29556.6502,
+  "totalEncargosPerc": 39.1,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > BodyShop composição financeira (defaults, Σ alto, negativos) 4`] = `
+{
+  "cofins": 0,
+  "comissao": 0,
+  "custoPerc": 0,
+  "encFinanc": 0,
+  "irpjCsll": 0,
+  "iss": 0,
+  "lucro": 0,
+  "pis": 0,
+  "precoVenda": 0,
+  "totalEncargosPerc": 50.07,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > BodyShop teto 99 (Σ 120 e Σ negativo) 1`] = `
+{
+  "custoTotal": 16830,
+  "markupDivisorPct": 120,
+  "valorHora": 10518.75,
+  "valorSprint": 841500,
+  "valorVenda": 1683000,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > BodyShop teto 99 (Σ 120 e Σ negativo) 2`] = `
+{
+  "custoTotal": 16830,
+  "markupDivisorPct": -10,
+  "valorHora": 105.1875,
+  "valorSprint": 8415,
+  "valorVenda": 16830,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > BodyShop teto 99 (Σ 120 e Σ negativo) 3`] = `
+{
+  "custoTotal": 17630,
+  "markupDivisorPct": 99.5,
+  "valorHora": 11018.75,
+  "valorSprint": 881500,
+  "valorVenda": 1763000,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > Smart ITO percentuais negativos/NaN viram 0 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 0,
+    "comissao": 446.8632,
+    "custo": 3095.6,
+    "custoPerc": 59.16,
+    "encFinanc": 0,
+    "irpjCsll": 538.9567,
+    "iss": 104.6518,
+    "lucro": 1046.5179,
+    "margemContribuicao": 1585.4746,
+    "pis": 0,
+    "precoVenda": 5232.5896,
+    "receitaLiquida": 5127.9378,
+    "resultadoOperacional": 1046.5179,
+    "totalEncargosPerc": 40.84,
+  },
+  "custoTotalOperacao": 3095.6,
+  "precoVendaMensal": 5232.5896,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > Smart ITO Σ = 99,5 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 251319.84,
+    "comissao": 83773.28,
+    "custo": 4188.664,
+    "custoPerc": 0.5,
+    "encFinanc": 25131.984,
+    "irpjCsll": 41886.64,
+    "iss": 167546.56,
+    "lucro": 12565.992,
+    "margemContribuicao": 79584.616,
+    "pis": 251319.84,
+    "precoVenda": 837732.8,
+    "receitaLiquida": 167546.56,
+    "resultadoOperacional": 12565.992,
+    "totalEncargosPerc": 99.5,
+  },
+  "custoTotalOperacao": 4188.664,
+  "precoVendaMensal": 837732.8,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > Smart ITO Σ = 100 (sem preço) 1`] = `
+{
+  "composicaoPreco": {
+    "cofins": 0,
+    "comissao": 0,
+    "custo": 15686.92,
+    "custoPerc": 0,
+    "encFinanc": 0,
+    "irpjCsll": 0,
+    "iss": 0,
+    "lucro": 0,
+    "margemContribuicao": -15686.92,
+    "pis": 0,
+    "precoVenda": 0,
+    "receitaLiquida": 0,
+    "resultadoOperacional": 0,
+    "totalEncargosPerc": 100,
+  },
+  "custoTotalOperacao": 15686.92,
+  "precoVendaMensal": 0,
+}
+`;
+
+exports[`não-regressão Fase 1B — bordas de Σ > Smart ITO Σ = 100 (sem preço) 2`] = `
+{
+  "composicaoPreco": {
+    "cofins": 0,
+    "comissao": 0,
+    "custo": 18186.92,
+    "custoPerc": 0,
+    "encFinanc": 0,
+    "irpjCsll": 0,
+    "iss": 0,
+    "lucro": 0,
+    "margemContribuicao": -18186.92,
+    "pis": 0,
+    "precoVenda": 0,
+    "receitaLiquida": 0,
+    "resultadoOperacional": 0,
+    "totalEncargosPerc": 100,
+  },
+  "custoTotalOperacao": 18186.92,
+  "precoVendaMensal": 0,
+}
+`;
+
 exports[`não-regressão Observabilidade M1–M4 > M1 1`] = `
 {
   "custoAntesCarga": 1048.511,

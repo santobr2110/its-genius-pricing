@@ -1,3 +1,4 @@
+import { composicaoSmartITO, percsFromState } from "@/lib/pricing/cascata";
 // @refresh reset
 import { useMemo, useCallback } from "react";
 import { usePersistentState } from "./usePersistentState";
@@ -623,45 +624,14 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
     // ===== Composição do preço de venda (Markup Divisor único) =====
     // PV = Custo / (1 - Σ% / 100), onde Σ% = PIS+COFINS+ISS+Comissão+IRPJ/CSLL+Enc.Financ.+Lucro
     // Cada componente em R$ = PV × (% do componente / 100).
-    const pisPerc = Math.max(0, state.pisPerc || 0);
-    const cofinsPerc = Math.max(0, state.cofinsPerc || 0);
-    const issPerc = Math.max(0, state.issPerc || 0);
-    const comissaoPerc = Math.max(0, state.comissaoPerc || 0);
-    const irpjCsllPerc = Math.max(0, state.irpjCsllPerc || 0);
-    const encFinancPerc = Math.max(0, state.encFinancPerc || 0);
-    const lucroPerc = Math.max(0, state.lucroPerc || 0);
-    const totalEncargosPerc = pisPerc + cofinsPerc + issPerc + comissaoPerc + irpjCsllPerc + encFinancPerc + lucroPerc;
-    const custoPerc = 100 - totalEncargosPerc;
-    const fatorDivisor = custoPerc > 0 ? custoPerc / 100 : 0;
-    const precoVendaMensal = fatorDivisor > 0 ? custoTotalOperacao / fatorDivisor : 0;
-    const valorPis = precoVendaMensal * pisPerc / 100;
-    const valorCofins = precoVendaMensal * cofinsPerc / 100;
-    const valorIss = precoVendaMensal * issPerc / 100;
-    const valorComissao = precoVendaMensal * comissaoPerc / 100;
-    const valorIrpjCsll = precoVendaMensal * irpjCsllPerc / 100;
-    const valorEncFinanc = precoVendaMensal * encFinancPerc / 100;
-    const valorLucro = precoVendaMensal * lucroPerc / 100;
-    const valorImpostos = valorPis + valorCofins + valorIss + valorIrpjCsll + valorEncFinanc;
-    const valorMargem = valorLucro;
-    const precoPreImposto = precoVendaMensal - (valorPis + valorCofins + valorIss);
-    const receitaLiquida = precoPreImposto;
-    const margemContribuicao = precoVendaMensal - custoTotalOperacao - (valorPis + valorCofins + valorIss + valorComissao);
-    const composicaoPreco = {
-      custo: custoTotalOperacao,
-      pis: valorPis,
-      cofins: valorCofins,
-      iss: valorIss,
-      comissao: valorComissao,
-      irpjCsll: valorIrpjCsll,
-      encFinanc: valorEncFinanc,
-      lucro: valorLucro,
-      precoVenda: precoVendaMensal,
-      totalEncargosPerc,
-      custoPerc,
-      receitaLiquida,
-      margemContribuicao,
-      resultadoOperacional: valorLucro,
-    };
+    // Fase 1B: núcleo compartilhado (src/lib/pricing/cascata.ts, REGRA_SMART_ITO).
+    const cascata = composicaoSmartITO(custoTotalOperacao, percsFromState(state));
+    const precoVendaMensal = cascata.precoVenda;
+    const valorImpostos = cascata.valorImpostos;
+    const valorMargem = cascata.valorMargem;
+    const precoPreImposto = cascata.precoPreImposto;
+    const composicaoPreco = cascata.composicao;
+    const { totalEncargosPerc, custoPerc, receitaLiquida, margemContribuicao } = composicaoPreco;
 
     const smartMonitor = {
       ativos: smAtivos,
