@@ -379,3 +379,11 @@ input[type="number"]::-webkit-outer-spin-button {
   appearance: none;
   margin: 0;
 }
+
+/* Proposta de Treinamento — impressão só do documento */
+@media print {
+  body:has(.trn-print) * { visibility: hidden; }
+  body:has(.trn-print) .trn-print, body:has(.trn-print) .trn-print * { visibility: visible; }
+  body:has(.trn-print) .trn-print { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; background: #fff; color: #000; }
+  .break-inside-avoid { break-inside: avoid; }
+}
