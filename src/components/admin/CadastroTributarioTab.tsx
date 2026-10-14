@@ -43,7 +43,7 @@ function CodeRow({ code, rates, refresh }: { code: TaxCode; rates: TaxRate[]; re
     <div className="border rounded-md p-2 space-y-2">
       <div className="grid grid-cols-[120px_1fr_70px_220px_auto_auto_auto_auto] gap-2 items-center">
         <Input className="h-8 text-xs font-mono" value={c.codigo} onChange={(e) => setC({ ...c, codigo: e.target.value })} />
-        <Input className="h-8 text-xs" value={c.nome} onChange={(e) => setC({ ...c, nome: e.target.value })} />
+        <Input className="h-8 text-xs" placeholder="SKU" value={c.nome} onChange={(e) => setC({ ...c, nome: e.target.value })} />
         <Input className="h-8 text-xs" placeholder="LC116" value={c.lc116_item ?? ""} onChange={(e) => setC({ ...c, lc116_item: e.target.value })} />
         <div className="flex flex-wrap gap-1">
           {OFERTAS_FISCAIS.map((o) => {
@@ -124,7 +124,7 @@ export default function CadastroTributarioTab() {
     return defs.filter((d) => filtro === "todas" || d.key === filtro).map((d) => ({ ...d, itens: codes.filter(d.match) }));
   }, [codes, filtro]);
   const addCode = async () => {
-    const codigo = prompt("Código Protheus / SKU:");
+    const codigo = prompt("Código Protheus:");
     if (!codigo) return;
     const ofertas = filtro !== "todas" && filtro !== "geral" ? [filtro] : [];
     const { error } = await supabase.from("tax_product_codes").insert({ codigo, nome: codigo, a_confirmar: true, ofertas });
@@ -158,7 +158,7 @@ export default function CadastroTributarioTab() {
               <Badge variant="secondary" className="text-[10px]">{g.itens.length}</Badge>
             </div>
             <div className="grid grid-cols-[120px_1fr_70px_220px_auto_auto_auto_auto] gap-2 px-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <span>Código Protheus / SKU</span><span>Descrição do produto</span><span>Item LC 116</span><span>Oferta</span><span /><span /><span /><span />
+              <span>Código Protheus</span><span>SKU (descrição do produto)</span><span>Item LC 116</span><span>Oferta</span><span /><span /><span /><span />
             </div>
             {g.itens.length === 0 ? <p className="text-xs text-muted-foreground px-2">Nenhum produto.</p> : g.itens.map((c) => (
               <CodeRow key={c.id + c.codigo + (c.ofertas ?? []).join()} code={c} rates={rates.filter((r) => r.tax_product_code_id === c.id)} refresh={refresh} />

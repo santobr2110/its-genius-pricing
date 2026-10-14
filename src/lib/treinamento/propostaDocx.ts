@@ -16,6 +16,15 @@ export interface PropostaDocxDados {
   itens: PropostaDocxItem[]; total: number;
 }
 
+const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+/** "29/09/2026" ou ISO → "29 de setembro de 2026". */
+export function dataExtenso(s: string): string {
+  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return `${Number(m[1])} de ${MESES[Number(m[2]) - 1]} de ${m[3]}`;
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${Number(m[3])} de ${MESES[Number(m[2]) - 1]} de ${m[1]}`;
+  return s;
+}
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const FONTE = "Aptos";
 const TAM = 28; // 14pt (meios-pontos)
@@ -56,11 +65,11 @@ function conteudoCurso(it: PropostaDocxItem, idx: number): string {
   ];
   for (const [label, valor] of campos) {
     if (!valor?.trim()) continue;
-    out.push(par(run(label, { bold: true, color: COR }), { keepNext: true, before: 120, after: 40 }));
+    out.push(par(run(label, { bold: true, color: COR }), { keepNext: true, before: 320, after: 60 }));
     out.push(texto(valor, {}, { jc: "both" }));
   }
   if (c?.cronograma?.length) {
-    out.push(par(run("Conteúdo programático", { bold: true, color: COR }), { keepNext: true, before: 200, after: 80 }));
+    out.push(par(run("Conteúdo programático", { bold: true, color: COR }), { keepNext: true, before: 360, after: 100 }));
     c.cronograma.forEach((m, i) => {
       const temTopicos = !!m.topicos?.length;
       out.push(par(run(`${i + 1}. ${m.titulo}`, { bold: true }), { keepNext: temTopicos, after: 40 }));
@@ -80,9 +89,23 @@ function trocarParagrafo(xml: string, marcador: string, novo: string): string {
 }
 
 /** Preenche o parágrafo vazio de cada célula de uma linha da tabela. */
+/** Centraliza horizontal e verticalmente todas as células de uma linha. */
+function centralizar(rowXml: string): string {
+  return rowXml
+    .replace(/<w:vAlign [^>]*\/>/g, "")
+    .replace(/<\/w:tcPr>/g, '<w:vAlign w:val="center"/></w:tcPr>')
+    .replace(/<w:jc w:val="[^"]*"\/>/g, "")
+    .replace(/<w:pPr>([\s\S]*?)<\/w:pPr>/g, (m, inner: string) => {
+      const pos = inner.indexOf("<w:rPr>");
+      return pos < 0 ? `<w:pPr>${inner}<w:jc w:val="center"/></w:pPr>` : `<w:pPr>${inner.slice(0, pos)}<w:jc w:val="center"/>${inner.slice(pos)}</w:pPr>`;
+    })
+    .replace(/<w:p>(?!<w:pPr>)/g, '<w:p><w:pPr><w:jc w:val="center"/></w:pPr>')
+    .replace(/(<w:p [^>]*>)(?!<w:pPr>)/g, '$1<w:pPr><w:jc w:val="center"/></w:pPr>');
+}
+
 function preencherLinha(rowXml: string, valores: string[], bold: boolean): string {
   let k = 0;
-  return rowXml.replace(/<w:tc>[\s\S]*?<\/w:tc>/g, (tc) => {
+  return centralizar(rowXml).replace(/<w:tc>[\s\S]*?<\/w:tc>/g, (tc) => {
     const v = valores[k++] ?? "";
     const pos = tc.lastIndexOf("</w:p>");
     return tc.slice(0, pos) + run(v, { bold, size: 22 }) + tc.slice(pos);
@@ -123,7 +146,7 @@ function preencherInvestimento(xml: string, d: PropostaDocxDados): string {
     `${it.curso.nome}${it.somenteExame ? " (exame)" : ""}`, it.modalidade, String(it.alunos), brl(it.precoPorAluno), brl(it.total),
   ], false));
   linhas.push(preencherLinha(modelo, ["Total do investimento", "", "", "", brl(d.total)], true));
-  tbl = tbl.slice(0, hIni) + cab + linhas.join("") + tbl.slice(fim);
+  tbl = tbl.slice(0, hIni) + centralizar(cab) + linhas.join("") + tbl.slice(fim);
   return xml.slice(0, tIni) + tbl + xml.slice(tFim);
 }
 
@@ -132,6 +155,7 @@ export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados)
   let xml = await zip.file("word/document.xml")!.async("string");
   const nomes = d.itens.map((it) => it.curso.nome).filter((n, i, a) => a.indexOf(n) === i).join(", ") || "Treinamento";
 
+  d = { ...d, emissao: dataExtenso(d.emissao), validade: dataExtenso(d.validade) };
   const simples: [string, string][] = [
     ["&lt;Data de Hoje&gt;", d.emissao],
     ["&lt;Nome do Especialista&gt;", d.especialista?.trim() ? `${d.especialista.trim()} – ` : ""],
