@@ -158,10 +158,10 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
                       <td colSpan={7} className={cell + " text-[11px]"} style={{ color: "#000" }}>
                         <div className="font-semibold mb-1">Composição — {cur.nome}</div>
                         <div className="text-[9px] leading-tight">
-                          <div className="mb-1"><span className="font-semibold">{nota[0][0]}:</span> {nota[0][1]}</div>
+                          <div className="mb-1"><span className="font-semibold mr-1">{nota[0][0]}:</span><span>{nota[0][1]}</span></div>
                           <div className="grid grid-cols-5 gap-x-3 gap-y-0.5">
                             {nota.slice(1).map(([k, v]) => (
-                              <div key={k} className="whitespace-nowrap"><span className="font-semibold">{k}:</span> {v}</div>
+                              <div key={k} className="whitespace-nowrap"><span className="font-semibold mr-1">{k}:</span><span>{v}</span></div>
                             ))}
                           </div>
                         </div>
