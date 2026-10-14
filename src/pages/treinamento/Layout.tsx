@@ -13,6 +13,11 @@ import BUMenu from "@/components/BUMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/auth/UserMenu";
 import BackHomeButton from "@/components/BackHomeButton";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { CONFIG_PADRAO } from "@/lib/treinamento/carrinho";
+import { TAB_COTACAO_ID, useCarrinhoState } from "./useCarrinhoState";
 
 const BASE = "/observabilidade/treinamento";
 type Item = { to: string; label: string; icon: LucideIcon; desc?: string };
@@ -71,6 +76,22 @@ export default function TreinamentoLayout() {
   const { can } = useAuth();
   const { pathname } = useLocation();
   const naRaiz = pathname.replace(/\/+$/, "") === BASE;
+  const { atual, setAtual, setLinhas, setConfig } = useCarrinhoState();
+
+  // Aba aberta por "Abrir em nova aba": carrega a cotação uma vez, só nesta aba.
+  useEffect(() => {
+    if (!TAB_COTACAO_ID || atual.id === TAB_COTACAO_ID) return;
+    supabase.from("pricing_presets")
+      .select("id,name,client_name,quote_code,account_manager,bu_specialist,salesforce_code,bu_architect,payload")
+      .eq("id", TAB_COTACAO_ID).is("deleted_at", null).maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) { toast.error("Cotação não encontrada."); return; }
+        const p = (data.payload ?? {}) as { linhas?: never[]; config?: object };
+        setLinhas(p.linhas ?? []);
+        setConfig({ ...CONFIG_PADRAO, ...(p.config ?? {}) });
+        setAtual({ id: data.id, nome: data.name, cliente: data.client_name ?? "", codigo: data.quote_code, gerenteConta: data.account_manager ?? "", especialistaBU: data.bu_specialist ?? "", salesforce: data.salesforce_code ?? "", arquitetoBU: data.bu_architect ?? "" });
+      });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
