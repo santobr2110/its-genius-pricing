@@ -13,6 +13,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTreinamentoCotacoes } from "@/hooks/useTreinamentoCotacoes";
 import { useTreinamentoResultado } from "./useTreinamentoResultado";
+import TreinamentoResumo, { exportarResumoPdf } from "./Resumo";
 import { gerarPropostaDocx } from "@/lib/treinamento/propostaDocx";
 import type { TrainingCourseContent } from "@/lib/treinamento/types";
 
@@ -112,6 +113,10 @@ export default function TreinamentoProposta() {
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !podeEmitir}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar valores)</Button>
               <Button variant="outline" onClick={baixarWord} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
+              <Button variant="outline" onClick={async () => {
+                try { await exportarResumoPdf(`Cotacao ROI - ${st.atual.cliente || "cliente"}${st.atual.codigo ? ` - ${st.atual.codigo}` : ""}.pdf`); }
+                catch (e) { toast.error((e as Error).message); }
+              }} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Cotação/ROI</Button>
             </div>
             {!salvo && <p className="text-xs text-muted-foreground">Salve a cotação no Configurador para poder emitir.</p>}
           </CardContent>
@@ -131,6 +136,7 @@ export default function TreinamentoProposta() {
         )}
       </div>
 
+      <div aria-hidden style={{ position: "fixed", left: -20000, top: 0 }}><TreinamentoResumo embedded /></div>
       <div className="trn-print rounded-lg border bg-card text-card-foreground p-8 space-y-6">
         <header className="flex justify-between items-start border-b pb-4">
           <div>
