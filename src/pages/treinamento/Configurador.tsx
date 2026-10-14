@@ -308,7 +308,8 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
             )}
           </CollapsibleContent>
         </Collapsible>
-      )}
+        );
+      })()}
     </div>
   );
 }
