@@ -40,7 +40,7 @@ export default function FinanceiroImpostosProf() {
     <div className="mx-auto max-w-5xl space-y-6">
       <FinanceiroSubNav basePath={BASE} />
 
-      <ProdutoFiscalCard storagePrefix="prof.financeiro" current={state} onApply={(r) => { update("pisPerc", r.pisPerc); update("cofinsPerc", r.cofinsPerc); update("issPerc", r.issPerc); }} />
+      <ProdutoFiscalCard oferta="bodyshop" storagePrefix="prof.financeiro" current={state} onApply={(r) => { update("pisPerc", r.pisPerc); update("cofinsPerc", r.cofinsPerc); update("issPerc", r.issPerc); }} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>

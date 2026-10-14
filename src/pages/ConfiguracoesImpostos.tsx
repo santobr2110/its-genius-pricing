@@ -58,7 +58,7 @@ export default function ConfiguracoesImpostos() {
 <WriteFence permission="page.financeiro.write" anyOf={["financeiro.edit"]}>
         <FinanceiroSubNav />
 
-        <ProdutoFiscalCard storagePrefix="financeiro" current={state} onApply={(r) => { update("pisPerc", r.pisPerc); update("cofinsPerc", r.cofinsPerc); update("issPerc", r.issPerc); }} />
+        <ProdutoFiscalCard oferta="smart-ito" storagePrefix="financeiro" current={state} onApply={(r) => { update("pisPerc", r.pisPerc); update("cofinsPerc", r.cofinsPerc); update("issPerc", r.issPerc); }} />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>

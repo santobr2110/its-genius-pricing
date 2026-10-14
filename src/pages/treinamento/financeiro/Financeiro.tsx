@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calculator, Loader2, Percent, Receipt, Table as TableIcon, TrendingUp, Wallet } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import ProdutoFiscalCard from "@/components/financeiro/ProdutoFiscalCard";
+import { Calculator, DollarSign, Loader2, Percent, Receipt, Table as TableIcon, TrendingUp, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { resolveIrpjCsllPerc } from "@/lib/pricing/cascata";
 import { DEFAULT_COMISSAO_TIERS, comissaoFromRent, formatRentLabel } from "@/lib/comissaoRentabilidade";
@@ -57,17 +59,10 @@ export function TrnResultado() {
 
   return (
     <Shell>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><Wallet className="h-3.5 w-3.5" /> Custo total dos treinamentos</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">{brl(custo)}</p><p className="text-[11px] text-muted-foreground mt-1">Base de entrada do markup divisor</p></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><Percent className="h-3.5 w-3.5" /> Σ Encargos sobre venda</CardTitle></CardHeader>
-          <CardContent><p className={`text-2xl font-bold ${sigma >= 100 ? "text-destructive" : ""}`}>{pct(sigma)}</p><p className="text-[11px] text-muted-foreground mt-1">Sem desconto</p></CardContent></Card>
-        <Card className="border-primary/40 bg-primary/5"><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" /> Preço de venda</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold text-primary">{brl(pv)}</p><p className="text-[11px] text-muted-foreground mt-1">PV = Custo / (1 − Σ%/100), com descontos</p></CardContent></Card>
-      </div>
+      <ResumoCards custo={custo} sigma={sigma} pv={pv} />
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4 text-primary" /> Resultado da Operação</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><Receipt className="h-4 w-4 text-primary" /> Composição do Resultado da Operação</CardTitle>
           <p className="text-xs text-muted-foreground">Cotação {st.atual.nome || "atual"}. Edite os componentes em <Link to={`${BASE}/impostos`} className="text-primary hover:underline">Impostos &amp; Markup</Link>.</p>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -90,49 +85,69 @@ export function TrnResultado() {
   );
 }
 
+function Comp({ label, tag, desc, valor, rs, tone = "auto", children }: { label: string; tag: string; desc: React.ReactNode; valor: number; rs: number; tone?: "auto" | "edit" | "primary"; children?: React.ReactNode }) {
+  const box = tone === "edit" ? "border-primary/30 bg-background" : tone === "primary" ? "border-dashed border-primary/40 bg-primary/5" : "border-dashed border-muted-foreground/30 bg-muted/30";
+  return (
+    <div className={`space-y-2 rounded-lg border p-3 ${box}`}>
+      <div className="flex justify-between items-center gap-3">
+        <div className="min-w-0">
+          <Label className="text-sm font-medium">{label} <span className={`text-[10px] uppercase tracking-wider ml-1 ${tone === "edit" ? "text-primary" : "text-muted-foreground"}`}>({tag})</span></Label>
+          <p className="text-[11px] text-muted-foreground leading-snug">{desc}</p>
+        </div>
+        {!children && <span className={`text-base font-bold tabular-nums shrink-0 ${tone === "primary" ? "text-primary" : ""}`}>{pct(valor)}</span>}
+      </div>
+      {children}
+      <div className="flex justify-between text-[11px] text-muted-foreground"><span>Valor estimado sobre PV</span><span className="font-semibold text-foreground tabular-nums">{brl(rs)}</span></div>
+    </div>
+  );
+}
+
 export function TrnImpostos() {
   const { can } = useAuth();
-  const { st, rates, municipios } = useTreinamentoResultado();
+  const { st, res } = useTreinamentoResultado();
   const { config, setConfig } = st;
   const podeParams = can("page.trn.params") || can("page.trn.admin");
-  const num = (k: "lucroPerc" | "encFinancPerc" | "descontoTotalPerc", label: string, step: string, hint: string) => (
-    <div className="space-y-1">
-      <Label className="text-xs">{label}</Label>
-      <Input type="number" step={step} value={config[k]} onChange={(e) => setConfig({ ...config, [k]: Number(e.target.value) || 0 })} />
-      <p className="text-[11px] text-muted-foreground">{hint}</p>
-    </div>
+  const b = res.cascataBase;
+  const pv = res.precoFinalTotal;
+  const sigma = b.pisPerc + b.cofinsPerc + b.issPerc + b.comissaoPerc + b.irpjCsllPerc + b.encFinancPerc + b.lucroPerc;
+  const edit = (k: "lucroPerc" | "encFinancPerc" | "descontoTotalPerc", max: number) => (
+    <>
+      <div className="flex justify-end items-center gap-2 -mt-9">
+        <Input type="number" step={0.01} value={config[k]} onChange={(e) => setConfig({ ...config, [k]: Number(e.target.value) || 0 })} className="h-8 w-20 text-right" />
+        <span className="text-sm font-semibold w-4">%</span>
+      </div>
+      <Slider value={[config[k]]} onValueChange={([v]) => setConfig({ ...config, [k]: v })} min={0} max={max} step={0.01} />
+    </>
   );
   return (
     <Shell>
+      <ProdutoFiscalCard
+        oferta="treinamento" storagePrefix="trn.financeiro" codigoPadrao="TRN"
+        codigo={config.codigoProduto || "TRN"} municipio={config.municipio}
+        onChange={(v) => setConfig({ ...config, codigoProduto: v.codigo, municipio: v.municipio })}
+        current={b} onApply={() => {}}
+      />
+      <ResumoCards custo={res.custoTotal} sigma={sigma} pv={pv} />
+      {sigma >= 100 && <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">A soma dos percentuais é {pct(sigma)} (≥ 100%). Reduza algum componente para tornar o preço calculável.</div>}
       <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Calculator className="h-4 w-4 text-primary" /> Produto fiscal e impostos</CardTitle>
-          <p className="text-xs text-muted-foreground">Código TRN. PIS, COFINS e ISS vêm do Cadastro tributário pelo município.</p></CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label className="text-xs">Município (define o ISS)</Label>
-            <Select value={config.municipio} onValueChange={(v) => setConfig({ ...config, municipio: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-            </Select>
-            {rates ? <p className="text-[11px] text-muted-foreground">PIS {pct(rates.pisPerc)} · COFINS {pct(rates.cofinsPerc)} · ISS {pct(rates.issPerc)} {rates.aConfirmar && <Badge variant="outline" className="ml-1 text-[10px]">a confirmar</Badge>}</p>
-              : <p className="text-[11px] text-destructive">Sem alíquota do código TRN para este município.</p>}
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Convenção de IR/CSLL</Label>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4 text-primary" /> Componentes do Markup Divisor</CardTitle>
+          <p className="text-xs text-muted-foreground">Defina encargos, rentabilidade e desconto. A comissão segue a tabela de <Link to={`${BASE}/comissoes`} className="text-primary hover:underline">Comissões</Link>.</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Comp label="PIS" tag="automático" desc="Imposto federal sobre receita bruta. Definido pelo código de produto." valor={b.pisPerc} rs={pv * b.pisPerc / 100} />
+          <Comp label="COFINS" tag="automático" desc="Contribuição federal sobre receita bruta. Definido pelo código de produto." valor={b.cofinsPerc} rs={pv * b.cofinsPerc / 100} />
+          <Comp label="ISS" tag="automático" desc="Imposto municipal sobre serviços. Definido pelo município selecionado." valor={b.issPerc} rs={pv * b.issPerc / 100} />
+          <Comp label="IRPJ / CSLL" tag={podeParams ? "editável" : "convenção"} tone={podeParams ? "edit" : "auto"} desc="Convenção de IR/CSLL sobre o lucro. Somente quem tem a permissão de parâmetros altera." valor={b.irpjCsllPerc} rs={pv * b.irpjCsllPerc / 100}>
             <Select value={config.convencao} disabled={!podeParams} onValueChange={(v) => setConfig({ ...config, convencao: v as typeof config.convencao })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="padrao_site">Padrão do site ({pct(resolveIrpjCsllPerc("padrao_site"))})</SelectItem><SelectItem value="roi_ito">ROI ITO ({pct(resolveIrpjCsllPerc("roi_ito"))}) · a confirmar</SelectItem></SelectContent>
             </Select>
-            {!podeParams && <p className="text-[11px] text-muted-foreground">Somente quem tem a permissão de parâmetros altera.</p>}
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Percent className="h-4 w-4 text-primary" /> Markup</CardTitle></CardHeader>
-        <CardContent className="grid md:grid-cols-3 gap-4">
-          {num("lucroPerc", "Rentabilidade %", "0.5", "Lucro pretendido sobre o preço de venda.")}
-          {num("encFinancPerc", "Encargos financeiros %", "0.1", "Sobre o preço de venda.")}
-          {num("descontoTotalPerc", "Desconto total %", "0.5", "Aplicado sobre todos os itens.")}
+          </Comp>
+          <Comp label="Encargos Financeiros" tag="editável" tone="edit" desc="Custos financeiros do contrato (prazos, antecipações, garantias)." valor={config.encFinancPerc} rs={pv * config.encFinancPerc / 100}>{edit("encFinancPerc", 15)}</Comp>
+          <Comp label="Rentabilidade" tag="editável" tone="edit" desc="Lucro pretendido sobre o preço de venda. Determina a comissão pela tabela de faixas." valor={config.lucroPerc} rs={pv * config.lucroPerc / 100}>{edit("lucroPerc", 60)}</Comp>
+          <Comp label="Desconto total" tag="editável" tone="edit" desc="Aplicado sobre todos os itens da cotação." valor={config.descontoTotalPerc} rs={-pv * config.descontoTotalPerc / 100}>{edit("descontoTotalPerc", 50)}</Comp>
+          <Comp label="Comissão" tag="automática" tone="primary" desc={<>Definida pela faixa de rentabilidade em <Link to={`${BASE}/comissoes`} className="text-primary hover:underline">Comissões</Link>.</>} valor={b.comissaoPerc} rs={pv * b.comissaoPerc / 100} />
         </CardContent>
       </Card>
     </Shell>
@@ -146,17 +161,39 @@ export function TrnComissoes() {
     <Shell>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Tabela de comissão por faixa de rentabilidade</CardTitle>
-          <p className="text-xs text-muted-foreground">Rentabilidade atual <b className="text-foreground">{pct(st.config.lucroPerc)}</b> → comissão de <b className="text-primary">{pct(atual)}</b>.</p>
+          <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Tabela de Comissão por Faixa de Rentabilidade</CardTitle>
+          <p className="text-xs text-muted-foreground">Define o % de comissão aplicado conforme a rentabilidade pretendida. A rentabilidade atual é <span className="font-semibold text-foreground">{pct(st.config.lucroPerc)}</span> → comissão de <span className="font-semibold text-primary">{pct(atual)}</span>.</p>
         </CardHeader>
-        <CardContent className="divide-y text-sm">
-          {DEFAULT_COMISSAO_TIERS.map((t, i) => (
-            <div key={i} className={`flex justify-between py-2 ${t.comissao === atual ? "font-semibold text-primary" : ""}`}>
-              <span>{formatRentLabel(t)}</span><span className="tabular-nums">{pct(t.comissao)}</span>
-            </div>
-          ))}
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-3 gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2">
+            <span>Rent. mínima (%)</span><span>Rent. máxima (%)</span><span>Comissão (%)</span>
+          </div>
+          {DEFAULT_COMISSAO_TIERS.map((t, i) => {
+            const ativa = st.config.lucroPerc >= t.minRent && (t.maxRent == null || st.config.lucroPerc < t.maxRent);
+            return (
+              <div key={i} className={`grid grid-cols-3 gap-2 items-center rounded-md ${ativa ? "ring-1 ring-primary bg-primary/5" : ""}`}>
+                <Input disabled value={t.minRent} className="h-8 text-right" />
+                <Input disabled value={t.maxRent == null ? "—" : t.maxRent} className="h-8 text-right" />
+                <Input disabled value={t.comissao} className={`h-8 text-right ${ativa ? "font-semibold text-primary" : ""}`} />
+              </div>
+            );
+          })}
+          <p className="text-[11px] text-muted-foreground">Tabela padrão da empresa, a mesma usada no cálculo do Treinamento.</p>
         </CardContent>
       </Card>
     </Shell>
+  );
+}
+
+function ResumoCards({ custo, sigma, pv }: { custo: number; sigma: number; pv: number }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><Wallet className="h-3.5 w-3.5" /> Custo Total da Operação</CardTitle></CardHeader>
+        <CardContent><p className="text-2xl font-bold">{brl(custo)}</p><p className="text-[11px] text-muted-foreground mt-1">Base do markup divisor</p></CardContent></Card>
+      <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><Percent className="h-3.5 w-3.5" /> Σ Encargos sobre Venda</CardTitle></CardHeader>
+        <CardContent><p className={`text-2xl font-bold ${sigma >= 100 ? "text-destructive" : ""}`}>{pct(sigma)}</p><p className="text-[11px] text-muted-foreground mt-1">Custo = {pct(100 - sigma)} do PV</p></CardContent></Card>
+      <Card className="border-primary/40 bg-primary/5"><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" /> Preço de Venda</CardTitle></CardHeader>
+        <CardContent><p className="text-2xl font-bold text-primary">{brl(pv)}</p><p className="text-[11px] text-muted-foreground mt-1">PV = Custo / (1 − Σ%/100)</p></CardContent></Card>
+    </div>
   );
 }
