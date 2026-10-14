@@ -89,17 +89,42 @@ function preencherLinha(rowXml: string, valores: string[], bold: boolean): strin
   });
 }
 
+/** Duplica a última célula da linha (usado para criar a coluna "Valor Total"). */
+function duplicarUltimaCelula(row: string, trocar?: [string, string]): string {
+  const ini = row.lastIndexOf("<w:tc>");
+  const fim = row.lastIndexOf("</w:tc>") + 7;
+  let tc = row.slice(ini, fim);
+  if (trocar) tc = tc.split(trocar[0]).join(trocar[1]);
+  return row.slice(0, fim) + tc + row.slice(fim);
+}
+
 function preencherInvestimento(xml: string, d: PropostaDocxDados): string {
   const h = xml.indexOf("Valor Unit.");
   if (h < 0) return xml;
-  const ini = xml.indexOf("<w:tr", xml.indexOf("</w:tr>", h));
-  const fim = xml.indexOf("</w:tr>", ini) + 7;
-  const modelo = xml.slice(ini, fim);
+  const tIni = xml.lastIndexOf("<w:tbl>", h);
+  const tFim = xml.indexOf("</w:tbl>", h) + 8;
+  let tbl = xml.slice(tIni, tFim);
+
+  // Redistribui as larguras (total 9618, igual ao original) para incluir a coluna Valor Total.
+  const larg: Record<string, string> = { "4971": "3300", "1393": "1593", "1436": "1300", "1818": "1712" };
+  tbl = tbl.replace(/<w:tblGrid>[\s\S]*?<\/w:tblGrid>/,
+    '<w:tblGrid><w:gridCol w:w="3300"/><w:gridCol w:w="1593"/><w:gridCol w:w="1300"/><w:gridCol w:w="1712"/><w:gridCol w:w="1713"/></w:tblGrid>');
+  tbl = tbl.replace(/<w:tcW w:w="(\d+)" w:type="dxa"\/>/g, (m, w) => (larg[w] ? `<w:tcW w:w="${larg[w]}" w:type="dxa"/>` : m));
+  tbl = tbl.replace('<w:gridSpan w:val="4"/>', '<w:gridSpan w:val="5"/>');
+
+  const hh = tbl.indexOf("Valor Unit.");
+  const hIni = tbl.lastIndexOf("<w:tr", hh);
+  const hFim = tbl.indexOf("</w:tr>", hh) + 7;
+  const cab = duplicarUltimaCelula(tbl.slice(hIni, hFim), ["Valor Unit.", "Valor Total"]).replace(">Quantidade<", ">Alunos<").replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
+  const ini = hFim;
+  const fim = tbl.indexOf("</w:tr>", ini) + 7;
+  const modelo = duplicarUltimaCelula(tbl.slice(ini, fim)).replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
   const linhas = d.itens.map((it) => preencherLinha(modelo, [
-    `${it.curso.nome}${it.somenteExame ? " (exame)" : ""}`, it.modalidade, String(it.alunos), brl(it.precoPorAluno),
+    `${it.curso.nome}${it.somenteExame ? " (exame)" : ""}`, it.modalidade, String(it.alunos), brl(it.precoPorAluno), brl(it.total),
   ], false));
-  linhas.push(preencherLinha(modelo, ["Total do investimento", "", "", brl(d.total)], true));
-  return xml.slice(0, ini) + linhas.join("") + xml.slice(fim);
+  linhas.push(preencherLinha(modelo, ["Total do investimento", "", "", "", brl(d.total)], true));
+  tbl = tbl.slice(0, hIni) + cab + linhas.join("") + tbl.slice(fim);
+  return xml.slice(0, tIni) + tbl + xml.slice(tFim);
 }
 
 export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados): Promise<Blob> {
