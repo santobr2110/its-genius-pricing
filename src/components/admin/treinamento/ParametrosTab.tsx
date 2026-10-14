@@ -54,7 +54,7 @@ export default function ParametrosTab({ params, refresh }: CadastroProps) {
             {r.tipo === "boolean" ? (
               <Switch checked={r.value === true} onCheckedChange={(v) => set(r.key, { value: v })} aria-label={r.label} />
             ) : r.tipo === "text" ? (
-              <Input value={String(r.value ?? "")} onChange={(e) => set(r.key, { value: e.target.value })} />
+              <Input value={String(r.value ?? "")} placeholder={r.key === "comissao_regra" ? "Vazio = tabela da empresa" : undefined} onChange={(e) => set(r.key, { value: e.target.value })} />
             ) : (
               <div className="flex items-center gap-1">
                 <Input type="number" step="0.01" value={Number(r.value ?? 0)} onChange={(e) => set(r.key, { value: Number(e.target.value) || 0 })} />
