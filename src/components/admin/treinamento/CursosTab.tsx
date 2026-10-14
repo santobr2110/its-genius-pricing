@@ -152,8 +152,9 @@ function EditorCurso({ draft, courses, onClose, onSave }: { draft: Draft; course
   const [d, setD] = useState<Draft>(draft);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }));
   const num = (v: string) => (v === "" ? null : Number(v));
-  const NumField = ({ k, label, nullable }: { k: keyof Draft; label: string; nullable?: boolean }) => (
-    <div className="space-y-1"><Label className="text-xs">{label}</Label>
+  const [unid, setUnid] = useState<"horas" | "dias">("horas");
+  const numField = ({ k, label, nullable }: { k: keyof Draft; label: string; nullable?: boolean }) => (
+    <div key={k} className="space-y-1"><Label className="text-xs">{label}</Label>
       <Input type="number" value={(d[k] as number | null) ?? ""} onChange={(e) => set(k, (nullable ? num(e.target.value) : Number(e.target.value) || 0) as never)} /></div>
   );
   const outros = courses.filter((c) => c.id !== d.id);
@@ -176,17 +177,23 @@ function EditorCurso({ draft, courses, onClose, onSave }: { draft: Draft; course
           <div className="space-y-1"><Label className="text-xs">Nível do instrutor</Label>
             <Select value={d.nivel_instrutor ?? "nenhum"} onValueChange={(v) => set("nivel_instrutor", v === "nenhum" ? null : (v as "A" | "B"))}><SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="nenhum">Sem instrutor</SelectItem><SelectItem value="A">A</SelectItem><SelectItem value="B">B</SelectItem></SelectContent></Select></div>
-          <div className="space-y-1"><Label className="text-xs">Horas de execução</Label>
-            <Input type="number" value={d.horas_execucao} onChange={(e) => set("horas_execucao", Number(e.target.value) || 0)} /></div>
-          <div className="space-y-1"><Label className="text-xs">Dias <button type="button" className="text-primary hover:underline ml-1" onClick={() => set("dias", diasPadrao(d.horas_execucao))}>(usar horas ÷ 8)</button></Label>
-            <Input type="number" value={d.dias ?? ""} onChange={(e) => set("dias", num(e.target.value))} /></div>
-          <NumField k="custo_material_aluno" label="Material/aluno (R$)" />
-          <NumField k="custo_cloud_aluno" label="Cloud/aluno (R$)" />
-          <NumField k="min_alunos" label="Mín. alunos" />
-          <NumField k="max_alunos" label="Máx. alunos" nullable />
-          <NumField k="valor_fabricante" label="Valor fabricante (R$)" nullable />
-          <NumField k="preco_referencia_mercado" label="Preço praticado no mercado (R$)" nullable />
-          <NumField k="piso_preco_aluno" label="Piso por aluno (R$)" nullable />
+          <div className="space-y-1"><Label className="text-xs">Duração em</Label>
+            <Select value={unid} onValueChange={(v) => setUnid(v as "horas" | "dias")}><SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="horas">Horas</SelectItem><SelectItem value="dias">Dias</SelectItem></SelectContent></Select></div>
+          {unid === "horas" ? (
+            <div className="space-y-1"><Label className="text-xs">Horas de execução <span className="text-muted-foreground">({d.dias ?? 0} dia(s))</span></Label>
+              <Input type="number" value={d.horas_execucao} onChange={(e) => { const h = Number(e.target.value) || 0; setD((p) => ({ ...p, horas_execucao: h, dias: diasPadrao(h) })); }} /></div>
+          ) : (
+            <div className="space-y-1"><Label className="text-xs">Dias <span className="text-muted-foreground">({d.horas_execucao}h, 8h/dia)</span></Label>
+              <Input type="number" value={d.dias ?? ""} onChange={(e) => { const n = num(e.target.value); setD((p) => ({ ...p, dias: n, horas_execucao: (n ?? 0) * 8 })); }} /></div>
+          )}
+          {numField({ k: "custo_material_aluno", label: "Material/aluno (R$)", })}
+          {numField({ k: "custo_cloud_aluno", label: "Cloud/aluno (R$)", })}
+          {numField({ k: "min_alunos", label: "Mín. alunos", })}
+          {numField({ k: "max_alunos", label: "Máx. alunos", nullable: true, })}
+          {numField({ k: "valor_fabricante", label: "Valor fabricante (R$)", nullable: true, })}
+          {numField({ k: "preco_referencia_mercado", label: "Preço praticado no mercado (R$)", nullable: true, })}
+          {numField({ k: "piso_preco_aluno", label: "Piso por aluno (R$)", nullable: true, })}
           <div className="space-y-1"><Label className="text-xs">Exame vinculado</Label>
             <Select value={d.exame_course_id ?? "nenhum"} onValueChange={(v) => set("exame_course_id", v === "nenhum" ? null : v)}><SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="nenhum">Nenhum</SelectItem>{outros.filter((c) => c.tipo === "exame").map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent></Select></div>
