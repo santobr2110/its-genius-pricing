@@ -184,6 +184,7 @@ export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados)
   xml = trocarParagrafo(xml, "&lt;OBSERVAÇÕES DA PROPOSTA&gt;", obs.join(""));
 
   xml = removerPaginasEmBranco(xml);
+  xml = fixarInicioDePaginas(xml, ["Selbetti IT Solutions", "Escopo"]);
   zip.file("word/document.xml", xml);
   // Fonte única em todo o documento: troca fontes explícitas e as do tema em todas as partes XML.
   for (const nome of Object.keys(zip.files)) {
@@ -264,4 +265,67 @@ export function removerPaginasEmBranco(xml: string): string {
   let out = xml;
   for (const o of ops) out = out.slice(0, o.i) + o.txt + out.slice(o.f);
   return out;
+}
+
+/** Parágrafos e tabelas no nível do corpo (fora de tabelas e caixas de texto). */
+function blocosTopo(xml: string): { ini: number; fim: number; tipo: "p" | "tbl" }[] {
+  const corpo = xml.indexOf("<w:body>");
+  const re = /<w:(p|tbl)(?=[\s>\/])[^>]*?(\/?)>|<\/w:(p|tbl)>/g;
+  re.lastIndex = corpo < 0 ? 0 : corpo;
+  const out: { ini: number; fim: number; tipo: "p" | "tbl" }[] = [];
+  let prof = 0; let ini = -1; let tipo: "p" | "tbl" = "p";
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(xml))) {
+    if (m[3]) { // fechamento
+      prof--;
+      if (prof === 0) out.push({ ini, fim: re.lastIndex, tipo });
+    } else if (m[2] === "/") {
+      if (prof === 0) out.push({ ini: m.index, fim: re.lastIndex, tipo: m[1] as "p" | "tbl" });
+    } else {
+      if (prof === 0) { ini = m.index; tipo = m[1] as "p" | "tbl"; }
+      prof++;
+    }
+  }
+  return out;
+}
+
+/**
+ * O modelo depende do "fluxo natural" para começar algumas páginas (sem quebra explícita).
+ * Com outra fonte o texto ocupa mais ou menos espaço e a página começa no lugar errado ou
+ * sobra quase vazia. Aqui cada título indicado passa a sempre abrir uma página nova e as
+ * linhas vazias logo antes dele são removidas.
+ */
+export function fixarInicioDePaginas(xml: string, titulos: string[]): string {
+  for (const titulo of titulos) {
+    const blocos = blocosTopo(xml);
+    const textoDe = (s: string) => (s.match(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g) || [])
+      .map((t) => t.replace(/<[^>]+>/g, "")).join("").replace(/\s+/g, " ").trim();
+    const k = blocos.findIndex((b) => b.tipo === "p" && textoDe(xml.slice(b.ini, b.fim)).startsWith(titulo));
+    if (k < 0) continue;
+    const alvo = blocos[k];
+    let p = xml.slice(alvo.ini, alvo.fim);
+    if (!/^<w:p\b[^>]*>\s*<w:pPr>(?:(?!<\/w:pPr>)[\s\S])*<w:pageBreakBefore/.test(p)) {
+      const abre = p.indexOf(">") + 1;
+      if (p.startsWith("<w:pPr>", abre)) {
+        const resto = p.slice(abre + 7);
+        const mm = resto.match(/^(?:<w:pStyle[^>]*\/>)?(?:<w:keepNext[^>]*\/>)?(?:<w:keepLines[^>]*\/>)?/)!;
+        p = `${p.slice(0, abre + 7)}${mm[0]}<w:pageBreakBefore/>${resto.slice(mm[0].length)}`;
+      } else if (p.startsWith("<w:pPr/>", abre)) {
+        p = `${p.slice(0, abre)}<w:pPr><w:pageBreakBefore/></w:pPr>${p.slice(abre + 8)}`;
+      } else {
+        p = `${p.slice(0, abre)}<w:pPr><w:pageBreakBefore/></w:pPr>${p.slice(abre)}`;
+      }
+    }
+    // Remove parágrafos vazios imediatamente anteriores (sem texto, imagem, quebra ou seção).
+    let ini = alvo.ini;
+    for (let j = k - 1; j >= 0; j--) {
+      const b = blocos[j];
+      const t = xml.slice(b.ini, b.fim);
+      if (b.tipo !== "p" || b.fim !== ini && xml.slice(b.fim, ini).trim() !== "") break;
+      if (/<w:t[\s>]|<w:drawing|<w:pict|<w:sectPr|<w:object|<w:br|<w:fldChar/.test(t)) break;
+      ini = b.ini;
+    }
+    xml = xml.slice(0, ini) + p + xml.slice(alvo.fim);
+  }
+  return xml;
 }
