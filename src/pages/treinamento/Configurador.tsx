@@ -269,27 +269,31 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
         </p>
       )}
 
-      {preco && cascata && (
+      {preco && cascata && (() => {
+        const porAl = r.alunosBase != null;
+        const dCasc = porAl ? r.alunosBase! : 1;
+        const dCusto = porAl ? Math.max(1, linha.alunos) : 1;
+        return (
         <Collapsible>
           <CollapsibleTrigger className="flex items-center gap-1 text-xs text-primary hover:underline"><ChevronDown className="h-3 w-3" /> Detalhes do cálculo</CollapsibleTrigger>
           <CollapsibleContent className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
             <div className="space-y-1">
-              <p className="font-semibold">Custo</p>
-              <Linha l="Instrutor" v={brl(custo.detalhe.instrutor)} />
-              <Linha l="Gestão" v={brl(custo.detalhe.gestao)} />
-              {custo.detalhe.locacao > 0 && <Linha l="Locação" v={brl(custo.detalhe.locacao)} />}
-              <Linha l="Material / cloud / exame" v={brl(custo.detalhe.materialCloud)} />
-              <Linha l="Custo por aluno" v={brl(custo.custoPorAluno)} />
+              <p className="font-semibold">Custo{porAl ? " por aluno" : " da turma"}</p>
+              <Linha l="Instrutor" v={brl(custo.detalhe.instrutor / dCusto)} />
+              <Linha l="Gestão" v={brl(custo.detalhe.gestao / dCusto)} />
+              {custo.detalhe.locacao > 0 && <Linha l="Locação" v={brl(custo.detalhe.locacao / dCusto)} />}
+              <Linha l="Material / cloud / exame" v={brl(custo.detalhe.materialCloud / dCusto)} />
+              {porAl ? <Linha l="Total por aluno" v={brl(custo.custoPorAluno)} /> : <><Linha l="Total da turma" v={brl(custo.custoTurma)} /><Linha l="Custo por aluno" v={brl(custo.custoPorAluno)} /></>}
             </div>
             <div className="space-y-1">
-              <p className="font-semibold">Cascata (preço de tabela {brl(preco.precoTurma)})</p>
-              <Linha l="PIS" v={brl(cascata.pis)} />
-              <Linha l="COFINS" v={brl(cascata.cofins)} />
-              <Linha l="ISS" v={brl(cascata.iss)} />
-              <Linha l="Comissão" v={brl(cascata.comissao)} />
-              <Linha l="IR/CSLL" v={brl(cascata.irpjCsll)} />
-              <Linha l="Enc. financeiros" v={brl(cascata.encFinanc)} />
-              <Linha l="Lucro" v={brl(cascata.lucro)} />
+              <p className="font-semibold">{porAl ? `Cascata por aluno (preço de tabela ${brl(preco.precoPorAluno)})` : `Cascata da turma (preço de tabela ${brl(preco.precoTurma)})`}</p>
+              <Linha l="PIS" v={brl(cascata.pis / dCasc)} />
+              <Linha l="COFINS" v={brl(cascata.cofins / dCasc)} />
+              <Linha l="ISS" v={brl(cascata.iss / dCasc)} />
+              <Linha l="Comissão" v={brl(cascata.comissao / dCasc)} />
+              <Linha l="IR/CSLL" v={brl(cascata.irpjCsll / dCasc)} />
+              <Linha l="Enc. financeiros" v={brl(cascata.encFinanc / dCasc)} />
+              <Linha l="Lucro" v={brl(cascata.lucro / dCasc)} />
               <Linha l="Σ sobre a venda" v={pct(cascata.totalEncargosPerc)} />
             </div>
             {r.curva.length > 1 && (
