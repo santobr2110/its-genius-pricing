@@ -183,6 +183,7 @@ export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados)
   }
   xml = trocarParagrafo(xml, "&lt;OBSERVAÇÕES DA PROPOSTA&gt;", obs.join(""));
 
+  xml = removerPaginasEmBranco(xml);
   zip.file("word/document.xml", xml);
   // Fonte única em todo o documento: troca fontes explícitas e as do tema em todas as partes XML.
   for (const nome of Object.keys(zip.files)) {
@@ -199,4 +200,21 @@ export async function gerarPropostaDocx(d: PropostaDocxDados): Promise<Blob> {
   const resp = await fetch(modeloAsset.url);
   if (!resp.ok) throw new Error("Não foi possível carregar o modelo da proposta.");
   return preencherModelo(await resp.arrayBuffer(), d);
+}
+
+/**
+ * Evita páginas em branco: um parágrafo que só contém quebra de página (e os parágrafos vazios
+ * antes dele) "transborda" para a página seguinte quando a anterior está cheia, gerando uma página vazia.
+ * Troca por "quebra de página antes" no parágrafo seguinte — o Word nunca deixa página em branco assim.
+ */
+export function removerPaginasEmBranco(xml: string): string {
+  const vazio = String.raw`<w:p\b(?:[^>]*\/>|[^>]*>(?:(?!<w:p\b)(?!<w:t[ >])(?!<w:drawing)(?!<w:br)(?!<w:sectPr)(?!<w:pict)[\s\S])*?<\/w:p>)`;
+  const quebra = String.raw`<w:p\b[^>]*>(?:<w:pPr>(?:(?!<w:sectPr)[\s\S])*?<\/w:pPr>)?<w:r\b[^>]*>(?:<w:rPr>[\s\S]*?<\/w:rPr>)?(?:<w:lastRenderedPageBreak\/>)?<w:br w:type="page"\/><\/w:r><\/w:p>`;
+  const re = new RegExp(`(?:${vazio})*${quebra}(<w:p\\b[^>]*>)(<w:pPr>[\\s\\S]*?<\\/w:pPr>|<w:pPr\\/>)?`, "g");
+  return xml.replace(re, (_m, abre: string, ppr?: string) => {
+    if (!ppr || ppr === "<w:pPr/>") return `${abre}<w:pPr><w:pageBreakBefore/></w:pPr>`;
+    if (ppr.includes("<w:pageBreakBefore")) return abre + ppr;
+    const m = ppr.match(/^<w:pPr>((?:<w:pStyle[^>]*\/>)?(?:<w:keepNext[^>]*\/>)?(?:<w:keepLines[^>]*\/>)?)/)!;
+    return `${abre}<w:pPr>${m[1]}<w:pageBreakBefore/>${ppr.slice(m[0].length)}`;
+  });
 }
