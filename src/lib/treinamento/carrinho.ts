@@ -66,7 +66,7 @@ export function computeCarrinho(
   const byId = new Map(courses.map((c) => [c.id, c]));
   const cascataBase: CascataParams = {
     ...tax, irpjCsllPerc, encFinancPerc: cfg.encFinancPerc, lucroPerc: cfg.lucroPerc,
-    comissaoPerc: comissaoFromRent(cfg.lucroPerc, tiers),
+    comissaoPerc: params.comissaoFixaPerc ?? comissaoFromRent(cfg.lucroPerc, tiers),
   };
   const fixos = { pisPerc: tax.pisPerc, cofinsPerc: tax.cofinsPerc, issPerc: tax.issPerc, irpjCsllPerc, encFinancPerc: cfg.encFinancPerc };
 
@@ -111,7 +111,7 @@ export function computeCarrinho(
     const preco: PrecoResult = porVaga ? { ...precoBase, precoTurma: precoBase.precoPorAluno * vagas } : precoBase;
     
     const descontoEfetivoPerc = 100 * (1 - (1 - (linha.descontoPerc || 0) / 100) * (1 - (cfg.descontoTotalPerc || 0) / 100));
-    const d = aplicarDesconto(custo.custoTurma, preco.precoTurma, descontoEfetivoPerc, fixos, tiers);
+    const d = aplicarDesconto(custo.custoTurma, preco.precoTurma, descontoEfetivoPerc, fixos, tiers, params.comissaoFixaPerc ?? null);
     const porAluno = d.precoFinal / Math.max(1, vagas);
     if (curso.piso_preco_aluno != null && porAluno < curso.piso_preco_aluno) avisos.push("Preço por aluno abaixo do piso cadastrado.");
     const curva = porVaga ? curvaPorAluno(curso, params, cascataBase) : [];
