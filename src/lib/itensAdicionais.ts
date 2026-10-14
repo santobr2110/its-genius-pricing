@@ -8,7 +8,6 @@
 //   ponderado pelo peso do tipo de ativo) + chamados previstos no funil,
 //   ajustados pelo slider de Risco (criticidade).
 // - Itens por hora (hora N3, TAM, Owner) usam o valor hora do N3.
-// - Itens de ITSM usam o custo de atendente configurado em Métricas.
 // ============================================================
 import type { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { computeCustoPorUMMarginal } from "@/lib/custoMonitoramentoUM";
@@ -109,8 +108,6 @@ export function createItemAdicionalCalculator(ctx: ItemAdicionalCtx) {
       case "monit-bd": return monitOnly(pesos.bancoDados);
       case "monit-sistema": return monitOnly(pesos.firewall);
       case "proxy": return { valor: (state.valorProxyAdicional || 0) * fatorVenda };
-      case "atendente-itsm":
-      case "itsm": return { valor: (state.custoAtendenteFlow || 0) * fatorVenda };
       case "hora-n3":
       case "tam":
       case "owner":
