@@ -319,8 +319,8 @@ export default function TaxasDemanda() {
           <CardContent className="space-y-4">
             {([
               { label: "Smart Monitor — Automação / Manutenção", minKey: "horasN3MonitorManutMin", maxKey: "horasN3MonitorManutMax" },
-              { label: "Smart Monitor — Acionamento N3", minKey: "horasN3MonitorMin", maxKey: "horasN3MonitorMax" },
               { label: "Smart Flow — Automação / Manutenção", minKey: "horasN3FlowManutMin", maxKey: "horasN3FlowManutMax" },
+              { label: "Smart Monitor — Acionamento N3", minKey: "horasN3MonitorMin", maxKey: "horasN3MonitorMax" },
               { label: "Smart Flow — Acionamento N3", minKey: "horasN3FlowMin", maxKey: "horasN3FlowMax" },
               { label: "Smart Operation", minKey: "horasN3OperationMin", maxKey: "horasN3OperationMax" },
               { label: "Smart Performance", minKey: "horasN3PerformanceMin", maxKey: "horasN3PerformanceMax" },
