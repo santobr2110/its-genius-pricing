@@ -11,11 +11,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Calendar, Download, FolderOpen, Pencil, Search, Trash2, UserRoundCog } from "lucide-react";
+import { Calendar, Download, ExternalLink, FolderOpen, Pencil, Search, Trash2, UserRoundCog } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTreinamentoCotacoes, type TreinamentoCotacao } from "@/hooks/useTreinamentoCotacoes";
-import { useCarrinhoState } from "./useCarrinhoState";
+import { useCarrinhoState, urlNovaAba } from "./useCarrinhoState";
 import { CONFIG_PADRAO } from "@/lib/treinamento/carrinho";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -137,6 +137,9 @@ export default function TreinamentoCotacoes() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
+                    <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => window.open(urlNovaAba(c.id), "_blank")} title="Abre esta cotação em uma nova aba, sem mexer na cotação aberta aqui">
+                      <ExternalLink className="h-3.5 w-3.5" /><span className="hidden md:inline text-xs">Abrir em nova aba</span>
+                    </Button>
                     <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => abrir(c)}>
                       <Download className="h-3.5 w-3.5" /><span className="hidden sm:inline text-xs">Carregar</span>
                     </Button>
