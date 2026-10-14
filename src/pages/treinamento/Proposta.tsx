@@ -151,7 +151,7 @@ export default function TreinamentoProposta() {
             const curso = l.cursoOriginal ?? l.curso!;
             const ct: TrainingCourseContent | undefined = contentById.get(curso.id);
             return (
-              <article key={l.linha.id} className="space-y-2 break-inside-avoid">
+              <article key={l.linha.id} className="space-y-3 rounded-lg border bg-muted/20 p-4 break-inside-avoid">
                 <div className="flex flex-wrap items-baseline gap-2">
                   <h3 className="font-semibold">{curso.nome}{l.linha.somenteExame ? " — somente exame" : ""}</h3>
                   <Badge variant="secondary">{MOD[l.linha.modalidade] ?? l.linha.modalidade}</Badge>
@@ -159,20 +159,20 @@ export default function TreinamentoProposta() {
                 </div>
                 {ct?.tagline && <p className="text-sm italic whitespace-pre-line">{ct.tagline}</p>}
                 {ct?.descricao && <p className="text-sm whitespace-pre-line leading-relaxed">{ct.descricao}</p>}
-                <dl className="space-y-3 text-sm">
+                <dl className="grid gap-2 text-sm">
                   {([
                     ["Público-alvo", ct?.publico_alvo], ["Pré-requisito", ct?.pre_requisito], ["Formato", ct?.formato],
                     ["Horário", ct?.horario], ["Entregável", ct?.entregavel], ["Exame", ct?.exame_descricao],
                   ] as [string, string | null | undefined][]).filter(([, v]) => v && v.trim()).map(([k, v]) => (
-                    <div key={k} className="break-inside-avoid">
-                      <dt className="font-semibold">{k}</dt>
+                    <div key={k} className="rounded-md border border-border/60 bg-background px-3 py-2 break-inside-avoid">
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-primary">{k}</dt>
                       <dd className="whitespace-pre-line leading-relaxed break-words text-foreground/90">{v}</dd>
                     </div>
                   ))}
                 </dl>
                 {!!ct?.cronograma?.length && (
-                  <div className="text-sm space-y-1">
-                    <p className="font-semibold">Conteúdo programático</p>
+                  <div className="text-sm space-y-1 rounded-md border border-border/60 bg-background px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Conteúdo programático</p>
                     <ol className="list-decimal ml-5 space-y-1.5 leading-relaxed">
                       {ct.cronograma.map((m, i) => (
                         <li key={i}>
@@ -188,7 +188,7 @@ export default function TreinamentoProposta() {
           })}
         </section>
 
-        <section className="space-y-2 break-inside-avoid">
+        <section className="space-y-2 rounded-lg border bg-muted/20 p-4 break-inside-avoid">
           <h2 className="text-lg font-semibold">Investimento</h2>
           <table className="w-full text-sm">
             <thead><tr className="border-b text-left"><th className="py-1">Item</th><th>Modalidade</th><th className="text-right">Alunos</th><th className="text-right">Por aluno</th><th className="text-right">Total</th></tr></thead>
@@ -208,7 +208,7 @@ export default function TreinamentoProposta() {
           <p className="text-xs text-muted-foreground">Valores com impostos inclusos.</p>
         </section>
 
-        <section className="text-sm space-y-1 break-inside-avoid">
+        <section className="text-sm space-y-1 rounded-lg border bg-muted/20 p-4 break-inside-avoid">
           <h2 className="text-lg font-semibold">Condições</h2>
           <p><b>Pagamento:</b> {d.condicoesPagamento}</p>
           <p><b>Validade da proposta:</b> {d.validadeDias} dias ({dataBR(validaAte)}).</p>
