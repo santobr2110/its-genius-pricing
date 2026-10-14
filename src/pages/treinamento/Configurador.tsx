@@ -255,11 +255,12 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
       {r.avisos.map((a, i) => <p key={i} className="text-xs text-muted-foreground flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {a}</p>)}
 
       {preco && cascata && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 rounded-md bg-muted/40 p-2 text-xs">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-2 rounded-md bg-muted/40 p-2 text-xs">
           <Kpi icon={Wallet} l="Custo da turma" v={brl(custo.custoTurma)} />
           <Kpi icon={TrendingUp} l="Preço de venda" v={brl(r.precoFinal)} destaque />
           <Kpi icon={Users} l="Por aluno" v={brl(r.precoFinalPorAluno)} />
           <Kpi icon={Percent} l="Rentabilidade" v={pct(r.rentabilidadePerc)} />
+          <Kpi icon={TrendingUp} l="Lucro" v={brl(r.lucro)} />
           <Kpi icon={Tag} l="Desconto" v={pct(r.descontoEfetivoPerc)} />
         </div>
       )}
