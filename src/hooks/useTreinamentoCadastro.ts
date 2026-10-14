@@ -19,7 +19,7 @@ export function useTreinamentoCadastro() {
       ]);
       for (const r of [c, ct, ci, p]) if (r.error) throw r.error;
       return {
-        courses: (c.data ?? []) as unknown as TrainingCourse[],
+        courses: (c.data ?? []).map(({ dias_decimal, ...x }) => ({ ...x, dias: dias_decimal ?? x.dias })) as unknown as TrainingCourse[],
         contents: (ct.data ?? []) as unknown as TrainingCourseContent[],
         comboItems: (ci.data ?? []) as unknown as TrainingComboItem[],
         params: (p.data ?? []) as unknown as TrainingParam[],
