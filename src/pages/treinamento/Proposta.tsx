@@ -212,7 +212,7 @@ export default function TreinamentoProposta() {
           <h2 className="text-lg font-semibold">Condições</h2>
           <p><b>Pagamento:</b> {d.condicoesPagamento}</p>
           <p><b>Validade da proposta:</b> {d.validadeDias} dias ({dataBR(validaAte)}).</p>
-          {obsFinal && <p className="whitespace-pre-wrap"><b>Observações:</b> {obsFinal}</p>}
+          {obsFinal && <div className="pt-1"><p className="font-semibold">Observações</p><p className="whitespace-pre-wrap leading-relaxed">{obsFinal}</p></div>}
         </section>
       </div>
     </div>
