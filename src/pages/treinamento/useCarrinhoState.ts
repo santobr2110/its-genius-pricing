@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { CONFIG_PADRAO, type ConfigCarrinho, type LinhaCarrinho } from "@/lib/treinamento/carrinho";
 
@@ -25,18 +25,24 @@ export const TAB_COTACAO_ID: string | null = (() => {
 
 export const urlNovaAba = (id: string) => `/observabilidade/treinamento?cotacao=${encodeURIComponent(id)}`;
 
+// Store compartilhado da aba: todas as telas (Configurador, Proposta, Resumo…) veem o mesmo estado.
+const tabCache = new Map<string, unknown>();
+const tabListeners = new Set<() => void>();
 function useTabState<T>(key: string, inicial: T): [T, (v: T | ((p: T) => T)) => void] {
   const k = `trn.tab.${key}`;
-  const [v, setV] = useState<T>(() => {
-    try { const s = window.sessionStorage.getItem(k); return s ? (JSON.parse(s) as T) : inicial; } catch { return inicial; }
-  });
+  const ler = useCallback((): T => {
+    if (!tabCache.has(k)) {
+      try { const s = window.sessionStorage.getItem(k); tabCache.set(k, s ? JSON.parse(s) : inicial); } catch { tabCache.set(k, inicial); }
+    }
+    return tabCache.get(k) as T;
+  }, [k]); // eslint-disable-line react-hooks/exhaustive-deps
+  const v = useSyncExternalStore((cb) => { tabListeners.add(cb); return () => { tabListeners.delete(cb); }; }, ler, ler);
   const set = useCallback((n: T | ((p: T) => T)) => {
-    setV((p) => {
-      const val = typeof n === "function" ? (n as (p: T) => T)(p) : n;
-      try { window.sessionStorage.setItem(k, JSON.stringify(val)); } catch { /* ignore */ }
-      return val;
-    });
-  }, [k]);
+    const val = typeof n === "function" ? (n as (p: T) => T)(ler()) : n;
+    tabCache.set(k, val);
+    try { window.sessionStorage.setItem(k, JSON.stringify(val)); } catch { /* ignore */ }
+    tabListeners.forEach((l) => l());
+  }, [k, ler]);
   return [v, set];
 }
 
