@@ -1,0 +1,1 @@
+ALTER TABLE public.training_courses ADD COLUMN IF NOT EXISTS horas_por_dia numeric NOT NULL DEFAULT 8;
