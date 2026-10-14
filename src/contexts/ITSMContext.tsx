@@ -54,11 +54,20 @@ interface ITSMContextType {
 
 const ITSMContext = createContext<ITSMContextType | null>(null);
 
+export const HORAS_MES_N1 = 220;
+
 export function ITSMProvider({ children }: { children: ReactNode }) {
   const calc = useITSMCalculator();
   const n1 = useN1TeamState();
   const n2 = useN2TeamState();
   const activePreset = useActivePresetSession();
+
+  // Smart Flow: alocação N1 cobra 15 min por chamado ao custo/hora médio da Equipe N1.
+  const custoHoraN1Medio = Math.round((n1.results.custoPorPessoa / HORAS_MES_N1) * 100) / 100;
+  useEffect(() => {
+    if (calc.state.custoHoraN1Medio !== custoHoraN1Medio) calc.update("custoHoraN1Medio", custoHoraN1Medio);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [custoHoraN1Medio, calc.state.custoHoraN1Medio]);
 
   // Aplica o "Perfil padrão" registrado em Administração para usuários novos
   // (sem parâmetros próprios em user_app_state). Roda uma vez por usuário+oferta.
