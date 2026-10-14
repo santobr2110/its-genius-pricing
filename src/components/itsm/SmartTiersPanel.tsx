@@ -1269,6 +1269,23 @@ export default function SmartTiersPanel() {
                 <span className="font-semibold">{formatBRL(sflN1Venda)}</span>
               </div>
             </div>
+            {!state.tierOperation && (
+              <div className="rounded border bg-background px-2 py-2 space-y-1.5">
+                <div className="flex justify-between text-[11px]">
+                  <Label className="text-[11px] text-muted-foreground font-semibold">
+                    Alocação N1 — chamados atendidos em até 15 min
+                  </Label>
+                  <span className="font-semibold">{state.percAlocacaoN1Flow}%</span>
+                </div>
+                <Slider
+                  value={[state.percAlocacaoN1Flow || 0]}
+                  onValueChange={([v]) => update("percAlocacaoN1Flow", v)}
+                  min={0}
+                  max={100}
+                  step={1}
+                />
+              </div>
+            )}
             {!flowAdvanced && (
               <div className="rounded border bg-background px-2 py-2 space-y-1.5">
                 <Label className="text-[11px] text-muted-foreground font-semibold">
