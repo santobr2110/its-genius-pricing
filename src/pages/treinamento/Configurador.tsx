@@ -66,13 +66,17 @@ export default function Configurador() {
   };
 
   const salvar = async () => {
-    const nome = atual.nome.trim() || prompt("Nome da cotação:")?.trim();
-    if (!nome) return;
+    const faltando = [
+      [atual.cliente, "Nome do Cliente"], [atual.gerenteConta, "Gerente de Conta"], [atual.especialistaBU, "Especialista da BU"],
+      [atual.salesforce, "No. Oportunidade Sales Force"], [atual.arquitetoBU, "Arquiteto BU"],
+    ].filter(([v]) => !v?.trim()).map(([, l]) => l);
+    if (faltando.length) { toast.error(`Preencha: ${faltando.join(", ")}`); return; }
+    const nome = atual.nome.trim() || atual.cliente.trim();
     setSalvando(true);
     try {
       const id = await cot.salvar(atual.id, nome, atual.cliente, {
         linhas, config, resumo: { custoTotal: res.custoTotal, precoFinalTotal: res.precoFinalTotal, rentabilidadePerc: res.rentabilidadePerc },
-      });
+      }, atual);
       const salvo = cot.lista.find((x) => x.id === id);
       setAtual({ ...atual, id, nome, codigo: salvo?.quote_code ?? atual.codigo });
       toast.success("Cotação salva");
@@ -96,10 +100,18 @@ export default function Configurador() {
     <div className="space-y-4">
       {/* Cabeçalho da cotação */}
       <Card>
-        <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-          <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 text-muted-foreground"><FileSignature className="h-3.5 w-3.5 text-primary" /> Nome da cotação</Label><Input value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} placeholder="Ex.: Turma ZCS março" /></div>
-          <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 text-muted-foreground"><Building2 className="h-3.5 w-3.5 text-primary" /> Cliente</Label><Input value={atual.cliente} onChange={(e) => setAtual({ ...atual, cliente: e.target.value })} /></div>
-          <div className="flex flex-wrap items-center gap-2">
+        <CardContent className="pt-4 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 text-muted-foreground"><Building2 className="h-3.5 w-3.5 text-primary" /> Nome do Cliente *</Label><Input value={atual.cliente} onChange={(e) => setAtual({ ...atual, cliente: e.target.value })} /></div>
+            {([
+              ["gerenteConta", "Gerente de Conta *", ""], ["especialistaBU", "Especialista da BU *", ""],
+              ["salesforce", "No. Oportunidade Sales Force *", "Ex.: 0061x00000ABCDE"], ["arquitetoBU", "Arquiteto BU *", ""],
+            ] as const).map(([k, label, ph]) => (
+              <div key={k} className="space-y-1"><Label className="text-xs text-muted-foreground">{label}</Label><Input value={atual[k] ?? ""} placeholder={ph} onChange={(e) => setAtual({ ...atual, [k]: e.target.value })} /></div>
+            ))}
+            <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 text-muted-foreground"><FileSignature className="h-3.5 w-3.5 text-primary" /> Nome da cotação (opcional)</Label><Input value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} placeholder="Ex.: Turma ZCS março" /></div>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {codigoAtual && <Badge variant="outline" className="font-mono">{codigoAtual}</Badge>}
             <Button variant="outline" onClick={nova}><FilePlus2 className="h-4 w-4 mr-1" /> Nova</Button>
             <Button onClick={salvar} disabled={salvando || linhas.length === 0 || !can("page.trn.quote")}><Save className="h-4 w-4 mr-1" /> Salvar</Button>

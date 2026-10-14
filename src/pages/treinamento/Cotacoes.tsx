@@ -20,7 +20,7 @@ export default function TreinamentoCotacoes() {
     if (!c) return;
     setLinhas(c.payload?.linhas ?? []);
     setConfig({ ...CONFIG_PADRAO, ...(c.payload?.config ?? {}) });
-    setAtual({ id: c.id, nome: c.name, cliente: c.client_name ?? "", codigo: c.quote_code });
+    setAtual({ id: c.id, nome: c.name, cliente: c.client_name ?? "", codigo: c.quote_code, gerenteConta: c.account_manager ?? "", especialistaBU: c.bu_specialist ?? "", salesforce: c.salesforce_code ?? "", arquitetoBU: c.bu_architect ?? "" });
     navigate("/observabilidade/treinamento");
   };
 
