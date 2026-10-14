@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertTriangle, ChevronDown, FilePlus2, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { AlertTriangle, Award, Boxes, Building2, ChevronDown, FilePlus2, FileSignature, GraduationCap, ListChecks, Loader2, Plus, Save, Sparkles, Trash2, TrendingUp, Users, Wallet, Percent, Tag } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,8 +97,8 @@ export default function Configurador() {
       {/* Cabeçalho da cotação */}
       <Card>
         <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-          <div className="space-y-1"><Label className="text-xs">Nome da cotação</Label><Input value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} placeholder="Ex.: Turma ZCS março" /></div>
-          <div className="space-y-1"><Label className="text-xs">Cliente</Label><Input value={atual.cliente} onChange={(e) => setAtual({ ...atual, cliente: e.target.value })} /></div>
+          <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 text-muted-foreground"><FileSignature className="h-3.5 w-3.5 text-primary" /> Nome da cotação</Label><Input value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} placeholder="Ex.: Turma ZCS março" /></div>
+          <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 text-muted-foreground"><Building2 className="h-3.5 w-3.5 text-primary" /> Cliente</Label><Input value={atual.cliente} onChange={(e) => setAtual({ ...atual, cliente: e.target.value })} /></div>
           <div className="flex flex-wrap items-center gap-2">
             {codigoAtual && <Badge variant="outline" className="font-mono">{codigoAtual}</Badge>}
             <Button variant="outline" onClick={nova}><FilePlus2 className="h-4 w-4 mr-1" /> Nova</Button>
@@ -111,7 +112,10 @@ export default function Configurador() {
           {/* Itens */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Itens da proposta</CardTitle>
+              <div>
+                <CardTitle className="text-base flex items-center gap-2"><ListChecks className="h-4 w-4 text-primary" /> Itens da proposta</CardTitle>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground mt-1">{linhas.length} item(ns) · cursos, combos, extras e exames</p>
+              </div>
               <Button size="sm" onClick={adicionar} disabled={vendaveis.length === 0}><Plus className="h-4 w-4 mr-1" /> Adicionar item</Button>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -121,7 +125,13 @@ export default function Configurador() {
                   Valores simulados em uso: {paramsPendentes.map((p) => p.label).join(" · ")}
                 </p>
               )}
-              {linhas.length === 0 && <p className="text-sm text-muted-foreground">Adicione cursos, combos, extras ou exames para montar a proposta.</p>}
+              {linhas.length === 0 && (
+                <div className="rounded-lg border border-dashed p-10 flex flex-col items-center gap-2 text-center">
+                  <GraduationCap className="h-10 w-10 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Adicione cursos, combos, extras ou exames para montar a proposta.</p>
+                  <Button size="sm" variant="outline" onClick={adicionar} disabled={vendaveis.length === 0}><Plus className="h-4 w-4 mr-1" /> Adicionar item</Button>
+                </div>
+              )}
               {res.linhas.map((r) => (
                 <LinhaEditor key={r.linha.id} r={r} vendaveis={vendaveis} onChange={(p) => upd(r.linha.id, p)} onRemove={() => setLinhas(linhas.filter((l) => l.id !== r.linha.id))} />
               ))}
@@ -131,21 +141,23 @@ export default function Configurador() {
 
         {/* Painel lateral */}
         <div className="space-y-4 xl:sticky xl:top-28">
-          <Card className="border-primary/40">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Resultado</CardTitle></CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <Linha l="Custo total" v={brl(res.custoTotal)} />
-              <Linha l="Preço de tabela" v={brl(res.precoTabelaTotal)} />
-              {res.precoTabelaTotal !== res.precoFinalTotal && <Linha l="Desconto" v={`− ${brl(res.precoTabelaTotal - res.precoFinalTotal)}`} />}
-              <div className="flex justify-between items-baseline border-t pt-2"><span className="font-semibold">Preço de venda</span><span className="text-xl font-bold text-primary tabular-nums">{brl(res.precoFinalTotal)}</span></div>
-              <Linha l="Rentabilidade" v={pct(res.rentabilidadePerc)} strong={res.rentabilidadePerc < config.lucroPerc - 0.005} />
-              <Linha l="Lucro" v={brl(res.lucroTotal)} />
-              <p className="text-[11px] text-muted-foreground">Município {config.municipio} · rentabilidade {pct(config.lucroPerc)}{config.descontoTotalPerc ? ` · desconto ${pct(config.descontoTotalPerc)}` : ""}. <Link to="/observabilidade/treinamento/financeiro/impostos" className="text-primary hover:underline">Alterar condições</Link></p>
-              <p className="text-[11px] text-muted-foreground">Comissão pela faixa de rentabilidade: {pct(res.cascataBase.comissaoPerc)} sem desconto. IR/CSLL {pct(res.cascataBase.irpjCsllPerc)}.</p>
-              {res.temErros && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens com erro; eles não entram no total.</p>}
-              <div className="pt-1">
-                <ApprovalBadge approval={approval} canRequest={!!atual.id} disabledReason={!atual.id ? "Salve a cotação primeiro" : undefined} />
+          <Card className="border-2">
+            <CardContent className="pt-5 space-y-3 text-sm">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">Composição do valor total</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Mini icon={Wallet} l="Custo total" v={brl(res.custoTotal)} />
+                <Mini icon={Tag} l="Preço de tabela" v={brl(res.precoTabelaTotal)} />
+                <Mini icon={Percent} l="Rentabilidade" v={pct(res.rentabilidadePerc)} alerta={res.rentabilidadePerc < config.lucroPerc - 0.005} />
+                <Mini icon={TrendingUp} l="Lucro" v={brl(res.lucroTotal)} />
               </div>
+              {res.precoTabelaTotal !== res.precoFinalTotal && <Linha l="Desconto" v={`− ${brl(res.precoTabelaTotal - res.precoFinalTotal)}`} />}
+              <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Total de Venda</span><span className="text-2xl font-bold tabular-nums">{brl(res.precoFinalTotal)}</span></div>
+              <div className="rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground space-y-0.5">
+                <p>Município {config.municipio} · rentabilidade alvo {pct(config.lucroPerc)}{config.descontoTotalPerc ? ` · desconto ${pct(config.descontoTotalPerc)}` : ""}</p>
+                <p>Comissão {pct(res.cascataBase.comissaoPerc)} · IR/CSLL {pct(res.cascataBase.irpjCsllPerc)} · <Link to="/observabilidade/treinamento/financeiro/impostos" className="text-primary hover:underline">Alterar condições</Link></p>
+              </div>
+              {res.temErros && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens com erro; eles não entram no total.</p>}
+              <ApprovalBadge approval={approval} canRequest={!!atual.id} disabledReason={!atual.id ? "Salve a cotação primeiro" : undefined} />
             </CardContent>
           </Card>
         </div>
@@ -158,6 +170,18 @@ function Linha({ l, v, strong }: { l: string; v: string; strong?: boolean }) {
   return <div className="flex justify-between"><span className="text-muted-foreground">{l}</span><span className={`tabular-nums ${strong ? "font-semibold text-destructive" : "font-medium text-foreground"}`}>{v}</span></div>;
 }
 
+function Mini({ icon: Icon, l, v, alerta }: { icon: LucideIcon; l: string; v: string; alerta?: boolean }) {
+  return (
+    <div className="rounded-md border p-2">
+      <p className="text-[10px] text-muted-foreground flex items-center gap-1"><Icon className="h-3 w-3" /> {l}</p>
+      <p className={`font-semibold tabular-nums ${alerta ? "text-destructive" : ""}`}>{v}</p>
+    </div>
+  );
+}
+
+const TIPO_ICON: Record<string, LucideIcon> = { curso: GraduationCap, exame: Award, combo: Boxes, extra: Sparkles };
+const TIPO_LABEL: Record<string, string> = { curso: "Curso", exame: "Exame", combo: "Combo", extra: "Extra" };
+
 function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
   r: LinhaResultado; vendaveis: ReturnType<typeof useTreinamentoCadastro>["courses"]; onChange: (p: Partial<LinhaCarrinho>) => void; onRemove: () => void;
 }) {
@@ -168,7 +192,18 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
   const difRef = ref && r.precoFinalPorAluno ? ((r.precoFinalPorAluno - ref) / ref) * 100 : null;
 
   return (
-    <div className="rounded-lg border bg-background p-3 space-y-3">
+    <div className="rounded-lg border bg-background p-3 space-y-3 transition-colors hover:border-primary/40">
+      {orig && (() => { const Icon = TIPO_ICON[orig.tipo] ?? GraduationCap; return (
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0"><Icon className="h-4 w-4" /></div>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium truncate">{orig.nome}</p>
+            <p className="text-[11px] text-muted-foreground">{orig.horas_execucao}h{orig.dias ? ` · ${orig.dias} dia(s)` : ""}{orig.part_number_interno ? ` · ${orig.part_number_interno}` : ""}</p>
+          </div>
+          <Badge variant="outline" className="text-[10px] uppercase tracking-wider">{orig.fabricante}</Badge>
+          <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">{TIPO_LABEL[orig.tipo] ?? orig.tipo}</Badge>
+        </div>
+      ); })()}
       <div className="grid grid-cols-2 md:grid-cols-[2fr_1fr_90px_90px_auto] gap-2 items-end">
         <div className="space-y-1 col-span-2 md:col-span-1">
           <Label className="text-xs flex items-center gap-1">Item
@@ -219,11 +254,11 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
 
       {preco && cascata && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 rounded-md bg-muted/40 p-2 text-xs">
-          <Kpi l="Custo da turma" v={brl(custo.custoTurma)} />
-          <Kpi l="Preço de venda" v={brl(r.precoFinal)} destaque />
-          <Kpi l="Por aluno" v={brl(r.precoFinalPorAluno)} />
-          <Kpi l="Rentabilidade" v={pct(r.rentabilidadePerc)} />
-          <Kpi l="Desconto" v={pct(r.descontoEfetivoPerc)} />
+          <Kpi icon={Wallet} l="Custo da turma" v={brl(custo.custoTurma)} />
+          <Kpi icon={TrendingUp} l="Preço de venda" v={brl(r.precoFinal)} destaque />
+          <Kpi icon={Users} l="Por aluno" v={brl(r.precoFinalPorAluno)} />
+          <Kpi icon={Percent} l="Rentabilidade" v={pct(r.rentabilidadePerc)} />
+          <Kpi icon={Tag} l="Desconto" v={pct(r.descontoEfetivoPerc)} />
         </div>
       )}
       {ref != null && difRef != null && (
@@ -272,6 +307,6 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
   );
 }
 
-function Kpi({ l, v, destaque }: { l: string; v: string; destaque?: boolean }) {
-  return <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground">{l}</p><p className={`tabular-nums ${destaque ? "font-bold text-primary" : "font-semibold text-foreground"}`}>{v}</p></div>;
+function Kpi({ icon: Icon, l, v, destaque }: { icon: LucideIcon; l: string; v: string; destaque?: boolean }) {
+  return <div><p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1"><Icon className="h-3 w-3" />{l}</p><p className={`tabular-nums ${destaque ? "font-bold text-primary" : "font-semibold text-foreground"}`}>{v}</p></div>;
 }
