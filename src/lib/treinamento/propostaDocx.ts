@@ -26,7 +26,7 @@ export function dataExtenso(s: string): string {
   return s;
 }
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const FONTE = "Aptos";
+const FONTE = "Segoe UI";
 const TAM = 28; // 14pt (meios-pontos)
 const COR = "17392F";
 
@@ -184,6 +184,14 @@ export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados)
   xml = trocarParagrafo(xml, "&lt;OBSERVAÇÕES DA PROPOSTA&gt;", obs.join(""));
 
   zip.file("word/document.xml", xml);
+  // Fonte única em todo o documento: troca fontes explícitas e as do tema em todas as partes XML.
+  for (const nome of Object.keys(zip.files)) {
+    if (!/^word\/.*\.xml$/.test(nome)) continue;
+    let x = nome === "word/document.xml" ? xml : await zip.file(nome)!.async("string");
+    x = x.replace(/<w:rFonts\b[^>]*\/>/g, `<w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}" w:eastAsia="${FONTE}" w:cs="${FONTE}"/>`)
+      .replace(/(<a:(?:latin|ea|cs)\s+typeface=")[^"]*"/g, `$1${FONTE}"`);
+    zip.file(nome, x);
+  }
   return zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
 }
 
