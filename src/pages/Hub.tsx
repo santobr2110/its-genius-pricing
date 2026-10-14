@@ -87,17 +87,6 @@ const GROUPS: GroupCard[] = [
     offerings: [],
   },
   {
-    id: "cloud",
-    label: "Cloud",
-    description: "Estrutura de precificação para serviços de nuvem.",
-    icon: Cloud,
-    gradient: "from-lime-300 via-green-400 to-emerald-500",
-    glow: "shadow-[0_0_40px_-10px_rgba(132,204,22,0.6)]",
-    accent: "text-lime-400",
-    ring: "group-hover:ring-lime-400/50",
-    offerings: [],
-  },
-  {
     id: "observabilidade",
     label: "Observabilidade",
     description: "Estrutura de precificação para observabilidade e monitoração.",
@@ -117,6 +106,17 @@ const GROUPS: GroupCard[] = [
         permissionKey: TREINAMENTO_PROVISORIO_GATE as PermissionKey,
       },
     ],
+  },
+  {
+    id: "cloud",
+    label: "Cloud",
+    description: "Estrutura de precificação para serviços de nuvem.",
+    icon: Cloud,
+    gradient: "from-lime-300 via-green-400 to-emerald-500",
+    glow: "shadow-[0_0_40px_-10px_rgba(132,204,22,0.6)]",
+    accent: "text-lime-400",
+    ring: "group-hover:ring-lime-400/50",
+    offerings: [],
   },
 ];
 
