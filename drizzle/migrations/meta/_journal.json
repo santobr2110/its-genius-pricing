@@ -36,6 +36,13 @@
       "when": 1791940287085,
       "tag": "0004_tax_codes_ofertas",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792011444209,
+      "tag": "0005_training_courses_horas_por_dia",
+      "breakpoints": true
     }
   ]
 }

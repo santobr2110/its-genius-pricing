@@ -1120,6 +1120,7 @@ export type Database = {
           exame_course_id: string | null
           fabricante: string
           horas_execucao: number
+          horas_por_dia: number
           id: string
           max_alunos: number | null
           min_alunos: number
@@ -1148,6 +1149,7 @@ export type Database = {
           exame_course_id?: string | null
           fabricante: string
           horas_execucao?: number
+          horas_por_dia?: number
           id?: string
           max_alunos?: number | null
           min_alunos?: number
@@ -1176,6 +1178,7 @@ export type Database = {
           exame_course_id?: string | null
           fabricante?: string
           horas_execucao?: number
+          horas_por_dia?: number
           id?: string
           max_alunos?: number | null
           min_alunos?: number

@@ -23,7 +23,7 @@ type Draft = Omit<TrainingCourse, "id"> & { id?: string };
 
 const vazio = (ordem: number): Draft => ({
   slug: "", fabricante: "zabbix", nome: "", tipo: "curso", part_number_interno: null, catalog_product_id: null,
-  horas_execucao: 8, dias: 1, nivel_instrutor: "A", valor_fabricante: null, custo_material_aluno: 0, custo_cloud_aluno: 0,
+  horas_execucao: 8, dias: 1, horas_por_dia: 8, nivel_instrutor: "A", valor_fabricante: null, custo_material_aluno: 0, custo_cloud_aluno: 0,
   min_alunos: 1, max_alunos: null, preco_referencia_mercado: null, piso_preco_aluno: null, exame_course_id: null,
   prerequisito_course_id: null, permite_somente_exame: false, custo_pendente: false, campos_a_confirmar: [], ativo: true, ordem,
 });
@@ -119,7 +119,7 @@ export default function CursosTab({ courses, refresh }: CadastroProps) {
                   </div>
                 </TableCell>
                 <TableCell className="capitalize whitespace-nowrap">{c.tipo}</TableCell>
-                <TableCell className="text-right tabular-nums whitespace-nowrap">{c.horas_execucao}h · {c.dias ?? "—"}d</TableCell>
+                <TableCell className="text-right tabular-nums whitespace-nowrap">{c.horas_execucao}h · {c.dias ?? "—"}d{Number(c.horas_por_dia) === 3 ? " · noturno" : ""}</TableCell>
                 <TableCell className="text-center">{c.nivel_instrutor ?? "—"}</TableCell>
                 <TableCell className="text-right tabular-nums whitespace-nowrap">{brl(c.custo_material_aluno)}<span className="text-muted-foreground"> · {brl(c.custo_cloud_aluno)}</span></TableCell>
                 <TableCell className="text-right tabular-nums whitespace-nowrap">{c.min_alunos} / {c.max_alunos ?? "—"}</TableCell>
@@ -152,6 +152,7 @@ function EditorCurso({ draft, courses, onClose, onSave }: { draft: Draft; course
   const [d, setD] = useState<Draft>(draft);
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }));
   const num = (v: string) => (v === "" ? null : Number(v));
+  const hpd = Number(d.horas_por_dia) || 8;
   const [unid, setUnid] = useState<"horas" | "dias">("horas");
   const numField = ({ k, label, nullable }: { k: keyof Draft; label: string; nullable?: boolean }) => (
     <div key={k} className="space-y-1"><Label className="text-xs">{label}</Label>
@@ -177,15 +178,18 @@ function EditorCurso({ draft, courses, onClose, onSave }: { draft: Draft; course
           <div className="space-y-1"><Label className="text-xs">Nível do instrutor</Label>
             <Select value={d.nivel_instrutor ?? "nenhum"} onValueChange={(v) => set("nivel_instrutor", v === "nenhum" ? null : (v as "A" | "B"))}><SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="nenhum">Sem instrutor</SelectItem><SelectItem value="A">A</SelectItem><SelectItem value="B">B</SelectItem></SelectContent></Select></div>
+          <div className="space-y-1"><Label className="text-xs">Período</Label>
+            <Select value={hpd === 3 ? "noturno" : "diurno"} onValueChange={(v) => { const n = v === "noturno" ? 3 : 8; setD((p) => unid === "horas" ? { ...p, horas_por_dia: n, dias: diasPadrao(p.horas_execucao, n) } : { ...p, horas_por_dia: n, horas_execucao: (p.dias ?? 0) * n }); }}><SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="diurno">Diurno (8h/dia)</SelectItem><SelectItem value="noturno">Noturno (3h/noite)</SelectItem></SelectContent></Select></div>
           <div className="space-y-1"><Label className="text-xs">Duração em</Label>
             <Select value={unid} onValueChange={(v) => setUnid(v as "horas" | "dias")}><SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="horas">Horas</SelectItem><SelectItem value="dias">Dias</SelectItem></SelectContent></Select></div>
           {unid === "horas" ? (
             <div className="space-y-1"><Label className="text-xs">Horas de execução <span className="text-muted-foreground">({d.dias ?? 0} dia(s))</span></Label>
-              <Input type="number" value={d.horas_execucao} onChange={(e) => { const h = Number(e.target.value) || 0; setD((p) => ({ ...p, horas_execucao: h, dias: diasPadrao(h) })); }} /></div>
+              <Input type="number" value={d.horas_execucao} onChange={(e) => { const h = Number(e.target.value) || 0; setD((p) => ({ ...p, horas_execucao: h, dias: diasPadrao(h, hpd) })); }} /></div>
           ) : (
-            <div className="space-y-1"><Label className="text-xs">Dias <span className="text-muted-foreground">({d.horas_execucao}h, 8h/dia)</span></Label>
-              <Input type="number" value={d.dias ?? ""} onChange={(e) => { const n = num(e.target.value); setD((p) => ({ ...p, dias: n, horas_execucao: (n ?? 0) * 8 })); }} /></div>
+            <div className="space-y-1"><Label className="text-xs">Dias <span className="text-muted-foreground">({d.horas_execucao}h, {hpd}h/dia)</span></Label>
+              <Input type="number" value={d.dias ?? ""} onChange={(e) => { const n = num(e.target.value); setD((p) => ({ ...p, dias: n, horas_execucao: (n ?? 0) * hpd })); }} /></div>
           )}
           {numField({ k: "custo_material_aluno", label: "Material/aluno (R$)", })}
           {numField({ k: "custo_cloud_aluno", label: "Cloud/aluno (R$)", })}
