@@ -154,17 +154,67 @@ export function TrnImpostos() {
   );
 }
 
+function ComissaoModoCard() {
+  const { params, refresh } = useTreinamentoCadastro();
+  const { user } = useAuth();
+  const { can } = usePermissions();
+  const podeEditar = can("page.trn.admin");
+  const salvo = parseComissao(params.find((p) => p.key === "comissao_regra")?.value);
+  const [fixaAtiva, setFixaAtiva] = useState(salvo != null);
+  const [valor, setValor] = useState(salvo != null ? String(salvo).replace(".", ",") : "");
+  const [salvando, setSalvando] = useState(false);
+  useEffect(() => { setFixaAtiva(salvo != null); setValor(salvo != null ? String(salvo).replace(".", ",") : ""); }, [salvo]);
+
+  const salvar = async () => {
+    const v = fixaAtiva ? valor.trim() : "";
+    if (fixaAtiva && parseComissao(v) == null) return toast.error("Informe um percentual válido para a comissão fixa.");
+    setSalvando(true);
+    const { error } = await supabase.from("training_params").update({ value: v as never, updated_by: user?.id ?? null }).eq("key", "comissao_regra");
+    setSalvando(false);
+    if (error) return toast.error(error.message);
+    toast.success("Regra de comissão salva");
+    refresh();
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2"><Percent className="h-4 w-4 text-primary" /> Regra de comissão</CardTitle>
+        <p className="text-xs text-muted-foreground">Escolha entre a Escala Selbetti (tabela por rentabilidade abaixo) ou uma comissão fixa aplicada em todas as cotações de Treinamento.</p>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center gap-3">
+          <Switch id="comissao-fixa" checked={fixaAtiva} disabled={!podeEditar} onCheckedChange={setFixaAtiva} />
+          <Label htmlFor="comissao-fixa" className="text-sm">{fixaAtiva ? "Comissão fixa" : "Escala Selbetti (padrão)"}</Label>
+        </div>
+        {fixaAtiva && (
+          <div className="flex items-center gap-2 max-w-xs">
+            <Input value={valor} disabled={!podeEditar} placeholder="Ex.: 5" onChange={(e) => setValor(e.target.value)} className="h-9 text-right" />
+            <span className="text-xs text-muted-foreground">%</span>
+          </div>
+        )}
+        {podeEditar && (
+          <div className="flex justify-end">
+            <Button size="sm" onClick={salvar} disabled={salvando}>{salvando && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />}Salvar</Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function TrnComissoes() {
   const { st, res } = useTreinamentoResultado();
   const atual = comissaoFromRent(st.config.lucroPerc, DEFAULT_COMISSAO_TIERS);
   const fixa = res.cascataBase.comissaoPerc !== atual ? res.cascataBase.comissaoPerc : null;
   return (
     <Shell>
+      <ComissaoModoCard />
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Tabela de Comissão por Faixa de Rentabilidade</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Escala Selbetti — Comissão por Faixa de Rentabilidade</CardTitle>
           <p className="text-xs text-muted-foreground">Define o % de comissão aplicado conforme a rentabilidade pretendida. A rentabilidade atual é <span className="font-semibold text-foreground">{pct(st.config.lucroPerc)}</span> → comissão de <span className="font-semibold text-primary">{pct(atual)}</span>.</p>
-          {fixa != null && <p className="text-xs rounded border border-primary/40 bg-primary/10 px-2 py-1">Comissão fixa de <span className="font-semibold">{pct(fixa)}</span> definida em Configurações › Parâmetros — a tabela abaixo não está sendo aplicada.</p>}
+          {fixa != null && <p className="text-xs rounded border border-primary/40 bg-primary/10 px-2 py-1">Comissão fixa de <span className="font-semibold">{pct(fixa)}</span> ativa — a escala abaixo não está sendo aplicada.</p>}
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-3 gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2">
