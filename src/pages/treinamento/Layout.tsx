@@ -69,11 +69,13 @@ function NavMenu({ label, icon: Icon, items, prefix }: { label: string; icon: Lu
 
 export default function TreinamentoLayout() {
   const { can } = useAuth();
+  const { pathname } = useLocation();
+  const naRaiz = pathname.replace(/\/+$/, "") === BASE;
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex min-h-12 max-w-[1600px] items-center gap-2 px-4 py-1.5">
-          <BackHomeButton to="/" />
+          <BackHomeButton to={naRaiz ? "/" : BASE} />
           <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0"><GraduationCap className="h-4 w-4" /></div>
           <h1 className="font-bold text-foreground truncate text-sm">Treinamento</h1>
           <div className="ml-auto flex items-center gap-1.5">
