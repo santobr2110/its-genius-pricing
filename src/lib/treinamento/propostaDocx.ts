@@ -118,7 +118,7 @@ function preencherInvestimento(xml: string, d: PropostaDocxDados): string {
   const cab = duplicarUltimaCelula(tbl.slice(hIni, hFim), ["Valor Unit.", "Valor Total"]).replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
   const ini = hFim;
   const fim = tbl.indexOf("</w:tr>", ini) + 7;
-  const modelo = duplicarUltimaCelula(tbl.slice(ini, fim));
+  const modelo = duplicarUltimaCelula(tbl.slice(ini, fim)).replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
   const linhas = d.itens.map((it) => preencherLinha(modelo, [
     `${it.curso.nome}${it.somenteExame ? " (exame)" : ""}`, it.modalidade, String(it.alunos), brl(it.precoPorAluno), brl(it.total),
   ], false));
