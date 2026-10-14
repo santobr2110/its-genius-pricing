@@ -8,7 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CAMPO_LABEL, diasPadrao, type TrainingCourse } from "@/lib/treinamento/types";
@@ -94,41 +95,51 @@ export default function CursosTab({ courses, refresh }: CadastroProps) {
         </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
-        <Table>
-          <TableHeader><TableRow>
-            <TableHead>Curso</TableHead><TableHead>Tipo</TableHead><TableHead className="text-right">Horas</TableHead><TableHead className="text-right">Dias</TableHead>
-            <TableHead>Nível</TableHead><TableHead className="text-right">Material/aluno</TableHead><TableHead className="text-right">Cloud/aluno</TableHead>
-            <TableHead className="text-right">Mín/Máx</TableHead><TableHead className="text-right">Fabricante</TableHead><TableHead>Ativo</TableHead><TableHead />
+        <Table className="text-xs">
+          <TableHeader><TableRow className="[&>th]:whitespace-nowrap [&>th]:text-[11px]">
+            <TableHead className="min-w-[240px]">Curso</TableHead><TableHead>Tipo</TableHead><TableHead className="text-right">Horas · Dias</TableHead>
+            <TableHead className="text-center">Nível</TableHead><TableHead className="text-right">Material · Cloud /aluno</TableHead>
+            <TableHead className="text-right">Alunos mín/máx</TableHead><TableHead className="text-right">Fabricante</TableHead><TableHead className="text-center">Ativo</TableHead><TableHead className="text-right">Ações</TableHead>
           </TableRow></TableHeader>
           <TableBody>
-            {lista.map((c) => (
-              <TableRow key={c.id} className={c.ativo ? "" : "opacity-60"}>
+            {lista.map((c) => {
+              const selos = c.campos_a_confirmar.filter((f) => !(f === "custo" && c.custo_pendente));
+              return (
+              <TableRow key={c.id} className={`[&>td]:py-2.5 [&>td]:align-middle ${c.ativo ? "" : "opacity-60"}`}>
                 <TableCell>
-                  <div className="font-medium">{c.nome}</div>
-                  <div className="text-[11px] text-muted-foreground font-mono">{c.part_number_interno ?? "sem part number"}</div>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {c.custo_pendente && <Badge variant="destructive" className="text-[10px]">custo pendente</Badge>}
-                    {c.campos_a_confirmar.filter((f) => !(f === "custo" && c.custo_pendente)).map((f) => <Badge key={f} variant="outline" className="text-[10px]">{CAMPO_LABEL[f] ?? f} a confirmar</Badge>)}
+                  <div className="font-medium text-sm leading-tight">{c.nome}</div>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <span className="text-[10px] text-muted-foreground font-mono">{c.part_number_interno ?? "sem part number"}</span>
+                    {c.custo_pendente && <Badge variant="destructive" className="text-[10px] px-1.5 py-0">custo pendente</Badge>}
+                    {selos.length > 0 && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500 text-amber-600 cursor-help" title={selos.map((f) => CAMPO_LABEL[f] ?? f).join(", ")}>
+                        {selos.length} a confirmar
+                      </Badge>
+                    )}
                   </div>
                 </TableCell>
-                <TableCell className="capitalize">{c.tipo}</TableCell>
-                <TableCell className="text-right tabular-nums">{c.horas_execucao}</TableCell>
-                <TableCell className="text-right tabular-nums">{c.dias ?? "—"}</TableCell>
-                <TableCell>{c.nivel_instrutor ?? "—"}</TableCell>
-                <TableCell className="text-right tabular-nums">{brl(c.custo_material_aluno)}</TableCell>
-                <TableCell className="text-right tabular-nums">{brl(c.custo_cloud_aluno)}</TableCell>
-                <TableCell className="text-right tabular-nums">{c.min_alunos} / {c.max_alunos ?? "—"}</TableCell>
-                <TableCell className="text-right tabular-nums">{brl(c.valor_fabricante)}</TableCell>
-                <TableCell><Switch checked={c.ativo} onCheckedChange={() => toggle(c)} aria-label="Ativo" /></TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => mover(c, -1)} aria-label="Subir"><ArrowUp className="h-3.5 w-3.5" /></Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => mover(c, 1)} aria-label="Descer"><ArrowDown className="h-3.5 w-3.5" /></Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEdit({ ...c })} aria-label="Editar"><Pencil className="h-3.5 w-3.5" /></Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => duplicar(c)} aria-label="Duplicar"><Copy className="h-3.5 w-3.5" /></Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => excluir(c)} aria-label="Excluir"><Trash2 className="h-3.5 w-3.5" /></Button>
+                <TableCell className="capitalize whitespace-nowrap">{c.tipo}</TableCell>
+                <TableCell className="text-right tabular-nums whitespace-nowrap">{c.horas_execucao}h · {c.dias ?? "—"}d</TableCell>
+                <TableCell className="text-center">{c.nivel_instrutor ?? "—"}</TableCell>
+                <TableCell className="text-right tabular-nums whitespace-nowrap">{brl(c.custo_material_aluno)}<span className="text-muted-foreground"> · {brl(c.custo_cloud_aluno)}</span></TableCell>
+                <TableCell className="text-right tabular-nums whitespace-nowrap">{c.min_alunos} / {c.max_alunos ?? "—"}</TableCell>
+                <TableCell className="text-right tabular-nums whitespace-nowrap">{brl(c.valor_fabricante)}</TableCell>
+                <TableCell className="text-center"><Switch checked={c.ativo} onCheckedChange={() => toggle(c)} aria-label="Ativo" /></TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ações"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onSelect={() => setEdit({ ...c })}><Pencil className="h-3.5 w-3.5 mr-2" /> Editar</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => duplicar(c)}><Copy className="h-3.5 w-3.5 mr-2" /> Duplicar</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => mover(c, -1)}><ArrowUp className="h-3.5 w-3.5 mr-2" /> Subir</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => mover(c, 1)}><ArrowDown className="h-3.5 w-3.5 mr-2" /> Descer</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive" onSelect={() => excluir(c)}><Trash2 className="h-3.5 w-3.5 mr-2" /> Excluir</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+            ); })}
           </TableBody>
         </Table>
       </CardContent>
