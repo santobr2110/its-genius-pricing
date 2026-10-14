@@ -1117,6 +1117,7 @@ export type Database = {
           custo_material_aluno: number
           custo_pendente: boolean
           dias: number | null
+          dias_decimal: number | null
           exame_course_id: string | null
           fabricante: string
           horas_execucao: number
@@ -1146,6 +1147,7 @@ export type Database = {
           custo_material_aluno?: number
           custo_pendente?: boolean
           dias?: number | null
+          dias_decimal?: number | null
           exame_course_id?: string | null
           fabricante: string
           horas_execucao?: number
@@ -1175,6 +1177,7 @@ export type Database = {
           custo_material_aluno?: number
           custo_pendente?: boolean
           dias?: number | null
+          dias_decimal?: number | null
           exame_course_id?: string | null
           fabricante?: string
           horas_execucao?: number
