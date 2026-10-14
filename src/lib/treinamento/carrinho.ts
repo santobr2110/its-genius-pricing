@@ -119,7 +119,7 @@ export function computeCarrinho(
     if (porVaga && vagas < 1) custoBase.erros.push("Informe ao menos 1 aluno.");
     if (taxPorProduto && !taxPorProduto(codigoProduto)) custoBase.erros.push(`Produto ${codigoProduto} sem alíquotas para o município.`);
     if (custoBase.erros.length) {
-      return { linha, curso, cursoOriginal: original, custo: custoBase, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [] };
+      return { linha, curso, cursoOriginal: original, custo: custoBase, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [], codigoProduto, tax: taxL };
     }
     const precoBase = computePreco(custoBase.custoTurma, base, cascataBase, params.arredondamentoPrecoAluno);
     const fator = porVaga ? vagas / base : 1;
