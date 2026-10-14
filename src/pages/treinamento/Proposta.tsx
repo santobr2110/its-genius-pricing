@@ -157,21 +157,29 @@ export default function TreinamentoProposta() {
                   <Badge variant="secondary">{MOD[l.linha.modalidade] ?? l.linha.modalidade}</Badge>
                   <span className="text-xs text-muted-foreground">{curso.horas_execucao}h{curso.dias ? ` · ${curso.dias} dia(s)` : ""}</span>
                 </div>
-                {ct?.tagline && <p className="text-sm italic">{ct.tagline}</p>}
-                {ct?.descricao && <p className="text-sm">{ct.descricao}</p>}
-                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                  {ct?.publico_alvo && <p><b>Público-alvo:</b> {ct.publico_alvo}</p>}
-                  {ct?.pre_requisito && <p><b>Pré-requisito:</b> {ct.pre_requisito}</p>}
-                  {ct?.formato && <p><b>Formato:</b> {ct.formato}</p>}
-                  {ct?.horario && <p><b>Horário:</b> {ct.horario}</p>}
-                  {ct?.entregavel && <p><b>Entregável:</b> {ct.entregavel}</p>}
-                  {ct?.exame_descricao && <p><b>Exame:</b> {ct.exame_descricao}</p>}
-                </div>
+                {ct?.tagline && <p className="text-sm italic whitespace-pre-line">{ct.tagline}</p>}
+                {ct?.descricao && <p className="text-sm whitespace-pre-line leading-relaxed">{ct.descricao}</p>}
+                <dl className="space-y-3 text-sm">
+                  {([
+                    ["Público-alvo", ct?.publico_alvo], ["Pré-requisito", ct?.pre_requisito], ["Formato", ct?.formato],
+                    ["Horário", ct?.horario], ["Entregável", ct?.entregavel], ["Exame", ct?.exame_descricao],
+                  ] as [string, string | null | undefined][]).filter(([, v]) => v && v.trim()).map(([k, v]) => (
+                    <div key={k} className="break-inside-avoid">
+                      <dt className="font-semibold">{k}</dt>
+                      <dd className="whitespace-pre-line leading-relaxed break-words text-foreground/90">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
                 {!!ct?.cronograma?.length && (
-                  <div className="text-sm">
-                    <b>Conteúdo programático</b>
-                    <ol className="list-decimal ml-5">
-                      {ct.cronograma.map((m, i) => <li key={i}>{m.titulo}{m.topicos?.length ? `: ${m.topicos.join("; ")}` : ""}</li>)}
+                  <div className="text-sm space-y-1">
+                    <p className="font-semibold">Conteúdo programático</p>
+                    <ol className="list-decimal ml-5 space-y-1.5 leading-relaxed">
+                      {ct.cronograma.map((m, i) => (
+                        <li key={i}>
+                          <span className="font-medium">{m.titulo}</span>
+                          {!!m.topicos?.length && <ul className="list-disc ml-5 mt-0.5 text-foreground/90">{m.topicos.map((t, j) => <li key={j}>{t}</li>)}</ul>}
+                        </li>
+                      ))}
                     </ol>
                   </div>
                 )}
