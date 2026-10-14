@@ -974,6 +974,7 @@ export type Database = {
           id: string
           lc116_item: string | null
           nome: string
+          ofertas: string[]
         }
         Insert: {
           a_confirmar?: boolean
@@ -984,6 +985,7 @@ export type Database = {
           id?: string
           lc116_item?: string | null
           nome: string
+          ofertas?: string[]
         }
         Update: {
           a_confirmar?: boolean
@@ -994,6 +996,7 @@ export type Database = {
           id?: string
           lc116_item?: string | null
           nome?: string
+          ofertas?: string[]
         }
         Relationships: []
       }
