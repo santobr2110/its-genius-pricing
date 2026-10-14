@@ -208,13 +208,60 @@ export async function gerarPropostaDocx(d: PropostaDocxDados): Promise<Blob> {
  * Troca por "quebra de página antes" no parágrafo seguinte — o Word nunca deixa página em branco assim.
  */
 export function removerPaginasEmBranco(xml: string): string {
-  const vazio = String.raw`<w:p\b(?:[^>]*\/>|[^>]*[^/]>(?:(?!<w:p\b)(?!<w:t[ >])(?!<w:drawing)(?!<w:br)(?!<w:sectPr)(?!<w:pict)[\s\S])*?<\/w:p>)`;
-  const quebra = String.raw`<w:p\b[^>]*[^/]>(?:<w:pPr>(?:(?!<w:sectPr)[\s\S])*?<\/w:pPr>)?<w:r\b[^>]*>(?:<w:rPr>(?:(?!<\/w:r>)[\s\S])*?<\/w:rPr>)?(?:<w:lastRenderedPageBreak\/>)?<w:br w:type="page"\/><\/w:r><\/w:p>`;
-  const re = new RegExp(`(?:${vazio})*${quebra}(<w:p\\b[^>]*>)(<w:pPr>[\\s\\S]*?<\\/w:pPr>|<w:pPr\\/>)?`, "g");
-  return xml.replace(re, (_m, abre: string, ppr?: string) => {
-    if (!ppr || ppr === "<w:pPr/>") return `${abre}<w:pPr><w:pageBreakBefore/></w:pPr>`;
-    if (ppr.includes("<w:pageBreakBefore")) return abre + ppr;
-    const m = ppr.match(/^<w:pPr>((?:<w:pStyle[^>]*\/>)?(?:<w:keepNext[^>]*\/>)?(?:<w:keepLines[^>]*\/>)?)/)!;
-    return `${abre}<w:pPr>${m[1]}<w:pageBreakBefore/>${ppr.slice(m[0].length)}`;
-  });
+  // Localiza parágrafos (com aninhamento) sem regex de conteúdo, para nunca cortar XML.
+  type P = { ini: number; fim: number; filhos: number };
+  const ps: P[] = [];
+  const pilha: P[] = [];
+  const re = /<w:p(?=[\s>\/])[^>]*?(\/?)>|<\/w:p>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(xml))) {
+    if (m[0] === "</w:p>") {
+      const p = pilha.pop();
+      if (p) { p.fim = re.lastIndex; ps.push(p); }
+    } else if (m[1] === "/") {
+      if (pilha.length) pilha[pilha.length - 1].filhos++;
+      ps.push({ ini: m.index, fim: re.lastIndex, filhos: 0 });
+    } else {
+      if (pilha.length) pilha[pilha.length - 1].filhos++;
+      pilha.push({ ini: m.index, fim: -1, filhos: 0 });
+    }
+  }
+  const folhas = ps.filter((p) => p.filhos === 0).sort((x, y) => x.ini - y.ini);
+  const porIni = new Map(folhas.map((p) => [p.ini, p]));
+  const porFim = new Map(folhas.map((p) => [p.fim, p]));
+  const temConteudo = (t: string) => /<w:t[\s>]|<w:drawing|<w:pict|<w:sectPr|<w:object|<w:fldChar|<w:instrText/.test(t);
+  const remover: [number, number][] = [];
+  const inserir: [number, string][] = [];
+  for (const p of folhas) {
+    const t = xml.slice(p.ini, p.fim);
+    if (!t.includes('<w:br w:type="page"/>') || temConteudo(t)) continue;
+    const prox = porIni.get(p.fim);
+    if (!prox || xml.slice(prox.ini, prox.fim).includes("<w:pageBreakBefore")) continue;
+    let ini = p.ini;
+    for (let ant = porFim.get(ini); ant; ant = porFim.get(ini)) {
+      const ta = xml.slice(ant.ini, ant.fim);
+      if (temConteudo(ta) || ta.includes("<w:br")) break;
+      ini = ant.ini;
+    }
+    remover.push([ini, p.fim]);
+    const tp = xml.slice(prox.ini, prox.fim);
+    const abre = tp.indexOf(">") + 1;
+    if (tp.endsWith("/>") && abre === tp.length) {
+      inserir.push([prox.ini, `${tp.slice(0, -2)}><w:pPr><w:pageBreakBefore/></w:pPr></w:p>`]);
+    } else if (tp.startsWith("<w:pPr/>", abre)) {
+      inserir.push([prox.ini, `${tp.slice(0, abre)}<w:pPr><w:pageBreakBefore/></w:pPr>${tp.slice(abre + 8)}`]);
+    } else if (tp.startsWith("<w:pPr>", abre)) {
+      const resto = tp.slice(abre + 7);
+      const mm = resto.match(/^(?:<w:pStyle[^>]*\/>)?(?:<w:keepNext[^>]*\/>)?(?:<w:keepLines[^>]*\/>)?/)!;
+      inserir.push([prox.ini, `${tp.slice(0, abre + 7)}${mm[0]}<w:pageBreakBefore/>${resto.slice(mm[0].length)}`]);
+    } else {
+      inserir.push([prox.ini, `${tp.slice(0, abre)}<w:pPr><w:pageBreakBefore/></w:pPr>${tp.slice(abre)}`]);
+    }
+    remover.push([prox.ini, prox.fim]);
+  }
+  const ops = [...remover.map(([i, f]) => ({ i, f, txt: inserir.find(([x]) => x === i)?.[1] ?? "" }))]
+    .sort((x, y) => y.i - x.i);
+  let out = xml;
+  for (const o of ops) out = out.slice(0, o.i) + o.txt + out.slice(o.f);
+  return out;
 }
