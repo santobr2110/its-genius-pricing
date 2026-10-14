@@ -41,17 +41,20 @@ function CodeRow({ code, rates, refresh }: { code: TaxCode; rates: TaxRate[]; re
   };
   return (
     <div className="border rounded-md p-2 space-y-2">
-      <div className="grid grid-cols-[120px_1fr_70px_150px_auto_auto_auto_auto] gap-2 items-center">
+      <div className="grid grid-cols-[120px_1fr_70px_220px_auto_auto_auto_auto] gap-2 items-center">
         <Input className="h-8 text-xs font-mono" value={c.codigo} onChange={(e) => setC({ ...c, codigo: e.target.value })} />
         <Input className="h-8 text-xs" value={c.nome} onChange={(e) => setC({ ...c, nome: e.target.value })} />
         <Input className="h-8 text-xs" placeholder="LC116" value={c.lc116_item ?? ""} onChange={(e) => setC({ ...c, lc116_item: e.target.value })} />
-        <Select value={c.ofertas?.[0] ?? "geral"} onValueChange={(v) => setC({ ...c, ofertas: v === "geral" ? [] : [v] })}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="geral" className="text-xs">Geral (todas)</SelectItem>
-            {OFERTAS_FISCAIS.map((o) => <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap gap-1">
+          {OFERTAS_FISCAIS.map((o) => {
+            const on = !!c.ofertas?.includes(o.value);
+            return (
+              <button key={o.value} type="button" onClick={() => setC({ ...c, ofertas: on ? (c.ofertas ?? []).filter((x) => x !== o.value) : [...(c.ofertas ?? []), o.value] })}>
+                <Badge variant={on ? "default" : "outline"} className="text-[10px] cursor-pointer">{o.label}</Badge>
+              </button>
+            );
+          })}
+        </div>
         <label className="flex items-center gap-1 text-[11px]"><Switch checked={c.ativo} onCheckedChange={(v) => setC({ ...c, ativo: v })} />Ativo</label>
         <label className="flex items-center gap-1 text-[11px]"><Switch checked={c.a_confirmar} onCheckedChange={(v) => setC({ ...c, a_confirmar: v })} />A confirmar</label>
         <Button size="sm" variant="outline" className="h-8" onClick={saveCode}><Save className="h-3.5 w-3.5" /></Button>
@@ -116,7 +119,7 @@ export default function CadastroTributarioTab() {
   const grupos = useMemo(() => {
     const defs: { key: string; label: string; match: (c: TaxCode) => boolean }[] = [
       ...OFERTAS_FISCAIS.map((o) => ({ key: o.value, label: o.label, match: (c: TaxCode) => !!c.ofertas?.includes(o.value) })),
-      { key: "geral", label: "Geral (todas as ofertas)", match: (c: TaxCode) => !c.ofertas?.length },
+      { key: "geral", label: "Sem oferta (não aparece em nenhum configurador)", match: (c: TaxCode) => !c.ofertas?.length },
     ];
     return defs.filter((d) => filtro === "todas" || d.key === filtro).map((d) => ({ ...d, itens: codes.filter(d.match) }));
   }, [codes, filtro]);
@@ -135,7 +138,7 @@ export default function CadastroTributarioTab() {
           <CardTitle className="text-base flex items-center gap-2"><Package className="h-4 w-4 text-primary" /> Cadastro tributário de produtos</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
             Produtos de faturamento do Protheus, com item da LC 116, oferta e alíquotas por município. Cada configurador mostra só os produtos
-            da sua oferta e os gerais. Alterações aqui valem para todas as precificações.
+            marcados com a sua oferta; um produto pode servir a várias. Alterações aqui valem para todas as precificações.
           </p>
         </div>
         <Button size="sm" className="gap-1 shrink-0" onClick={addCode}><Plus className="h-3.5 w-3.5" /> Produto</Button>
@@ -145,7 +148,7 @@ export default function CadastroTributarioTab() {
           <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="todas">Todas</TabsTrigger>
             {OFERTAS_FISCAIS.map((o) => <TabsTrigger key={o.value} value={o.value}>{o.label}</TabsTrigger>)}
-            <TabsTrigger value="geral">Geral</TabsTrigger>
+            <TabsTrigger value="geral">Sem oferta</TabsTrigger>
           </TabsList>
         </Tabs>
         {loading ? <p className="text-sm text-muted-foreground">Carregando…</p> : grupos.map((g) => (
@@ -154,7 +157,7 @@ export default function CadastroTributarioTab() {
               <h3 className="text-sm font-semibold">{g.label}</h3>
               <Badge variant="secondary" className="text-[10px]">{g.itens.length}</Badge>
             </div>
-            <div className="grid grid-cols-[120px_1fr_70px_150px_auto_auto_auto_auto] gap-2 px-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+            <div className="grid grid-cols-[120px_1fr_70px_220px_auto_auto_auto_auto] gap-2 px-2 text-[10px] uppercase tracking-wider text-muted-foreground">
               <span>Código Protheus / SKU</span><span>Descrição do produto</span><span>Item LC 116</span><span>Oferta</span><span /><span /><span /><span />
             </div>
             {g.itens.length === 0 ? <p className="text-xs text-muted-foreground px-2">Nenhum produto.</p> : g.itens.map((c) => (

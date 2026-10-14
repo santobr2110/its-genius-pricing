@@ -19,7 +19,7 @@ interface Props {
   storagePrefix: string;
   current: { pisPerc: number; cofinsPerc: number; issPerc: number };
   onApply: (r: { pisPerc: number; cofinsPerc: number; issPerc: number }) => void;
-  /** Mostra só os códigos desta oferta (mais os gerais). */
+  /** Mostra só os códigos marcados com esta oferta. */
   oferta?: OfertaFiscal;
   /** Modo controlado (ex.: Treinamento guarda código/município na cotação). */
   codigo?: string;
