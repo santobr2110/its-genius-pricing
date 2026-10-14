@@ -13,6 +13,8 @@ export interface LinhaCarrinho {
   locacao: boolean;
   diarias: number | null;
   descontoPerc: number;
+  /** Turma Aberta: quantos alunos pretendemos vender na turma (base do rateio; padrão = mínimo do curso). */
+  alunosBase?: number | null;
 }
 
 export interface ConfigCarrinho {
@@ -41,6 +43,8 @@ export interface LinhaResultado {
   lucro: number;
   avisos: string[];
   curva: { alunos: number; custoPorAluno: number; precoPorAluno: number }[];
+  /** Turma Aberta: alunos usados no rateio do preço por vaga. */
+  alunosBase?: number | null;
 }
 
 export interface CarrinhoResultado {
@@ -88,18 +92,31 @@ export function computeCarrinho(
     }
     if (original?.slug === "zcs" && !linha.somenteExame) avisos.push("Pré-requisito: conhecimentos básicos de Linux.");
     const modalidade: Modalidade = curso.tipo === "exame" ? "turma_aberta" : linha.modalidade;
-    const custo = computeCursoCusto(curso, modalidade, linha.alunos, params, { locacao: linha.locacao, diarias: linha.diarias ?? undefined });
-    if (custo.erros.length) {
-      return { linha, curso, cursoOriginal: original, custo, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [] };
+    // Turma Aberta: venda por vaga. O preço por aluno vem do rateio da turma-base
+    // (alunos que pretendemos vender na turma, padrão = mínimo); a linha cobra vagas × preço por aluno.
+    const porVaga = modalidade === "turma_aberta" && curso.tipo !== "exame";
+    const vagas = Math.floor(Math.max(0, linha.alunos || 0));
+    const base = porVaga ? Math.max(curso.min_alunos || 1, Math.floor(linha.alunosBase ?? curso.min_alunos ?? 1)) : vagas;
+    const custoBase = computeCursoCusto(curso, modalidade, base, params, { locacao: linha.locacao, diarias: linha.diarias ?? undefined });
+    if (porVaga && vagas < 1) custoBase.erros.push("Informe ao menos 1 vaga.");
+    if (custoBase.erros.length) {
+      return { linha, curso, cursoOriginal: original, custo: custoBase, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [] };
     }
-    const preco = computePreco(custo.custoTurma, linha.alunos, cascataBase, params.arredondamentoPrecoAluno);
+    const precoBase = computePreco(custoBase.custoTurma, base, cascataBase, params.arredondamentoPrecoAluno);
+    const fator = porVaga ? vagas / base : 1;
+    const custo: CustoResult = porVaga
+      ? { ...custoBase, custoTurma: custoBase.custoPorAluno * vagas,
+          detalhe: { instrutor: custoBase.detalhe.instrutor * fator, gestao: custoBase.detalhe.gestao * fator, locacao: custoBase.detalhe.locacao * fator, materialCloud: custoBase.detalhe.materialCloud * fator } }
+      : custoBase;
+    const preco: PrecoResult = porVaga ? { ...precoBase, precoTurma: precoBase.precoPorAluno * vagas } : precoBase;
+    if (porVaga && vagas > base) avisos.push(`Vagas (${vagas}) acima da turma-base de rateio (${base}).`);
     const descontoEfetivoPerc = 100 * (1 - (1 - (linha.descontoPerc || 0) / 100) * (1 - (cfg.descontoTotalPerc || 0) / 100));
     const d = aplicarDesconto(custo.custoTurma, preco.precoTurma, descontoEfetivoPerc, fixos, tiers);
-    const porAluno = d.precoFinal / Math.max(1, linha.alunos);
+    const porAluno = d.precoFinal / Math.max(1, vagas);
     if (curso.piso_preco_aluno != null && porAluno < curso.piso_preco_aluno) avisos.push("Preço por aluno abaixo do piso cadastrado.");
-    const curva = modalidade === "turma_aberta" && curso.tipo !== "exame" ? curvaPorAluno(curso, params, cascataBase) : [];
+    const curva = porVaga ? curvaPorAluno(curso, params, cascataBase) : [];
     return { linha, curso, cursoOriginal: original, custo, preco, descontoEfetivoPerc, precoFinal: d.precoFinal, precoFinalPorAluno: porAluno,
-      rentabilidadePerc: d.rentabilidadePerc, comissaoPerc: d.comissaoPerc, lucro: d.lucro, avisos, curva };
+      rentabilidadePerc: d.rentabilidadePerc, comissaoPerc: d.comissaoPerc, lucro: d.lucro, avisos, curva, alunosBase: porVaga ? base : null };
   });
 
   const ok = res.filter((r) => r.preco);
