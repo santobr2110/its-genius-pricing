@@ -19,7 +19,7 @@ const brl = (n: number | null) => (n == null ? "—" : n.toLocaleString("pt-BR",
 const TIPOS = ["curso", "exame", "combo", "extra"] as const;
 const CAMPOS_SELO = Object.keys(CAMPO_LABEL);
 
-type Draft = Omit<TrainingCourse, "id"> & { id?: string };
+type Draft = Omit<TrainingCourse, "id"> & { id?: string; _cloneFrom?: string };
 
 const vazio = (ordem: number): Draft => ({
   slug: "", fabricante: "zabbix", nome: "", tipo: "curso", part_number_interno: null, catalog_product_id: null,
@@ -41,14 +41,21 @@ export default function CursosTab({ courses, refresh }: CadastroProps) {
 
   const salvar = async (d: Draft) => {
     if (!d.nome.trim() || !d.slug.trim()) return toast.error("Informe nome e identificador.");
-    const { id, ...row } = d;
+    const { id, _cloneFrom, ...row } = d;
     const r = id ? await supabase.from("training_courses").update(row).eq("id", id) : await supabase.from("training_courses").insert(row);
     if (r.error) return toast.error(r.error.message);
     if (!id) {
       const { data } = await supabase.from("training_courses").select("id").eq("slug", row.slug).single();
-      if (data) await supabase.from("training_course_content").insert({ course_id: data.id });
+      if (data) {
+        let conteudo: Record<string, unknown> = {};
+        if (_cloneFrom) {
+          const { data: orig } = await supabase.from("training_course_content").select("*").eq("course_id", _cloneFrom).maybeSingle();
+          if (orig) { const { course_id: _c, updated_at: _u, ...resto } = orig; conteudo = resto; }
+        }
+        await supabase.from("training_course_content").insert({ ...conteudo, course_id: data.id } as never);
+      }
     }
-    toast.success("Curso salvo");
+    toast.success(_cloneFrom && !id ? "Curso clonado com o conteúdo" : "Curso salvo");
     setEdit(null);
     refresh();
   };
@@ -71,7 +78,7 @@ export default function CursosTab({ courses, refresh }: CadastroProps) {
 
   const duplicar = (c: TrainingCourse) => {
     const { id: _id, ...rest } = c;
-    setEdit({ ...rest, slug: `${c.slug}-copia`, nome: `${c.nome} (cópia)`, ordem: c.ordem + 1 });
+    setEdit({ ...rest, slug: `${c.slug}-copia`, nome: `${c.nome} (cópia)`, ordem: c.ordem + 1, _cloneFrom: c.id });
   };
 
   const excluir = async (c: TrainingCourse) => {
@@ -130,7 +137,7 @@ export default function CursosTab({ courses, refresh }: CadastroProps) {
                     <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ações"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onSelect={() => setEdit({ ...c })}><Pencil className="h-3.5 w-3.5 mr-2" /> Editar</DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => duplicar(c)}><Copy className="h-3.5 w-3.5 mr-2" /> Duplicar</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => duplicar(c)}><Copy className="h-3.5 w-3.5 mr-2" /> Clonar com conteúdo</DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => mover(c, -1)}><ArrowUp className="h-3.5 w-3.5 mr-2" /> Subir</DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => mover(c, 1)}><ArrowDown className="h-3.5 w-3.5 mr-2" /> Descer</DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -164,7 +171,7 @@ function EditorCurso({ draft, courses, onClose, onSave }: { draft: Draft; course
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{d.id ? "Editar curso" : "Novo curso"}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{d.id ? "Editar curso" : d._cloneFrom ? "Clonar curso (o conteúdo será copiado)" : "Novo curso"}</DialogTitle></DialogHeader>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="space-y-1 col-span-2"><Label className="text-xs">Nome</Label><Input value={d.nome} onChange={(e) => set("nome", e.target.value)} /></div>
           <div className="space-y-1"><Label className="text-xs">Identificador</Label><Input value={d.slug} onChange={(e) => set("slug", e.target.value)} /></div>
