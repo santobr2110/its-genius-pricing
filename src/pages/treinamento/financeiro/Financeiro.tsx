@@ -151,7 +151,7 @@ export function TrnComissoes() {
         </CardHeader>
         <CardContent className="divide-y text-sm">
           {DEFAULT_COMISSAO_TIERS.map((t, i) => (
-            <div key={i} className={`flex justify-between py-2 ${comissaoFromRent(st.config.lucroPerc, [t]) === atual && atual === t.comissao ? "font-semibold text-primary" : ""}`}>
+            <div key={i} className={`flex justify-between py-2 ${t.comissao === atual ? "font-semibold text-primary" : ""}`}>
               <span>{formatRentLabel(t)}</span><span className="tabular-nums">{pct(t.comissao)}</span>
             </div>
           ))}

@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CadastroTributarioTab from "@/components/admin/CadastroTributarioTab";
 import ProdutosCatalogoTab from "@/components/admin/ProdutosCatalogoTab";
-import TreinamentoAdminTab from "@/components/admin/treinamento/TreinamentoAdminTab";
 import {
   Table,
   TableBody,
@@ -199,7 +198,6 @@ export default function Admin() {
               <TabsTrigger value="trash">Lixeira</TabsTrigger>
               <TabsTrigger value="tributario">Cadastro tributário</TabsTrigger>
               <TabsTrigger value="produtos">Produtos</TabsTrigger>
-              {can("page.trn.admin") && <TabsTrigger value="treinamento">Treinamento</TabsTrigger>}
             </TabsList>
             <TabsContent value="users">
               <UsersTab users={users} roles={roles} reload={loadAll} currentUserId={user?.id} />
