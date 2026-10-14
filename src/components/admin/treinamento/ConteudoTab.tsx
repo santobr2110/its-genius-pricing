@@ -61,7 +61,10 @@ export default function ConteudoTab({ courses, contents, refresh }: CadastroProp
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
       <Card>
         <CardHeader className="space-y-3">
-          <CardTitle className="text-base">Conteúdo da proposta</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-base">Conteúdo da proposta</CardTitle>
+            <Button onClick={salvar}>Salvar conteúdo</Button>
+          </div>
           <Select value={courseId} onValueChange={setCourseId}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent className="max-h-[60vh]">{courses.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
@@ -81,10 +84,7 @@ export default function ConteudoTab({ courses, contents, refresh }: CadastroProp
             <Textarea rows={3} value={ct.habilidades.join("\n")} onChange={(e) => set("habilidades", e.target.value.split("\n").filter((s) => s.trim()))} />
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs">Cronograma (módulos)</Label>
-              <Button size="sm" variant="outline" onClick={() => set("cronograma", [...ct.cronograma, { titulo: "Novo módulo", topicos: [] }])}><Plus className="h-3.5 w-3.5 mr-1" /> Módulo</Button>
-            </div>
+            <Label className="text-xs">Cronograma (módulos)</Label>
             {ct.cronograma.map((m, i) => (
               <div key={i} className="rounded-md border p-2 space-y-1.5">
                 <div className="flex gap-2">
@@ -95,9 +95,9 @@ export default function ConteudoTab({ courses, contents, refresh }: CadastroProp
                 <Textarea rows={3} value={m.topicos.join("\n")} onChange={(e) => setMod(i, { topicos: e.target.value.split("\n").filter((s) => s.trim()) })} placeholder="Tópicos, um por linha" />
               </div>
             ))}
+            <Button size="sm" variant="outline" className="w-full" onClick={() => set("cronograma", [...ct.cronograma, { titulo: "Novo módulo", topicos: [] }])}><Plus className="h-3.5 w-3.5 mr-1" /> Adicionar módulo</Button>
           </div>
           <label className="flex items-center gap-2 text-xs"><Switch checked={ct.a_confirmar} onCheckedChange={(v) => set("a_confirmar", v)} /> Conteúdo a confirmar</label>
-          <Button onClick={salvar}>Salvar conteúdo</Button>
         </CardContent>
       </Card>
 
