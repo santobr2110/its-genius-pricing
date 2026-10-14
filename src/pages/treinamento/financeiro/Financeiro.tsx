@@ -1,4 +1,11 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useTreinamentoCadastro } from "@/hooks/useTreinamentoCadastro";
+import { parseComissao } from "@/lib/treinamento/calc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -156,8 +163,7 @@ export function TrnImpostos() {
 
 function ComissaoModoCard() {
   const { params, refresh } = useTreinamentoCadastro();
-  const { user } = useAuth();
-  const { can } = usePermissions();
+  const { user, can } = useAuth();
   const podeEditar = can("page.trn.admin");
   const salvo = parseComissao(params.find((p) => p.key === "comissao_regra")?.value);
   const [fixaAtiva, setFixaAtiva] = useState(salvo != null);
