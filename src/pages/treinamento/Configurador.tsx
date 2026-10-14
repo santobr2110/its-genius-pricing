@@ -269,7 +269,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
         </p>
       )}
 
-      {preco && cascata && (() => {
+      {preco && cascata && ((() => {
         const porAl = r.alunosBase != null;
         const dCasc = porAl ? r.alunosBase! : 1;
         const dCusto = porAl ? Math.max(1, linha.alunos) : 1;
