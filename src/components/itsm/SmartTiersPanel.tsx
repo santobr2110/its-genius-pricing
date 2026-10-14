@@ -1,4 +1,4 @@
-import { computeCustoObservabilidadeNiveis, obsEfetivos } from "@/lib/custoObservabilidadeNiveis";
+import { computeCustoObservabilidadeNiveis, obsEfetivos, obsHorasLimites } from "@/lib/custoObservabilidadeNiveis";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import { NIVEL_INFO, PISO_NIVEL_POR_CAMADA, nivelAbaixoDoPiso, type NivelObservabilidade } from "@/lib/custoObservabilidadeNiveis";
@@ -197,8 +197,7 @@ export default function SmartTiersPanel() {
   const fatorVenda = tierPricing.fatorVenda;
   const toSell = (c: number) => c * fatorVenda;
   // === Observabilidade em níveis: sliders de horas e proxies (mesmo formato do clássico) ===
-  const obsHMin = Math.max(0, state.obsHorasManutencaoMin ?? 0);
-  const obsHMax = Math.max(obsHMin + 1, state.obsHorasManutencaoMax ?? 40);
+  const { min: obsHMin, max: obsHMax } = obsHorasLimites(state);
   const obsPMin = Math.max(0, state.obsQtdProxiesMin ?? 0);
   const obsPMax = Math.max(obsPMin + 1, state.obsQtdProxiesMax ?? 20);
   const { horas: obsHoras, proxies: obsProx } = obsEfetivos(state);
