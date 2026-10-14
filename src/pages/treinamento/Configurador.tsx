@@ -78,7 +78,7 @@ export default function Configurador() {
         linhas, config, resumo: { custoTotal: res.custoTotal, precoFinalTotal: res.precoFinalTotal, rentabilidadePerc: res.rentabilidadePerc },
       }, atual);
       const salvo = cot.lista.find((x) => x.id === id);
-      setAtual({ ...atual, id, nome, codigo: salvo?.quote_code ?? atual.codigo });
+      setAtual({ ...atual, id, nome, codigo: salvo?.quote_code ?? (id === atual.id ? atual.codigo : null) });
       toast.success("Cotação salva");
       cot.refresh();
     } catch (e) { toast.error((e as Error).message); } finally { setSalvando(false); }
