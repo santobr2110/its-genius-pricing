@@ -11,7 +11,23 @@ const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits:
 const MOD: Record<string, string> = { turma_aberta: "Turma Aberta", in_company: "In Company" };
 
 /** Resumo de Cotação do Treinamento — mesmo formato do Smart ITO, com detalhamento de cálculo e dados fiscais. */
-export default function TreinamentoResumo() {
+export async function exportarResumoPdf(nomeArquivo: string) {
+  const el = document.getElementById("trn-resumo-printable");
+  if (!el) throw new Error("Resumo indisponível.");
+  const html2canvas = (await import("html2canvas")).default;
+  const { jsPDF } = await import("jspdf");
+  const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+  const img = canvas.toDataURL("image/jpeg", 0.92);
+  const W = 210, H = 297, h = (canvas.height * W) / canvas.width;
+  const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
+  let left = h, pos = 0;
+  pdf.addImage(img, "JPEG", 0, pos, W, h, undefined, "FAST");
+  left -= H;
+  while (left > 0) { pos = left - h; pdf.addPage(); pdf.addImage(img, "JPEG", 0, pos, W, h, undefined, "FAST"); left -= H; }
+  pdf.save(nomeArquivo);
+}
+
+export default function TreinamentoResumo({ embedded = false }: { embedded?: boolean }) {
   const { st, res, irpj, tax, loading } = useTreinamentoResultado();
   const { can } = useAuth();
   const podeExportar = can("page.trn.proposal");
@@ -24,23 +40,11 @@ export default function TreinamentoResumo() {
   const cb = res.cascataBase;
 
   const exportar = async () => {
-    const el = document.getElementById("trn-resumo-printable");
-    if (!el) return;
-    try {
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
-      const img = canvas.toDataURL("image/jpeg", 0.92);
-      const W = 210, H = 297, h = (canvas.height * W) / canvas.width;
-      const pdf = new jsPDF({ orientation: "p", unit: "mm", format: "a4", compress: true });
-      let left = h, pos = 0;
-      pdf.addImage(img, "JPEG", 0, pos, W, h, undefined, "FAST");
-      left -= H;
-      while (left > 0) { pos = left - h; pdf.addPage(); pdf.addImage(img, "JPEG", 0, pos, W, h, undefined, "FAST"); left -= H; }
-      pdf.save(`${st.atual.codigo || "resumo-treinamento"}-${new Date().toISOString().slice(0, 10)}.pdf`);
-    } catch (e) { toast.error((e as Error).message); }
+    try { await exportarResumoPdf(`${st.atual.codigo || "resumo-treinamento"}-${new Date().toISOString().slice(0, 10)}.pdf`); }
+    catch (e) { toast.error((e as Error).message); }
   };
 
+  if (embedded && (loading || !itens.length)) return null;
   if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;
   if (!itens.length) return (
     <div className="rounded-lg border bg-background p-12 flex flex-col items-center text-center gap-3">
@@ -58,7 +62,7 @@ export default function TreinamentoResumo() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className={embedded ? "hidden" : "flex items-center gap-2"}>
         <h2 className="text-lg font-semibold flex items-center gap-2"><FileText className="h-5 w-5 text-primary" />Resumo de Cotação</h2>
         <Button size="sm" className="ml-auto gap-1.5 text-xs" onClick={exportar} disabled={!podeExportar}><FileDown className="h-3.5 w-3.5" /> Exportar PDF</Button>
       </div>
