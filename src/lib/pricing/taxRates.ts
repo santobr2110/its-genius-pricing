@@ -70,6 +70,6 @@ export const OFERTAS_FISCAIS: { value: OfertaFiscal; label: string }[] = [
   { value: "bodyshop", label: "BodyShop" },
   { value: "treinamento", label: "Treinamento" },
 ];
-/** Código disponível para a oferta: os dela e os gerais (sem oferta). */
+/** Código disponível para a oferta: só os marcados com ela (um código pode servir a várias). */
 export const codigoServeOferta = (c: TaxCode, oferta?: OfertaFiscal) =>
-  !oferta || !c.ofertas?.length || c.ofertas.includes(oferta);
+  !oferta || !!c.ofertas?.includes(oferta);
