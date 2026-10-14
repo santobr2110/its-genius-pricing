@@ -13,6 +13,7 @@ export interface TreinamentoCotacao {
   id: string; name: string; client_name: string | null; quote_code: string | null;
   account_manager: string | null; bu_specialist: string | null; salesforce_code: string | null; bu_architect: string | null;
   payload: TreinamentoPayload; updated_at: string; user_id: string;
+  saved_by_name?: string | null; saved_by_email?: string | null;
 }
 
 /** Rascunhos/cotações do Treinamento em pricing_presets (observabilidade/treinamento). */
@@ -28,7 +29,14 @@ export function useTreinamentoCotacoes() {
         .eq("group_slug", TRN_GROUP).eq("offering_slug", TRN_OFFERING).is("deleted_at", null)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as TreinamentoCotacao[];
+      const rows = (data ?? []) as unknown as TreinamentoCotacao[];
+      const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", ids);
+        const m = new Map((profs ?? []).map((p) => [p.id as string, p]));
+        rows.forEach((r) => { const p = m.get(r.user_id); r.saved_by_name = p?.full_name ?? null; r.saved_by_email = p?.email ?? null; });
+      }
+      return rows;
     },
   });
   const refresh = useCallback(() => qc.invalidateQueries({ queryKey: ["trn-cotacoes"] }), [qc]);
@@ -69,5 +77,22 @@ export function useTreinamentoCotacoes() {
     await refresh();
   }, [user, refresh]);
 
-  return { lista: q.data ?? [], loading: q.isLoading, salvar, excluir, refresh };
+  /** Edita só os dados comerciais (não mexe nos itens nem nos valores). */
+  const editarDados = useCallback(async (id: string, d: { name: string; client_name: string; account_manager: string; bu_specialist: string; salesforce_code: string; bu_architect: string }) => {
+    const t = (s: string) => s.trim() || null;
+    const { error } = await supabase.from("pricing_presets").update({
+      name: d.name.trim() || "Sem nome", client_name: t(d.client_name), account_manager: t(d.account_manager),
+      bu_specialist: t(d.bu_specialist), salesforce_code: t(d.salesforce_code), bu_architect: t(d.bu_architect),
+    }).eq("id", id);
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
+  const transferir = useCallback(async (id: string, novoDono: string) => {
+    const { error } = await supabase.rpc("transfer_pricing_preset", { _preset_id: id, _new_owner: novoDono });
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
+  return { lista: q.data ?? [], loading: q.isLoading, salvar, excluir, editarDados, transferir, refresh };
 }
