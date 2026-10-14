@@ -81,6 +81,7 @@ export default function TreinamentoProposta() {
     try {
       const blob = await gerarPropostaDocx({
         cliente: st.atual.cliente, contato: d.contato, email: d.email, codigo: st.atual.codigo, versao: emissoes.length || null,
+        especialista: st.atual.especialistaBU,
         emissao: dataBR(hojeISO), validade: dataBR(validaAte), validadeDias: d.validadeDias,
         condicoesPagamento: d.condicoesPagamento, observacoes: obsFinal, total: res.precoFinalTotal,
         itens: itens.map((l) => {
