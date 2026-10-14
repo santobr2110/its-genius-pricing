@@ -209,7 +209,7 @@ export async function gerarPropostaDocx(d: PropostaDocxDados): Promise<Blob> {
  */
 export function removerPaginasEmBranco(xml: string): string {
   const vazio = String.raw`<w:p\b(?:[^>]*\/>|[^>]*[^/]>(?:(?!<w:p\b)(?!<w:t[ >])(?!<w:drawing)(?!<w:br)(?!<w:sectPr)(?!<w:pict)[\s\S])*?<\/w:p>)`;
-  const quebra = String.raw`<w:p\b[^>]*[^/]>(?:<w:pPr>(?:(?!<w:sectPr)[\s\S])*?<\/w:pPr>)?<w:r\b[^>]*>(?:<w:rPr>[\s\S]*?<\/w:rPr>)?(?:<w:lastRenderedPageBreak\/>)?<w:br w:type="page"\/><\/w:r><\/w:p>`;
+  const quebra = String.raw`<w:p\b[^>]*[^/]>(?:<w:pPr>(?:(?!<w:sectPr)[\s\S])*?<\/w:pPr>)?<w:r\b[^>]*>(?:<w:rPr>(?:(?!<\/w:r>)[\s\S])*?<\/w:rPr>)?(?:<w:lastRenderedPageBreak\/>)?<w:br w:type="page"\/><\/w:r><\/w:p>`;
   const re = new RegExp(`(?:${vazio})*${quebra}(<w:p\\b[^>]*>)(<w:pPr>[\\s\\S]*?<\\/w:pPr>|<w:pPr\\/>)?`, "g");
   return xml.replace(re, (_m, abre: string, ppr?: string) => {
     if (!ppr || ppr === "<w:pPr/>") return `${abre}<w:pPr><w:pageBreakBefore/></w:pPr>`;
