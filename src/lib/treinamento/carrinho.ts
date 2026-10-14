@@ -108,7 +108,7 @@ export function computeCarrinho(
     const modalidade: Modalidade = curso.tipo === "exame" ? "turma_aberta" : linha.modalidade;
     const codigoProduto = produtoTRN(linha.modalidade, curso.tipo === "exame" || linha.somenteExame);
     const taxL: TaxPercs = taxPorProduto ? (taxPorProduto(codigoProduto) ?? { pisPerc: 0, cofinsPerc: 0, issPerc: 0 }) : tax;
-    const cascataGeral: CascataParams = { ...cascataGeral, ...taxL };
+    const cascataBase: CascataParams = { ...cascataGeral, ...taxL };
     const fixos = { ...fixosGeral, ...taxL };
     // Turma Aberta: venda por vaga. O preço por aluno vem do rateio da turma-base
     // (alunos que pretendemos vender na turma, padrão = mínimo); a linha cobra vagas × preço por aluno.
