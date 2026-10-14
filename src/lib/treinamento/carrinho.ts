@@ -17,6 +17,8 @@ export interface LinhaCarrinho {
 
 export interface ConfigCarrinho {
   municipio: string;
+  /** Código Protheus de faturamento (padrão "TRN"). */
+  codigoProduto?: string;
   convencao: "padrao_site" | "roi_ito";
   lucroPerc: number;
   encFinancPerc: number;

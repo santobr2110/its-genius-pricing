@@ -8,6 +8,8 @@ export interface TaxCode {
   lc116_item: string | null;
   ativo: boolean;
   a_confirmar: boolean;
+  /** Ofertas que usam o código; vazio = geral. */
+  ofertas?: string[];
 }
 
 export interface TaxRate {
@@ -60,3 +62,14 @@ export function resolveTaxRates(
     rateId: r.id,
   };
 }
+
+
+export type OfertaFiscal = "smart-ito" | "bodyshop" | "treinamento";
+export const OFERTAS_FISCAIS: { value: OfertaFiscal; label: string }[] = [
+  { value: "smart-ito", label: "Smart ITO" },
+  { value: "bodyshop", label: "BodyShop" },
+  { value: "treinamento", label: "Treinamento" },
+];
+/** Código disponível para a oferta: os dela e os gerais (sem oferta). */
+export const codigoServeOferta = (c: TaxCode, oferta?: OfertaFiscal) =>
+  !oferta || !c.ofertas?.length || c.ofertas.includes(oferta);

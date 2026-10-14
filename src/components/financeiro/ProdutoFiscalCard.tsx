@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Package, MapPin, Settings } from "lucide-react";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { useTaxCodes } from "@/hooks/useTaxCodes";
-import { resolveTaxRates } from "@/lib/pricing/taxRates";
+import { resolveTaxRates, codigoServeOferta, type OfertaFiscal } from "@/lib/pricing/taxRates";
 import { useAuth } from "@/contexts/AuthContext";
 
 const fmt = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -19,19 +19,32 @@ interface Props {
   storagePrefix: string;
   current: { pisPerc: number; cofinsPerc: number; issPerc: number };
   onApply: (r: { pisPerc: number; cofinsPerc: number; issPerc: number }) => void;
+  /** Mostra só os códigos desta oferta (mais os gerais). */
+  oferta?: OfertaFiscal;
+  /** Modo controlado (ex.: Treinamento guarda código/município na cotação). */
+  codigo?: string;
+  municipio?: string;
+  onChange?: (v: { codigo: string; municipio: string }) => void;
+  /** Código preferido quando nada foi escolhido. */
+  codigoPadrao?: string;
 }
 
 /** Seleção de código fiscal + município lendo o cadastro tributário central. */
-export default function ProdutoFiscalCard({ storagePrefix, current, onApply }: Props) {
+export default function ProdutoFiscalCard({ storagePrefix, current, onApply, oferta, codigo: codigoCtl, municipio: municipioCtl, onChange, codigoPadrao }: Props) {
   const { codes, rates, loading } = useTaxCodes();
   const auth = useAuth() as { isAdmin?: boolean };
-  const ativos = useMemo(() => codes.filter((c) => c.ativo), [codes]);
+  const ativos = useMemo(() => codes.filter((c) => c.ativo && codigoServeOferta(c, oferta)), [codes, oferta]);
   const municipios = useMemo(() => Array.from(new Set(rates.map((r) => r.municipio))).sort(), [rates]);
 
-  const [codigo, setCodigo] = usePersistentState<string>(`${storagePrefix}.codigoProduto`, "");
-  const [municipio, setMunicipio] = usePersistentState<string>(`${storagePrefix}.municipio`, "Joinville");
+  const [codigoLs, setCodigoLs] = usePersistentState<string>(`${storagePrefix}.codigoProduto`, "");
+  const [municipioLs, setMunicipioLs] = usePersistentState<string>(`${storagePrefix}.municipio`, "Joinville");
+  const codigo = codigoCtl ?? codigoLs;
+  const municipio = municipioCtl ?? municipioLs;
+  const setCodigo = (v: string) => (onChange ? onChange({ codigo: v, municipio }) : setCodigoLs(v));
+  const setMunicipio = (v: string) => (onChange ? onChange({ codigo, municipio: v }) : setMunicipioLs(v));
 
-  const codigoEf = ativos.some((c) => c.codigo === codigo) ? codigo : ativos[0]?.codigo ?? "";
+  const padrao = ativos.find((c) => c.codigo === codigoPadrao) ?? ativos.find((c) => c.ofertas?.includes(oferta ?? "")) ?? ativos[0];
+  const codigoEf = ativos.some((c) => c.codigo === codigo) ? codigo : padrao?.codigo ?? "";
   const municipioEf = municipios.includes(municipio) ? municipio : municipios[0] ?? "";
   const code = ativos.find((c) => c.codigo === codigoEf);
   const r = codigoEf && municipioEf ? resolveTaxRates(codigoEf, municipioEf, hoje(), codes, rates) : null;
@@ -58,7 +71,7 @@ export default function ProdutoFiscalCard({ storagePrefix, current, onApply }: P
           </div>
           {auth.isAdmin && (
             <Link to="/admin" className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0">
-              <Settings className="h-3 w-3" /> Cadastro tributário
+              <Settings className="h-3 w-3" /> Cadastro tributário de produtos
             </Link>
           )}
         </div>
@@ -70,7 +83,7 @@ export default function ProdutoFiscalCard({ storagePrefix, current, onApply }: P
           <>
             <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Código / Descrição</Label>
+                <Label className="text-xs font-medium">Código Protheus / Descrição</Label>
                 <Select value={codigoEf} onValueChange={setCodigo}>
                   <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
                   <SelectContent className="max-h-[60vh]">
