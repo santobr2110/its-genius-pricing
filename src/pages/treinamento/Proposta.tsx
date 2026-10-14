@@ -107,7 +107,7 @@ export default function TreinamentoProposta() {
             <div><Label>E-mail</Label><Input value={d.email} onChange={(e) => setDados({ ...d, email: e.target.value })} /></div>
             <div><Label>Validade (dias)</Label><Input type="number" min={1} value={d.validadeDias} onChange={(e) => setDados({ ...d, validadeDias: Math.max(1, Number(e.target.value) || 1) })} /></div>
             <div><Label>Condições de pagamento</Label><Textarea rows={2} value={d.condicoesPagamento} onChange={(e) => setDados({ ...d, condicoesPagamento: e.target.value })} /></div>
-            <div><Label>Observações</Label><Textarea rows={3} value={d.observacoes} onChange={(e) => setDados({ ...d, observacoes: e.target.value })} /></div>
+            <div><Label>Observações específicas</Label><Textarea rows={3} value={d.observacoes} onChange={(e) => setDados({ ...d, observacoes: e.target.value })} /></div>
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !podeEmitir}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar valores)</Button>
               <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir / salvar PDF</Button>
