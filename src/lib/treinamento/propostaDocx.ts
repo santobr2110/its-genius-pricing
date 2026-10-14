@@ -184,6 +184,7 @@ export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados)
   xml = trocarParagrafo(xml, "&lt;OBSERVAÇÕES DA PROPOSTA&gt;", obs.join(""));
 
   xml = removerPaginasEmBranco(xml);
+  xml = fixarInicioDePaginas(xml, ["Selbetti IT Solutions", "Escopo"]);
   zip.file("word/document.xml", xml);
   // Fonte única em todo o documento: troca fontes explícitas e as do tema em todas as partes XML.
   for (const nome of Object.keys(zip.files)) {
