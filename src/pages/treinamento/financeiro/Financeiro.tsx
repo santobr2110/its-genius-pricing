@@ -155,14 +155,16 @@ export function TrnImpostos() {
 }
 
 export function TrnComissoes() {
-  const { st } = useTreinamentoResultado();
+  const { st, res } = useTreinamentoResultado();
   const atual = comissaoFromRent(st.config.lucroPerc, DEFAULT_COMISSAO_TIERS);
+  const fixa = res.cascataBase.comissaoPerc !== atual ? res.cascataBase.comissaoPerc : null;
   return (
     <Shell>
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Tabela de Comissão por Faixa de Rentabilidade</CardTitle>
           <p className="text-xs text-muted-foreground">Define o % de comissão aplicado conforme a rentabilidade pretendida. A rentabilidade atual é <span className="font-semibold text-foreground">{pct(st.config.lucroPerc)}</span> → comissão de <span className="font-semibold text-primary">{pct(atual)}</span>.</p>
+          {fixa != null && <p className="text-xs rounded border border-primary/40 bg-primary/10 px-2 py-1">Comissão fixa de <span className="font-semibold">{pct(fixa)}</span> definida em Configurações › Parâmetros — a tabela abaixo não está sendo aplicada.</p>}
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-3 gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2">

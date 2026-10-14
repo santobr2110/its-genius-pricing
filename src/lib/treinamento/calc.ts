@@ -15,6 +15,8 @@ export interface TreinamentoParams {
   inCompanyIncluiGestao: boolean;
   horasPorDia: number;
   arredondamentoPrecoAluno: number; // R$ (0 = sem)
+  /** Comissão fixa (%); null = tabela de comissão por rentabilidade. */
+  comissaoFixaPerc?: number | null;
 }
 
 export const PARAMS_PADRAO: TreinamentoParams = {
@@ -37,7 +39,17 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): Treinam
     inCompanyIncluiGestao: m.has("in_company_inclui_gestao") ? m.get("in_company_inclui_gestao") === true : PARAMS_PADRAO.inCompanyIncluiGestao,
     horasPorDia: n("horas_por_dia", PARAMS_PADRAO.horasPorDia),
     arredondamentoPrecoAluno: n("arredondamento_preco_aluno", 0),
+    comissaoFixaPerc: parseComissao(m.get("comissao_regra")),
   };
+}
+
+/** Vazio/inválido → null (usa a tabela); aceita "9,76" ou 9.76. */
+export function parseComissao(v: unknown): number | null {
+  if (v == null) return null;
+  const t = String(v).trim().replace(",", ".");
+  if (t === "") return null;
+  const x = Number(t);
+  return Number.isFinite(x) && x >= 0 ? x : null;
 }
 
 export type CursoCalc = Pick<TrainingCourse,
@@ -155,14 +167,14 @@ export interface DescontoResult {
  */
 export function aplicarDesconto(
   custo: number, pv: number, descontoPerc: number,
-  p: Omit<CascataParams, "comissaoPerc" | "lucroPerc">, tiers: ComissaoTier[],
+  p: Omit<CascataParams, "comissaoPerc" | "lucroPerc">, tiers: ComissaoTier[], comissaoFixa: number | null = null,
 ): DescontoResult {
   const pf = pv * (1 - pos(descontoPerc) / 100);
   if (pf <= 0) return { precoFinal: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: -custo };
   const fixos = pos(p.pisPerc) + pos(p.cofinsPerc) + pos(p.issPerc) + pos(p.irpjCsllPerc) + pos(p.encFinancPerc);
   const base = 100 - fixos - (custo / pf) * 100; // rent + comissão
-  let com = 0;
-  for (let i = 0; i < 20; i++) {
+  let com = comissaoFixa ?? 0;
+  for (let i = 0; comissaoFixa == null && i < 20; i++) {
     const next = comissaoFromRent(base - com, tiers);
     if (next === com) break;
     com = next;
