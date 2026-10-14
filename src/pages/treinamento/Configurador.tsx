@@ -62,7 +62,7 @@ export default function Configurador() {
   const adicionar = () => {
     const c = vendaveis[0];
     if (!c) return;
-    setLinhas([...linhas, { id: novoId(), courseId: c.id, modalidade: "turma_aberta", alunos: c.min_alunos, somenteExame: false, locacao: false, diarias: null, descontoPerc: 0 }]);
+    setLinhas([...linhas, { id: novoId(), courseId: c.id, modalidade: "turma_aberta", alunos: 1, somenteExame: false, locacao: false, diarias: null, descontoPerc: 0 }]);
   };
 
   const salvar = async () => {
@@ -213,7 +213,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
           </Label>
           <Select value={linha.courseId} onValueChange={(v) => {
             const c = vendaveis.find((x) => x.id === v);
-            onChange({ courseId: v, somenteExame: false, alunos: Math.max(linha.alunos, c?.min_alunos ?? 1) });
+            onChange({ courseId: v, somenteExame: false, alunosBase: null });
           }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent className="max-h-[60vh]">{vendaveis.map((c) => <SelectItem key={c.id} value={c.id}>{c.nome}{c.tipo !== "curso" ? ` · ${c.tipo}` : ""}</SelectItem>)}</SelectContent>
