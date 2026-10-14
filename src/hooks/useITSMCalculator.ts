@@ -124,6 +124,8 @@ export interface ITSMState {
   // Smart Flow — clone independente do Smart Monitor
   custoAtivoFlow: number;
   percAlocacaoN1Flow: number;
+  /** Custo/hora médio da Equipe N1 (custo médio por pessoa ÷ 220h). Quando presente, o Flow cobra 15 min por chamado alocado. */
+  custoHoraN1Medio?: number;
   valorProxyInicialFlow: number;
   valorProxyAdicionalFlow: number;
   qtdProxysFlow: number;
@@ -601,7 +603,11 @@ export function computeITSMResults(state: ITSMState): ITSMResults {
       ? flProxyIni + Math.max(0, flQtdProxys - 1) * flProxyAdd
       : 0;
     const flCustoN1Aloc = flowActive && !state.tierOperation
-      ? (Math.max(0, state.percAlocacaoN1Flow || 0) / 100) * custoPorChamadoN1 * smChamados
+      ? (state.custoHoraN1Medio != null
+          // % = parcela dos chamados atendida pelo N1 em até 15 min; custo = 15 min do custo/hora médio da equipe N1.
+          ? (Math.max(0, state.percAlocacaoN1Flow || 0) / 100) * smChamados * Math.max(0, state.custoHoraN1Medio) * 0.25
+          // Legado (presets antigos/testes sem custo/hora): % × custo por chamado N1.
+          : (Math.max(0, state.percAlocacaoN1Flow || 0) / 100) * custoPorChamadoN1 * smChamados)
       : 0;
     const flHorasN3 = flowActive && !flowAdvanced ? Math.max(0, state.horasN3Flow || 0) : 0;
     const flCustoN3 = flHorasN3 * state.valorHoraN3;
