@@ -138,7 +138,6 @@ export interface ITSMState {
   qtdAtendentesFlow: number;
   qtdAtendentesFlowMin: number;
   qtdAtendentesFlowMax: number;
-  custoAtendenteFlow: number;
   // Percentual do custo de chamado aplicado em rotinas automatizadas (0–100)
   percCustoRotinaAutomatizada: number;
   // Distribuição dos chamados gerados por rotinas entre os times (independente do funil)
@@ -356,7 +355,6 @@ const DEFAULTS: ITSMState = {
   qtdAtendentesFlow: 1,
   qtdAtendentesFlowMin: 1,
   qtdAtendentesFlowMax: 5,
-  custoAtendenteFlow: 4000,
   percCustoRotinaAutomatizada: 20,
   percRotinaN1: 30,
   percRotinaN2: 50,

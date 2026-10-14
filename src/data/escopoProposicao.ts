@@ -171,8 +171,6 @@ export type ItemAdicionalTipo =
   | "monit-bd"
   | "monit-sistema"
   | "proxy"
-  | "atendente-itsm"
-  | "itsm"
   | "hora-n3"
   | "tam"
   | "owner"
@@ -204,8 +202,6 @@ export const ITEM_TIPO_LABEL: Record<ItemAdicionalTipo, string> = {
   "monit-bd": "Calculado · Banco de dados (somente monitoramento)",
   "monit-sistema": "Calculado · Sistema (somente monitoramento)",
   proxy: "Calculado · Proxy adicional",
-  "atendente-itsm": "Calculado · Atendente dedicado no ITSM",
-  itsm: "Calculado · Acesso ao ITSM (custo por atendente)",
   "hora-n3": "Calculado · Hora N3 / Automação",
   tam: "Calculado · TAM (horas × valor hora N3)",
   owner: "Calculado · Owner (horas × valor hora N3)",
@@ -227,9 +223,6 @@ export function inferCamadaFromTipo(tipo: ItemAdicionalTipo): CamadaKey {
     case "monit-sistema":
     case "proxy":
       return "monitor";
-    case "atendente-itsm":
-    case "itsm":
-      return "flow";
     case "hora-n3":
       return "operation";
     case "tam":
@@ -240,9 +233,14 @@ export function inferCamadaFromTipo(tipo: ItemAdicionalTipo): CamadaKey {
   }
 }
 
+const ITENS_REMOVIDOS = new Set(["atendente-itsm", "itsm"]);
+
 /** Garante que todo item tenha camada (compatibilidade com dados legados). */
 export function normalizeItensAdicionais(itens: ItemAdicional[] | undefined): ItemAdicional[] {
-  return (itens ?? []).map((it) => ({
+  return (itens ?? [])
+    // Itens de ITSM (custo de atendente) foram descontinuados — removidos também de dados salvos.
+    .filter((it) => !ITENS_REMOVIDOS.has(it.tipo as string))
+    .map((it) => ({
     ...it,
     camada: it.camada ?? inferCamadaFromTipo(it.tipo),
   }));
@@ -293,23 +291,6 @@ export const ITENS_ADICIONAIS_DEFAULT: ItemAdicional[] = [
     unidade: "Proxy / mês",
     tipo: "proxy",
     observacao: "Adicional ao(s) proxy(s) inicial(is); valor unitário alinhado ao parâmetro de Proxy adicional do Smart Monitor.",
-  },
-  // ---- Smart Flow ----
-  {
-    id: uid("atendente-itsm"),
-    camada: "flow",
-    descricao: "Atendente dedicado adicional no ITSM",
-    unidade: "Atendente / mês",
-    tipo: "atendente-itsm",
-    observacao: "Atendente dedicado à triagem e roteamento técnico no ITSM do cliente.",
-  },
-  {
-    id: uid("itsm"),
-    camada: "flow",
-    descricao: "Acesso adicional ao ITSM",
-    unidade: "Usuário / mês",
-    tipo: "itsm",
-    observacao: "Liberação de novo usuário no ITSM além dos perfis previstos no contrato.",
   },
   // ---- Smart Operation ----
   {

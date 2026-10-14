@@ -534,10 +534,11 @@ export default function Detalhamento() {
     RESTRICOES_GERAIS_STORAGE_KEY,
     RESTRICOES_GERAIS_DEFAULT,
   );
-  const [itensAdicionais] = usePersistentState<ItemAdicional[]>(
+  const [itensAdicionaisRaw] = usePersistentState<ItemAdicional[]>(
     ITENS_ADICIONAIS_STORAGE_KEY,
     ITENS_ADICIONAIS_DEFAULT,
   );
+  const itensAdicionais = normalizeItensAdicionais(itensAdicionaisRaw);
 
   const horasTotaisN3 = state.horasN3Mensais || 0;
   const n3Alloc = resolveN3Alloc(n3AllocHoras, n3Cortes, horasTotaisN3);

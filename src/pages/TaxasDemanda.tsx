@@ -277,31 +277,6 @@ export default function TaxasDemanda() {
             </div>
 
             {/* === Smart Flow === */}
-            <div className="rounded-lg border border-sky-500/40 bg-sky-50/30 dark:bg-sky-950/20 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-sky-500 to-cyan-600" />
-                <h4 className="text-sm font-bold text-foreground">Smart Flow</h4>
-                <span className="text-[10px] text-muted-foreground">monitoramento integrado ao ITSM</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Custo mensal do atendente no ITSM (R$)</Label>
-                  <Input
-                    type="number"
-                    step={50}
-                    min={0}
-                    value={state.custoAtendenteFlow}
-                    onChange={(e) => update("custoAtendenteFlow", parseFloat(e.target.value) || 0)}
-                    className="h-9"
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    Variável <code>custoAtendenteFlow</code> · base de custo dos itens adicionais “Atendente dedicado adicional no ITSM” e “ITSM” na proposta.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* === Smart Operation === */}
           </CardContent>
         </Card>
 

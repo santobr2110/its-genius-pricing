@@ -244,7 +244,7 @@ export default function Escopo() {
               Proposição só aparecem os itens das camadas ativas na precificação. O valor de
               venda é calculado pelo mecanismo escolhido em <strong>Forma de cálculo</strong>
               {" "}(ativos usam custo de monitoramento + chamados previstos, ajustados pelo
-              slider de Risco; horas usam o valor hora do N3; ITSM usa o custo de atendente),
+              slider de Risco; horas usam o valor hora do N3),
               sempre com o markup da rentabilidade informada na tela de Camadas. Informe um
               valor manual para sobrescrever o cálculo.
             </p>
