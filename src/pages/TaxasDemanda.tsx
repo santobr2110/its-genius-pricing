@@ -285,21 +285,6 @@ export default function TaxasDemanda() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">% de chamados atendidos pelo N1 (até 15 min) — Smart Flow</Label>
-                  <Input
-                    type="number"
-                    step={1}
-                    min={0}
-                    max={100}
-                    value={state.percAlocacaoN1Flow}
-                    onChange={(e) => update("percAlocacaoN1Flow", parseFloat(e.target.value) || 0)}
-                    className="h-9"
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    Parcela dos chamados (Servidores+Rede+Firewall) que o N1 atende em até 15 min. Custo = chamados × % × 15 min do custo/hora médio da Equipe N1 (custo médio por pessoa ÷ 220h){state.custoHoraN1Medio != null ? ` — hoje R$ ${state.custoHoraN1Medio.toFixed(2).replace('.', ',')}/h` : ''}.
-                  </p>
-                </div>
-                <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">Custo mensal do atendente no ITSM (R$)</Label>
                   <Input
                     type="number"
