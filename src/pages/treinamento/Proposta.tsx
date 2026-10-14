@@ -164,15 +164,15 @@ export default function TreinamentoProposta() {
                     ["Público-alvo", ct?.publico_alvo], ["Pré-requisito", ct?.pre_requisito], ["Formato", ct?.formato],
                     ["Horário", ct?.horario], ["Entregável", ct?.entregavel], ["Exame", ct?.exame_descricao],
                   ] as [string, string | null | undefined][]).filter(([, v]) => v && v.trim()).map(([k, v]) => (
-                    <div key={k} className="rounded-md border border-border/60 bg-background px-3 py-2 break-inside-avoid">
-                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-primary">{k}</dt>
+                    <div key={k} className="rounded-md border border-border/60 px-3 py-2 break-inside-avoid">
+                      <dt className="text-xs font-semibold">{k}</dt>
                       <dd className="whitespace-pre-line leading-relaxed break-words text-foreground/90">{v}</dd>
                     </div>
                   ))}
                 </dl>
                 {!!ct?.cronograma?.length && (
-                  <div className="text-sm space-y-1 rounded-md border border-border/60 bg-background px-3 py-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Conteúdo programático</p>
+                  <div className="text-sm space-y-1 rounded-md border border-border/60 px-3 py-2">
+                    <p className="text-xs font-semibold">Conteúdo programático</p>
                     <ol className="list-decimal ml-5 space-y-1.5 leading-relaxed">
                       {ct.cronograma.map((m, i) => (
                         <li key={i}>
