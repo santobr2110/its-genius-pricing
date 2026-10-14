@@ -73,3 +73,11 @@ export const OFERTAS_FISCAIS: { value: OfertaFiscal; label: string }[] = [
 /** Código disponível para a oferta: só os marcados com ela (um código pode servir a várias). */
 export const codigoServeOferta = (c: TaxCode, oferta?: OfertaFiscal) =>
   !oferta || !!c.ofertas?.includes(oferta);
+
+/** Fábrica: alíquotas por código de produto para um município/data (null se não houver). */
+export function taxPorProdutoFactory(municipio: string, data: string, codes: TaxCode[], rates: TaxRate[]) {
+  return (codigo: string) => {
+    const r = resolveTaxRates(codigo, municipio, data, codes, rates);
+    return r ? { pisPerc: r.pisPerc, cofinsPerc: r.cofinsPerc, issPerc: r.issPerc } : null;
+  };
+}

@@ -17,11 +17,11 @@ import { useTaxCodes } from "@/hooks/useTaxCodes";
 import { useTreinamentoCotacoes } from "@/hooks/useTreinamentoCotacoes";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import ApprovalBadge from "@/components/approval/ApprovalBadge";
-import { resolveTaxRates } from "@/lib/pricing/taxRates";
+import { resolveTaxRates, taxPorProdutoFactory } from "@/lib/pricing/taxRates";
 import { resolveIrpjCsllPerc } from "@/lib/pricing/cascata";
 import { DEFAULT_COMISSAO_TIERS } from "@/lib/comissaoRentabilidade";
 import { paramsFromRows } from "@/lib/treinamento/calc";
-import { computeCarrinho, CONFIG_PADRAO, type LinhaCarrinho, type LinhaResultado } from "@/lib/treinamento/carrinho";
+import { computeCarrinho, CONFIG_PADRAO, PRODUTO_TRN, type LinhaCarrinho, type LinhaResultado } from "@/lib/treinamento/carrinho";
 import { COTACAO_VAZIA, useCarrinhoState } from "./useCarrinhoState";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -42,8 +42,8 @@ export default function Configurador() {
   const params = useMemo(() => paramsFromRows(cad.params), [cad.params]);
   const vendaveis = cad.courses.filter((c) => c.ativo && !c.custo_pendente);
   const municipios = useMemo(() => {
-    const code = tax.codes.find((c) => c.codigo === (config.codigoProduto || CODIGO_TRN));
-    return Array.from(new Set(tax.rates.filter((r) => r.tax_product_code_id === code?.id).map((r) => r.municipio))).sort();
+    const ids = tax.codes.filter((c) => (Object.values(PRODUTO_TRN) as string[]).includes(c.codigo)).map((c) => c.id);
+    return Array.from(new Set(tax.rates.filter((r) => ids.includes(r.tax_product_code_id)).map((r) => r.municipio))).sort();
   }, [tax.codes, tax.rates]);
   const rates = resolveTaxRates(config.codigoProduto || CODIGO_TRN, config.municipio, hoje(), tax.codes, tax.rates);
   const irpj = resolveIrpjCsllPerc(config.convencao);
@@ -51,7 +51,8 @@ export default function Configurador() {
   const res = useMemo(() => computeCarrinho(
     linhas, cad.courses, cad.comboItems, params, config,
     { pisPerc: rates?.pisPerc ?? 0, cofinsPerc: rates?.cofinsPerc ?? 0, issPerc: rates?.issPerc ?? 0 }, irpj, DEFAULT_COMISSAO_TIERS,
-  ), [linhas, cad.courses, cad.comboItems, params, config, rates?.pisPerc, rates?.cofinsPerc, rates?.issPerc, irpj]);
+    taxPorProdutoFactory(config.municipio, hoje(), tax.codes, tax.rates),
+  ), [linhas, cad.courses, cad.comboItems, params, config, rates?.pisPerc, rates?.cofinsPerc, rates?.issPerc, irpj, tax.codes, tax.rates]);
 
   const approval = usePricingApproval({
     offering: "treinamento", targetType: "pricing_preset", targetId: atual.id, rentPct: res.rentabilidadePerc,
