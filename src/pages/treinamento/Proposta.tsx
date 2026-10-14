@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { FileDown, FileText, Loader2, Printer, Stamp } from "lucide-react";
+import { FileDown, FileText, Loader2, Stamp } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
@@ -110,7 +110,6 @@ export default function TreinamentoProposta() {
             <div><Label>Observações específicas</Label><Textarea rows={3} value={d.observacoes} onChange={(e) => setDados({ ...d, observacoes: e.target.value })} /></div>
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !podeEmitir}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar valores)</Button>
-              <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir / salvar PDF</Button>
               <Button variant="outline" onClick={baixarWord} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
             </div>
             {!salvo && <p className="text-xs text-muted-foreground">Salve a cotação no Configurador para poder emitir.</p>}
