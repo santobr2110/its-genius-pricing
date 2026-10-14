@@ -96,9 +96,9 @@ export function computeCarrinho(
     // (alunos que pretendemos vender na turma, padrão = mínimo); a linha cobra vagas × preço por aluno.
     const porVaga = modalidade === "turma_aberta" && curso.tipo !== "exame";
     const vagas = Math.floor(Math.max(0, linha.alunos || 0));
-    const base = porVaga ? Math.max(curso.min_alunos || 1, Math.floor(linha.alunosBase ?? curso.min_alunos ?? 1)) : vagas;
+    const base = porVaga ? Math.max(1, curso.min_alunos || 1) : vagas;
     const custoBase = computeCursoCusto(curso, modalidade, base, params, { locacao: linha.locacao, diarias: linha.diarias ?? undefined });
-    if (porVaga && vagas < 1) custoBase.erros.push("Informe ao menos 1 vaga.");
+    if (porVaga && vagas < 1) custoBase.erros.push("Informe ao menos 1 aluno.");
     if (custoBase.erros.length) {
       return { linha, curso, cursoOriginal: original, custo: custoBase, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [] };
     }
@@ -109,7 +109,7 @@ export function computeCarrinho(
           detalhe: { instrutor: custoBase.detalhe.instrutor * fator, gestao: custoBase.detalhe.gestao * fator, locacao: custoBase.detalhe.locacao * fator, materialCloud: custoBase.detalhe.materialCloud * fator } }
       : custoBase;
     const preco: PrecoResult = porVaga ? { ...precoBase, precoTurma: precoBase.precoPorAluno * vagas } : precoBase;
-    if (porVaga && vagas > base) avisos.push(`Vagas (${vagas}) acima da turma-base de rateio (${base}).`);
+    
     const descontoEfetivoPerc = 100 * (1 - (1 - (linha.descontoPerc || 0) / 100) * (1 - (cfg.descontoTotalPerc || 0) / 100));
     const d = aplicarDesconto(custo.custoTurma, preco.precoTurma, descontoEfetivoPerc, fixos, tiers);
     const porAluno = d.precoFinal / Math.max(1, vagas);

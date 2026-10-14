@@ -226,7 +226,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
             <SelectContent><SelectItem value="turma_aberta">{ehExame || linha.somenteExame ? "Exame avulso" : "Turma Aberta (online)"}</SelectItem><SelectItem value="in_company">In Company</SelectItem></SelectContent>
           </Select>
         </div>
-        <div className="space-y-1"><Label className="text-xs">{linha.modalidade === "turma_aberta" && !ehExame && !linha.somenteExame ? "Vagas compradas" : "Alunos"}</Label><Input type="number" min={1} value={linha.alunos} onChange={(e) => onChange({ alunos: Math.max(0, Math.floor(Number(e.target.value) || 0)) })} /></div>
+        <div className="space-y-1"><Label className="text-xs">Alunos</Label><Input type="number" min={1} value={linha.alunos} onChange={(e) => onChange({ alunos: Math.max(0, Math.floor(Number(e.target.value) || 0)) })} /></div>
         <div className="space-y-1"><Label className="text-xs">Desconto %</Label><Input type="number" step="0.5" value={linha.descontoPerc} onChange={(e) => onChange({ descontoPerc: Number(e.target.value) || 0 })} /></div>
         <Button size="icon" variant="ghost" onClick={onRemove} aria-label="Remover item"><Trash2 className="h-4 w-4" /></Button>
       </div>
@@ -246,12 +246,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
         )}
         {orig?.min_alunos && linha.modalidade === "turma_aberta" && !ehExame && !linha.somenteExame && (
           <>
-            <label className="flex items-center gap-2" title="Quantos alunos pretendemos vender nesta turma. O preço por aluno é o rateio da turma por esse número; o cliente paga só as vagas que comprar.">
-              Alunos vendidos na turma (rateio)
-              <Input className="h-7 w-16" type="number" min={orig.min_alunos} value={linha.alunosBase ?? orig.min_alunos}
-                onChange={(e) => onChange({ alunosBase: e.target.value === "" ? null : Math.floor(Number(e.target.value) || 0) })} />
-            </label>
-            <span className="text-muted-foreground">Venda por vaga · turma mín. {orig.min_alunos}{orig.max_alunos ? ` · máx. ${orig.max_alunos}` : ""}{orig.campos_a_confirmar.includes("max_alunos") ? " (máximo a confirmar)" : ""}</span>
+            <span className="text-muted-foreground">Preço por aluno com base na turma mínima de {orig.min_alunos}{orig.max_alunos ? ` · máx. ${orig.max_alunos}` : ""}{orig.campos_a_confirmar.includes("max_alunos") ? " (máximo a confirmar)" : ""}</span>
           </>
         )}
       </div>
@@ -302,7 +297,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
                 <p className="font-semibold">Preço por aluno conforme o tamanho da turma (sem desconto)</p>
                 <div className="flex flex-wrap gap-1">
                   {r.curva.map((p) => (
-                    <span key={p.alunos} className={`rounded border px-1.5 py-0.5 tabular-nums ${p.alunos === linha.alunos ? "border-primary bg-primary/10 font-semibold" : ""}`}>{p.alunos}: {brl(p.precoPorAluno)}</span>
+                    <span key={p.alunos} className={`rounded border px-1.5 py-0.5 tabular-nums ${p.alunos === r.alunosBase ? "border-primary bg-primary/10 font-semibold" : ""}`}>{p.alunos}: {brl(p.precoPorAluno)}</span>
                   ))}
                 </div>
               </div>
