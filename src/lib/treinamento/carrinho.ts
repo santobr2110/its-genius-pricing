@@ -45,6 +45,18 @@ export interface LinhaResultado {
   curva: { alunos: number; custoPorAluno: number; precoPorAluno: number }[];
   /** Turma Aberta: alunos usados no rateio do preço por vaga. */
   alunosBase?: number | null;
+  /** Produto fiscal vinculado à linha (define as alíquotas). */
+  codigoProduto?: string;
+  tax?: TaxPercs;
+}
+
+export type TaxPercs = { pisPerc: number; cofinsPerc: number; issPerc: number };
+
+/** Produto fiscal por condição: exame → 900-0313P; In Company → 900-0315P NEW; Turma Aberta → 900-0315P. */
+export const PRODUTO_TRN = { turmaAberta: "900-0315P", inCompany: "900-0315P NEW", exame: "900-0313P" } as const;
+export function produtoTRN(modalidade: Modalidade, exame: boolean): string {
+  if (exame) return PRODUTO_TRN.exame;
+  return modalidade === "in_company" ? PRODUTO_TRN.inCompany : PRODUTO_TRN.turmaAberta;
 }
 
 export interface CarrinhoResultado {
@@ -62,13 +74,15 @@ export function computeCarrinho(
   linhas: LinhaCarrinho[], courses: TrainingCourse[], comboItems: { combo_id: string; course_id: string }[],
   params: TreinamentoParams, cfg: ConfigCarrinho,
   tax: { pisPerc: number; cofinsPerc: number; issPerc: number }, irpjCsllPerc: number, tiers: ComissaoTier[],
+  /** Alíquotas por produto fiscal; quando informado, cada linha usa o produto da sua condição. */
+  taxPorProduto?: (codigo: string) => TaxPercs | null,
 ): CarrinhoResultado {
   const byId = new Map(courses.map((c) => [c.id, c]));
-  const cascataBase: CascataParams = {
+  const cascataGeral: CascataParams = {
     ...tax, irpjCsllPerc, encFinancPerc: cfg.encFinancPerc, lucroPerc: cfg.lucroPerc,
     comissaoPerc: params.comissaoFixaPerc ?? comissaoFromRent(cfg.lucroPerc, tiers),
   };
-  const fixos = { pisPerc: tax.pisPerc, cofinsPerc: tax.cofinsPerc, issPerc: tax.issPerc, irpjCsllPerc, encFinancPerc: cfg.encFinancPerc };
+  const fixosGeral = { pisPerc: tax.pisPerc, cofinsPerc: tax.cofinsPerc, issPerc: tax.issPerc, irpjCsllPerc, encFinancPerc: cfg.encFinancPerc };
 
   // Cursos cobertos pelo carrinho (inclui componentes de combos), para avisos de pré-requisito.
   const cobertos = new Set<string>();
@@ -92,6 +106,10 @@ export function computeCarrinho(
     }
     if (original?.slug === "zcs" && !linha.somenteExame) avisos.push("Pré-requisito: conhecimentos básicos de Linux.");
     const modalidade: Modalidade = curso.tipo === "exame" ? "turma_aberta" : linha.modalidade;
+    const codigoProduto = produtoTRN(linha.modalidade, curso.tipo === "exame" || linha.somenteExame);
+    const taxL: TaxPercs = taxPorProduto ? (taxPorProduto(codigoProduto) ?? { pisPerc: 0, cofinsPerc: 0, issPerc: 0 }) : tax;
+    const cascataGeral: CascataParams = { ...cascataGeral, ...taxL };
+    const fixos = { ...fixosGeral, ...taxL };
     // Turma Aberta: venda por vaga. O preço por aluno vem do rateio da turma-base
     // (alunos que pretendemos vender na turma, padrão = mínimo); a linha cobra vagas × preço por aluno.
     const porVaga = modalidade === "turma_aberta" && curso.tipo !== "exame";
@@ -99,6 +117,7 @@ export function computeCarrinho(
     const base = porVaga ? Math.max(1, curso.min_alunos || 1) : vagas;
     const custoBase = computeCursoCusto(curso, modalidade, base, params, { locacao: linha.locacao, diarias: linha.diarias ?? undefined });
     if (porVaga && vagas < 1) custoBase.erros.push("Informe ao menos 1 aluno.");
+    if (taxPorProduto && !taxPorProduto(codigoProduto)) custoBase.erros.push(`Produto ${codigoProduto} sem alíquotas para o município.`);
     if (custoBase.erros.length) {
       return { linha, curso, cursoOriginal: original, custo: custoBase, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [] };
     }
@@ -116,7 +135,7 @@ export function computeCarrinho(
     if (curso.piso_preco_aluno != null && porAluno < curso.piso_preco_aluno) avisos.push("Preço por aluno abaixo do piso cadastrado.");
     const curva = porVaga ? curvaPorAluno(curso, params, cascataBase) : [];
     return { linha, curso, cursoOriginal: original, custo, preco, descontoEfetivoPerc, precoFinal: d.precoFinal, precoFinalPorAluno: porAluno,
-      rentabilidadePerc: d.rentabilidadePerc, comissaoPerc: d.comissaoPerc, lucro: d.lucro, avisos, curva, alunosBase: porVaga ? base : null };
+      rentabilidadePerc: d.rentabilidadePerc, comissaoPerc: d.comissaoPerc, lucro: d.lucro, avisos, curva, alunosBase: porVaga ? base : null, codigoProduto, tax: taxL };
   });
 
   const ok = res.filter((r) => r.preco);
@@ -125,7 +144,7 @@ export function computeCarrinho(
   const precoFinalTotal = ok.reduce((s, r) => s + r.precoFinal, 0);
   const lucroTotal = ok.reduce((s, r) => s + r.lucro, 0);
   return {
-    linhas: res, cascataBase, custoTotal, precoTabelaTotal, precoFinalTotal, lucroTotal,
+    linhas: res, cascataBase: cascataGeral, custoTotal, precoTabelaTotal, precoFinalTotal, lucroTotal,
     rentabilidadePerc: precoFinalTotal > 0 ? (lucroTotal / precoFinalTotal) * 100 : 0,
     temErros: res.some((r) => r.custo.erros.length > 0),
   };
