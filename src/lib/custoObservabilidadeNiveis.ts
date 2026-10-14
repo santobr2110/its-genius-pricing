@@ -202,13 +202,24 @@ export function computeCustoPorUMMarginalNiveis(
   return (tarifa * cfg.fatorPlataforma + cfg.pisoManutencao) * fatorCarga;
 }
 
-/** Horas e proxies efetivos do modelo de níveis: valor do slider limitado ao mínimo/máximo configurado. */
-export function obsEfetivos(s: {
+type ObsLimitesInput = {
   obsHorasManutencao?: number; obsHorasManutencaoMin?: number; obsHorasManutencaoMax?: number;
   obsQtdProxies?: number; obsQtdProxiesMin?: number; obsQtdProxiesMax?: number;
-}): { horas: number; proxies: number } {
-  const hMin = Math.max(0, s.obsHorasManutencaoMin ?? 0);
-  const hMax = Math.max(hMin + 1, s.obsHorasManutencaoMax ?? 40);
+  tierFlow?: boolean;
+  horasN3MonitorManutMin?: number; horasN3FlowManutMin?: number;
+};
+
+/** Faixa de horas de Automação/Manutenção: o mínimo também respeita o mínimo da camada (Monitor/Flow) definido em Métricas. */
+export function obsHorasLimites(s: ObsLimitesInput): { min: number; max: number } {
+  const camadaMin = (s.tierFlow ? s.horasN3FlowManutMin : s.horasN3MonitorManutMin) ?? 0;
+  const min = Math.max(0, s.obsHorasManutencaoMin ?? 0, camadaMin);
+  const max = Math.max(min + 1, s.obsHorasManutencaoMax ?? 40);
+  return { min, max };
+}
+
+/** Horas e proxies efetivos do modelo de níveis: valor do slider limitado ao mínimo/máximo configurado. */
+export function obsEfetivos(s: ObsLimitesInput): { horas: number; proxies: number } {
+  const { min: hMin, max: hMax } = obsHorasLimites(s);
   const pMin = Math.max(0, s.obsQtdProxiesMin ?? 0);
   const pMax = Math.max(pMin + 1, s.obsQtdProxiesMax ?? 20);
   return {
