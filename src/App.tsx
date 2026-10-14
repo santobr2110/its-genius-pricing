@@ -35,6 +35,7 @@ import TreinamentoLayout from "./pages/treinamento/Layout";
 import TreinamentoConfigurador from "./pages/treinamento/Configurador";
 import TreinamentoProposta from "./pages/treinamento/Proposta";
 import TreinamentoCotacoes from "./pages/treinamento/Cotacoes";
+import TreinamentoResumo from "./pages/treinamento/Resumo";
 import { TrnResultado, TrnImpostos, TrnComissoes } from "./pages/treinamento/financeiro/Financeiro";
 import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
@@ -112,6 +113,7 @@ const App = () => (
                 <Route index element={<TreinamentoConfigurador />} />
                 <Route path="proposta" element={<TreinamentoProposta />} />
                 <Route path="cotacoes" element={<TreinamentoCotacoes />} />
+                <Route path="resumo" element={<TreinamentoResumo />} />
                 <Route path="financeiro" element={<TrnResultado />} />
                 <Route path="financeiro/impostos" element={<TrnImpostos />} />
                 <Route path="financeiro/comissoes" element={<TrnComissoes />} />
