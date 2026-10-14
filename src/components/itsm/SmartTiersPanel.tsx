@@ -344,23 +344,31 @@ export default function SmartTiersPanel() {
     if (!state.tierMonitor) return;
     if ((state.horasN3MonitorManut || 0) < (state.horasN3MonitorManutMin || 0)) {
       update("horasN3MonitorManut", state.horasN3MonitorManutMin as any);
+    } else if (state.horasN3MonitorManutMax != null && (state.horasN3MonitorManut || 0) > state.horasN3MonitorManutMax) {
+      update("horasN3MonitorManut", state.horasN3MonitorManutMax as any);
     }
     if ((state.horasN3Monitor || 0) < (state.horasN3MonitorMin || 0)) {
       update("horasN3Monitor", state.horasN3MonitorMin as any);
+    } else if (state.horasN3MonitorMax != null && (state.horasN3Monitor || 0) > state.horasN3MonitorMax) {
+      update("horasN3Monitor", state.horasN3MonitorMax as any);
     }
     if ((state.qtdProxysMonitor || 0) < 1) {
       update("qtdProxysMonitor", 1 as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.tierMonitor, state.horasN3MonitorManutMin, state.horasN3MonitorMin]);
+  }, [state.tierMonitor, state.horasN3MonitorManutMin, state.horasN3MonitorMin, state.horasN3MonitorManutMax, state.horasN3MonitorMax]);
 
   useEffect(() => {
     if (!state.tierFlow) return;
     if ((state.horasN3FlowManut || 0) < (state.horasN3FlowManutMin || 0)) {
       update("horasN3FlowManut", state.horasN3FlowManutMin as any);
+    } else if (state.horasN3FlowManutMax != null && (state.horasN3FlowManut || 0) > state.horasN3FlowManutMax) {
+      update("horasN3FlowManut", state.horasN3FlowManutMax as any);
     }
     if ((state.horasN3Flow || 0) < (state.horasN3FlowMin || 0)) {
       update("horasN3Flow", state.horasN3FlowMin as any);
+    } else if (state.horasN3FlowMax != null && (state.horasN3Flow || 0) > state.horasN3FlowMax) {
+      update("horasN3Flow", state.horasN3FlowMax as any);
     }
     if ((state.qtdProxysFlow || 0) < 1) {
       update("qtdProxysFlow", 1 as any);
@@ -368,7 +376,7 @@ export default function SmartTiersPanel() {
       update("qtdProxysFlow", Math.max(1, state.qtdProxysMonitorMax || 1) as any);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.tierFlow, state.horasN3FlowManutMin, state.horasN3FlowMin, state.qtdProxysMonitorMax]);
+  }, [state.tierFlow, state.horasN3FlowManutMin, state.horasN3FlowMin, state.horasN3FlowManutMax, state.horasN3FlowMax, state.qtdProxysMonitorMax]);
 
   useEffect(() => {
     if (!state.tierOperation || state.tierPerformance) return;

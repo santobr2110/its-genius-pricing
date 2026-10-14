@@ -75,7 +75,6 @@ export interface ITSMState {
   custoAtivoMonitorado: number;
   // Smart Operation (monitoramento ativo + automação)
   custoAtivoOperacao: number;
-  percAlocacaoN1Operation: number;
   // Proxy de monitoramento
   valorProxyInicial: number;
   valorProxyAdicional: number;
@@ -305,7 +304,6 @@ const DEFAULTS: ITSMState = {
   percAlocacaoN1Monitor: 30,
   custoAtivoMonitorado: 50,
   custoAtivoOperacao: 80,
-  percAlocacaoN1Operation: 50,
   valorProxyInicial: 0,
   valorProxyAdicional: 0,
   percLimiteExcedente: 20,

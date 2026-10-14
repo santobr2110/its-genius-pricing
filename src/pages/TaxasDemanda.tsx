@@ -302,30 +302,6 @@ export default function TaxasDemanda() {
             </div>
 
             {/* === Smart Operation === */}
-            <div className="rounded-lg border border-slate-400/40 bg-slate-50/40 dark:bg-slate-900/30 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <span className="inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-slate-400 to-zinc-500" />
-                <h4 className="text-sm font-bold text-foreground">Smart Operation</h4>
-                <span className="text-[10px] text-muted-foreground">Service Desk humano com monitoramento incluso</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">% Alocação N1 — Smart Operation</Label>
-                  <Input
-                    type="number"
-                    step={1}
-                    min={0}
-                    max={100}
-                    value={state.percAlocacaoN1Operation}
-                    onChange={(e) => update("percAlocacaoN1Operation", parseFloat(e.target.value) || 0)}
-                    className="h-9"
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    Variável <code>percAlocacaoN1Operation</code> · % × custo por chamado N1 × chamados de Servidores+Rede+Firewall absorvidos pelo Smart Operation.
-                  </p>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
@@ -369,7 +345,7 @@ export default function TaxasDemanda() {
             {([
               { label: "Smart Monitor — Automação / Manutenção", minKey: "horasN3MonitorManutMin", maxKey: "horasN3MonitorManutMax" },
               { label: "Smart Monitor — Acionamento N3", minKey: "horasN3MonitorMin", maxKey: "horasN3MonitorMax" },
-              { label: "Smart Flow — Horas de Automação", minKey: "horasN3FlowManutMin", maxKey: "horasN3FlowManutMax" },
+              { label: "Smart Flow — Automação / Manutenção", minKey: "horasN3FlowManutMin", maxKey: "horasN3FlowManutMax" },
               { label: "Smart Flow — Acionamento N3", minKey: "horasN3FlowMin", maxKey: "horasN3FlowMax" },
               { label: "Smart Operation", minKey: "horasN3OperationMin", maxKey: "horasN3OperationMax" },
               { label: "Smart Performance", minKey: "horasN3PerformanceMin", maxKey: "horasN3PerformanceMax" },
