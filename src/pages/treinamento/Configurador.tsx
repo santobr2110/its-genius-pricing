@@ -297,7 +297,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
                 <p className="font-semibold">Preço por aluno conforme o tamanho da turma (sem desconto)</p>
                 <div className="flex flex-wrap gap-1">
                   {r.curva.map((p) => (
-                    <span key={p.alunos} className={`rounded border px-1.5 py-0.5 tabular-nums ${p.alunos === linha.alunos ? "border-primary bg-primary/10 font-semibold" : ""}`}>{p.alunos}: {brl(p.precoPorAluno)}</span>
+                    <span key={p.alunos} className={`rounded border px-1.5 py-0.5 tabular-nums ${p.alunos === r.alunosBase ? "border-primary bg-primary/10 font-semibold" : ""}`}>{p.alunos}: {brl(p.precoPorAluno)}</span>
                   ))}
                 </div>
               </div>

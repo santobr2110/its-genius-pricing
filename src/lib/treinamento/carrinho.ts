@@ -98,7 +98,7 @@ export function computeCarrinho(
     const vagas = Math.floor(Math.max(0, linha.alunos || 0));
     const base = porVaga ? Math.max(1, curso.min_alunos || 1) : vagas;
     const custoBase = computeCursoCusto(curso, modalidade, base, params, { locacao: linha.locacao, diarias: linha.diarias ?? undefined });
-    if (porVaga && vagas < 1) custoBase.erros.push("Informe ao menos 1 vaga.");
+    if (porVaga && vagas < 1) custoBase.erros.push("Informe ao menos 1 aluno.");
     if (custoBase.erros.length) {
       return { linha, curso, cursoOriginal: original, custo: custoBase, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [] };
     }
