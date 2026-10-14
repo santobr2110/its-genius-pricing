@@ -1282,7 +1282,9 @@ export default function SmartTiersPanel() {
                   <Label className="text-[11px] text-muted-foreground font-semibold">
                     Alocação N1 — chamados atendidos em até 15 min
                   </Label>
-                  <span className="font-semibold">{state.percAlocacaoN1Flow}%</span>
+                  <span className="font-semibold">
+                    {state.percAlocacaoN1Flow}% · {formatNumber(((state.percAlocacaoN1Flow || 0) / 100) * (results.smartFlow?.chamadosAtivos || 0), 1)} de {formatNumber(results.smartFlow?.chamadosAtivos || 0, 1)} chamados/mês
+                  </span>
                 </div>
                 <Slider
                   value={[state.percAlocacaoN1Flow || 0]}
