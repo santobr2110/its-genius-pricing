@@ -15,6 +15,8 @@ export interface TrainingCourse {
   catalog_product_id: string | null;
   horas_execucao: number;
   dias: number | null;
+  /** 8 = diurno; 3 = noturno. */
+  horas_por_dia: number;
   nivel_instrutor: NivelInstrutor | null;
   valor_fabricante: number | null;
   custo_material_aluno: number;
