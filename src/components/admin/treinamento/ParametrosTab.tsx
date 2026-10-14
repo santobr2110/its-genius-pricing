@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -53,6 +54,8 @@ export default function ParametrosTab({ params, refresh }: CadastroProps) {
             </div>
             {r.tipo === "boolean" ? (
               <Switch checked={r.value === true} onCheckedChange={(v) => set(r.key, { value: v })} aria-label={r.label} />
+            ) : r.key === "observacoes_proposta" ? (
+              <Textarea rows={4} className="md:col-span-1" value={String(r.value ?? "")} placeholder="Aparece no final de todas as propostas" onChange={(e) => set(r.key, { value: e.target.value })} />
             ) : r.tipo === "text" ? (
               <Input value={String(r.value ?? "")} placeholder={r.key === "comissao_regra" ? "Vazio = tabela da empresa" : undefined} onChange={(e) => set(r.key, { value: e.target.value })} />
             ) : (

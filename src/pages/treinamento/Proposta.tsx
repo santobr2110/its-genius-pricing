@@ -41,6 +41,8 @@ export default function TreinamentoProposta() {
   const salvo = cot.lista.find((c) => c.id === st.atual.id);
   const emissoes = ((salvo?.payload as unknown as { emissoes?: EmissaoTRN[] })?.emissoes) ?? [];
 
+  const obsParam = String(cad.params.find((x) => x.key === "observacoes_proposta")?.value ?? "").trim();
+  const obsFinal = [d.observacoes.trim(), obsParam].filter(Boolean).join("\n\n");
   const contentById = useMemo(() => new Map(cad.contents.map((c) => [c.course_id, c])), [cad.contents]);
   const itens = res.linhas.filter((l) => l.curso);
   const hojeISO = new Date().toISOString().slice(0, 10);
@@ -63,7 +65,7 @@ export default function TreinamentoProposta() {
     try {
       const em: EmissaoTRN = {
         versao: emissoes.length + 1, emitidaEm: new Date().toISOString(), validaAte, cliente: st.atual.cliente,
-        contato: d.contato, email: d.email, condicoesPagamento: d.condicoesPagamento, observacoes: d.observacoes,
+        contato: d.contato, email: d.email, condicoesPagamento: d.condicoesPagamento, observacoes: obsFinal,
         itens: itens.map((l) => ({ curso: l.cursoOriginal?.nome ?? l.curso!.nome, modalidade: l.linha.modalidade, alunos: l.linha.alunos, precoPorAluno: l.precoFinalPorAluno, total: l.precoFinal, somenteExame: l.linha.somenteExame })),
         total: res.precoFinalTotal, custoTotal: res.custoTotal, rentabilidadePerc: res.rentabilidadePerc,
       };
@@ -80,7 +82,7 @@ export default function TreinamentoProposta() {
       const blob = await gerarPropostaDocx({
         cliente: st.atual.cliente, contato: d.contato, email: d.email, codigo: st.atual.codigo, versao: emissoes.length || null,
         emissao: dataBR(hojeISO), validade: dataBR(validaAte), validadeDias: d.validadeDias,
-        condicoesPagamento: d.condicoesPagamento, observacoes: d.observacoes, total: res.precoFinalTotal,
+        condicoesPagamento: d.condicoesPagamento, observacoes: obsFinal, total: res.precoFinalTotal,
         itens: itens.map((l) => {
           const curso = l.cursoOriginal ?? l.curso!;
           return { curso, conteudo: contentById.get(curso.id), modalidade: MOD[l.linha.modalidade] ?? l.linha.modalidade, alunos: l.linha.alunos, somenteExame: l.linha.somenteExame, precoPorAluno: l.precoFinalPorAluno, total: l.precoFinal };
@@ -202,7 +204,7 @@ export default function TreinamentoProposta() {
           <h2 className="text-lg font-semibold">Condições</h2>
           <p><b>Pagamento:</b> {d.condicoesPagamento}</p>
           <p><b>Validade da proposta:</b> {d.validadeDias} dias ({dataBR(validaAte)}).</p>
-          {d.observacoes && <p className="whitespace-pre-wrap"><b>Observações:</b> {d.observacoes}</p>}
+          {obsFinal && <p className="whitespace-pre-wrap"><b>Observações:</b> {obsFinal}</p>}
         </section>
       </div>
     </div>
