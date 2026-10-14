@@ -39,10 +39,13 @@ export function useTreinamentoCotacoes() {
       salesforce_code: meta.salesforce?.trim() || null, bu_architect: meta.arquitetoBU?.trim() || null,
     };
     if (!user) throw new Error("Sessão expirada");
-    if (id) {
+    // Cotação excluída (ou inexistente) aberta na tela: salva como nova em vez de gravar no registro oculto.
+    const { data: atual } = id
+      ? await supabase.from("pricing_presets").select("payload,deleted_at").eq("id", id).maybeSingle()
+      : { data: null };
+    if (id && atual && !atual.deleted_at) {
       // Preserva as versões de proposta já emitidas (valores congelados).
-      const { data: atual } = await supabase.from("pricing_presets").select("payload").eq("id", id).maybeSingle();
-      const emissoes = (atual?.payload as { emissoes?: unknown[] } | null)?.emissoes;
+      const emissoes = (atual.payload as { emissoes?: unknown[] } | null)?.emissoes;
       const merged = emissoes ? { ...payload, emissoes } : payload;
       const { error } = await supabase.from("pricing_presets").update({ name, client_name: clientName || null, ...extra, payload: merged as never }).eq("id", id);
       if (error) throw error;
