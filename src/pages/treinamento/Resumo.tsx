@@ -24,7 +24,7 @@ export async function exportarResumoPdf(nomeArquivo: string) {
   let left = h, pos = 0;
   pdf.addImage(img, "JPEG", 0, pos, W, h, undefined, "FAST");
   left -= H;
-  while (left > 0) { pos = left - h; pdf.addPage(); pdf.addImage(img, "JPEG", 0, pos, W, h, undefined, "FAST"); left -= H; }
+  while (left > 2) { pos = left - h; pdf.addPage(); pdf.addImage(img, "JPEG", 0, pos, W, h, undefined, "FAST"); left -= H; }
   pdf.save(nomeArquivo);
 }
 
@@ -77,7 +77,7 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
         <Button size="sm" className="ml-auto gap-1.5 text-xs" onClick={exportar} disabled={!podeExportar}><FileDown className="h-3.5 w-3.5" /> Exportar PDF</Button>
       </div>
       <div className="overflow-x-auto">
-        <div id="trn-resumo-printable" className="bg-white rounded-md shadow-sm p-10 mx-auto" style={{ width: "210mm", minHeight: "297mm", color: "#000" }}>
+        <div id="trn-resumo-printable" className="bg-white rounded-md shadow-sm p-10 mx-auto" style={{ width: "210mm", color: "#000" }}>
           <div className="flex items-start justify-between mb-8">
             <img src={selbettiLogo.url} alt="Selbetti" style={{ height: 48, width: "auto" }} crossOrigin="anonymous" />
             <div className="text-3xl font-bold" style={{ color: "#000" }}>Resumo de Cotação</div>
@@ -135,14 +135,14 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
                 const cur = l.cursoOriginal ?? l.curso!;
                 const info = tax.codes.find((c) => c.codigo === l.codigoProduto);
                 const dt = l.custo.detalhe;
-                const nota = [
-                  `Produto ${l.codigoProduto ?? "—"}${info?.nome ? " (" + info.nome + ")" : ""}`,
-                  `PIS ${pct(l.tax?.pisPerc ?? 0)}`, `COFINS ${pct(l.tax?.cofinsPerc ?? 0)}`, `ISS ${pct(l.tax?.issPerc ?? 0)}`,
-                  dt.instrutor ? `Instrutor ${brl(dt.instrutor)}` : "", dt.gestao ? `Gestão ${brl(dt.gestao)}` : "",
-                  dt.locacao ? `Locação ${brl(dt.locacao)}` : "", dt.materialCloud ? `Material/Nuvem ${brl(dt.materialCloud)}` : "",
-                  `Comissão ${pct(l.comissaoPerc)}`, l.descontoEfetivoPerc ? `Desconto ${pct(l.descontoEfetivoPerc)}` : "",
-                  `Rentabilidade ${pct(l.rentabilidadePerc)}`,
-                ].filter(Boolean).join(" · ");
+                const nota: [string, string][] = ([
+                  ["Produto", `${l.codigoProduto ?? "—"}${info?.nome ? " — " + info.nome : ""}`],
+                  ["PIS", pct(l.tax?.pisPerc ?? 0)], ["COFINS", pct(l.tax?.cofinsPerc ?? 0)], ["ISS", pct(l.tax?.issPerc ?? 0)],
+                  ["Instrutor", dt.instrutor ? brl(dt.instrutor) : ""], ["Gestão", dt.gestao ? brl(dt.gestao) : ""],
+                  ["Locação", dt.locacao ? brl(dt.locacao) : ""], ["Material/Nuvem", dt.materialCloud ? brl(dt.materialCloud) : ""],
+                  ["Comissão", pct(l.comissaoPerc)], ["Desconto", l.descontoEfetivoPerc ? pct(l.descontoEfetivoPerc) : ""],
+                  ["Rentabilidade", pct(l.rentabilidadePerc)],
+                ] as [string, string][]).filter(([, v]) => v);
                 return (
                   <Fragment key={l.linha.id}>
                     <tr>
@@ -156,7 +156,15 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
                     </tr>
                     <tr>
                       <td colSpan={7} className={cell + " text-[11px]"} style={{ color: "#000" }}>
-                        <span className="font-semibold">Composição {cur.nome}:</span> {nota}
+                        <div className="font-semibold mb-1">Composição — {cur.nome}</div>
+                        <div className="text-[9px] leading-tight">
+                          <div className="mb-1"><span className="font-semibold mr-1">{nota[0][0]}:</span><span>{nota[0][1]}</span></div>
+                          <div className="grid grid-cols-5 gap-x-3 gap-y-0.5">
+                            {nota.slice(1).map(([k, v]) => (
+                              <div key={k} className="whitespace-nowrap"><span className="font-semibold mr-1">{k}:</span><span>{v}</span></div>
+                            ))}
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   </Fragment>
