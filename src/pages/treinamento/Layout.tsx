@@ -36,7 +36,7 @@ function NavBtn({ to, label, icon: Icon, end }: Item & { end?: boolean }) {
   return (
     <NavLink to={to} end={end}>
       {({ isActive }) => (
-        <Button variant="outline" size="sm" className={btn(isActive)}><Icon className="h-3.5 w-3.5" /><span className="hidden md:inline">{label}</span></Button>
+        <Button variant="outline" size="sm" className={btn(isActive)}><Icon className="h-3.5 w-3.5" /><span className="hidden xl:inline">{label}</span></Button>
       )}
     </NavLink>
   );
@@ -50,7 +50,7 @@ function NavMenu({ label, icon: Icon, items, prefix }: { label: string; icon: Lu
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className={btn(active)}>
-          <Icon className="h-3.5 w-3.5" /><span className="hidden md:inline">{label}</span><ChevronDown className="h-3.5 w-3.5 opacity-70" />
+          <Icon className="h-3.5 w-3.5" /><span className="hidden xl:inline">{label}</span><ChevronDown className="h-3.5 w-3.5 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
@@ -72,11 +72,11 @@ export default function TreinamentoLayout() {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex min-h-12 max-w-[1600px] flex-wrap items-center gap-2 px-4 py-1.5">
+        <div className="mx-auto flex min-h-12 max-w-[1600px] items-center gap-2 px-4 py-1.5">
           <BackHomeButton />
           <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0"><GraduationCap className="h-4 w-4" /></div>
           <h1 className="font-bold text-foreground truncate text-sm">Treinamento</h1>
-          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+          <div className="ml-auto flex items-center gap-1.5">
             <BUMenu />
             <NavBtn to={BASE} label="Configurador" icon={Calculator} end />
             <NavBtn to={`${BASE}/proposta`} label="Proposta" icon={FileText} />
