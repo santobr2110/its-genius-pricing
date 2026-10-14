@@ -20,5 +20,9 @@ export function useTreinamentoResultado() {
     st.linhas, cad.courses, cad.comboItems, params, st.config,
     { pisPerc: rates?.pisPerc ?? 0, cofinsPerc: rates?.cofinsPerc ?? 0, issPerc: rates?.issPerc ?? 0 }, irpj, DEFAULT_COMISSAO_TIERS,
   ), [st.linhas, st.config, cad.courses, cad.comboItems, params, rates?.pisPerc, rates?.cofinsPerc, rates?.issPerc, irpj]);
-  return { cad, st, res, loading: cad.loading || tax.loading };
+  const municipios = useMemo(() => {
+    const code = tax.codes.find((c) => c.codigo === "TRN");
+    return Array.from(new Set(tax.rates.filter((r) => r.tax_product_code_id === code?.id).map((r) => r.municipio))).sort();
+  }, [tax.codes, tax.rates]);
+  return { cad, st, res, rates, irpj, municipios, loading: cad.loading || tax.loading };
 }

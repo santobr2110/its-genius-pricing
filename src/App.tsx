@@ -35,6 +35,8 @@ import TreinamentoLayout from "./pages/treinamento/Layout";
 import TreinamentoConfigurador from "./pages/treinamento/Configurador";
 import TreinamentoProposta from "./pages/treinamento/Proposta";
 import TreinamentoCotacoes from "./pages/treinamento/Cotacoes";
+import { TrnResultado, TrnImpostos, TrnComissoes } from "./pages/treinamento/financeiro/Financeiro";
+import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
@@ -110,6 +112,10 @@ const App = () => (
                 <Route index element={<TreinamentoConfigurador />} />
                 <Route path="proposta" element={<TreinamentoProposta />} />
                 <Route path="cotacoes" element={<TreinamentoCotacoes />} />
+                <Route path="financeiro" element={<TrnResultado />} />
+                <Route path="financeiro/impostos" element={<TrnImpostos />} />
+                <Route path="financeiro/comissoes" element={<TrnComissoes />} />
+                <Route path="configuracoes/*" element={<TrnConfiguracoes />} />
               </Route>
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}

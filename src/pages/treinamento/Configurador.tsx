@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertTriangle, ChevronDown, FilePlus2, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTreinamentoCadastro } from "@/hooks/useTreinamentoCadastro";
 import { useTaxCodes } from "@/hooks/useTaxCodes";
@@ -130,36 +131,6 @@ export default function Configurador() {
 
         {/* Painel lateral */}
         <div className="space-y-4 xl:sticky xl:top-28">
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-base">Condições</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Município (define o ISS)</Label>
-                <Select value={config.municipio} onValueChange={(v) => setConfig({ ...config, municipio: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-                </Select>
-                {rates ? (
-                  <p className="text-[11px] text-muted-foreground">PIS {pct(rates.pisPerc)} · COFINS {pct(rates.cofinsPerc)} · ISS {pct(rates.issPerc)} {rates.aConfirmar && <Badge variant="outline" className="ml-1 text-[10px]">a confirmar</Badge>}</p>
-                ) : <p className="text-[11px] text-destructive">Sem alíquota do código TRN para este município no cadastro tributário.</p>}
-              </div>
-              {podeParams && (
-                <div className="space-y-1">
-                  <Label className="text-xs">Convenção de IR/CSLL</Label>
-                  <Select value={config.convencao} onValueChange={(v) => setConfig({ ...config, convencao: v as typeof config.convencao })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value="padrao_site">Padrão do site ({pct(resolveIrpjCsllPerc("padrao_site"))})</SelectItem><SelectItem value="roi_ito">ROI ITO ({pct(resolveIrpjCsllPerc("roi_ito"))}) · a confirmar</SelectItem></SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-2">
-                <div className="space-y-1"><Label className="text-xs">Rentabilidade %</Label><Input type="number" step="0.5" value={config.lucroPerc} onChange={(e) => setConfig({ ...config, lucroPerc: Number(e.target.value) || 0 })} /></div>
-                <div className="space-y-1"><Label className="text-xs">Enc. financ. %</Label><Input type="number" step="0.1" value={config.encFinancPerc} onChange={(e) => setConfig({ ...config, encFinancPerc: Number(e.target.value) || 0 })} /></div>
-                <div className="space-y-1"><Label className="text-xs">Desconto total %</Label><Input type="number" step="0.5" value={config.descontoTotalPerc} onChange={(e) => setConfig({ ...config, descontoTotalPerc: Number(e.target.value) || 0 })} /></div>
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="border-primary/40">
             <CardHeader className="pb-2"><CardTitle className="text-base">Resultado</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -169,6 +140,7 @@ export default function Configurador() {
               <div className="flex justify-between items-baseline border-t pt-2"><span className="font-semibold">Preço de venda</span><span className="text-xl font-bold text-primary tabular-nums">{brl(res.precoFinalTotal)}</span></div>
               <Linha l="Rentabilidade" v={pct(res.rentabilidadePerc)} strong={res.rentabilidadePerc < config.lucroPerc - 0.005} />
               <Linha l="Lucro" v={brl(res.lucroTotal)} />
+              <p className="text-[11px] text-muted-foreground">Município {config.municipio} · rentabilidade {pct(config.lucroPerc)}{config.descontoTotalPerc ? ` · desconto ${pct(config.descontoTotalPerc)}` : ""}. <Link to="/observabilidade/treinamento/financeiro/impostos" className="text-primary hover:underline">Alterar condições</Link></p>
               <p className="text-[11px] text-muted-foreground">Comissão pela faixa de rentabilidade: {pct(res.cascataBase.comissaoPerc)} sem desconto. IR/CSLL {pct(res.cascataBase.irpjCsllPerc)}.</p>
               {res.temErros && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens com erro; eles não entram no total.</p>}
               <div className="pt-1">
