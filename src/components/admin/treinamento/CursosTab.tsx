@@ -41,7 +41,8 @@ export default function CursosTab({ courses, refresh }: CadastroProps) {
 
   const salvar = async (d: Draft) => {
     if (!d.nome.trim() || !d.slug.trim()) return toast.error("Informe nome e identificador.");
-    const { id, _cloneFrom, ...row } = d;
+    const { id, _cloneFrom, ...base } = d;
+    const row = { ...base, dias_decimal: base.dias, dias: base.dias == null ? null : Math.ceil(base.dias) };
     const r = id ? await supabase.from("training_courses").update(row).eq("id", id) : await supabase.from("training_courses").insert(row);
     if (r.error) return toast.error(r.error.message);
     if (!id) {
@@ -196,7 +197,7 @@ function EditorCurso({ draft, courses, onClose, onSave }: { draft: Draft; course
               <Input type="number" value={d.horas_execucao} onChange={(e) => { const h = Number(e.target.value) || 0; setD((p) => ({ ...p, horas_execucao: h, dias: diasPadrao(h, hpd) })); }} /></div>
           ) : (
             <div className="space-y-1"><Label className="text-xs">Dias <span className="text-muted-foreground">({d.horas_execucao}h, {hpd}h/dia)</span></Label>
-              <Input type="number" value={d.dias ?? ""} onChange={(e) => { const n = num(e.target.value); setD((p) => ({ ...p, dias: n, horas_execucao: (n ?? 0) * hpd })); }} /></div>
+              <Input type="number" step="0.5" value={d.dias ?? ""} onChange={(e) => { const n = num(e.target.value); setD((p) => ({ ...p, dias: n, horas_execucao: (n ?? 0) * hpd })); }} /></div>
           )}
           {numField({ k: "custo_material_aluno", label: "Material/aluno (R$)", })}
           {numField({ k: "custo_cloud_aluno", label: "Cloud/aluno (R$)", })}

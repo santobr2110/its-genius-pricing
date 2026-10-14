@@ -24,7 +24,8 @@ export default function CombosTab({ courses, comboItems, refresh }: CadastroProp
     const row = {
       nome: edit.nome.trim(), slug, fabricante: edit.fabricante ?? "zabbix", tipo: "combo",
       part_number_interno: edit.part_number_interno || null, horas_execucao: Number(edit.horas_execucao) || 0,
-      dias: edit.dias == null || (edit.dias as unknown) === "" ? null : Number(edit.dias), nivel_instrutor: edit.nivel_instrutor ?? "B",
+      dias_decimal: edit.dias == null || (edit.dias as unknown) === "" ? null : Number(edit.dias),
+      dias: edit.dias == null || (edit.dias as unknown) === "" ? null : Math.ceil(Number(edit.dias)), nivel_instrutor: edit.nivel_instrutor ?? "B",
       min_alunos: Number(edit.min_alunos) || 1, max_alunos: edit.max_alunos ? Number(edit.max_alunos) : null,
       custo_material_aluno: Number(edit.custo_material_aluno) || 0, valor_fabricante: edit.valor_fabricante ? Number(edit.valor_fabricante) : null,
     };
