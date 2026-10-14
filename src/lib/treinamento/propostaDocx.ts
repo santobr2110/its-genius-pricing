@@ -1,8 +1,10 @@
 // Gera a proposta de Treinamento em Word (.docx) a partir do modelo oficial Selbetti.
-// O modelo tem marcadores <...>; aqui eles são substituídos preservando capa,
-// cabeçalhos, rodapés, margens e quebras de página do documento original.
+// REGRA: o modelo é intocável. Capa e páginas institucionais (1–4), seções, quebras de página,
+// margens, fontes e tamanhos vêm do modelo; aqui só se trocam os marcadores <...> pelo conteúdo.
+// Os tamanhos do conteúdo seguem o exemplo formatado pelo comercial:
+//   cursos = tamanho padrão do documento (12pt); tabela, termos e observações = 11pt.
 import JSZip from "jszip";
-import modeloAsset from "@/assets/proposta-treinamento-modelo.docx.asset.json";
+import modeloAsset from "@/assets/proposta-treinamento-modelo-v2.docx.asset.json";
 import type { TrainingCourse, TrainingCourseContent } from "./types";
 
 export interface PropostaDocxItem {
@@ -26,19 +28,20 @@ export function dataExtenso(s: string): string {
   return s;
 }
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const FONTE = "Segoe UI";
-const TAM = 28; // 14pt (meios-pontos)
 const COR = "17392F";
+const PEQ = 22; // 11pt — tabela, termos e observações
 
 export const xmlEsc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+// Fonte não é definida aqui: herda a fonte padrão do modelo.
 interface RunOpt { bold?: boolean; italics?: boolean; size?: number; color?: string }
-const rPr = (o: RunOpt = {}) =>
-  `<w:rPr><w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}" w:eastAsia="${FONTE}" w:cs="${FONTE}"/>` +
-  (o.bold ? "<w:b/><w:bCs/>" : "") + (o.italics ? "<w:i/><w:iCs/>" : "") +
-  (o.color ? `<w:color w:val="${o.color}"/>` : "") +
-  `<w:sz w:val="${o.size ?? TAM}"/><w:szCs w:val="${o.size ?? TAM}"/></w:rPr>`;
+const rPr = (o: RunOpt = {}) => {
+  const inner = (o.bold ? "<w:b/><w:bCs/>" : "") + (o.italics ? "<w:i/><w:iCs/>" : "") +
+    (o.color ? `<w:color w:val="${o.color}"/>` : "") +
+    (o.size ? `<w:sz w:val="${o.size}"/><w:szCs w:val="${o.size}"/>` : "");
+  return inner ? `<w:rPr>${inner}</w:rPr>` : "";
+};
 const run = (t: string, o: RunOpt = {}) => `<w:r>${rPr(o)}<w:t xml:space="preserve">${xmlEsc(t)}</w:t></w:r>`;
 
 interface ParOpt { keepNext?: boolean; pageBreak?: boolean; indent?: number; after?: number; before?: number; jc?: string }
@@ -50,11 +53,12 @@ const par = (runs: string, o: ParOpt = {}) =>
 const texto = (t: string, o: RunOpt = {}, p: ParOpt = {}) =>
   t.split(/\n+/).map((l) => l.trim()).filter(Boolean).map((l) => par(run(l, o), p)).join("");
 
-function conteudoCurso(it: PropostaDocxItem, idx: number): string {
+function conteudoCurso(it: PropostaDocxItem): string {
   const c = it.conteudo;
   const out: string[] = [];
-  out.push(par(run(`${it.curso.nome}${it.somenteExame ? " — somente exame" : ""}`, { bold: true, size: 32, color: COR }),
-    { keepNext: true, pageBreak: idx > 0, after: 80 }));
+  // Cada curso começa numa página nova (inclusive o primeiro, como no modelo).
+  out.push(par(run(`${it.curso.nome}${it.somenteExame ? " — somente exame" : ""}`, { bold: true, color: COR }),
+    { keepNext: true, pageBreak: true, after: 80 }));
   const dias = it.curso.dias ? ` · ${String(it.curso.dias).replace(".", ",")} dia(s)` : "";
   out.push(par(run(`${it.modalidade} · ${it.curso.horas_execucao}h${dias}`, { italics: true }), { after: 160 }));
   if (c?.tagline) out.push(texto(c.tagline, { italics: true }));
@@ -88,66 +92,32 @@ function trocarParagrafo(xml: string, marcador: string, novo: string): string {
   return xml.slice(0, ini) + novo + xml.slice(fim);
 }
 
-/** Preenche o parágrafo vazio de cada célula de uma linha da tabela. */
-/** Centraliza horizontal e verticalmente todas as células de uma linha. */
-function centralizar(rowXml: string): string {
-  return rowXml
-    .replace(/<w:vAlign [^>]*\/>/g, "")
-    .replace(/<\/w:tcPr>/g, '<w:vAlign w:val="center"/></w:tcPr>')
-    .replace(/<w:jc w:val="[^"]*"\/>/g, "")
-    .replace(/<w:pPr>([\s\S]*?)<\/w:pPr>/g, (m, inner: string) => {
-      const pos = inner.indexOf("<w:rPr>");
-      return pos < 0 ? `<w:pPr>${inner}<w:jc w:val="center"/></w:pPr>` : `<w:pPr>${inner.slice(0, pos)}<w:jc w:val="center"/>${inner.slice(pos)}</w:pPr>`;
-    })
-    .replace(/<w:p>(?!<w:pPr>)/g, '<w:p><w:pPr><w:jc w:val="center"/></w:pPr>')
-    .replace(/(<w:p [^>]*>)(?!<w:pPr>)/g, '$1<w:pPr><w:jc w:val="center"/></w:pPr>');
-}
-
+/** Usa a linha-modelo da tabela (formatação do modelo) e troca só o texto de cada célula. */
 function preencherLinha(rowXml: string, valores: string[], bold: boolean): string {
   let k = 0;
-  return centralizar(rowXml).replace(/<w:tc>[\s\S]*?<\/w:tc>/g, (tc) => {
+  return rowXml.replace(/<w:tc>[\s\S]*?<\/w:tc>/g, (tc) => {
     const v = valores[k++] ?? "";
-    const pos = tc.lastIndexOf("</w:p>");
-    return tc.slice(0, pos) + run(v, { bold, size: 22 }) + tc.slice(pos);
+    const limpo = tc.replace(/<w:r[\s>][\s\S]*?<\/w:r>/g, "");
+    const pos = limpo.lastIndexOf("</w:p>");
+    return limpo.slice(0, pos) + run(v, { bold, size: PEQ }) + limpo.slice(pos);
   });
 }
 
-/** Duplica a última célula da linha (usado para criar a coluna "Valor Total"). */
-function duplicarUltimaCelula(row: string, trocar?: [string, string]): string {
-  const ini = row.lastIndexOf("<w:tc>");
-  const fim = row.lastIndexOf("</w:tc>") + 7;
-  let tc = row.slice(ini, fim);
-  if (trocar) tc = tc.split(trocar[0]).join(trocar[1]);
-  return row.slice(0, fim) + tc + row.slice(fim);
-}
-
+/** Tabela de investimento: mantém cabeçalho do modelo; troca as linhas de valores. */
 function preencherInvestimento(xml: string, d: PropostaDocxDados): string {
-  const h = xml.indexOf("Valor Unit.");
+  const h = xml.indexOf(">Valor Total<");
   if (h < 0) return xml;
   const tIni = xml.lastIndexOf("<w:tbl>", h);
-  const tFim = xml.indexOf("</w:tbl>", h) + 8;
-  let tbl = xml.slice(tIni, tFim);
-
-  // Redistribui as larguras (total 9618, igual ao original) para incluir a coluna Valor Total.
-  const larg: Record<string, string> = { "4971": "3300", "1393": "1593", "1436": "1300", "1818": "1712" };
-  tbl = tbl.replace(/<w:tblGrid>[\s\S]*?<\/w:tblGrid>/,
-    '<w:tblGrid><w:gridCol w:w="3300"/><w:gridCol w:w="1593"/><w:gridCol w:w="1300"/><w:gridCol w:w="1712"/><w:gridCol w:w="1713"/></w:tblGrid>');
-  tbl = tbl.replace(/<w:tcW w:w="(\d+)" w:type="dxa"\/>/g, (m, w) => (larg[w] ? `<w:tcW w:w="${larg[w]}" w:type="dxa"/>` : m));
-  tbl = tbl.replace('<w:gridSpan w:val="4"/>', '<w:gridSpan w:val="5"/>');
-
-  const hh = tbl.indexOf("Valor Unit.");
-  const hIni = tbl.lastIndexOf("<w:tr", hh);
-  const hFim = tbl.indexOf("</w:tr>", hh) + 7;
-  const cab = duplicarUltimaCelula(tbl.slice(hIni, hFim), ["Valor Unit.", "Valor Total"]).replace(">Quantidade<", ">Alunos<").replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
-  const ini = hFim;
-  const fim = tbl.indexOf("</w:tr>", ini) + 7;
-  const modelo = duplicarUltimaCelula(tbl.slice(ini, fim)).replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
+  const tFim = xml.indexOf("</w:tbl>", h);
+  const cabFim = xml.indexOf("</w:tr>", h) + 7;
+  const modFim = xml.indexOf("</w:tr>", cabFim) + 7;
+  if (tIni < 0 || cabFim <= 6 || modFim > tFim) return xml;
+  const modelo = xml.slice(cabFim, modFim);
   const linhas = d.itens.map((it) => preencherLinha(modelo, [
     `${it.curso.nome}${it.somenteExame ? " (exame)" : ""}`, it.modalidade, String(it.alunos), brl(it.precoPorAluno), brl(it.total),
   ], false));
   linhas.push(preencherLinha(modelo, ["Total do investimento", "", "", "", brl(d.total)], true));
-  tbl = tbl.slice(0, hIni) + centralizar(cab) + linhas.join("") + tbl.slice(fim);
-  return xml.slice(0, tIni) + tbl + xml.slice(tFim);
+  return xml.slice(0, cabFim) + linhas.join("") + xml.slice(tFim);
 }
 
 export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados): Promise<Blob> {
@@ -162,38 +132,24 @@ export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados)
     ["&lt;Nome do Treinamento&gt;", nomes],
     ["&lt;NOME DO TREINAMENTO&gt;", nomes],
     ["&lt;DATA DE VALIDADE DA PROPOSTA&gt;", d.validade],
-    ["&lt;INVESTIMENTO&gt;", "Investimento"],
   ];
   for (const [m, v] of simples) xml = xml.split(m).join(xmlEsc(v));
-  xml = xml.replace(/Proposta válida até: 30\/<\/w:t>[\s\S]*?<w:t>\/2026<\/w:t>/, `Proposta válida até: ${xmlEsc(d.validade)}</w:t>`);
 
   xml = trocarParagrafo(xml, "&lt;CONTEUDO DO TREINAMENTO&gt;", d.itens.map(conteudoCurso).join("") || par(run("")));
   xml = preencherInvestimento(xml, d);
 
+  const p = { size: PEQ };
   const obs: string[] = [];
-  if (d.cliente) obs.push(par(run("Cliente: ", { bold: true }) + run(d.cliente)));
-  if (d.contato) obs.push(par(run("A/C: ", { bold: true }) + run(`${d.contato}${d.email ? ` · ${d.email}` : ""}`)));
-  if (d.codigo) obs.push(par(run("Referência: ", { bold: true }) + run(`${d.codigo}${d.versao ? ` · v${d.versao}` : ""}`)));
-  if (d.condicoesPagamento) obs.push(par(run("Pagamento: ", { bold: true }) + run(d.condicoesPagamento)));
-  obs.push(par(run("Validade: ", { bold: true }) + run(`${d.validadeDias} dias (${d.validade})`)));
-  obs.push(par(run("Valores com impostos inclusos.", { italics: true })));
+  if (d.condicoesPagamento) obs.push(par(run("Pagamento: ", { ...p, bold: true }) + run(d.condicoesPagamento, p)));
+  obs.push(par(run("Validade: ", { ...p, bold: true }) + run(`${d.validadeDias} dias (${d.validade})`, p)));
+  obs.push(par(run("Valores com impostos inclusos.", p)));
   if (d.observacoes.trim()) {
-    obs.push(par(run("Observações", { bold: true, color: COR }), { keepNext: true, before: 160, after: 40 }));
-    obs.push(texto(d.observacoes, {}, { jc: "both" }));
+    obs.push(par(run("Observações", { ...p, bold: true, color: COR }), { keepNext: true, before: 160, after: 40 }));
+    obs.push(texto(d.observacoes, p));
   }
   xml = trocarParagrafo(xml, "&lt;OBSERVAÇÕES DA PROPOSTA&gt;", obs.join(""));
 
-  xml = removerPaginasEmBranco(xml);
-  xml = fixarInicioDePaginas(xml, ["Selbetti IT Solutions", "Escopo"]);
   zip.file("word/document.xml", xml);
-  // Fonte única em todo o documento: troca fontes explícitas e as do tema em todas as partes XML.
-  for (const nome of Object.keys(zip.files)) {
-    if (!/^word\/.*\.xml$/.test(nome)) continue;
-    let x = nome === "word/document.xml" ? xml : await zip.file(nome)!.async("string");
-    x = x.replace(/<w:rFonts\b[^>]*\/>/g, `<w:rFonts w:ascii="${FONTE}" w:hAnsi="${FONTE}" w:eastAsia="${FONTE}" w:cs="${FONTE}"/>`)
-      .replace(/(<a:(?:latin|ea|cs)\s+typeface=")[^"]*"/g, `$1${FONTE}"`);
-    zip.file(nome, x);
-  }
   return zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
 }
 
@@ -201,131 +157,4 @@ export async function gerarPropostaDocx(d: PropostaDocxDados): Promise<Blob> {
   const resp = await fetch(modeloAsset.url);
   if (!resp.ok) throw new Error("Não foi possível carregar o modelo da proposta.");
   return preencherModelo(await resp.arrayBuffer(), d);
-}
-
-/**
- * Evita páginas em branco: um parágrafo que só contém quebra de página (e os parágrafos vazios
- * antes dele) "transborda" para a página seguinte quando a anterior está cheia, gerando uma página vazia.
- * Troca por "quebra de página antes" no parágrafo seguinte — o Word nunca deixa página em branco assim.
- */
-export function removerPaginasEmBranco(xml: string): string {
-  // Localiza parágrafos (com aninhamento) sem regex de conteúdo, para nunca cortar XML.
-  type P = { ini: number; fim: number; filhos: number };
-  const ps: P[] = [];
-  const pilha: P[] = [];
-  const re = /<w:p(?=[\s>\/])[^>]*?(\/?)>|<\/w:p>/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(xml))) {
-    if (m[0] === "</w:p>") {
-      const p = pilha.pop();
-      if (p) { p.fim = re.lastIndex; ps.push(p); }
-    } else if (m[1] === "/") {
-      if (pilha.length) pilha[pilha.length - 1].filhos++;
-      ps.push({ ini: m.index, fim: re.lastIndex, filhos: 0 });
-    } else {
-      if (pilha.length) pilha[pilha.length - 1].filhos++;
-      pilha.push({ ini: m.index, fim: -1, filhos: 0 });
-    }
-  }
-  const folhas = ps.filter((p) => p.filhos === 0).sort((x, y) => x.ini - y.ini);
-  const porIni = new Map(folhas.map((p) => [p.ini, p]));
-  const porFim = new Map(folhas.map((p) => [p.fim, p]));
-  const temConteudo = (t: string) => /<w:t[\s>]|<w:drawing|<w:pict|<w:sectPr|<w:object|<w:fldChar|<w:instrText/.test(t);
-  const remover: [number, number][] = [];
-  const inserir: [number, string][] = [];
-  for (const p of folhas) {
-    const t = xml.slice(p.ini, p.fim);
-    if (!t.includes('<w:br w:type="page"/>') || temConteudo(t)) continue;
-    const prox = porIni.get(p.fim);
-    if (!prox || xml.slice(prox.ini, prox.fim).includes("<w:pageBreakBefore")) continue;
-    let ini = p.ini;
-    for (let ant = porFim.get(ini); ant; ant = porFim.get(ini)) {
-      const ta = xml.slice(ant.ini, ant.fim);
-      if (temConteudo(ta) || ta.includes("<w:br")) break;
-      ini = ant.ini;
-    }
-    remover.push([ini, p.fim]);
-    const tp = xml.slice(prox.ini, prox.fim);
-    const abre = tp.indexOf(">") + 1;
-    if (tp.endsWith("/>") && abre === tp.length) {
-      inserir.push([prox.ini, `${tp.slice(0, -2)}><w:pPr><w:pageBreakBefore/></w:pPr></w:p>`]);
-    } else if (tp.startsWith("<w:pPr/>", abre)) {
-      inserir.push([prox.ini, `${tp.slice(0, abre)}<w:pPr><w:pageBreakBefore/></w:pPr>${tp.slice(abre + 8)}`]);
-    } else if (tp.startsWith("<w:pPr>", abre)) {
-      const resto = tp.slice(abre + 7);
-      const mm = resto.match(/^(?:<w:pStyle[^>]*\/>)?(?:<w:keepNext[^>]*\/>)?(?:<w:keepLines[^>]*\/>)?/)!;
-      inserir.push([prox.ini, `${tp.slice(0, abre + 7)}${mm[0]}<w:pageBreakBefore/>${resto.slice(mm[0].length)}`]);
-    } else {
-      inserir.push([prox.ini, `${tp.slice(0, abre)}<w:pPr><w:pageBreakBefore/></w:pPr>${tp.slice(abre)}`]);
-    }
-    remover.push([prox.ini, prox.fim]);
-  }
-  const ops = [...remover.map(([i, f]) => ({ i, f, txt: inserir.find(([x]) => x === i)?.[1] ?? "" }))]
-    .sort((x, y) => y.i - x.i);
-  let out = xml;
-  for (const o of ops) out = out.slice(0, o.i) + o.txt + out.slice(o.f);
-  return out;
-}
-
-/** Parágrafos e tabelas no nível do corpo (fora de tabelas e caixas de texto). */
-function blocosTopo(xml: string): { ini: number; fim: number; tipo: "p" | "tbl" }[] {
-  const corpo = xml.indexOf("<w:body>");
-  const re = /<w:(p|tbl)(?=[\s>\/])[^>]*?(\/?)>|<\/w:(p|tbl)>/g;
-  re.lastIndex = corpo < 0 ? 0 : corpo;
-  const out: { ini: number; fim: number; tipo: "p" | "tbl" }[] = [];
-  let prof = 0; let ini = -1; let tipo: "p" | "tbl" = "p";
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(xml))) {
-    if (m[3]) { // fechamento
-      prof--;
-      if (prof === 0) out.push({ ini, fim: re.lastIndex, tipo });
-    } else if (m[2] === "/") {
-      if (prof === 0) out.push({ ini: m.index, fim: re.lastIndex, tipo: m[1] as "p" | "tbl" });
-    } else {
-      if (prof === 0) { ini = m.index; tipo = m[1] as "p" | "tbl"; }
-      prof++;
-    }
-  }
-  return out;
-}
-
-/**
- * O modelo depende do "fluxo natural" para começar algumas páginas (sem quebra explícita).
- * Com outra fonte o texto ocupa mais ou menos espaço e a página começa no lugar errado ou
- * sobra quase vazia. Aqui cada título indicado passa a sempre abrir uma página nova e as
- * linhas vazias logo antes dele são removidas.
- */
-export function fixarInicioDePaginas(xml: string, titulos: string[]): string {
-  for (const titulo of titulos) {
-    const blocos = blocosTopo(xml);
-    const textoDe = (s: string) => (s.match(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g) || [])
-      .map((t) => t.replace(/<[^>]+>/g, "")).join("").replace(/\s+/g, " ").trim();
-    const k = blocos.findIndex((b) => b.tipo === "p" && textoDe(xml.slice(b.ini, b.fim)).startsWith(titulo));
-    if (k < 0) continue;
-    const alvo = blocos[k];
-    let p = xml.slice(alvo.ini, alvo.fim);
-    if (!/^<w:p\b[^>]*>\s*<w:pPr>(?:(?!<\/w:pPr>)[\s\S])*<w:pageBreakBefore/.test(p)) {
-      const abre = p.indexOf(">") + 1;
-      if (p.startsWith("<w:pPr>", abre)) {
-        const resto = p.slice(abre + 7);
-        const mm = resto.match(/^(?:<w:pStyle[^>]*\/>)?(?:<w:keepNext[^>]*\/>)?(?:<w:keepLines[^>]*\/>)?/)!;
-        p = `${p.slice(0, abre + 7)}${mm[0]}<w:pageBreakBefore/>${resto.slice(mm[0].length)}`;
-      } else if (p.startsWith("<w:pPr/>", abre)) {
-        p = `${p.slice(0, abre)}<w:pPr><w:pageBreakBefore/></w:pPr>${p.slice(abre + 8)}`;
-      } else {
-        p = `${p.slice(0, abre)}<w:pPr><w:pageBreakBefore/></w:pPr>${p.slice(abre)}`;
-      }
-    }
-    // Remove parágrafos vazios imediatamente anteriores (sem texto, imagem, quebra ou seção).
-    let ini = alvo.ini;
-    for (let j = k - 1; j >= 0; j--) {
-      const b = blocos[j];
-      const t = xml.slice(b.ini, b.fim);
-      if (b.tipo !== "p" || b.fim !== ini && xml.slice(b.fim, ini).trim() !== "") break;
-      if (/<w:t[\s>]|<w:drawing|<w:pict|<w:sectPr|<w:object|<w:br|<w:fldChar/.test(t)) break;
-      ini = b.ini;
-    }
-    xml = xml.slice(0, ini) + p + xml.slice(alvo.fim);
-  }
-  return xml;
 }
