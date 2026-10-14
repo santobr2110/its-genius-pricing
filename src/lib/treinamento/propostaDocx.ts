@@ -106,9 +106,9 @@ function preencherInvestimento(xml: string, d: PropostaDocxDados): string {
   let tbl = xml.slice(tIni, tFim);
 
   // Redistribui as larguras (total 9618, igual ao original) para incluir a coluna Valor Total.
-  const larg: Record<string, string> = { "4971": "3700", "1436": "1100", "1818": "1712" };
+  const larg: Record<string, string> = { "4971": "3300", "1393": "1593", "1436": "1300", "1818": "1712" };
   tbl = tbl.replace(/<w:tblGrid>[\s\S]*?<\/w:tblGrid>/,
-    '<w:tblGrid><w:gridCol w:w="3700"/><w:gridCol w:w="1393"/><w:gridCol w:w="1100"/><w:gridCol w:w="1712"/><w:gridCol w:w="1713"/></w:tblGrid>');
+    '<w:tblGrid><w:gridCol w:w="3300"/><w:gridCol w:w="1593"/><w:gridCol w:w="1300"/><w:gridCol w:w="1712"/><w:gridCol w:w="1713"/></w:tblGrid>');
   tbl = tbl.replace(/<w:tcW w:w="(\d+)" w:type="dxa"\/>/g, (m, w) => (larg[w] ? `<w:tcW w:w="${larg[w]}" w:type="dxa"/>` : m));
   tbl = tbl.replace('<w:gridSpan w:val="4"/>', '<w:gridSpan w:val="5"/>');
 
