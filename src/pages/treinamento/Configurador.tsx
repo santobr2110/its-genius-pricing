@@ -102,14 +102,14 @@ export default function Configurador() {
       <Card>
         <CardContent className="pt-4 space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 text-muted-foreground"><Building2 className="h-3.5 w-3.5 text-primary" /> Nome do Cliente *</Label><Input value={atual.cliente} onChange={(e) => setAtual({ ...atual, cliente: e.target.value })} /></div>
+            <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 h-4 text-muted-foreground"><Building2 className="h-3.5 w-3.5 text-primary" /> Nome do Cliente *</Label><Input value={atual.cliente} onChange={(e) => setAtual({ ...atual, cliente: e.target.value })} /></div>
             {([
               ["gerenteConta", "Gerente de Conta *", ""], ["especialistaBU", "Especialista da BU *", ""],
               ["salesforce", "No. Oportunidade Sales Force *", "Ex.: 0061x00000ABCDE"], ["arquitetoBU", "Arquiteto BU *", ""],
             ] as const).map(([k, label, ph]) => (
-              <div key={k} className="space-y-1"><Label className="text-xs text-muted-foreground">{label}</Label><Input value={atual[k] ?? ""} placeholder={ph} onChange={(e) => setAtual({ ...atual, [k]: e.target.value })} /></div>
+              <div key={k} className="space-y-1"><Label className="text-xs flex items-center h-4 text-muted-foreground">{label}</Label><Input value={atual[k] ?? ""} placeholder={ph} onChange={(e) => setAtual({ ...atual, [k]: e.target.value })} /></div>
             ))}
-            <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 text-muted-foreground"><FileSignature className="h-3.5 w-3.5 text-primary" /> Nome da cotação (opcional)</Label><Input value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} placeholder="Ex.: Turma ZCS março" /></div>
+            <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 h-4 text-muted-foreground"><FileSignature className="h-3.5 w-3.5 text-primary" /> Nome da cotação (opcional)</Label><Input value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} placeholder="Ex.: Turma ZCS março" /></div>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {codigoAtual && <Badge variant="outline" className="font-mono">{codigoAtual}</Badge>}
