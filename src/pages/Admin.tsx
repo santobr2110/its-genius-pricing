@@ -217,11 +217,6 @@ export default function Admin() {
             <TabsContent value="produtos">
               <ProdutosCatalogoTab />
             </TabsContent>
-            {can("page.trn.admin") && (
-              <TabsContent value="treinamento">
-                <TreinamentoAdminTab />
-              </TabsContent>
-            )}
           </Tabs>
         )}
       </main>
