@@ -36,7 +36,7 @@ function NavBtn({ to, label, icon: Icon, end }: Item & { end?: boolean }) {
   return (
     <NavLink to={to} end={end}>
       {({ isActive }) => (
-        <Button variant="outline" size="sm" className={btn(isActive)}><Icon className="h-3.5 w-3.5" /><span className="hidden xl:inline">{label}</span></Button>
+        <Button variant="outline" size="sm" className={btn(isActive)}><Icon className="h-3.5 w-3.5" /><span className="hidden 2xl:inline">{label}</span></Button>
       )}
     </NavLink>
   );
@@ -50,7 +50,7 @@ function NavMenu({ label, icon: Icon, items, prefix }: { label: string; icon: Lu
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className={btn(active)}>
-          <Icon className="h-3.5 w-3.5" /><span className="hidden xl:inline">{label}</span><ChevronDown className="h-3.5 w-3.5 opacity-70" />
+          <Icon className="h-3.5 w-3.5" /><span className="hidden 2xl:inline">{label}</span><ChevronDown className="h-3.5 w-3.5 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
