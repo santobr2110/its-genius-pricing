@@ -115,7 +115,7 @@ function preencherInvestimento(xml: string, d: PropostaDocxDados): string {
   const hh = tbl.indexOf("Valor Unit.");
   const hIni = tbl.lastIndexOf("<w:tr", hh);
   const hFim = tbl.indexOf("</w:tr>", hh) + 7;
-  const cab = duplicarUltimaCelula(tbl.slice(hIni, hFim), ["Valor Unit.", "Valor Total"]).replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
+  const cab = duplicarUltimaCelula(tbl.slice(hIni, hFim), ["Valor Unit.", "Valor Total"]).replace(">Quantidade<", ">Alunos<").replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
   const ini = hFim;
   const fim = tbl.indexOf("</w:tr>", ini) + 7;
   const modelo = duplicarUltimaCelula(tbl.slice(ini, fim)).replace(/w:w="1712"(?![\s\S]*w:w="1712")/, 'w:w="1713"');
