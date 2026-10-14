@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import { FileDown, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -32,7 +33,7 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
   const { can } = useAuth();
   const podeExportar = can("page.trn.proposal");
   const itens = res.linhas.filter((l) => l.curso);
-  const produtos = Array.from(new Set(itens.map((l) => l.codigoProduto ?? ""))).filter(Boolean).map((codigo) => {
+  const _produtos = Array.from(new Set(itens.map((l) => l.codigoProduto ?? ""))).filter(Boolean).map((codigo) => {
     const ls = itens.filter((l) => l.codigoProduto === codigo);
     return { codigo, info: tax.codes.find((c) => c.codigo === codigo), tax: ls[0]?.tax,
       cursos: ls.map((l) => (l.cursoOriginal ?? l.curso!).nome + (l.linha.somenteExame ? " (exame)" : "")) };
@@ -55,10 +56,19 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
   );
 
   const Field = ({ label, value }: { label: string; value?: string | null }) => (
-    <div className="flex gap-2 text-sm"><span className="font-bold whitespace-nowrap">{label}</span><span>{value || "—"}</span></div>
+    <div className="flex gap-2 text-sm"><span className="font-bold whitespace-nowrap" style={{ color: "#000" }}>{label}</span><span style={{ color: "#000" }}>{value || "—"}</span></div>
   );
-  const th = "border px-2 py-1 text-center font-semibold";
-  const td = "border px-2 py-1 text-center align-middle";
+  const mods = Array.from(new Set(itens.map((l) => MOD[l.linha.modalidade])));
+  const modalidade = itens.every((l) => l.linha.somenteExame) ? "Somente exame" : mods.length > 1 ? "Misto (" + mods.join(" e ") + ")" : mods[0];
+  const total = res.precoFinalTotal;
+  const impostos = itens.reduce((a, l) => a + l.precoFinal * (((l.tax?.pisPerc ?? 0) + (l.tax?.cofinsPerc ?? 0) + (l.tax?.issPerc ?? 0) + irpj) / 100), 0);
+  const comercial = itens.reduce((a, l) => a + l.precoFinal * ((l.comissaoPerc ?? 0) / 100), 0);
+  const financeiro = total * ((cb.encFinancPerc ?? 0) / 100);
+  const liquido = itens.reduce((a, l) => a + (l.lucro ?? 0), 0);
+  const liquidoPerc = total > 0 ? (liquido / total) * 100 : 0;
+  const dataEmissao = new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  const cell = "border border-slate-300 px-2 py-1.5";
+  const head = "border border-slate-300 px-2 py-2 font-bold whitespace-nowrap";
 
   return (
     <div className="space-y-4">
@@ -67,93 +77,103 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
         <Button size="sm" className="ml-auto gap-1.5 text-xs" onClick={exportar} disabled={!podeExportar}><FileDown className="h-3.5 w-3.5" /> Exportar PDF</Button>
       </div>
       <div className="overflow-x-auto">
-        <div id="trn-resumo-printable" className="bg-white rounded-md shadow-sm p-10 mx-auto space-y-6" style={{ width: "210mm", minHeight: "297mm", color: "#000" }}>
-          <div className="flex items-start justify-between">
+        <div id="trn-resumo-printable" className="bg-white rounded-md shadow-sm p-10 mx-auto" style={{ width: "210mm", minHeight: "297mm", color: "#000" }}>
+          <div className="flex items-start justify-between mb-8">
             <img src={selbettiLogo.url} alt="Selbetti" style={{ height: 48, width: "auto" }} crossOrigin="anonymous" />
-            <div className="text-3xl font-bold">Resumo de Cotação</div>
+            <div className="text-3xl font-bold" style={{ color: "#000" }}>Resumo de Cotação</div>
           </div>
 
-          <section className="grid grid-cols-2 gap-x-6 gap-y-1">
+          <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Cliente:" value={st.atual.cliente} />
-            <Field label="Código:" value={st.atual.codigo} />
-            <Field label="Gerente de Conta:" value={st.atual.gerenteConta} />
-            <Field label="Especialista BU:" value={st.atual.especialistaBU} />
-            <Field label="Arquiteto BU:" value={st.atual.arquitetoBU} />
-            <Field label="Sales Force:" value={st.atual.salesforce} />
-            <Field label="Oferta:" value="Treinamento" />
-            <Field label="Emissão:" value={new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} />
-          </section>
+            <Field label="Gerente de Contas:" value={st.atual.gerenteConta} />
+            <Field label="Data:" value={dataEmissao} />
+            <Field label="Especialista:" value={st.atual.especialistaBU} />
+            <Field label="Modalidade:" value={modalidade} />
+            <Field label="Arquiteto:" value={st.atual.arquitetoBU} />
+            <Field label="Nº da Oportunidade:" value={st.atual.salesforce} />
+            <Field label="Nº da Cotação:" value={st.atual.codigo} />
+          </div>
 
-          <section className="space-y-2">
-            <h3 className="font-bold border-b pb-1">Produtos e tributação · {st.config.municipio}</h3>
-            <table className="w-full text-xs border-collapse">
-              <thead><tr><th className={th}>Código Protheus</th><th className={th}>SKU</th><th className={th}>LC 116</th><th className={th}>Aplicado a</th><th className={th}>PIS</th><th className={th}>COFINS</th><th className={th}>ISS</th></tr></thead>
-              <tbody>
-                {produtos.map((p) => (
-                  <tr key={p.codigo}>
-                    <td className={td}>{p.codigo}</td><td className={td}>{p.info?.nome ?? "—"}</td><td className={td}>{p.info?.lc116_item ?? "—"}</td>
-                    <td className={td}>{p.cursos.join(", ")}</td>
-                    <td className={td}>{pct(p.tax?.pisPerc ?? 0)}</td><td className={td}>{pct(p.tax?.cofinsPerc ?? 0)}</td><td className={td}>{pct(p.tax?.issPerc ?? 0)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <table className="w-full text-xs border-collapse mt-2">
-              <thead><tr><th className={th}>IR/CSLL</th><th className={th}>Enc. financeiro</th><th className={th}>Lucro alvo</th></tr></thead>
-              <tbody><tr><td className={td}>{pct(irpj)}</td><td className={td}>{pct(cb.encFinancPerc)}</td><td className={td}>{pct(cb.lucroPerc)}</td></tr></tbody>
-            </table>
-          </section>
+          <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Taxas e Impostos</h2>
+          <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
+            <Field label="Investimento Total:" value={brl(total)} />
+            <Field label="Impostos:" value={brl(impostos)} />
+            <Field label="Comercial:" value={brl(comercial)} />
+            <Field label="Financeiro:" value={brl(financeiro)} />
+            <Field label="Custo de execução:" value={brl(res.custoTotal)} />
+          </div>
 
-          <section className="space-y-2">
-            <h3 className="font-bold border-b pb-1">Itens</h3>
-            <table className="w-full text-xs border-collapse">
-              <thead><tr><th className={th}>Curso</th><th className={th}>Produto</th><th className={th}>Modalidade</th><th className={th}>Alunos</th><th className={th}>Custo</th><th className={th}>Desc.</th><th className={th}>Por aluno</th><th className={th}>Total</th><th className={th}>Rent.</th></tr></thead>
-              <tbody>
-                {itens.map((l) => (
-                  <tr key={l.linha.id}>
-                    <td className={td}>{(l.cursoOriginal ?? l.curso!).nome}{l.linha.somenteExame ? " (exame)" : ""}</td>
-                    <td className={td}>{l.codigoProduto}</td><td className={td}>{MOD[l.linha.modalidade]}</td><td className={td}>{l.linha.alunos}</td>
-                    <td className={td}>{brl(l.custo.custoTurma)}</td><td className={td}>{pct(l.descontoEfetivoPerc)}</td>
-                    <td className={td}>{brl(l.precoFinalPorAluno)}</td><td className={td}>{brl(l.precoFinal)}</td><td className={td}>{pct(l.rentabilidadePerc)}</td>
-                  </tr>
-                ))}
-                <tr className="font-bold">
-                  <td className={td} colSpan={4}>Total</td><td className={td}>{brl(res.custoTotal)}</td><td className={td} />
-                  <td className={td} /><td className={td}>{brl(res.precoFinalTotal)}</td><td className={td}>{pct(res.rentabilidadePerc)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </section>
+          <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Rentabilidade</h2>
+          <div className="grid grid-cols-2 mb-10">
+            <div className="text-center">
+              <div className="text-3xl font-bold" style={{ color: "#000" }}>{brl(liquido)}</div>
+              <div className="text-base" style={{ color: "#000" }}>Líquido</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold" style={{ color: "#000" }}>{liquidoPerc.toFixed(2).replace(".", ",")}%</div>
+              <div className="text-base" style={{ color: "#000" }}>Percentual</div>
+            </div>
+          </div>
 
-          <section className="space-y-3">
-            <h3 className="font-bold border-b pb-1">Detalhamento do cálculo</h3>
-            {itens.map((l) => {
-              const p = l.preco?.cascata;
-              const d = l.custo.detalhe;
-              return (
-                <div key={l.linha.id} className="border rounded p-3 space-y-2" style={{ breakInside: "avoid" }}>
-                  <p className="font-semibold text-sm">{(l.cursoOriginal ?? l.curso!).nome} · {MOD[l.linha.modalidade]} · {l.linha.alunos} aluno(s) · produto {l.codigoProduto} (PIS {pct(l.tax?.pisPerc ?? 0)} · COFINS {pct(l.tax?.cofinsPerc ?? 0)} · ISS {pct(l.tax?.issPerc ?? 0)})</p>
-                  <table className="w-full text-xs border-collapse">
-                    <thead><tr><th className={th}>Instrutor</th><th className={th}>Gestão</th><th className={th}>Locação</th><th className={th}>Material/Cloud</th><th className={th}>Custo da turma</th><th className={th}>Comissão</th></tr></thead>
-                    <tbody><tr>
-                      <td className={td}>{brl(d.instrutor)}</td><td className={td}>{brl(d.gestao)}</td><td className={td}>{brl(d.locacao)}</td>
-                      <td className={td}>{brl(d.materialCloud)}</td><td className={td}>{brl(l.custo.custoTurma)}</td><td className={td}>{pct(l.comissaoPerc)}</td>
-                    </tr></tbody>
-                  </table>
-                  {p && (
-                    <table className="w-full text-xs border-collapse">
-                      <thead><tr><th className={th}>Preço tabela</th><th className={th}>PIS</th><th className={th}>COFINS</th><th className={th}>ISS</th><th className={th}>Comissão</th><th className={th}>IR/CSLL</th><th className={th}>Lucro</th><th className={th}>Σ%</th></tr></thead>
-                      <tbody><tr>
-                        <td className={td}>{brl(p.precoVenda)}</td><td className={td}>{brl(p.pis)}</td><td className={td}>{brl(p.cofins)}</td><td className={td}>{brl(p.iss)}</td>
-                        <td className={td}>{brl(p.comissao)}</td><td className={td}>{brl(p.irpjCsll)}</td><td className={td}>{brl(p.lucro)}</td><td className={td}>{pct(p.totalEncargosPerc)}</td>
-                      </tr></tbody>
-                    </table>
-                  )}
-                  <p className="text-[11px]">Valores da turma. Preço final após desconto: {brl(l.precoFinal)} ({brl(l.precoFinalPorAluno)} por aluno) · lucro {brl(l.lucro)}.</p>
-                </div>
-              );
-            })}
-          </section>
+          <p className="text-[11px] mb-2" style={{ color: "#000" }}>
+            <strong>Município de faturamento:</strong> {st.config.municipio || "—"} · <strong>IR/CSLL:</strong> {pct(irpj)} · <strong>Enc. financeiro:</strong> {pct(cb.encFinancPerc)}
+          </p>
+          <table className="w-full text-[10px] border-collapse" style={{ color: "#000" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#f8fafc" }}>
+                <th className={head + " text-left"}>Item</th>
+                <th className={head + " text-left"}>Curso</th>
+                <th className={head + " text-left"}>Modalidade</th>
+                <th className={head + " text-right"}>Alunos</th>
+                <th className={head + " text-right"}>Horas</th>
+                <th className={head + " text-right"}>Valor por Aluno</th>
+                <th className={head + " text-right"}>Valor Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {itens.map((l, i) => {
+                const cur = l.cursoOriginal ?? l.curso!;
+                const info = tax.codes.find((c) => c.codigo === l.codigoProduto);
+                const dt = l.custo.detalhe;
+                const nota = [
+                  `Produto ${l.codigoProduto ?? "—"}${info?.nome ? " (" + info.nome + ")" : ""}`,
+                  `PIS ${pct(l.tax?.pisPerc ?? 0)}`, `COFINS ${pct(l.tax?.cofinsPerc ?? 0)}`, `ISS ${pct(l.tax?.issPerc ?? 0)}`,
+                  dt.instrutor ? `Instrutor ${brl(dt.instrutor)}` : "", dt.gestao ? `Gestão ${brl(dt.gestao)}` : "",
+                  dt.locacao ? `Locação ${brl(dt.locacao)}` : "", dt.materialCloud ? `Material/Nuvem ${brl(dt.materialCloud)}` : "",
+                  `Comissão ${pct(l.comissaoPerc)}`, l.descontoEfetivoPerc ? `Desconto ${pct(l.descontoEfetivoPerc)}` : "",
+                  `Rentabilidade ${pct(l.rentabilidadePerc)}`,
+                ].filter(Boolean).join(" · ");
+                return (
+                  <Fragment key={l.linha.id}>
+                    <tr>
+                      <td className={cell}>{i + 1}</td>
+                      <td className={cell}>{cur.nome}{l.linha.somenteExame ? " (exame)" : ""}</td>
+                      <td className={cell}>{l.linha.somenteExame ? "Exame" : MOD[l.linha.modalidade]}</td>
+                      <td className={cell + " text-right"}>{l.linha.alunos}</td>
+                      <td className={cell + " text-right"}>{l.linha.somenteExame ? 0 : (cur.horas_execucao ?? 0).toLocaleString("pt-BR")}</td>
+                      <td className={cell + " text-right"}>{brl(l.precoFinalPorAluno)}</td>
+                      <td className={cell + " text-right"}>{brl(l.precoFinal)}</td>
+                    </tr>
+                    <tr>
+                      <td colSpan={7} className={cell + " text-[11px]"} style={{ color: "#000" }}>
+                        <span className="font-semibold">Composição {cur.nome}:</span> {nota}
+                      </td>
+                    </tr>
+                  </Fragment>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr style={{ backgroundColor: "#f8fafc" }}>
+                <td colSpan={6} className="border border-slate-300 px-2 py-2 text-right font-bold">TOTAL (Investimento):</td>
+                <td className="border border-slate-300 px-2 py-2 text-right font-bold">{brl(total)}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div className="mt-8 text-center text-[10px]" style={{ color: "#000" }}>
+            Documento gerado por IT Pricing Hub — {new Date().toLocaleString("pt-BR")}
+          </div>
         </div>
       </div>
     </div>
