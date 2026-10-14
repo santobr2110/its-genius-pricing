@@ -1,8 +1,11 @@
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { CONFIG_PADRAO, type ConfigCarrinho, type LinhaCarrinho } from "@/lib/treinamento/carrinho";
 
-export interface CotacaoAtual { id: string | null; nome: string; cliente: string; codigo: string | null }
-export const COTACAO_VAZIA: CotacaoAtual = { id: null, nome: "", cliente: "", codigo: null };
+export interface CotacaoAtual {
+  id: string | null; nome: string; cliente: string; codigo: string | null;
+  gerenteConta?: string; especialistaBU?: string; salesforce?: string; arquitetoBU?: string;
+}
+export const COTACAO_VAZIA: CotacaoAtual = { id: null, nome: "", cliente: "", codigo: null, gerenteConta: "", especialistaBU: "", salesforce: "", arquitetoBU: "" };
 
 /** Estado do carrinho do configurador (namespace observabilidade.treinamento.). */
 export function useCarrinhoState() {
