@@ -134,6 +134,7 @@ export function TrnImpostos() {
         onChange={(v) => setConfig({ ...config, codigoProduto: v.codigo, municipio: v.municipio })}
         current={b} onApply={() => {}}
       />
+      <p className="text-xs text-muted-foreground -mt-2">Na composição do preço, cada item usa o produto da sua condição: Turma Aberta → 900-0315P · In Company → 900-0315P NEW · Somente exame → 900-0313P (alíquotas do município selecionado).</p>
       <ResumoCards custo={res.custoTotal} sigma={sigma} pv={pv} />
       {sigma >= 100 && <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">A soma dos percentuais é {pct(sigma)} (≥ 100%). Reduza algum componente para tornar o preço calculável.</div>}
       <Card>

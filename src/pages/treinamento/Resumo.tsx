@@ -3,7 +3,6 @@ import { FileDown, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTaxCodes } from "@/hooks/useTaxCodes";
 import { useTreinamentoResultado } from "./useTreinamentoResultado";
 import selbettiLogo from "@/assets/selbetti-logo.png.asset.json";
 
@@ -13,13 +12,15 @@ const MOD: Record<string, string> = { turma_aberta: "Turma Aberta", in_company: 
 
 /** Resumo de Cotação do Treinamento — mesmo formato do Smart ITO, com detalhamento de cálculo e dados fiscais. */
 export default function TreinamentoResumo() {
-  const { st, res, rates, irpj, loading } = useTreinamentoResultado();
-  const tax = useTaxCodes();
+  const { st, res, irpj, tax, loading } = useTreinamentoResultado();
   const { can } = useAuth();
   const podeExportar = can("page.trn.proposal");
-  const codigo = st.config.codigoProduto || "TRN";
-  const produto = tax.codes.find((c) => c.codigo === codigo);
   const itens = res.linhas.filter((l) => l.curso);
+  const produtos = Array.from(new Set(itens.map((l) => l.codigoProduto ?? ""))).filter(Boolean).map((codigo) => {
+    const ls = itens.filter((l) => l.codigoProduto === codigo);
+    return { codigo, info: tax.codes.find((c) => c.codigo === codigo), tax: ls[0]?.tax,
+      cursos: ls.map((l) => (l.cursoOriginal ?? l.curso!).nome + (l.linha.somenteExame ? " (exame)" : "")) };
+  });
   const cb = res.cascataBase;
 
   const exportar = async () => {
@@ -80,38 +81,40 @@ export default function TreinamentoResumo() {
           </section>
 
           <section className="space-y-2">
-            <h3 className="font-bold border-b pb-1">Produto e tributação</h3>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-              <Field label="Código Protheus:" value={codigo} />
-              <Field label="SKU:" value={produto?.nome} />
-              <Field label="Item LC 116:" value={produto?.lc116_item} />
-              <Field label="Município:" value={st.config.municipio} />
-              {produto?.descricao && <div className="col-span-2"><Field label="Descrição:" value={produto.descricao} /></div>}
-            </div>
+            <h3 className="font-bold border-b pb-1">Produtos e tributação · {st.config.municipio}</h3>
+            <table className="w-full text-xs border-collapse">
+              <thead><tr><th className={th}>Código Protheus</th><th className={th}>SKU</th><th className={th}>LC 116</th><th className={th}>Aplicado a</th><th className={th}>PIS</th><th className={th}>COFINS</th><th className={th}>ISS</th></tr></thead>
+              <tbody>
+                {produtos.map((p) => (
+                  <tr key={p.codigo}>
+                    <td className={td}>{p.codigo}</td><td className={td}>{p.info?.nome ?? "—"}</td><td className={td}>{p.info?.lc116_item ?? "—"}</td>
+                    <td className={td}>{p.cursos.join(", ")}</td>
+                    <td className={td}>{pct(p.tax?.pisPerc ?? 0)}</td><td className={td}>{pct(p.tax?.cofinsPerc ?? 0)}</td><td className={td}>{pct(p.tax?.issPerc ?? 0)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             <table className="w-full text-xs border-collapse mt-2">
-              <thead><tr><th className={th}>PIS</th><th className={th}>COFINS</th><th className={th}>ISS</th><th className={th}>IR/CSLL</th><th className={th}>Enc. financeiro</th><th className={th}>Lucro alvo</th></tr></thead>
-              <tbody><tr>
-                <td className={td}>{pct(rates?.pisPerc ?? 0)}</td><td className={td}>{pct(rates?.cofinsPerc ?? 0)}</td><td className={td}>{pct(rates?.issPerc ?? 0)}</td>
-                <td className={td}>{pct(irpj)}</td><td className={td}>{pct(cb.encFinancPerc)}</td><td className={td}>{pct(cb.lucroPerc)}</td>
-              </tr></tbody>
+              <thead><tr><th className={th}>IR/CSLL</th><th className={th}>Enc. financeiro</th><th className={th}>Lucro alvo</th></tr></thead>
+              <tbody><tr><td className={td}>{pct(irpj)}</td><td className={td}>{pct(cb.encFinancPerc)}</td><td className={td}>{pct(cb.lucroPerc)}</td></tr></tbody>
             </table>
           </section>
 
           <section className="space-y-2">
             <h3 className="font-bold border-b pb-1">Itens</h3>
             <table className="w-full text-xs border-collapse">
-              <thead><tr><th className={th}>Curso</th><th className={th}>Modalidade</th><th className={th}>Alunos</th><th className={th}>Custo</th><th className={th}>Desc.</th><th className={th}>Por aluno</th><th className={th}>Total</th><th className={th}>Rent.</th></tr></thead>
+              <thead><tr><th className={th}>Curso</th><th className={th}>Produto</th><th className={th}>Modalidade</th><th className={th}>Alunos</th><th className={th}>Custo</th><th className={th}>Desc.</th><th className={th}>Por aluno</th><th className={th}>Total</th><th className={th}>Rent.</th></tr></thead>
               <tbody>
                 {itens.map((l) => (
                   <tr key={l.linha.id}>
                     <td className={td}>{(l.cursoOriginal ?? l.curso!).nome}{l.linha.somenteExame ? " (exame)" : ""}</td>
-                    <td className={td}>{MOD[l.linha.modalidade]}</td><td className={td}>{l.linha.alunos}</td>
+                    <td className={td}>{l.codigoProduto}</td><td className={td}>{MOD[l.linha.modalidade]}</td><td className={td}>{l.linha.alunos}</td>
                     <td className={td}>{brl(l.custo.custoTurma)}</td><td className={td}>{pct(l.descontoEfetivoPerc)}</td>
                     <td className={td}>{brl(l.precoFinalPorAluno)}</td><td className={td}>{brl(l.precoFinal)}</td><td className={td}>{pct(l.rentabilidadePerc)}</td>
                   </tr>
                 ))}
                 <tr className="font-bold">
-                  <td className={td} colSpan={3}>Total</td><td className={td}>{brl(res.custoTotal)}</td><td className={td} />
+                  <td className={td} colSpan={4}>Total</td><td className={td}>{brl(res.custoTotal)}</td><td className={td} />
                   <td className={td} /><td className={td}>{brl(res.precoFinalTotal)}</td><td className={td}>{pct(res.rentabilidadePerc)}</td>
                 </tr>
               </tbody>
@@ -125,7 +128,7 @@ export default function TreinamentoResumo() {
               const d = l.custo.detalhe;
               return (
                 <div key={l.linha.id} className="border rounded p-3 space-y-2" style={{ breakInside: "avoid" }}>
-                  <p className="font-semibold text-sm">{(l.cursoOriginal ?? l.curso!).nome} · {MOD[l.linha.modalidade]} · {l.linha.alunos} aluno(s)</p>
+                  <p className="font-semibold text-sm">{(l.cursoOriginal ?? l.curso!).nome} · {MOD[l.linha.modalidade]} · {l.linha.alunos} aluno(s) · produto {l.codigoProduto} (PIS {pct(l.tax?.pisPerc ?? 0)} · COFINS {pct(l.tax?.cofinsPerc ?? 0)} · ISS {pct(l.tax?.issPerc ?? 0)})</p>
                   <table className="w-full text-xs border-collapse">
                     <thead><tr><th className={th}>Instrutor</th><th className={th}>Gestão</th><th className={th}>Locação</th><th className={th}>Material/Cloud</th><th className={th}>Custo da turma</th><th className={th}>Comissão</th></tr></thead>
                     <tbody><tr>
