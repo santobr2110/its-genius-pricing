@@ -136,7 +136,7 @@ export function TrnImpostos() {
         onChange={(v) => setConfig({ ...config, codigoProduto: v.codigo, municipio: v.municipio })}
         current={b} onApply={() => {}}
       />
-      <p className="text-xs text-muted-foreground -mt-2">Na composição do preço, cada item usa o produto da sua condição: Turma Aberta → 900-0315P · In Company → 900-0315P NEW · Somente exame → 900-0313P (alíquotas do município selecionado).</p>
+      <ProdutosPorCondicao />
       <ResumoCards custo={res.custoTotal} sigma={sigma} pv={pv} />
       {sigma >= 100 && <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">A soma dos percentuais é {pct(sigma)} (≥ 100%). Reduza algum componente para tornar o preço calculável.</div>}
       <Card>
@@ -256,5 +256,63 @@ function ResumoCards({ custo, sigma, pv }: { custo: number; sigma: number; pv: n
       <Card className="border-primary/40 bg-primary/5"><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" /> Preço de Venda</CardTitle></CardHeader>
         <CardContent><p className="text-2xl font-bold text-primary">{brl(pv)}</p><p className="text-[11px] text-muted-foreground mt-1">PV = Custo / (1 − Σ%/100)</p></CardContent></Card>
     </div>
+  );
+}
+
+const CONDICOES = [
+  { key: "produto_turma_aberta", label: "Turma Aberta (Online)", padrao: "900-0315P" },
+  { key: "produto_in_company", label: "In Company", padrao: "900-0315P NEW" },
+  { key: "produto_exame", label: "Somente exame", padrao: "900-0313P" },
+];
+
+/** Produto fiscal (SKU) usado por condição de venda; gravado em training_params. */
+function ProdutosPorCondicao() {
+  const { can, user } = useAuth();
+  const { cad, tax, st } = useTreinamentoResultado();
+  const pode = can("page.trn.admin");
+  const atual = Object.fromEntries(CONDICOES.map((c) => [c.key, String(cad.params.find((p) => p.key === c.key)?.value ?? c.padrao)]));
+  const [v, setV] = useState<Record<string, string>>(atual);
+  const atualStr = JSON.stringify(atual);
+  useEffect(() => setV(JSON.parse(atualStr)), [atualStr]);
+  const codigos = tax.codes.filter((c) => c.ativo !== false && c.ofertas?.includes("treinamento"));
+  const sujo = CONDICOES.some((c) => v[c.key] !== atual[c.key]);
+  const temNoMunicipio = (cod: string) => {
+    const id = tax.codes.find((c) => c.codigo === cod)?.id;
+    return tax.rates.some((r) => r.tax_product_code_id === id && r.municipio === st.config.municipio);
+  };
+  const salvar = async () => {
+    for (const c of CONDICOES) {
+      if (v[c.key] === atual[c.key]) continue;
+      const r = await supabase.from("training_params").upsert({ key: c.key, label: `Produto fiscal — ${c.label}`, value: v[c.key] as never, tipo: "text", status: "confirmado", ordem: 900, updated_by: user?.id ?? null });
+      if (r.error) return toast.error(r.error.message);
+    }
+    toast.success("Produtos por condição salvos");
+    cad.refresh();
+  };
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between gap-3">
+        <div>
+          <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Produto fiscal por condição de venda</CardTitle>
+          <p className="text-xs text-muted-foreground">Cada item da cotação usa o produto da condição escolhida na venda; as alíquotas vêm do município selecionado acima. Lista apenas produtos marcados com a oferta Treinamento no Cadastro tributário.</p>
+        </div>
+        {pode && <Button size="sm" onClick={salvar} disabled={!sujo}>Salvar</Button>}
+      </CardHeader>
+      <CardContent className="grid gap-3 md:grid-cols-3">
+        {CONDICOES.map((c) => (
+          <div key={c.key} className="space-y-1.5">
+            <Label className="text-xs">{c.label}</Label>
+            <Select value={v[c.key]} disabled={!pode} onValueChange={(x) => setV({ ...v, [c.key]: x })}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {!codigos.some((x) => x.codigo === v[c.key]) && <SelectItem value={v[c.key]}>{v[c.key]} (fora da oferta)</SelectItem>}
+                {codigos.map((x) => <SelectItem key={x.id} value={x.codigo}>{x.codigo}{x.descricao ? ` · ${x.descricao}` : ""}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {st.config.municipio && !temNoMunicipio(v[c.key]) && <p className="text-[11px] text-destructive">Sem alíquotas em {st.config.municipio}.</p>}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
