@@ -120,6 +120,12 @@ const PERMISSION_TREE: GroupNode[] = [
     id: "observabilidade", name: "Observabilidade", accessKey: "group.observabilidade.access", icon: Activity,
     offerings: [
       {
+        id: "treinamento", name: "Treinamento", accessKey: "page.trn.view", icon: GraduationCap,
+        categories: [
+          { id: "trn", name: "Permissões", keys: ["page.trn.quote", "page.trn.proposal", "page.trn.params", "page.trn.admin", "page.trn.approve"] },
+        ],
+      },
+      {
         id: "subscricoes-zabbix", name: "Subscrições Zabbix", accessKey: "page.zbx.view", icon: ShieldCheck,
         categories: [
           { id: "zbx", name: "Permissões", keys: ["page.zbx.quote", "page.zbx.proposal", "page.zbx.params", "page.zbx.admin", "page.zbx.approve"] },
