@@ -301,12 +301,12 @@ function ProdutosPorCondicao() {
       <CardContent className="grid gap-3 md:grid-cols-3">
         {CONDICOES.map((c) => (
           <div key={c.key} className="space-y-1.5">
-            <Label className="text-xs">{c.label}</Label>
+            <Label className="text-xs">SKU · {c.label}</Label>
             <Select value={v[c.key]} disabled={!pode} onValueChange={(x) => setV({ ...v, [c.key]: x })}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 font-mono text-xs"><SelectValue placeholder="Escolha o SKU" /></SelectTrigger>
               <SelectContent>
                 {!codigos.some((x) => x.codigo === v[c.key]) && <SelectItem value={v[c.key]}>{v[c.key]} (fora da oferta)</SelectItem>}
-                {codigos.map((x) => <SelectItem key={x.id} value={x.codigo}>{x.codigo}{x.descricao ? ` · ${x.descricao}` : ""}</SelectItem>)}
+                {codigos.map((x) => <SelectItem key={x.id} value={x.codigo}><span className="font-mono text-xs font-semibold">{x.codigo}</span>{x.nome && x.nome !== x.codigo && <span className="block text-[11px] text-muted-foreground max-w-[22rem] truncate">{x.nome}</span>}</SelectItem>)}
               </SelectContent>
             </Select>
             {st.config.municipio && !temNoMunicipio(v[c.key]) && <p className="text-[11px] text-destructive">Sem alíquotas em {st.config.municipio}.</p>}
