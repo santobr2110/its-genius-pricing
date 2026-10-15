@@ -27,7 +27,13 @@ const cel = (t: string, o: { bold?: boolean; align?: (typeof AlignmentType)[keyo
   margins: { top: 60, bottom: 60, left: 100, right: 100 },
 });
 
+/** Despachante: emissões novas (layoutVersao 2) usam o template Selbetti; antigas, o gerador legado. */
 export async function gerarPropostaZbxDocx(m: ModeloPropostaZbx): Promise<Blob> {
+  if (m.layoutVersao === 2) return (await import("./propostaDocxV2")).gerarPropostaZbxDocxV2(m);
+  return gerarPropostaZbxDocxLegado(m);
+}
+
+export async function gerarPropostaZbxDocxLegado(m: ModeloPropostaZbx): Promise<Blob> {
   const C = AlignmentType.CENTER, R = AlignmentType.RIGHT;
   const cab = ["Descrição", "Quantidade", ...(m.exibirLista ? ["Valor de lista Zabbix"] : []), "Valor Unitário Selbetti", "Valor Total"];
   const tabela = new Table({
