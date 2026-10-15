@@ -116,7 +116,17 @@ const PERMISSION_TREE: GroupNode[] = [
   },
   { id: "datacenter", name: "Datacenter", accessKey: "group.datacenter.access", icon: Server, offerings: [] },
   { id: "cloud", name: "Cloud", accessKey: "group.cloud.access", icon: Cloud, offerings: [] },
-  { id: "observabilidade", name: "Observabilidade", accessKey: "group.observabilidade.access", icon: Activity, offerings: [] },
+  {
+    id: "observabilidade", name: "Observabilidade", accessKey: "group.observabilidade.access", icon: Activity,
+    offerings: [
+      {
+        id: "subscricoes-zabbix", name: "Subscrições Zabbix", accessKey: "page.zbx.view", icon: ShieldCheck,
+        categories: [
+          { id: "zbx", name: "Permissões", keys: ["page.zbx.quote", "page.zbx.proposal", "page.zbx.params", "page.zbx.admin", "page.zbx.approve"] },
+        ],
+      },
+    ],
+  },
 ];
 
 const ADMIN_KEYS: PermissionKey[] = ["admin.users.manage", "admin.roles.manage"];
@@ -1255,6 +1265,7 @@ const OFFERING_LABELS: Record<string, string> = {
   "smart-ito": "Smart ITO",
   "pacote-horas": "Pacote de Horas",
   bodyshop: "Bodyshop",
+  "subscricoes-zabbix": "Subscrições Zabbix",
 };
 
 function TrashTab() {
