@@ -149,3 +149,6 @@ export const TREINAMENTO_ACCESS_KEY = offeringAccessKey("observabilidade", "trei
 /** Gate do Treinamento (Fase 5): permissão própria page.trn.view. */
 export const TREINAMENTO_PROVISORIO_GATE = "page.trn.view";
 export const PROFISSIONAIS_ALOCADOS_ACCESS_KEY = offeringAccessKey("ito", "profissionais-alocados");
+export const ZABBIX_ACCESS_KEY = offeringAccessKey("observabilidade", "subscricoes-zabbix");
+/** Gate das Subscrições Zabbix: permissão própria page.zbx.view. */
+export const ZABBIX_GATE = "page.zbx.view";
