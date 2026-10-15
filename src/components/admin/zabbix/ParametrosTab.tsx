@@ -20,7 +20,12 @@ export default function ZbxParametrosTab({ params, refresh }: ZbxCadastro) {
   const { user } = useAuth();
   const tax = useTaxCodes() as unknown as { codes?: { codigo: string; nome: string; ofertas?: string[] }[] };
   const skus = useMemo(() => (tax.codes ?? []).filter((c) => (c.ofertas ?? []).includes("zabbix")), [tax.codes]);
-  const filtrados = useMemo(() => params.filter((p) => !p.key.startsWith("desconto_")), [params]);
+  // Fora desta tela: descontos (aba própria), SKUs (Financeiro › Impostos & Markup) e textos da
+  // proposta marcados como reuso (virão do documento padrão). Fica só "Observações da proposta".
+  const filtrados = useMemo(
+    () => params.filter((p) => !p.key.startsWith("desconto_") && !p.key.startsWith("produto_") && (p.status as string) !== "reuso"),
+    [params],
+  );
   const [rows, setRows] = useState<ZabbixParam[]>(filtrados);
   useEffect(() => setRows(filtrados), [filtrados]);
   const set = (key: string, patch: Partial<ZabbixParam>) => setRows((p) => p.map((r) => (r.key === key ? { ...r, ...patch } : r)));
