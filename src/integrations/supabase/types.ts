@@ -1419,12 +1419,12 @@ export type Database = {
           ordem: number
           part_number: string
           permite_quantidade: boolean
-          pgto30_ro_perc: number
-          pgto30_sem_ro_perc: number
+          pgto30_ro_perc: number | null
+          pgto30_sem_ro_perc: number | null
           piso_rentabilidade_perc: number | null
           quantidade_maxima: number | null
-          ro_perc: number
-          sem_ro_perc: number
+          ro_perc: number | null
+          sem_ro_perc: number | null
           slug: string
           unidade: string
           updated_at: string
@@ -1445,12 +1445,12 @@ export type Database = {
           ordem?: number
           part_number: string
           permite_quantidade?: boolean
-          pgto30_ro_perc?: number
-          pgto30_sem_ro_perc?: number
+          pgto30_ro_perc?: number | null
+          pgto30_sem_ro_perc?: number | null
           piso_rentabilidade_perc?: number | null
           quantidade_maxima?: number | null
-          ro_perc: number
-          sem_ro_perc: number
+          ro_perc?: number | null
+          sem_ro_perc?: number | null
           slug: string
           unidade: string
           updated_at?: string
@@ -1471,12 +1471,12 @@ export type Database = {
           ordem?: number
           part_number?: string
           permite_quantidade?: boolean
-          pgto30_ro_perc?: number
-          pgto30_sem_ro_perc?: number
+          pgto30_ro_perc?: number | null
+          pgto30_sem_ro_perc?: number | null
           piso_rentabilidade_perc?: number | null
           quantidade_maxima?: number | null
-          ro_perc?: number
-          sem_ro_perc?: number
+          ro_perc?: number | null
+          sem_ro_perc?: number | null
           slug?: string
           unidade?: string
           updated_at?: string

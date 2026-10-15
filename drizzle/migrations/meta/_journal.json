@@ -64,6 +64,13 @@
       "when": 1792071437586,
       "tag": "0008_zabbix_modelo",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792072163221,
+      "tag": "0009_zabbix_descontos_parametrizados",
+      "breakpoints": true
     }
   ]
 }
