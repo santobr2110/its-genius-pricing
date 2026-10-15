@@ -48,8 +48,9 @@ export function TrnResultado() {
   const ok = res.linhas.filter((l) => l.preco);
   const impostos = pv * (b.pisPerc + b.cofinsPerc + b.issPerc) / 100;
   const comissao = ok.reduce((s, l) => s + l.precoFinal * l.comissaoPerc / 100, 0);
+  const retencao = ok.reduce((s, l) => s + l.precoFinal * (l.retencaoPerc ?? 0) / 100, 0);
   const enc = pv * b.encFinancPerc / 100;
-  const lucroAntesIR = pv - impostos - comissao - custo - enc;
+  const lucroAntesIR = pv - impostos - comissao - retencao - custo - enc;
   const ir = lucroAntesIR - res.lucroTotal;
   const p = (v: number) => (pv > 0 ? (v / pv) * 100 : 0);
   const sigma = b.pisPerc + b.cofinsPerc + b.issPerc + b.comissaoPerc + b.irpjCsllPerc + b.encFinancPerc + b.lucroPerc;
@@ -78,6 +79,7 @@ export function TrnResultado() {
             <Separator className="my-2" />
             {L("(−) Impostos (PIS + COFINS + ISS)", -impostos, p(impostos))}
             {L("(−) Comissão", -comissao, p(comissao))}
+            {retencao > 0 && L("(−) Retenção", -retencao, p(retencao))}
             {L("(−) Custo total", -custo, p(custo))}
             {enc > 0 && L("(−) Encargos financeiros", -enc, p(enc))}
             <Separator className="my-2" />

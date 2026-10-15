@@ -17,6 +17,8 @@ export interface TreinamentoParams {
   arredondamentoPrecoAluno: number; // R$ (0 = sem)
   /** Comissão fixa (%); null = tabela de comissão por rentabilidade. */
   comissaoFixaPerc?: number | null;
+  /** Retenção (%) sobre o preço final; reduz o resultado como a comissão. */
+  retencaoPerc?: number;
 }
 
 export const PARAMS_PADRAO: TreinamentoParams = {
@@ -40,6 +42,7 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): Treinam
     horasPorDia: n("horas_por_dia", PARAMS_PADRAO.horasPorDia),
     arredondamentoPrecoAluno: n("arredondamento_preco_aluno", 0),
     comissaoFixaPerc: parseComissao(m.get("comissao_regra")),
+    retencaoPerc: n("retencao_perc", 5),
   };
 }
 
@@ -122,12 +125,14 @@ export function computeCursoCusto(
 export interface PrecoResult {
   precoTurma: number;
   precoPorAluno: number;
-  cascata: CascataResult;
+  cascata: CascataResult & { retencao: number };
 }
 
 /** PV da turma pela cascata compartilhada; preço por aluno = PV / N (com arredondamento opcional para cima). */
-export function computePreco(custoTurma: number, alunos: number, cascataParams: CascataParams, arredondamento = 0): PrecoResult {
-  const cascata = computeCascata(custoTurma, cascataParams);
+export function computePreco(custoTurma: number, alunos: number, cascataParams: CascataParams, arredondamento = 0, retencaoPerc = 0): PrecoResult {
+  const ret = pos(retencaoPerc);
+  const c0 = computeCascata(custoTurma, { ...cascataParams, comissaoPerc: pos(cascataParams.comissaoPerc) + ret });
+  const cascata = { ...c0, comissao: c0.precoVenda * pos(cascataParams.comissaoPerc) / 100, retencao: c0.precoVenda * ret / 100 };
   const N = Math.max(1, Math.floor(pos(alunos)));
   let porAluno = cascata.precoVenda / N;
   let turma = cascata.precoVenda;
@@ -148,7 +153,7 @@ export function curvaPorAluno(
   for (let n = ini; n <= fim; n++) {
     const c = computeCursoCusto(curso, "turma_aberta", n, params);
     if (c.erros.length) continue;
-    out.push({ alunos: n, custoPorAluno: c.custoPorAluno, precoPorAluno: computePreco(c.custoTurma, n, cascataParams, params.arredondamentoPrecoAluno).precoPorAluno });
+    out.push({ alunos: n, custoPorAluno: c.custoPorAluno, precoPorAluno: computePreco(c.custoTurma, n, cascataParams, params.arredondamentoPrecoAluno, params.retencaoPerc ?? 0).precoPorAluno });
   }
   return out;
 }
@@ -167,11 +172,11 @@ export interface DescontoResult {
  */
 export function aplicarDesconto(
   custo: number, pv: number, descontoPerc: number,
-  p: Omit<CascataParams, "comissaoPerc" | "lucroPerc">, tiers: ComissaoTier[], comissaoFixa: number | null = null,
+  p: Omit<CascataParams, "comissaoPerc" | "lucroPerc">, tiers: ComissaoTier[], comissaoFixa: number | null = null, retencaoPerc = 0,
 ): DescontoResult {
   const pf = pv * (1 - pos(descontoPerc) / 100);
   if (pf <= 0) return { precoFinal: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: -custo };
-  const fixos = pos(p.pisPerc) + pos(p.cofinsPerc) + pos(p.issPerc) + pos(p.irpjCsllPerc) + pos(p.encFinancPerc);
+  const fixos = pos(p.pisPerc) + pos(p.cofinsPerc) + pos(p.issPerc) + pos(p.irpjCsllPerc) + pos(p.encFinancPerc) + pos(retencaoPerc);
   const base = 100 - fixos - (custo / pf) * 100; // rent + comissão
   let com = comissaoFixa ?? 0;
   for (let i = 0; comissaoFixa == null && i < 20; i++) {
