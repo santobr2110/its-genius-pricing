@@ -37,9 +37,11 @@ import TreinamentoProposta from "./pages/treinamento/Proposta";
 import TreinamentoCotacoes from "./pages/treinamento/Cotacoes";
 import TreinamentoResumo from "./pages/treinamento/Resumo";
 import { TrnResultado, TrnImpostos, TrnComissoes } from "./pages/treinamento/financeiro/Financeiro";
-import ZabbixLayout, { ZabbixEmConstrucao } from "./pages/zabbix/Layout";
+import ZabbixLayout from "./pages/zabbix/Layout";
 import ZbxConfigurador from "./pages/zabbix/Configurador";
 import ZbxCotacoes from "./pages/zabbix/Cotacoes";
+import ZbxProposta from "./pages/zabbix/Proposta";
+import ZbxResumo from "./pages/zabbix/Resumo";
 import { ZbxResultado, ZbxImpostos, ZbxComissoes } from "./pages/zabbix/Financeiro";
 import ZbxConfiguracoes from "./pages/zabbix/Configuracoes";
 import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
@@ -126,7 +128,8 @@ const App = () => (
               </Route>
               <Route path="/observabilidade/subscricoes-zabbix" element={<ProtectedRoute permission="page.zbx.view"><ZabbixLayout /></ProtectedRoute>}>
                 <Route index element={<ZbxConfigurador />} />
-                <Route path="proposta" element={<ZabbixEmConstrucao titulo="Proposta" />} />
+                <Route path="proposta" element={<ZbxProposta />} />
+                <Route path="resumo" element={<ZbxResumo />} />
                 <Route path="cotacoes" element={<ZbxCotacoes />} />
                 <Route path="financeiro" element={<ZbxResultado />} />
                 <Route path="financeiro/impostos" element={<ZbxImpostos />} />
