@@ -19,7 +19,6 @@ import { contarPendencias, nomeArquivoV2 } from "@/lib/zabbix/propostaDocxV2";
 import { useZabbixMatriz } from "@/hooks/useZabbixMatriz";
 import { useZabbixResultado } from "./useZabbixResultado";
 import { ZBX_BASE } from "./useZbxState";
-import PropostaDoc, { exportarPropostaPdf } from "./PropostaDoc";
 import ZbxResumo, { exportarResumoZbxPdf } from "./Resumo";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -44,7 +43,6 @@ export default function ZbxProposta() {
   const [emitindo, setEmitindo] = useState(false);
   const [verResumo, setVerResumo] = useState(false);
   const [verWord, setVerWord] = useState<Blob | null>(null);
-  const [emPdf, setEmPdf] = useState<ModeloPropostaZbx | null>(null);
   const wordRef = useRef<HTMLDivElement>(null);
   const salvo = cot.lista.find((c) => c.id === st.atual.id);
   const emissoes = ((salvo?.payload as unknown as { emissoes?: EmissaoZBX[] })?.emissoes) ?? [];
@@ -88,14 +86,6 @@ export default function ZbxProposta() {
   }, [abrirWord, verWord, modoSimples]);
 
   // PDF de uma emissão antiga: renderiza o modelo congelado fora da tela e exporta.
-  useEffect(() => {
-    if (!emPdf) return;
-    const t = setTimeout(async () => {
-      try { await exportarPropostaPdf(`Proposta Zabbix - ${emPdf.cliente} - v${emPdf.versao}.pdf`); }
-      catch (e) { toast.error((e as Error).message); } finally { setEmPdf(null); }
-    }, 300);
-    return () => clearTimeout(t);
-  }, [emPdf]);
 
   if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;
   if (!modelo.itens.length) return (
@@ -149,10 +139,6 @@ export default function ZbxProposta() {
             {pend && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Há textos marcados [A CONFIRMAR]. Preencha em Configurações › Conteúdo e Parâmetros.</p>}
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !pode}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar proposta)</Button>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" disabled={!pode} onClick={() => exportarPropostaPdf(`${nomeBase}.pdf`).catch((e) => toast.error(e.message))}><FileDown className="h-4 w-4 mr-2" />Baixar PDF</Button>
-              </div>
-              <p className="text-[11px] text-muted-foreground -mt-1">PDF no layout padrão; o Word é a versão com identidade Selbetti.</p>
               {nPend > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Há {nPend} campo(s) a confirmar (destacados em amarelo no Word).</p>}
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" disabled={!pode} onClick={async () => { const b = await word(modelo); if (b) baixar(b, nomeWord(modelo, `${nomeBase}.docx`)); }}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
@@ -175,7 +161,6 @@ export default function ZbxProposta() {
                 <p>{brl(em.modelo.total)} · válida até {new Date(em.validaAte + "T12:00:00").toLocaleDateString("pt-BR")}</p>
                 <div className="flex gap-1">
                   <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => { const b = await word(em.modelo); if (b) baixar(b, nomeWord(em.modelo, `Proposta Zabbix - ${em.modelo.cliente} - v${em.versao}.docx`)); }}>Word</Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEmPdf(em.modelo)}>PDF</Button>
                 </div>
               </div>
             ))}
@@ -184,7 +169,6 @@ export default function ZbxProposta() {
       </div>
 
       {/* Documento A4 fora da tela: usado só para gerar o PDF. */}
-      <div aria-hidden style={{ position: "fixed", left: -20000, top: 0 }}><PropostaDoc m={emPdf ?? modelo} /></div>
       <div className="rounded-lg border bg-card text-card-foreground p-8 space-y-6">
         <header className="flex justify-between items-start border-b pb-4">
           <div>
