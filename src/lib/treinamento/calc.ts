@@ -1,4 +1,5 @@
 // Motor de cálculo do Treinamento (Fase 3). Funções puras — ver src/test/treinamentoCalc.test.ts.
+import { decomporVenda } from "@/lib/pricing/chegada";
 import { computeCascata, type CascataParams, type CascataResult } from "@/lib/pricing/cascata";
 import { comissaoFromRent, type ComissaoTier } from "@/lib/comissaoRentabilidade";
 import type { TrainingCourse } from "./types";
