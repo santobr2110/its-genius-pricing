@@ -85,7 +85,6 @@ export default function ZbxProposta() {
     return () => clearTimeout(t);
   }, [abrirWord, verWord, modoSimples]);
 
-  // PDF de uma emissão antiga: renderiza o modelo congelado fora da tela e exporta.
 
   if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;
   if (!modelo.itens.length) return (
@@ -168,7 +167,6 @@ export default function ZbxProposta() {
         </Card>
       </div>
 
-      {/* Documento A4 fora da tela: usado só para gerar o PDF. */}
       <div className="rounded-lg border bg-card text-card-foreground p-8 space-y-6">
         <header className="flex justify-between items-start border-b pb-4">
           <div>
