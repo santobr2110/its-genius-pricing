@@ -1308,6 +1308,182 @@ export type Database = {
           },
         ]
       }
+      zabbix_params: {
+        Row: {
+          descricao: string | null
+          key: string
+          label: string
+          ordem: number
+          status: string
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          descricao?: string | null
+          key: string
+          label: string
+          ordem?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          descricao?: string | null
+          key?: string
+          label?: string
+          ordem?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      zabbix_subscription_content: {
+        Row: {
+          a_confirmar: boolean
+          abrangencia: string | null
+          canais_atendimento: string | null
+          descricao: string | null
+          entregavel: string | null
+          escopo_atendimento: string | null
+          idioma: string | null
+          link_mais_informacoes: string | null
+          observacoes: string | null
+          pre_requisito: string | null
+          sla: string | null
+          subscription_id: string
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          a_confirmar?: boolean
+          abrangencia?: string | null
+          canais_atendimento?: string | null
+          descricao?: string | null
+          entregavel?: string | null
+          escopo_atendimento?: string | null
+          idioma?: string | null
+          link_mais_informacoes?: string | null
+          observacoes?: string | null
+          pre_requisito?: string | null
+          sla?: string | null
+          subscription_id: string
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          a_confirmar?: boolean
+          abrangencia?: string | null
+          canais_atendimento?: string | null
+          descricao?: string | null
+          entregavel?: string | null
+          escopo_atendimento?: string | null
+          idioma?: string | null
+          link_mais_informacoes?: string | null
+          observacoes?: string | null
+          pre_requisito?: string | null
+          sla?: string | null
+          subscription_id?: string
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zabbix_subscription_content_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: true
+            referencedRelation: "zabbix_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      zabbix_subscriptions: {
+        Row: {
+          ativo: boolean
+          campos_a_confirmar: string[]
+          categoria: string
+          codigo_produto: string
+          created_at: string
+          descricao: string | null
+          id: string
+          lista_brl: number | null
+          lista_usd: number | null
+          nivel: string | null
+          nome: string
+          ordem: number
+          part_number: string
+          permite_quantidade: boolean
+          pgto30_ro_perc: number
+          pgto30_sem_ro_perc: number
+          piso_rentabilidade_perc: number | null
+          quantidade_maxima: number | null
+          ro_perc: number
+          sem_ro_perc: number
+          slug: string
+          unidade: string
+          updated_at: string
+          venda_brl: number
+        }
+        Insert: {
+          ativo?: boolean
+          campos_a_confirmar?: string[]
+          categoria: string
+          codigo_produto?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          lista_brl?: number | null
+          lista_usd?: number | null
+          nivel?: string | null
+          nome: string
+          ordem?: number
+          part_number: string
+          permite_quantidade?: boolean
+          pgto30_ro_perc?: number
+          pgto30_sem_ro_perc?: number
+          piso_rentabilidade_perc?: number | null
+          quantidade_maxima?: number | null
+          ro_perc: number
+          sem_ro_perc: number
+          slug: string
+          unidade: string
+          updated_at?: string
+          venda_brl: number
+        }
+        Update: {
+          ativo?: boolean
+          campos_a_confirmar?: string[]
+          categoria?: string
+          codigo_produto?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          lista_brl?: number | null
+          lista_usd?: number | null
+          nivel?: string | null
+          nome?: string
+          ordem?: number
+          part_number?: string
+          permite_quantidade?: boolean
+          pgto30_ro_perc?: number
+          pgto30_sem_ro_perc?: number
+          piso_rentabilidade_perc?: number | null
+          quantidade_maxima?: number | null
+          ro_perc?: number
+          sem_ro_perc?: number
+          slug?: string
+          unidade?: string
+          updated_at?: string
+          venda_brl?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

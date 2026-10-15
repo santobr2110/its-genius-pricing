@@ -57,6 +57,13 @@
       "when": 1792065071211,
       "tag": "0007_trn_preview_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792071437586,
+      "tag": "0008_zabbix_modelo",
+      "breakpoints": true
     }
   ]
 }
