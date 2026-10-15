@@ -37,7 +37,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { toast } from "sonner";
 import DefaultsAdminTab from "@/components/admin/DefaultsAdminTab";
 import {
-  Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save,
+  Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, GraduationCap, Pencil, Save,
   ChevronRight, Layers, Package, Settings2, Server, Cloud, Activity, Calculator,
   RotateCcw, Trash,
 } from "lucide-react";
