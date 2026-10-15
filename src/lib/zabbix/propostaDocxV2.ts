@@ -84,7 +84,7 @@ export function montarDadosTemplateV2(m: ModeloPropostaZbx) {
     tem_academy: v.temAcademy,
     quebra_academy: v.temSuporte && v.temAcademy,
     diferenciais: v.diferenciais.map((d) => ({ titulo: ou(d.titulo), tem_texto: !!d.texto, texto: d.texto })),
-    intro_suporte: v.intro_suporte_fallback ?? (v.introSuporte.length ? v.introSuporte : [A_CONFIRMAR]),
+    intro_suporte: v.introSuporte.length ? v.introSuporte : [A_CONFIRMAR],
     observacoes: [m.observacoes, m.textoTributario].flatMap((t) => (t ?? "").split(/\n+/)).map((s) => s.trim()).filter(Boolean),
     pagamentos: v.pagamentos.map((p) => ({ rotulo: p.rotulo, texto: ou(p.texto) })),
     dados_faturamento: dadosFat.length ? dadosFat : [{ rotulo: "", valor: A_CONFIRMAR }],
