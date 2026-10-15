@@ -110,7 +110,7 @@ function Comp({ label, tag, desc, valor, children, edit }: { label: string; tag:
 
 export function ZbxImpostos() {
   const { can } = useAuth();
-  const { st, res, globais, params, snapshotAtivo } = { ...useZabbixResultado(), snapshotAtivo: false };
+  const { st, res, globais, params } = useZabbixResultado();
   const { config, setConfig } = st;
   const podeParams = can("page.zbx.params") || can("page.zbx.admin");
   const editPerc = (k: "encFinancPerc" | "descontoTotalPerc", atual: number, max: number) => (
@@ -122,7 +122,6 @@ export function ZbxImpostos() {
       <Slider value={[atual]} onValueChange={([v]) => setConfig({ ...config, [k]: v })} min={0} max={max} step={0.01} />
     </>
   );
-  void snapshotAtivo;
   const t0 = res.linhas.find((l) => l.fixos)?.fixos;
   return (
     <Shell>
