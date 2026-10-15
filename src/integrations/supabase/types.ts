@@ -893,6 +893,80 @@ export type Database = {
         }
         Relationships: []
       }
+      service_code_iss: {
+        Row: {
+          a_confirmar: boolean
+          created_at: string
+          id: string
+          iss_perc: number
+          municipio: string
+          service_code_id: string
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          a_confirmar?: boolean
+          created_at?: string
+          id?: string
+          iss_perc?: number
+          municipio: string
+          service_code_id: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Update: {
+          a_confirmar?: boolean
+          created_at?: string
+          id?: string
+          iss_perc?: number
+          municipio?: string
+          service_code_id?: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_code_iss_service_code_id_fkey"
+            columns: ["service_code_id"]
+            isOneToOne: false
+            referencedRelation: "service_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_codes: {
+        Row: {
+          a_confirmar: boolean
+          ativo: boolean
+          cofins_perc: number
+          created_at: string
+          descricao: string | null
+          id: string
+          lc116_item: string
+          pis_perc: number
+        }
+        Insert: {
+          a_confirmar?: boolean
+          ativo?: boolean
+          cofins_perc?: number
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          lc116_item: string
+          pis_perc?: number
+        }
+        Update: {
+          a_confirmar?: boolean
+          ativo?: boolean
+          cofins_perc?: number
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          lc116_item?: string
+          pis_perc?: number
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -975,6 +1049,8 @@ export type Database = {
           lc116_item: string | null
           nome: string
           ofertas: string[]
+          service_code_id: string | null
+          usa_aliquota_propria: boolean
         }
         Insert: {
           a_confirmar?: boolean
@@ -986,6 +1062,8 @@ export type Database = {
           lc116_item?: string | null
           nome: string
           ofertas?: string[]
+          service_code_id?: string | null
+          usa_aliquota_propria?: boolean
         }
         Update: {
           a_confirmar?: boolean
@@ -997,8 +1075,18 @@ export type Database = {
           lc116_item?: string | null
           nome?: string
           ofertas?: string[]
+          service_code_id?: string | null
+          usa_aliquota_propria?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tax_product_codes_service_code_id_fkey"
+            columns: ["service_code_id"]
+            isOneToOne: false
+            referencedRelation: "service_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_combo_items: {
         Row: {
