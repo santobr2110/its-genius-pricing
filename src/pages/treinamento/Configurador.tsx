@@ -305,6 +305,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
               <Linha l="COFINS" v={brl(cascata.cofins / dCasc)} />
               <Linha l="ISS" v={brl(cascata.iss / dCasc)} />
               <Linha l="Comissão" v={brl(cascata.comissao / dCasc)} />
+              {cascata.retencao > 0 && <Linha l="Retenção" v={brl(cascata.retencao / dCasc)} />}
               <Linha l="IR/CSLL" v={brl(cascata.irpjCsll / dCasc)} />
               <Linha l="Enc. financeiros" v={brl(cascata.encFinanc / dCasc)} />
               <Linha l="Lucro" v={brl(cascata.lucro / dCasc)} />

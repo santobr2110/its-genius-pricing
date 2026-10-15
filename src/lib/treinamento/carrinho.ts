@@ -40,6 +40,7 @@ export interface LinhaResultado {
   precoFinalPorAluno: number;
   rentabilidadePerc: number;
   comissaoPerc: number;
+  retencaoPerc?: number;
   lucro: number;
   avisos: string[];
   curva: { alunos: number; custoPorAluno: number; precoPorAluno: number }[];
@@ -121,7 +122,7 @@ export function computeCarrinho(
     if (custoBase.erros.length) {
       return { linha, curso, cursoOriginal: original, custo: custoBase, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [], codigoProduto, tax: taxL };
     }
-    const precoBase = computePreco(custoBase.custoTurma, base, cascataBase, params.arredondamentoPrecoAluno);
+    const precoBase = computePreco(custoBase.custoTurma, base, cascataBase, params.arredondamentoPrecoAluno, params.retencaoPerc ?? 0);
     const fator = porVaga ? vagas / base : 1;
     const custo: CustoResult = porVaga
       ? { ...custoBase, custoTurma: custoBase.custoPorAluno * vagas,
@@ -130,12 +131,12 @@ export function computeCarrinho(
     const preco: PrecoResult = porVaga ? { ...precoBase, precoTurma: precoBase.precoPorAluno * vagas } : precoBase;
     
     const descontoEfetivoPerc = 100 * (1 - (1 - (linha.descontoPerc || 0) / 100) * (1 - (cfg.descontoTotalPerc || 0) / 100));
-    const d = aplicarDesconto(custo.custoTurma, preco.precoTurma, descontoEfetivoPerc, fixos, tiers, params.comissaoFixaPerc ?? null);
+    const d = aplicarDesconto(custo.custoTurma, preco.precoTurma, descontoEfetivoPerc, fixos, tiers, params.comissaoFixaPerc ?? null, params.retencaoPerc ?? 0);
     const porAluno = d.precoFinal / Math.max(1, vagas);
     if (curso.piso_preco_aluno != null && porAluno < curso.piso_preco_aluno) avisos.push("Preço por aluno abaixo do piso cadastrado.");
     const curva = porVaga ? curvaPorAluno(curso, params, cascataBase) : [];
     return { linha, curso, cursoOriginal: original, custo, preco, descontoEfetivoPerc, precoFinal: d.precoFinal, precoFinalPorAluno: porAluno,
-      rentabilidadePerc: d.rentabilidadePerc, comissaoPerc: d.comissaoPerc, lucro: d.lucro, avisos, curva, alunosBase: porVaga ? base : null, codigoProduto, tax: taxL };
+      rentabilidadePerc: d.rentabilidadePerc, comissaoPerc: d.comissaoPerc, retencaoPerc: params.retencaoPerc ?? 0, lucro: d.lucro, avisos, curva, alunosBase: porVaga ? base : null, codigoProduto, tax: taxL };
   });
 
   const ok = res.filter((r) => r.preco);
