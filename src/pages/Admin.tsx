@@ -37,7 +37,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { toast } from "sonner";
 import DefaultsAdminTab from "@/components/admin/DefaultsAdminTab";
 import {
-  Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Pencil, Save,
+  Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, GraduationCap, Pencil, Save,
   ChevronRight, Layers, Package, Settings2, Server, Cloud, Activity, Calculator,
   RotateCcw, Trash,
 } from "lucide-react";
@@ -119,6 +119,12 @@ const PERMISSION_TREE: GroupNode[] = [
   {
     id: "observabilidade", name: "Observabilidade", accessKey: "group.observabilidade.access", icon: Activity,
     offerings: [
+      {
+        id: "treinamento", name: "Treinamento", accessKey: "page.trn.view", icon: GraduationCap,
+        categories: [
+          { id: "trn", name: "Permissões", keys: ["page.trn.quote", "page.trn.proposal", "page.trn.params", "page.trn.admin", "page.trn.approve"] },
+        ],
+      },
       {
         id: "subscricoes-zabbix", name: "Subscrições Zabbix", accessKey: "page.zbx.view", icon: ShieldCheck,
         categories: [
