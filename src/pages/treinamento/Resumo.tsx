@@ -62,7 +62,8 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
   const modalidade = itens.every((l) => l.linha.somenteExame) ? "Somente exame" : mods.length > 1 ? "Misto (" + mods.join(" e ") + ")" : mods[0];
   const total = res.precoFinalTotal;
   const impostos = itens.reduce((a, l) => a + l.precoFinal * (((l.tax?.pisPerc ?? 0) + (l.tax?.cofinsPerc ?? 0) + (l.tax?.issPerc ?? 0) + irpj) / 100), 0);
-  const comercial = itens.reduce((a, l) => a + l.precoFinal * (((l.comissaoPerc ?? 0) + (l.retencaoPerc ?? 0)) / 100), 0);
+  const comercial = itens.reduce((a, l) => a + l.precoFinal * ((l.comissaoPerc ?? 0) / 100), 0);
+  const retencao = itens.reduce((a, l) => a + l.precoFinal * ((l.retencaoPerc ?? 0) / 100), 0);
   const financeiro = total * ((cb.encFinancPerc ?? 0) / 100);
   const liquido = itens.reduce((a, l) => a + (l.lucro ?? 0), 0);
   const liquidoPerc = total > 0 ? (liquido / total) * 100 : 0;
@@ -100,6 +101,7 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
             <Field label="Impostos:" value={brl(impostos)} />
             <Field label="Comercial:" value={brl(comercial)} />
             <Field label="Financeiro:" value={brl(financeiro)} />
+            <Field label="Retenção:" value={brl(retencao)} />
             <Field label="Custo de execução:" value={brl(res.custoTotal)} />
           </div>
 
