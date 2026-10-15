@@ -55,9 +55,9 @@ export type TaxPercs = { pisPerc: number; cofinsPerc: number; issPerc: number };
 
 /** Produto fiscal por condição: exame → 900-0313P; In Company → 900-0315P NEW; Turma Aberta → 900-0315P. */
 export const PRODUTO_TRN = { turmaAberta: "900-0315P", inCompany: "900-0315P NEW", exame: "900-0313P" } as const;
-export function produtoTRN(modalidade: Modalidade, exame: boolean): string {
-  if (exame) return PRODUTO_TRN.exame;
-  return modalidade === "in_company" ? PRODUTO_TRN.inCompany : PRODUTO_TRN.turmaAberta;
+export function produtoTRN(modalidade: Modalidade, exame: boolean, produtos: { turmaAberta: string; inCompany: string; exame: string } = PRODUTO_TRN): string {
+  if (exame) return produtos.exame;
+  return modalidade === "in_company" ? produtos.inCompany : produtos.turmaAberta;
 }
 
 export interface CarrinhoResultado {
@@ -107,7 +107,7 @@ export function computeCarrinho(
     }
     if (original?.slug === "zcs" && !linha.somenteExame) avisos.push("Pré-requisito: conhecimentos básicos de Linux.");
     const modalidade: Modalidade = curso.tipo === "exame" ? "turma_aberta" : linha.modalidade;
-    const codigoProduto = produtoTRN(linha.modalidade, curso.tipo === "exame" || linha.somenteExame);
+    const codigoProduto = produtoTRN(linha.modalidade, curso.tipo === "exame" || linha.somenteExame, params.produtos);
     const taxL: TaxPercs = taxPorProduto ? (taxPorProduto(codigoProduto) ?? { pisPerc: 0, cofinsPerc: 0, issPerc: 0 }) : tax;
     const cascataBase: CascataParams = { ...cascataGeral, ...taxL };
     const fixos = { ...fixosGeral, ...taxL };

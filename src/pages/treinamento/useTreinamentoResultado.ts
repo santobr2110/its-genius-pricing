@@ -22,8 +22,8 @@ export function useTreinamentoResultado() {
     taxPorProdutoFactory(st.config.municipio, new Date().toISOString().slice(0, 10), tax.codes, tax.rates),
   ), [st.linhas, st.config, cad.courses, cad.comboItems, params, rates?.pisPerc, rates?.cofinsPerc, rates?.issPerc, irpj, tax.codes, tax.rates]);
   const municipios = useMemo(() => {
-    const ids = tax.codes.filter((c) => (Object.values(PRODUTO_TRN) as string[]).includes(c.codigo)).map((c) => c.id);
+    const ids = tax.codes.filter((c) => (Object.values(params.produtos ?? PRODUTO_TRN) as string[]).includes(c.codigo)).map((c) => c.id);
     return Array.from(new Set(tax.rates.filter((r) => ids.includes(r.tax_product_code_id)).map((r) => r.municipio))).sort();
-  }, [tax.codes, tax.rates, st.config.codigoProduto]);
+  }, [tax.codes, tax.rates, params.produtos]);
   return { cad, st, res, rates, tax, irpj, municipios, loading: cad.loading || tax.loading };
 }

@@ -19,6 +19,8 @@ export interface TreinamentoParams {
   comissaoFixaPerc?: number | null;
   /** Retenção (%) sobre o preço final; reduz o resultado como a comissão. */
   retencaoPerc?: number;
+  /** Produto fiscal (SKU) por condição de venda. */
+  produtos?: { turmaAberta: string; inCompany: string; exame: string };
 }
 
 export const PARAMS_PADRAO: TreinamentoParams = {
@@ -43,6 +45,11 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): Treinam
     arredondamentoPrecoAluno: n("arredondamento_preco_aluno", 0),
     comissaoFixaPerc: parseComissao(m.get("comissao_regra")),
     retencaoPerc: n("retencao_perc", 5),
+    produtos: {
+      turmaAberta: (m.get("produto_turma_aberta") as string) || "900-0315P",
+      inCompany: (m.get("produto_in_company") as string) || "900-0315P NEW",
+      exame: (m.get("produto_exame") as string) || "900-0313P",
+    },
   };
 }
 
