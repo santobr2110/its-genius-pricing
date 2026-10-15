@@ -7,3 +7,4 @@
 
 - Treinamento: o SKU fiscal de cada condição de venda (Turma Aberta, In Company, Somente exame) fica em `training_params` (`produto_*`), editado em Financeiro › Impostos & Markup, não no cadastro do curso — a condição é escolhida em cada venda.
 - Subscrições Zabbix (preço fixo por SKU) calcula o valor de chegada via `decomporVenda` em `src/lib/pricing/chegada.ts`; `aplicarDesconto` do Treinamento é um wrapper fino dele, provado equivalente em `chegadaEquivalencia.test.ts` — uma só conta de chegada para as duas ofertas.
+- Subscrições Zabbix catalog (SKUs, proposal content, params) lives in `zabbix_*` tables, read via `useZabbixCadastro`, gated by `page.zbx.view` (read) / `page.zbx.admin` (write) in RLS; pure helpers in `src/lib/zabbix/calc.ts` — mirrors the Treinamento pattern so each offering stays isolated.

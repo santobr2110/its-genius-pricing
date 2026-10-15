@@ -37,7 +37,8 @@ import TreinamentoProposta from "./pages/treinamento/Proposta";
 import TreinamentoCotacoes from "./pages/treinamento/Cotacoes";
 import TreinamentoResumo from "./pages/treinamento/Resumo";
 import { TrnResultado, TrnImpostos, TrnComissoes } from "./pages/treinamento/financeiro/Financeiro";
-import ZabbixLayout from "./pages/zabbix/Layout";
+import ZabbixLayout, { ZabbixEmConstrucao } from "./pages/zabbix/Layout";
+import ZbxConfiguracoes from "./pages/zabbix/Configuracoes";
 import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
@@ -120,7 +121,10 @@ const App = () => (
                 <Route path="financeiro/comissoes" element={<TrnComissoes />} />
                 <Route path="configuracoes/*" element={<TrnConfiguracoes />} />
               </Route>
-              <Route path="/observabilidade/subscricoes-zabbix" element={<ProtectedRoute permission="page.zbx.view"><ZabbixLayout /></ProtectedRoute>} />
+              <Route path="/observabilidade/subscricoes-zabbix" element={<ProtectedRoute permission="page.zbx.view"><ZabbixLayout /></ProtectedRoute>}>
+                <Route index element={<ZabbixEmConstrucao />} />
+                <Route path="configuracoes/*" element={<ZbxConfiguracoes />} />
+              </Route>
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}
               <Route
