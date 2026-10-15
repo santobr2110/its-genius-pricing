@@ -4,3 +4,5 @@
 - `src/test/naoRegressao.test.ts` snapshots Smart ITO, BodyShop and M1–M4 results; never update those snapshots to make a change pass — protects existing pricing.
 - Treinamento catalog (courses, proposal content, combos, params) lives in `training_*` tables, read via `useTreinamentoCadastro`, gated by `page.trn.view` (read) / `page.trn.admin` (write) in RLS; pure helpers in `src/lib/treinamento/` — keeps official course data and pending-confirmation flags in one auditable place.
 - Treinamento pricing: pure engine in `src/lib/treinamento/calc.ts` + `carrinho.ts` (tested in `treinamentoCalc.test.ts`); drafts/quotes live in `pricing_presets` with group `observabilidade`/offering `treinamento` via `useTreinamentoCotacoes` (Smart ITO's `usePricingPresets` left untouched) — avoids regressions in existing offerings.
+
+- Treinamento: o SKU fiscal de cada condição de venda (Turma Aberta, In Company, Somente exame) fica em `training_params` (`produto_*`), editado em Financeiro › Impostos & Markup, não no cadastro do curso — a condição é escolhida em cada venda.
