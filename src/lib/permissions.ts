@@ -85,7 +85,8 @@ export interface PermissionDef {
     | "ITO › Smart ITO › Financeiro"
     | "ITO › Profissionais Alocados"
     | "Administração"
-    | "Observabilidade › Treinamento";
+    | "Observabilidade › Treinamento"
+    | "Observabilidade › Subscrições Zabbix";
 }
 
 export const PERMISSIONS: PermissionDef[] = [
