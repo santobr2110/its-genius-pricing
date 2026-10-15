@@ -72,7 +72,7 @@ export function montarDadosTemplateV2(m: ModeloPropostaZbx) {
     linha_contato: m.contato.trim() ? `A/C ${m.contato.trim()}${m.email.trim() ? ` · ${m.email.trim()}` : ""}` : "",
     data_extenso: `${dataExtenso(m.dataEmissao)}.`,
     consultor: ou(m.consultor), consultor_cargo: ou(v.consultorCargo),
-    ...Object.fromEntries([0, 1, 2, 3, 4].flatMap((i) => [[`num${i + 1}_valor`, ou(num(i).valor)], [`num${i + 1}_rotulo`, ou(num(i).rotulo)]])),
+    ...(Object.fromEntries([0, 1, 2, 3, 4].flatMap((i) => [[`num${i + 1}_valor`, ou(num(i).valor)], [`num${i + 1}_rotulo`, ou(num(i).rotulo)]])) as Record<`num${1 | 2 | 3 | 4 | 5}_${"valor" | "rotulo"}`, string>),
     objeto,
     confidencialidade: ou(v.confidencialidade),
     validade_ate: dataExtenso(m.dataValidade),

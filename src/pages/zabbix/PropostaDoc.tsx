@@ -7,7 +7,7 @@ const COR = "#17392F";
 const PEND = "#B45309";
 
 function T({ children }: { children: string }) {
-  return <>{children.split(/\n+/).filter((l) => l.trim()).map((l, i) => <p key={i} style={{ margin: "0 0 8px", color: l.includes(A_CONFIRMAR) ? PEND : undefined }}>{l}</p>)}</>;
+  return <>{children.split(/\n+/).filter((l) => l.trim()).map((l, i) => <p key={i} style={{ margin: "0 0 8px", color: l.includes(A_CONFIRMAR) ? PEND : undefined }}>{l.replace("|", " ")}</p>)}</>;
 }
 function Pagina({ children }: { children: React.ReactNode }) {
   return (
@@ -50,7 +50,7 @@ export default function PropostaDoc({ m }: { m: ModeloPropostaZbx }) {
       <Pagina>
         <H>Quem somos</H>
         <T>{m.quemSomos}</T>
-        <ul style={{ paddingLeft: 20, listStyle: "disc" }}>{m.numeros.map((n, i) => <li key={i} style={{ color: n.includes(A_CONFIRMAR) ? PEND : undefined }}>{n}</li>)}</ul>
+        <ul style={{ paddingLeft: 20, listStyle: "disc" }}>{m.numeros.map((n, i) => <li key={i} style={{ color: n.includes(A_CONFIRMAR) ? PEND : undefined }}>{n.replace(" | ", " ").replace("|", " ")}</li>)}</ul>
         <div style={{ height: 24 }} />
         <H>Objeto e escopo</H>
         <T>{m.objeto}</T>
@@ -91,7 +91,7 @@ export default function PropostaDoc({ m }: { m: ModeloPropostaZbx }) {
         <S>Informações tributárias</S>
         <T>{m.textoTributario}</T>
         <S>Dados de faturamento da Selbetti</S>
-        {m.dadosFaturamento.map((l, i) => <p key={i} style={{ margin: 0, color: l.includes(A_CONFIRMAR) ? PEND : undefined }}>{l}</p>)}
+        {m.dadosFaturamento.map((l, i) => <p key={i} style={{ margin: 0, color: l.includes(A_CONFIRMAR) ? PEND : undefined }}>{l.replace("|", " ")}</p>)}
       </Pagina>
       <Pagina>
         <H>Aceite</H>
