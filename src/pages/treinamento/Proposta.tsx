@@ -101,14 +101,28 @@ export default function TreinamentoProposta() {
     } catch (e) { toast.error((e as Error).message); }
   };
   const [verWord, setVerWord] = useState(false);
+  const [wordUrl, setWordUrl] = useState<string | null>(null);
   const [wordBlob, setWordBlob] = useState<Blob | null>(null);
+  const [modoSimples, setModoSimples] = useState(false);
   const wordRef = useRef<HTMLDivElement>(null);
   const abrirWord = async () => {
-    try { setWordBlob(null); setVerWord(true); setWordBlob(await gerarWord()); }
-    catch (e) { setVerWord(false); toast.error((e as Error).message); }
+    try {
+      setWordUrl(null); setWordBlob(null); setModoSimples(false); setVerWord(true);
+      const blob = await gerarWord();
+      setWordBlob(blob);
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Sessão expirada");
+      const path = `${u.user.id}/proposta-${Date.now()}.docx`;
+      const up = await supabase.storage.from("trn-previews").upload(path, blob, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
+      if (up.error) throw up.error;
+      const sg = await supabase.storage.from("trn-previews").createSignedUrl(path, 600);
+      if (sg.error || !sg.data) throw sg.error ?? new Error("Falha ao gerar link");
+      setWordUrl(`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(sg.data.signedUrl)}`);
+      setTimeout(() => { supabase.storage.from("trn-previews").remove([path]); }, 10 * 60_000);
+    } catch (e) { setModoSimples(true); toast.error(`Visualização exata indisponível: ${(e as Error).message}`); }
   };
   useEffect(() => {
-    if (!verWord || !wordBlob) return;
+    if (!verWord || !wordBlob || !modoSimples) return;
     const t = setTimeout(async () => {
       if (!wordRef.current) return;
       const { renderAsync } = await import("docx-preview");
@@ -116,7 +130,7 @@ export default function TreinamentoProposta() {
       await renderAsync(wordBlob, wordRef.current, undefined, { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: true });
     }, 0);
     return () => clearTimeout(t);
-  }, [verWord, wordBlob]);
+  }, [verWord, wordBlob, modoSimples]);
 
   return (
     <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
@@ -137,10 +151,14 @@ export default function TreinamentoProposta() {
                 <Button variant="outline" size="icon" title="Visualizar Word" aria-label="Visualizar Word" onClick={abrirWord}><Eye className="h-4 w-4" /></Button>
               </div>
               <Dialog open={verWord} onOpenChange={setVerWord}>
-                <DialogContent className="max-w-[calc(210mm+6rem)] max-h-[90vh] overflow-y-auto">
-                  <DialogHeader><DialogTitle>Proposta (Word)</DialogTitle></DialogHeader>
-                  {!wordBlob && <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>}
-                  <div ref={wordRef} className="rounded-md overflow-x-auto" />
+                <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+                  <DialogHeader className="flex-row items-center justify-between gap-2 pr-8">
+                    <DialogTitle>Proposta (Word)</DialogTitle>
+                    {wordBlob && <Button variant="ghost" size="sm" onClick={() => setModoSimples(!modoSimples)}>{modoSimples ? "Visualização exata" : "Visualização rápida"}</Button>}
+                  </DialogHeader>
+                  {!modoSimples && !wordUrl && <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+                  {!modoSimples && wordUrl && <iframe title="Proposta" src={wordUrl} className="flex-1 w-full rounded-md border" />}
+                  {modoSimples && <div ref={wordRef} className="flex-1 overflow-auto rounded-md" />}
                 </DialogContent>
               </Dialog>
               <div className="flex gap-2">

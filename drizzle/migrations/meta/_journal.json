@@ -50,6 +50,13 @@
       "when": 1792011751069,
       "tag": "0006_training_courses_dias_decimal",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792065071211,
+      "tag": "0007_trn_preview_policies",
+      "breakpoints": true
     }
   ]
 }
