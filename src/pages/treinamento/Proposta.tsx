@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -132,7 +132,17 @@ export default function TreinamentoProposta() {
             <div><Label>Observações específicas</Label><Textarea rows={3} value={d.observacoes} onChange={(e) => setDados({ ...d, observacoes: e.target.value })} /></div>
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !podeEmitir}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar valores)</Button>
-              <Button variant="outline" onClick={baixarWord} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={baixarWord} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
+                <Button variant="outline" size="icon" title="Visualizar Word" aria-label="Visualizar Word" onClick={abrirWord}><Eye className="h-4 w-4" /></Button>
+              </div>
+              <Dialog open={verWord} onOpenChange={setVerWord}>
+                <DialogContent className="max-w-[calc(210mm+6rem)] max-h-[90vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>Proposta (Word)</DialogTitle></DialogHeader>
+                  {!wordBlob && <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+                  <div ref={wordRef} className="rounded-md overflow-x-auto" />
+                </DialogContent>
+              </Dialog>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={async () => {
                   try { await exportarResumoPdf(`Cotacao ROI - ${st.atual.cliente || "cliente"}${st.atual.codigo ? ` - ${st.atual.codigo}` : ""}.pdf`); }
