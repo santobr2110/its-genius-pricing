@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { FileDown, FileText, Loader2, Stamp } from "lucide-react";
+import { Eye, FileDown, FileText, Loader2, Stamp } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
@@ -38,6 +39,7 @@ export default function TreinamentoProposta() {
   const podeEmitir = can("page.trn.proposal");
   const [dados, setDados] = usePersistentState<DadosProposta>("observabilidade.treinamento.proposta", DADOS_PADRAO);
   const d = { ...DADOS_PADRAO, ...dados };
+  const [verResumo, setVerResumo] = useState(false);
   const [emitindo, setEmitindo] = useState(false);
   const salvo = cot.lista.find((c) => c.id === st.atual.id);
   const emissoes = ((salvo?.payload as unknown as { emissoes?: EmissaoTRN[] })?.emissoes) ?? [];
@@ -113,10 +115,19 @@ export default function TreinamentoProposta() {
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !podeEmitir}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar valores)</Button>
               <Button variant="outline" onClick={baixarWord} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
-              <Button variant="outline" onClick={async () => {
-                try { await exportarResumoPdf(`Cotacao ROI - ${st.atual.cliente || "cliente"}${st.atual.codigo ? ` - ${st.atual.codigo}` : ""}.pdf`); }
-                catch (e) { toast.error((e as Error).message); }
-              }} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Cotação/ROI</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={async () => {
+                  try { await exportarResumoPdf(`Cotacao ROI - ${st.atual.cliente || "cliente"}${st.atual.codigo ? ` - ${st.atual.codigo}` : ""}.pdf`); }
+                  catch (e) { toast.error((e as Error).message); }
+                }} disabled={!podeEmitir}><FileDown className="h-4 w-4 mr-2" />Baixar Cotação/ROI</Button>
+                <Button variant="outline" size="icon" title="Visualizar Cotação/ROI" aria-label="Visualizar Cotação/ROI" onClick={() => setVerResumo(true)}><Eye className="h-4 w-4" /></Button>
+              </div>
+              <Dialog open={verResumo} onOpenChange={setVerResumo}>
+                <DialogContent className="max-w-[calc(210mm+4rem)] max-h-[90vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>Cotação/ROI</DialogTitle></DialogHeader>
+                  <div className="bg-muted p-2 rounded-md"><TreinamentoResumo embedded /></div>
+                </DialogContent>
+              </Dialog>
             </div>
             {!salvo && <p className="text-xs text-muted-foreground">Salve a cotação no Configurador para poder emitir.</p>}
           </CardContent>
