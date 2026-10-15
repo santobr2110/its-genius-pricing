@@ -303,10 +303,10 @@ function ProdutosPorCondicao() {
           <div key={c.key} className="space-y-1.5">
             <Label className="text-xs">SKU · {c.label}</Label>
             <Select value={v[c.key]} disabled={!pode} onValueChange={(x) => setV({ ...v, [c.key]: x })}>
-              <SelectTrigger className="h-9 font-mono text-xs"><SelectValue placeholder="Escolha o SKU" /></SelectTrigger>
-              <SelectContent>
+              <SelectTrigger className="h-9 font-mono text-xs [&>span]:truncate [&_.block]:hidden"><SelectValue placeholder="Escolha o SKU" /></SelectTrigger>
+              <SelectContent className="w-[min(34rem,90vw)]">
                 {!codigos.some((x) => x.codigo === v[c.key]) && <SelectItem value={v[c.key]}>{v[c.key]} (fora da oferta)</SelectItem>}
-                {codigos.map((x) => <SelectItem key={x.id} value={x.codigo}><span className="font-mono text-xs font-semibold">{x.codigo}</span>{x.nome && x.nome !== x.codigo && <span className="block text-[11px] text-muted-foreground max-w-[22rem] truncate">{x.nome}</span>}</SelectItem>)}
+                {codigos.map((x) => <SelectItem key={x.id} value={x.codigo}><span className="font-mono text-xs font-semibold">{x.codigo}</span>{x.nome && x.nome !== x.codigo && <span className="block text-[11px] leading-snug text-muted-foreground whitespace-normal break-words">{x.nome}</span>}</SelectItem>)}
               </SelectContent>
             </Select>
             {st.config.municipio && !temNoMunicipio(v[c.key]) && <p className="text-[11px] text-destructive">Sem alíquotas em {st.config.municipio}.</p>}
