@@ -138,7 +138,7 @@ export function ZbxImpostos() {
           <p className="text-xs text-muted-foreground">A rentabilidade não é definida aqui: ela é o resultado do preço de venda menos custo, impostos, comissão e retenção.</p>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Comp label="PIS · COFINS · ISS" tag="automático" desc="Vêm do produto fiscal de cada categoria no município escolhido." valor={t0 ? t0.pisPerc + t0.cofinsPerc + t0.issPerc : 0} />
+          <Comp label="PIS · COFINS · ISS" tag="automático" desc="Vêm do produto fiscal de cada subscrição no município escolhido." valor={t0 ? t0.pisPerc + t0.cofinsPerc + t0.issPerc : 0} />
           <Comp label="IRPJ / CSLL" tag={podeParams ? "editável" : "convenção"} edit={podeParams} desc="Convenção de IR/CSLL. Só quem tem a permissão de parâmetros altera.">
             <Select value={config.convencao} disabled={!podeParams} onValueChange={(v) => setConfig({ ...config, convencao: v as typeof config.convencao })}>
               <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
