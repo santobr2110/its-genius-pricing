@@ -4,7 +4,8 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTaxCodes } from "@/hooks/useTaxCodes";
-import { OFERTAS_FISCAIS, type OfertaFiscal, type TaxCode, type TaxRate } from "@/lib/pricing/taxRates";
+import { OFERTAS_FISCAIS, type OfertaFiscal, type ServiceCode, type TaxCode, type TaxRate } from "@/lib/pricing/taxRates";
+import CodigosServicoSection from "./CodigosServicoSection";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,12 +16,12 @@ import { Switch } from "@/components/ui/switch";
 
 const MUNICIPIOS = ["Joinville", "Blumenau", "Barueri"];
 
-function CodeRow({ code, rates, refresh }: { code: TaxCode; rates: TaxRate[]; refresh: () => void }) {
+function CodeRow({ code, rates, efetivas, servicos, refresh }: { code: TaxCode; rates: TaxRate[]; efetivas: TaxRate[]; servicos: ServiceCode[]; refresh: () => void }) {
   const [c, setC] = useState(code);
   const [open, setOpen] = useState(false);
   const saveCode = async () => {
     const { error } = await supabase.from("tax_product_codes").update({
-      codigo: c.codigo, nome: c.nome, descricao: c.descricao, lc116_item: c.lc116_item, ativo: c.ativo, a_confirmar: c.a_confirmar, ofertas: c.ofertas ?? [],
+      codigo: c.codigo, nome: c.nome, descricao: c.descricao, lc116_item: servicos.find((x) => x.id === c.service_code_id)?.lc116_item ?? c.lc116_item, service_code_id: c.service_code_id ?? null, usa_aliquota_propria: !!c.usa_aliquota_propria, ativo: c.ativo, a_confirmar: c.a_confirmar, ofertas: c.ofertas ?? [],
     }).eq("id", c.id);
     if (error) return toast.error(error.message);
     toast.success("Código salvo");
@@ -44,7 +45,14 @@ function CodeRow({ code, rates, refresh }: { code: TaxCode; rates: TaxRate[]; re
       <div className="grid grid-cols-[120px_1fr_70px_220px_auto_auto_auto_auto] gap-2 items-center">
         <Input className="h-8 text-xs font-mono" value={c.codigo} onChange={(e) => setC({ ...c, codigo: e.target.value })} />
         <Input className="h-8 text-xs" placeholder="SKU" value={c.nome} onChange={(e) => setC({ ...c, nome: e.target.value })} />
-        <Input className="h-8 text-xs" placeholder="LC116" value={c.lc116_item ?? ""} onChange={(e) => setC({ ...c, lc116_item: e.target.value })} />
+        <Select value={c.service_code_id ?? ""} onValueChange={(v) => setC({ ...c, service_code_id: v })}>
+          <SelectTrigger className="h-8 text-xs font-mono"><SelectValue placeholder="—" /></SelectTrigger>
+          <SelectContent>
+            {servicos.map((sc) => (
+              <SelectItem key={sc.id} value={sc.id}><span className="font-mono text-xs">{sc.lc116_item}</span>{sc.descricao && <span className="text-xs text-muted-foreground ml-2">{sc.descricao}</span>}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <div className="flex flex-wrap gap-1">
           {OFERTAS_FISCAIS.map((o) => {
             const on = !!c.ofertas?.includes(o.value);
@@ -62,11 +70,20 @@ function CodeRow({ code, rates, refresh }: { code: TaxCode; rates: TaxRate[]; re
       </div>
       <div className="flex items-center gap-2">
         {c.a_confirmar && <Badge variant="outline" className="text-[10px]">alíquotas a confirmar com Fiscal</Badge>}
+        <label className="flex items-center gap-1 text-[11px]"><Switch checked={!!c.usa_aliquota_propria} onCheckedChange={(v) => setC({ ...c, usa_aliquota_propria: v })} />Alíquota própria (exceção)</label>
         <Button size="sm" variant="link" className="h-6 px-0 text-xs" onClick={() => setOpen(!open)}>
-          {open ? "Ocultar" : "Ver"} alíquotas ({rates.length})
+          {open ? "Ocultar" : "Ver"} alíquotas ({c.usa_aliquota_propria ? rates.length : efetivas.length})
         </Button>
       </div>
-      {open && (
+      {open && !c.usa_aliquota_propria && (
+        <div className="pl-2 text-[11px] text-muted-foreground space-y-0.5">
+          <p>Herdadas do código de serviço {servicos.find((x) => x.id === c.service_code_id)?.lc116_item ?? "—"} (edite em Códigos de serviço):</p>
+          {efetivas.length === 0 ? <p className="text-destructive">Nenhuma alíquota — vincule um código de serviço com ISS cadastrado.</p> : efetivas.map((r) => (
+            <p key={r.id} className="tabular-nums">{r.municipio}: PIS {r.pis_perc}% · COFINS {r.cofins_perc}% · ISS {r.iss_perc}%{r.a_confirmar ? " · a confirmar" : ""}</p>
+          ))}
+        </div>
+      )}
+      {open && c.usa_aliquota_propria && (
         <div className="space-y-1 pl-2">
           <div className="grid grid-cols-[120px_70px_70px_70px_120px_120px_auto_auto_auto] gap-2 text-[10px] text-muted-foreground">
             <span>Município</span><span>PIS %</span><span>COFINS %</span><span>ISS %</span><span>Vigência início</span><span>Vigência fim</span><span>A confirmar</span><span /><span />
@@ -114,7 +131,7 @@ function RateRow({ rate, refresh }: { rate: TaxRate; refresh: () => void }) {
 type Filtro = "todas" | OfertaFiscal | "geral";
 
 export default function CadastroTributarioTab() {
-  const { codes, rates, loading, refresh } = useTaxCodes();
+  const { codes, rates, proprias, servicos, iss, loading, refresh } = useTaxCodes();
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const grupos = useMemo(() => {
     const defs: { key: string; label: string; match: (c: TaxCode) => boolean }[] = [
@@ -127,17 +144,19 @@ export default function CadastroTributarioTab() {
     const codigo = prompt("Código Protheus:");
     if (!codigo) return;
     const ofertas = filtro !== "todas" && filtro !== "geral" ? [filtro] : [];
-    const { error } = await supabase.from("tax_product_codes").insert({ codigo, nome: codigo, a_confirmar: true, ofertas });
+    const { error } = await supabase.from("tax_product_codes").insert({ codigo, nome: codigo, a_confirmar: true, ofertas, service_code_id: servicos[0]?.id ?? null, lc116_item: servicos[0]?.lc116_item ?? null });
     if (error) return toast.error(error.message);
     refresh();
   };
   return (
+    <div className="space-y-4">
+    <CodigosServicoSection servicos={servicos} iss={iss} codes={codes} refresh={refresh} />
     <Card>
       <CardHeader className="flex-row items-start justify-between space-y-0 gap-3">
         <div>
           <CardTitle className="text-base flex items-center gap-2"><Package className="h-4 w-4 text-primary" /> Cadastro tributário de produtos</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
-            Produtos de faturamento do Protheus, com item da LC 116, oferta e alíquotas por município. Cada configurador mostra só os produtos
+            Produtos de faturamento do Protheus. Cada produto escolhe um código de serviço (LC 116) e herda dele PIS, COFINS e ISS; use "Alíquota própria" só para exceções. Cada configurador mostra só os produtos
             marcados com a sua oferta; um produto pode servir a várias. Alterações aqui valem para todas as precificações.
           </p>
         </div>
@@ -158,14 +177,15 @@ export default function CadastroTributarioTab() {
               <Badge variant="secondary" className="text-[10px]">{g.itens.length}</Badge>
             </div>
             <div className="grid grid-cols-[120px_1fr_70px_220px_auto_auto_auto_auto] gap-2 px-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <span>Código Protheus</span><span>SKU (descrição do produto)</span><span>Item LC 116</span><span>Oferta</span><span /><span /><span /><span />
+              <span>Código Protheus</span><span>SKU (descrição do produto)</span><span>Código de serviço</span><span>Oferta</span><span /><span /><span /><span />
             </div>
             {g.itens.length === 0 ? <p className="text-xs text-muted-foreground px-2">Nenhum produto.</p> : g.itens.map((c) => (
-              <CodeRow key={c.id + c.codigo + (c.ofertas ?? []).join()} code={c} rates={rates.filter((r) => r.tax_product_code_id === c.id)} refresh={refresh} />
+              <CodeRow key={c.id + c.codigo + (c.ofertas ?? []).join() + c.service_code_id + c.usa_aliquota_propria} code={c} rates={proprias.filter((r) => r.tax_product_code_id === c.id)} efetivas={rates.filter((r) => r.tax_product_code_id === c.id)} servicos={servicos} refresh={refresh} />
             ))}
           </section>
         ))}
       </CardContent>
     </Card>
+    </div>
   );
 }
