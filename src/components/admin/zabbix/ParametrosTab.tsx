@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -72,6 +73,8 @@ export default function ZbxParametrosTab({ params, refresh }: ZbxCadastro) {
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="padrao_site">Padrão do site</SelectItem></SelectContent>
               </Select>
+            ) : r.tipo === "text" && r.key.startsWith("proposta_") && r.key !== "proposta_cidade" ? (
+              <Textarea rows={3} value={String(r.value ?? "")} placeholder="Vazio = [A CONFIRMAR]" onChange={(e) => set(r.key, { value: e.target.value })} />
             ) : r.tipo === "text" ? (
               <Input value={String(r.value ?? "")} placeholder={r.key === "comissao_regra" ? "Vazio = tabela da empresa" : undefined} onChange={(e) => set(r.key, { value: e.target.value })} />
             ) : (
