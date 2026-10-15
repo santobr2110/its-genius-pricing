@@ -9,7 +9,7 @@ export interface ZabbixSubscription {
   id: string; slug: string; part_number: string; nome: string;
   categoria: CategoriaZbx; unidade: UnidadeZbx; nivel: string | null;
   venda_brl: number; lista_usd: number | null; lista_brl: number | null;
-  ro_perc: number; sem_ro_perc: number; pgto30_ro_perc: number; pgto30_sem_ro_perc: number;
+  ro_perc: number | null; sem_ro_perc: number | null; pgto30_ro_perc: number | null; pgto30_sem_ro_perc: number | null;
   permite_quantidade: boolean; quantidade_maxima: number | null;
   codigo_produto: string; descricao: string | null; piso_rentabilidade_perc: number | null;
   ativo: boolean; ordem: number; campos_a_confirmar: string[];
@@ -35,6 +35,31 @@ export interface ZabbixParams {
   produtos: { suporte: string; academy: string };
   piso: { suporte: number | null; academy: number | null };
   validadeDias: number; exibirLista: boolean;
+  descontos: Record<CategoriaZbx, Descontos>;
+}
+
+export interface Descontos { ro: number; semRo: number; pgto30Ro: number; pgto30SemRo: number }
+
+export const DESCONTOS_PADRAO: Record<CategoriaZbx, Descontos> = {
+  suporte: { ro: 70, semRo: 55, pgto30Ro: 20, pgto30SemRo: 20 },
+  academy: { ro: 30, semRo: 0, pgto30Ro: 0, pgto30SemRo: 0 },
+};
+
+export type OrigemDesconto = "categoria" | "sku";
+export interface DescontosResolvidos extends Descontos { origem: Record<keyof Descontos, OrigemDesconto> }
+
+/** Herança: coluna NULL no SKU = parâmetro da categoria; valor = exceção do SKU (inclusive 0). */
+export function resolveDescontos(
+  s: Pick<ZabbixSubscription, "categoria" | "ro_perc" | "sem_ro_perc" | "pgto30_ro_perc" | "pgto30_sem_ro_perc">,
+  descontos: Record<CategoriaZbx, Descontos> = DESCONTOS_PADRAO,
+): DescontosResolvidos {
+  const cat = descontos[s.categoria] ?? DESCONTOS_PADRAO[s.categoria];
+  const pick = (v: number | null, d: number): [number, OrigemDesconto] => (v == null ? [d, "categoria"] : [Number(v), "sku"]);
+  const [ro, oRo] = pick(s.ro_perc, cat.ro);
+  const [semRo, oSem] = pick(s.sem_ro_perc, cat.semRo);
+  const [pgto30Ro, o30] = pick(s.pgto30_ro_perc, cat.pgto30Ro);
+  const [pgto30SemRo, o30s] = pick(s.pgto30_sem_ro_perc, cat.pgto30SemRo);
+  return { ro, semRo, pgto30Ro, pgto30SemRo, origem: { ro: oRo, semRo: oSem, pgto30Ro: o30, pgto30SemRo: o30s } };
 }
 
 export function paramsFromRows(rows: { key: string; value: unknown }[]): ZabbixParams {
@@ -51,6 +76,10 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): ZabbixP
     piso: { suporte: nOpt("piso_rentabilidade_suporte"), academy: nOpt("piso_rentabilidade_academy") },
     validadeDias: n("validade_proposta_dias", 15),
     exibirLista: m.get("exibir_lista_na_proposta") === true,
+    descontos: Object.fromEntries((Object.keys(DESCONTOS_PADRAO) as CategoriaZbx[]).map((c) => {
+      const d = DESCONTOS_PADRAO[c];
+      return [c, { ro: n(`desconto_ro_${c}`, d.ro), semRo: n(`desconto_sem_ro_${c}`, d.semRo), pgto30Ro: n(`desconto_pgto30_ro_${c}`, d.pgto30Ro), pgto30SemRo: n(`desconto_pgto30_sem_ro_${c}`, d.pgto30SemRo) }];
+    })) as Record<CategoriaZbx, Descontos>,
   };
 }
 
@@ -63,15 +92,16 @@ export function listaBrl(s: Pick<ZabbixSubscription, "lista_usd" | "lista_brl">,
 export interface CenariosCusto { ro: number; semRo: number; ro30: number; semRo30: number }
 
 /** 4 cenários de custo: descontos aplicados em sequência sobre a lista (parceria/RO, depois pagamento 30d). */
-export function cenariosCusto(s: ZabbixSubscription, cambio: number): CenariosCusto | null {
+export function cenariosCusto(s: ZabbixSubscription, cambio: number, descontos: Record<CategoriaZbx, Descontos> = DESCONTOS_PADRAO): CenariosCusto | null {
   const l = listaBrl(s, cambio);
   if (l == null) return null;
+  const r = resolveDescontos(s, descontos);
   const d = (p: number) => 1 - (Number(p) || 0) / 100;
   return {
-    ro: l * d(s.ro_perc),
-    semRo: l * d(s.sem_ro_perc),
-    ro30: l * d(s.ro_perc) * d(s.pgto30_ro_perc),
-    semRo30: l * d(s.sem_ro_perc) * d(s.pgto30_sem_ro_perc),
+    ro: l * d(r.ro),
+    semRo: l * d(r.semRo),
+    ro30: l * d(r.ro) * d(r.pgto30Ro),
+    semRo30: l * d(r.semRo) * d(r.pgto30SemRo),
   };
 }
 

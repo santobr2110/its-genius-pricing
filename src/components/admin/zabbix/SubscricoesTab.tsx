@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { cenariosCusto, listaBrl, paramsFromRows, type ZabbixSubscription } from "@/lib/zabbix/calc";
+import { cenariosCusto, listaBrl, paramsFromRows, resolveDescontos, type ZabbixSubscription } from "@/lib/zabbix/calc";
 import type { ZbxCadastro } from "@/hooks/useZabbixCadastro";
 
 const brl = (n: number | null | undefined) => (n == null ? "—" : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 2 }));
@@ -22,12 +22,13 @@ const UNIDADES = ["server", "proxy", "tier", "aluno", "assinatura"] as const;
 type Draft = Omit<ZabbixSubscription, "id"> & { id?: string };
 const VAZIO: Draft = {
   slug: "", part_number: "", nome: "", categoria: "suporte", unidade: "server", nivel: null, venda_brl: 0, lista_usd: null, lista_brl: null,
-  ro_perc: 0, sem_ro_perc: 0, pgto30_ro_perc: 0, pgto30_sem_ro_perc: 0, permite_quantidade: true, quantidade_maxima: null,
+  ro_perc: null, sem_ro_perc: null, pgto30_ro_perc: null, pgto30_sem_ro_perc: null, permite_quantidade: true, quantidade_maxima: null,
   codigo_produto: "ZBX", descricao: null, piso_rentabilidade_perc: null, ativo: true, ordem: 0, campos_a_confirmar: [],
 };
 
 export default function SubscricoesTab({ subs, params, refresh }: ZbxCadastro) {
-  const cambio = paramsFromRows(params).cambioUsd;
+  const zp = paramsFromRows(params);
+  const cambio = zp.cambioUsd;
   const [cat, setCat] = useState("todas");
   const [niv, setNiv] = useState("todos");
   const [ativo, setAtivo] = useState("todos");
@@ -80,8 +81,16 @@ export default function SubscricoesTab({ subs, params, refresh }: ZbxCadastro) {
     refresh();
   };
 
-  const num = (k: keyof Draft, opt = false) => (
-    <Input type="number" step="0.01" value={edit?.[k] == null ? "" : Number(edit[k])}
+  const catDesc = (k: keyof Draft) => {
+    if (!edit) return 0;
+    const d = zp.descontos[edit.categoria];
+    return ({ ro_perc: d.ro, sem_ro_perc: d.semRo, pgto30_ro_perc: d.pgto30Ro, pgto30_sem_ro_perc: d.pgto30SemRo } as Record<string, number>)[k as string];
+  };
+  const herdado = (k: keyof Draft) => edit?.[k] == null
+    ? <Badge variant="secondary" className="text-[10px]">herdado da categoria</Badge>
+    : <button type="button" className="text-[10px] underline text-muted-foreground" onClick={() => setEdit((d) => d && { ...d, [k]: null })}>usar categoria</button>;
+  const num = (k: keyof Draft, opt = false, desc = false) => (
+    <Input type="number" step="0.01" value={edit?.[k] == null ? "" : Number(edit[k])} placeholder={desc ? `${catDesc(k)} (categoria)` : undefined}
       onChange={(e) => setEdit((d) => d && { ...d, [k]: e.target.value === "" ? (opt ? null : 0) : Number(e.target.value) })} />
   );
 
@@ -90,7 +99,7 @@ export default function SubscricoesTab({ subs, params, refresh }: ZbxCadastro) {
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <div>
           <CardTitle className="text-base">Subscrições</CardTitle>
-          <p className="text-xs text-muted-foreground">Câmbio de referência: {cambio.toLocaleString("pt-BR")}. Custos = lista × (1 − desconto parceria/RO) × (1 − desconto 30 dias).</p>
+          <p className="text-xs text-muted-foreground">Câmbio de referência: {cambio.toLocaleString("pt-BR")}. Custos = lista × (1 − desconto parceria/RO) × (1 − desconto 30 dias). Percentual em destaque = exceção do SKU; em cinza = herdado da categoria (aba Descontos).</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Select value={cat} onValueChange={setCat}><SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
@@ -116,7 +125,9 @@ export default function SubscricoesTab({ subs, params, refresh }: ZbxCadastro) {
           </TableHeader>
           <TableBody>
             {lista.map((s) => {
-              const c = cenariosCusto(s, cambio);
+              const c = cenariosCusto(s, cambio, zp.descontos);
+              const r = resolveDescontos(s, zp.descontos);
+              const pc = (v: number, o: string) => <span className={o === "sku" ? "font-semibold text-primary" : "text-muted-foreground"} title={o === "sku" ? "Exceção deste SKU" : "Herdado da categoria"}>{v}%</span>;
               return (
                 <TableRow key={s.id} className={s.ativo ? "" : "opacity-60"}>
                   <TableCell className="min-w-[220px]">
@@ -126,7 +137,7 @@ export default function SubscricoesTab({ subs, params, refresh }: ZbxCadastro) {
                   <TableCell className="text-right">{brl(s.venda_brl)}</TableCell>
                   <TableCell className="text-right">{usd(s.lista_usd)}</TableCell>
                   <TableCell className="text-right">{brl(listaBrl(s, cambio))}</TableCell>
-                  <TableCell className="text-center whitespace-nowrap">{s.ro_perc}% / {s.sem_ro_perc}% / {s.pgto30_ro_perc}% / {s.pgto30_sem_ro_perc}%</TableCell>
+                  <TableCell className="text-center whitespace-nowrap">{pc(r.ro, r.origem.ro)} / {pc(r.semRo, r.origem.semRo)} / {pc(r.pgto30Ro, r.origem.pgto30Ro)} / {pc(r.pgto30SemRo, r.origem.pgto30SemRo)}</TableCell>
                   <TableCell className="text-right">{brl(c?.ro)}</TableCell>
                   <TableCell className="text-right">{brl(c?.semRo)}</TableCell>
                   <TableCell className="text-right">{brl(c?.ro30)}</TableCell>
@@ -166,10 +177,10 @@ export default function SubscricoesTab({ subs, params, refresh }: ZbxCadastro) {
               <div><Label>Venda R$ (por unidade)</Label>{num("venda_brl")}</div>
               <div><Label>Lista USD</Label>{num("lista_usd", true)}</div>
               <div><Label>Lista R$ (só sem USD)</Label>{num("lista_brl", true)}</div>
-              <div><Label>Desconto RO %</Label>{num("ro_perc")}</div>
-              <div><Label>Desconto sem RO %</Label>{num("sem_ro_perc")}</div>
-              <div><Label>Pgto 30 dias c/ RO %</Label>{num("pgto30_ro_perc")}</div>
-              <div><Label>Pgto 30 dias s/ RO %</Label>{num("pgto30_sem_ro_perc")}</div>
+              <div><Label className="flex items-center gap-1">Desconto RO % {herdado("ro_perc")}</Label>{num("ro_perc", true, true)}</div>
+              <div><Label className="flex items-center gap-1">Desconto sem RO % {herdado("sem_ro_perc")}</Label>{num("sem_ro_perc", true, true)}</div>
+              <div><Label className="flex items-center gap-1">Pgto 30 dias c/ RO % {herdado("pgto30_ro_perc")}</Label>{num("pgto30_ro_perc", true, true)}</div>
+              <div><Label className="flex items-center gap-1">Pgto 30 dias s/ RO % {herdado("pgto30_sem_ro_perc")}</Label>{num("pgto30_sem_ro_perc", true, true)}</div>
               <div><Label>Piso de rentabilidade % (vazio = categoria)</Label>{num("piso_rentabilidade_perc", true)}</div>
               <div><Label>Quantidade máxima</Label>{num("quantidade_maxima", true)}</div>
               <div className="flex items-center gap-2 pt-5"><Switch checked={edit.permite_quantidade} onCheckedChange={(v) => setEdit({ ...edit, permite_quantidade: v })} /><Label>Permite quantidade</Label></div>

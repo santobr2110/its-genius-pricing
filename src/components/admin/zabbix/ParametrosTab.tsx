@@ -19,8 +19,9 @@ export default function ZbxParametrosTab({ params, refresh }: ZbxCadastro) {
   const { user } = useAuth();
   const tax = useTaxCodes() as unknown as { codes?: { codigo: string; nome: string; ofertas?: string[] }[] };
   const skus = useMemo(() => (tax.codes ?? []).filter((c) => (c.ofertas ?? []).includes("zabbix")), [tax.codes]);
-  const [rows, setRows] = useState<ZabbixParam[]>(params);
-  useEffect(() => setRows(params), [params]);
+  const filtrados = useMemo(() => params.filter((p) => !p.key.startsWith("desconto_")), [params]);
+  const [rows, setRows] = useState<ZabbixParam[]>(filtrados);
+  useEffect(() => setRows(filtrados), [filtrados]);
   const set = (key: string, patch: Partial<ZabbixParam>) => setRows((p) => p.map((r) => (r.key === key ? { ...r, ...patch } : r)));
   const sujos = rows.filter((r) => {
     const o = params.find((p) => p.key === r.key);
