@@ -28,7 +28,7 @@ type Alvo = { id: string; full_name: string | null; email: string | null };
 /** Cotações de Subscrições Zabbix — mesmo padrão da tela "Precificações Salvas" do Smart ITO. */
 export default function ZbxCotacoes() {
   const { lista, loading, excluir, editarDados, transferir } = useZabbixCotacoes();
-  const { setLinhas, setConfig, setAtual, atual } = useCarrinhoState();
+  const { setLinhas, setConfig, setAtual, atual, setSnapshot } = useCarrinhoState();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [edit, setEdit] = useState<ZabbixCotacao | null>(null);
@@ -49,6 +49,7 @@ export default function ZbxCotacoes() {
   const abrir = (c: ZabbixCotacao) => {
     setLinhas(c.payload?.linhas ?? []);
     setConfig({ ...CONFIG_PADRAO, ...(c.payload?.config ?? {}) });
+    setSnapshot(c.payload?.snapshot ?? null);
     setAtual({ id: c.id, nome: c.name, cliente: c.client_name ?? "", codigo: c.quote_code, gerenteConta: c.account_manager ?? "", especialistaBU: c.bu_specialist ?? "", salesforce: c.salesforce_code ?? "", arquitetoBU: c.bu_architect ?? "" });
     navigate("/observabilidade/subscricoes-zabbix");
   };
