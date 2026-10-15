@@ -217,7 +217,7 @@ export default function ZbxConfigurador() {
       </div>
 
       <Comparacao open={comparar} onOpenChange={setComparar} antes={congelado} depois={vivo} diffs={diffs}
-        avisoAprovacao={!!approval.request && approval.request.status !== "cancelled" && Math.abs((congelado?.rentabilidadePerc ?? 0) - vivo.rentabilidadePerc) > 1e-6}
+        avisoAprovacao={!!approval.request && Math.abs((congelado?.rentabilidadePerc ?? 0) - vivo.rentabilidadePerc) > 1e-6}
         salvando={salvando} onConfirm={() => { if (validar()) gravar(); }} />
     </div>
   );
