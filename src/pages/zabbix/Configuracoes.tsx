@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { BookOpen, ClipboardList, Loader2, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { BadgePercent, BookOpen, ClipboardList, Loader2, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ import SubNav from "@/pages/treinamento/financeiro/SubNav";
 import SubscricoesTab from "@/components/admin/zabbix/SubscricoesTab";
 import ZbxConteudoTab from "@/components/admin/zabbix/ConteudoTab";
 import ZbxParametrosTab from "@/components/admin/zabbix/ParametrosTab";
+import ZbxDescontosTab from "@/components/admin/zabbix/DescontosTab";
 
 const BASE = "/observabilidade/subscricoes-zabbix/configuracoes";
 const ORIGEM: Record<PendenciaZbx["origem"], string> = { subscricao: "Subscrições", conteudo: "Conteúdo", parametro: "Parâmetros" };
@@ -50,6 +51,7 @@ export default function ZbxConfiguracoes() {
   const items = [
     { to: `${BASE}/subscricoes`, label: "Subscrições", icon: ShieldCheck },
     { to: `${BASE}/conteudo`, label: "Conteúdo", icon: BookOpen },
+    { to: `${BASE}/descontos`, label: "Descontos", icon: BadgePercent },
     { to: `${BASE}/parametros`, label: "Parâmetros", icon: SlidersHorizontal },
     { to: `${BASE}/pendencias`, label: `Pendências${pend.length ? ` (${pend.length})` : ""}`, icon: ClipboardList },
   ];
@@ -60,6 +62,7 @@ export default function ZbxConfiguracoes() {
         <Route index element={<Navigate to="subscricoes" replace />} />
         <Route path="subscricoes" element={<SubscricoesTab {...data} />} />
         <Route path="conteudo" element={<ZbxConteudoTab {...data} />} />
+        <Route path="descontos" element={<ZbxDescontosTab {...data} />} />
         <Route path="parametros" element={<ZbxParametrosTab {...data} />} />
         <Route path="pendencias" element={<Pendencias pendencias={pend} />} />
       </Routes>
