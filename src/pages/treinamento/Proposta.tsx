@@ -94,12 +94,27 @@ export default function TreinamentoProposta() {
         }),
       });
   const gerarWord = () => gerarPropostaDocx(entradaWord(emissoes.length || null));
+  // Versões antigas não guardaram a entrada do Word: remonta com os valores congelados da emissão
+  // e o conteúdo atual do curso (localizado pelo nome).
+  const reconstruir = (e: EmissaoTRN): Parameters<typeof gerarPropostaDocx>[0] => {
+    const emit = e.emitidaEm.slice(0, 10);
+    const dias = Math.max(1, Math.round((new Date(e.validaAte).getTime() - new Date(emit).getTime()) / 86400000));
+    return {
+      cliente: e.cliente, contato: e.contato, email: e.email, codigo: st.atual.codigo, versao: e.versao,
+      especialista: st.atual.especialistaBU, emissao: dataBR(emit), validade: dataBR(e.validaAte), validadeDias: dias,
+      condicoesPagamento: e.condicoesPagamento, observacoes: e.observacoes, total: e.total,
+      itens: e.itens.map((i) => {
+        const curso = cad.courses.find((c) => c.nome === i.curso) ?? ({ nome: i.curso } as never);
+        return { curso, conteudo: curso && (curso as { id?: string }).id ? contentById.get((curso as { id: string }).id) : undefined, modalidade: MOD[i.modalidade] ?? i.modalidade, alunos: i.alunos, somenteExame: i.somenteExame, precoPorAluno: i.precoPorAluno, total: i.total };
+      }),
+    };
+  };
   const baixarEmissao = async (e: EmissaoTRN) => {
     try {
-      const blob = await gerarPropostaDocx(e.docx!);
+      const blob = await gerarPropostaDocx(e.docx ?? reconstruir(e));
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `Proposta Treinamento - ${e.cliente || "cliente"}${e.docx!.codigo ? ` - ${e.docx!.codigo}` : ""} - v${e.versao}.docx`;
+      a.download = `Proposta Treinamento - ${e.cliente || "cliente"}${st.atual.codigo ? ` - ${st.atual.codigo}` : ""} - v${e.versao}.docx`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     } catch (err) { toast.error((err as Error).message); }
@@ -201,9 +216,7 @@ export default function TreinamentoProposta() {
                   <span>v{e.versao} · {new Date(e.emitidaEm).toLocaleString("pt-BR")}</span>
                   <span className="flex items-center gap-1">
                     <span className="font-medium">{brl(e.total)}</span>
-                    {e.docx
-                      ? <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => baixarEmissao(e)}>Word</Button>
-                      : <span className="text-[11px] text-muted-foreground" title="Versão emitida antes desta função">—</span>}
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => baixarEmissao(e)}>Word</Button>
                   </span>
                 </div>
               ))}
