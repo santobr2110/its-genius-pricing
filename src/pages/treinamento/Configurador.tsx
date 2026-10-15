@@ -42,9 +42,9 @@ export default function Configurador() {
   const params = useMemo(() => paramsFromRows(cad.params), [cad.params]);
   const vendaveis = cad.courses.filter((c) => c.ativo && !c.custo_pendente);
   const municipios = useMemo(() => {
-    const ids = tax.codes.filter((c) => (Object.values(PRODUTO_TRN) as string[]).includes(c.codigo)).map((c) => c.id);
+    const ids = tax.codes.filter((c) => (Object.values(params.produtos ?? PRODUTO_TRN) as string[]).includes(c.codigo)).map((c) => c.id);
     return Array.from(new Set(tax.rates.filter((r) => ids.includes(r.tax_product_code_id)).map((r) => r.municipio))).sort();
-  }, [tax.codes, tax.rates]);
+  }, [tax.codes, tax.rates, params.produtos]);
   const rates = resolveTaxRates(config.codigoProduto || CODIGO_TRN, config.municipio, hoje(), tax.codes, tax.rates);
   const irpj = resolveIrpjCsllPerc(config.convencao);
 
