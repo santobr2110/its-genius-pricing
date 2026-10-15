@@ -1396,6 +1396,51 @@ export type Database = {
           },
         ]
       }
+      zabbix_matriz_niveis: {
+        Row: {
+          ativo: boolean
+          enterprise: string
+          global: string
+          gold: string
+          id: string
+          ordem: number
+          platinum: string
+          recurso: string
+          secao: string
+          silver: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          enterprise?: string
+          global?: string
+          gold?: string
+          id?: string
+          ordem?: number
+          platinum?: string
+          recurso: string
+          secao: string
+          silver?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          enterprise?: string
+          global?: string
+          gold?: string
+          id?: string
+          ordem?: number
+          platinum?: string
+          recurso?: string
+          secao?: string
+          silver?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       zabbix_params: {
         Row: {
           descricao: string | null

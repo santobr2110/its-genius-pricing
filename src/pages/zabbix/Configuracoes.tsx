@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { BadgePercent, BookOpen, ClipboardList, Loader2, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { BadgePercent, Grid3x3, BookOpen, ClipboardList, Loader2, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,7 @@ import SubscricoesTab from "@/components/admin/zabbix/SubscricoesTab";
 import ZbxConteudoTab from "@/components/admin/zabbix/ConteudoTab";
 import ZbxParametrosTab from "@/components/admin/zabbix/ParametrosTab";
 import ZbxDescontosTab from "@/components/admin/zabbix/DescontosTab";
+import ZbxMatrizTab from "@/components/admin/zabbix/MatrizTab";
 
 const BASE = "/observabilidade/subscricoes-zabbix/configuracoes";
 const ORIGEM: Record<PendenciaZbx["origem"], string> = { subscricao: "Subscrições", conteudo: "Conteúdo", parametro: "Parâmetros" };
@@ -52,6 +53,7 @@ export default function ZbxConfiguracoes() {
     { to: `${BASE}/subscricoes`, label: "Subscrições", icon: ShieldCheck },
     { to: `${BASE}/conteudo`, label: "Conteúdo", icon: BookOpen },
     { to: `${BASE}/descontos`, label: "Descontos", icon: BadgePercent },
+    { to: `${BASE}/matriz`, label: "Matriz de níveis", icon: Grid3x3 },
     { to: `${BASE}/parametros`, label: "Parâmetros", icon: SlidersHorizontal },
     { to: `${BASE}/pendencias`, label: `Pendências${pend.length ? ` (${pend.length})` : ""}`, icon: ClipboardList },
   ];
@@ -63,6 +65,7 @@ export default function ZbxConfiguracoes() {
         <Route path="subscricoes" element={<SubscricoesTab {...data} />} />
         <Route path="conteudo" element={<ZbxConteudoTab {...data} />} />
         <Route path="descontos" element={<ZbxDescontosTab {...data} />} />
+        <Route path="matriz" element={<ZbxMatrizTab />} />
         <Route path="parametros" element={<ZbxParametrosTab {...data} />} />
         <Route path="pendencias" element={<Pendencias pendencias={pend} />} />
       </Routes>

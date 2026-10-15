@@ -78,6 +78,13 @@
       "when": 1792081217047,
       "tag": "0010_service_codes_lc116",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792086905471,
+      "tag": "0011_zabbix_proposta_v2",
+      "breakpoints": true
     }
   ]
 }
