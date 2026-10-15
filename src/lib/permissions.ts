@@ -64,7 +64,14 @@ export type PermissionKey =
   | "page.trn.params"
   | "page.trn.quote"
   | "page.trn.proposal"
-  | "page.trn.approve";
+  | "page.trn.approve"
+  // Observabilidade › Subscrições Zabbix
+  | "page.zbx.view"
+  | "page.zbx.quote"
+  | "page.zbx.proposal"
+  | "page.zbx.params"
+  | "page.zbx.admin"
+  | "page.zbx.approve";
 
 export interface PermissionDef {
   key: PermissionKey;
@@ -140,6 +147,12 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.trn.quote", label: "Montar e salvar cotações de Treinamento", group: "Observabilidade › Treinamento" },
   { key: "page.trn.proposal", label: "Emitir proposta de Treinamento", group: "Observabilidade › Treinamento" },
   { key: "page.trn.approve", label: "Aprovar descontos de Treinamento fora da faixa", group: "Observabilidade › Treinamento" },
+  { key: "page.zbx.view", label: "Acessar Subscrições Zabbix", group: "Observabilidade › Subscrições Zabbix" },
+  { key: "page.zbx.quote", label: "Montar e salvar cotações de Subscrições Zabbix", group: "Observabilidade › Subscrições Zabbix" },
+  { key: "page.zbx.proposal", label: "Emitir proposta de Subscrições Zabbix", group: "Observabilidade › Subscrições Zabbix" },
+  { key: "page.zbx.params", label: "Ver/editar parâmetros financeiros de Subscrições Zabbix", group: "Observabilidade › Subscrições Zabbix" },
+  { key: "page.zbx.admin", label: "Administrar Subscrições Zabbix (SKUs e parâmetros)", group: "Observabilidade › Subscrições Zabbix" },
+  { key: "page.zbx.approve", label: "Aprovar descontos de Subscrições Zabbix fora da faixa", group: "Observabilidade › Subscrições Zabbix" },
 ];
 
 export const PERMISSION_GROUPS = Array.from(new Set(PERMISSIONS.map((p) => p.group)));

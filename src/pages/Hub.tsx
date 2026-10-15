@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users, BriefcaseBusiness, GraduationCap } from "lucide-react";
+import { Calculator, Server, Cloud, Activity, ArrowRight, Sparkles, Package, Clock, Users, BriefcaseBusiness, GraduationCap, ShieldCheck } from "lucide-react";
 import UserMenu from "@/components/auth/UserMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -94,6 +94,15 @@ const GROUPS: GroupCard[] = [
         available: true,
         permissionKey: TREINAMENTO_PROVISORIO_GATE as PermissionKey,
       },
+      {
+        id: "subscricoes-zabbix",
+        title: "Subscrições Zabbix",
+        description: "Suporte oficial Zabbix e Academy",
+        to: "/observabilidade/subscricoes-zabbix",
+        icon: ShieldCheck,
+        available: true,
+        permissionKey: "page.zbx.view" as PermissionKey,
+      },
     ],
   },
   {
@@ -133,7 +142,7 @@ export default function Hub() {
     return () => obs.disconnect();
   }, []);
   const visibleGroups = GROUPS
-    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey) || (g.id === "observabilidade" && can(TREINAMENTO_PROVISORIO_GATE as PermissionKey)))
+    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey) || (g.id === "observabilidade" && (can(TREINAMENTO_PROVISORIO_GATE as PermissionKey) || can("page.zbx.view" as PermissionKey))))
     .map((g) => ({
       ...g,
       offerings: g.offerings.filter((o) => !o.permissionKey || can(o.permissionKey)),

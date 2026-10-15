@@ -83,6 +83,13 @@ export const GROUPS: GroupDef[] = [
       routePrefix: "/observabilidade/treinamento",
       routes: ["/observabilidade/treinamento"],
     },
+    {
+      slug: "subscricoes-zabbix",
+      name: "Subscrições Zabbix",
+      status: "active",
+      routePrefix: "/observabilidade/subscricoes-zabbix",
+      routes: ["/observabilidade/subscricoes-zabbix"],
+    },
   ] },
 ];
 

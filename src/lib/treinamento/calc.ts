@@ -181,16 +181,9 @@ export function aplicarDesconto(
   custo: number, pv: number, descontoPerc: number,
   p: Omit<CascataParams, "comissaoPerc" | "lucroPerc">, tiers: ComissaoTier[], comissaoFixa: number | null = null, retencaoPerc = 0,
 ): DescontoResult {
-  const pf = pv * (1 - pos(descontoPerc) / 100);
-  if (pf <= 0) return { precoFinal: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: -custo };
-  const fixos = pos(p.pisPerc) + pos(p.cofinsPerc) + pos(p.issPerc) + pos(p.irpjCsllPerc) + pos(p.encFinancPerc) + pos(retencaoPerc);
-  const base = 100 - fixos - (custo / pf) * 100; // rent + comissão
-  let com = comissaoFixa ?? 0;
-  for (let i = 0; comissaoFixa == null && i < 20; i++) {
-    const next = comissaoFromRent(base - com, tiers);
-    if (next === com) break;
-    com = next;
-  }
-  const rent = base - com;
-  return { precoFinal: pf, rentabilidadePerc: rent, comissaoPerc: com, lucro: (pf * rent) / 100 };
+  const r = decomporVenda(custo, pv, descontoPerc, {
+    pisPerc: p.pisPerc, cofinsPerc: p.cofinsPerc, issPerc: p.issPerc,
+    irpjCsllPerc: p.irpjCsllPerc, encFinancPerc: p.encFinancPerc, retencaoPerc,
+  }, tiers, comissaoFixa);
+  return { precoFinal: r.precoFinal, rentabilidadePerc: r.rentabilidadePerc, comissaoPerc: r.comissaoPerc, lucro: r.lucro };
 }

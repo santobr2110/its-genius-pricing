@@ -64,11 +64,12 @@ export function resolveTaxRates(
 }
 
 
-export type OfertaFiscal = "smart-ito" | "bodyshop" | "treinamento";
+export type OfertaFiscal = "smart-ito" | "bodyshop" | "treinamento" | "zabbix";
 export const OFERTAS_FISCAIS: { value: OfertaFiscal; label: string }[] = [
   { value: "smart-ito", label: "Smart ITO" },
   { value: "bodyshop", label: "BodyShop" },
   { value: "treinamento", label: "Treinamento" },
+  { value: "zabbix", label: "Subscrições Zabbix" },
 ];
 /** Código disponível para a oferta: só os marcados com ela (um código pode servir a várias). */
 export const codigoServeOferta = (c: TaxCode, oferta?: OfertaFiscal) =>
