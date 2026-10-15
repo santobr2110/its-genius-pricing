@@ -53,7 +53,8 @@ export function montarEntradas(
         pisoRentabilidadePerc: null, ausente: true };
     }
     const r = resolveDescontos(s, params.descontos);
-    const codigo = params.produtos[s.categoria];
+    // SKU fiscal próprio da subscrição; categoria só como reserva se vazio.
+    const codigo = s.codigo_produto?.trim() || params.produtos[s.categoria];
     return {
       linhaId: l.id, subscriptionId: s.id, partNumber: s.part_number, nome: s.nome, categoria: s.categoria, unidade: s.unidade,
       vendaUnitaria: Number(s.venda_brl), listaUsd: s.lista_usd == null ? null : Number(s.lista_usd), listaBrl: s.lista_brl == null ? null : Number(s.lista_brl),

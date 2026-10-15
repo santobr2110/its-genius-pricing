@@ -138,7 +138,7 @@ export function ZbxImpostos() {
           <p className="text-xs text-muted-foreground">A rentabilidade não é definida aqui: ela é o resultado do preço de venda menos custo, impostos, comissão e retenção.</p>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Comp label="PIS · COFINS · ISS" tag="automático" desc="Vêm do produto fiscal de cada categoria no município escolhido." valor={t0 ? t0.pisPerc + t0.cofinsPerc + t0.issPerc : 0} />
+          <Comp label="PIS · COFINS · ISS" tag="automático" desc="Vêm do produto fiscal de cada subscrição no município escolhido." valor={t0 ? t0.pisPerc + t0.cofinsPerc + t0.issPerc : 0} />
           <Comp label="IRPJ / CSLL" tag={podeParams ? "editável" : "convenção"} edit={podeParams} desc="Convenção de IR/CSLL. Só quem tem a permissão de parâmetros altera.">
             <Select value={config.convencao} disabled={!podeParams} onValueChange={(v) => setConfig({ ...config, convencao: v as typeof config.convencao })}>
               <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
@@ -156,44 +156,60 @@ export function ZbxImpostos() {
 }
 
 function ProdutosPorCategoria() {
-  const { can, user } = useAuth();
-  const { cad, tax, params, st } = useZabbixResultado();
+  const { can } = useAuth();
+  const { cad, tax, st } = useZabbixResultado();
   const pode = can("page.zbx.admin");
-  const [v, setV] = useState(params.produtos);
-  const key = JSON.stringify(params.produtos);
+  const orig = Object.fromEntries(cad.subs.map((s) => [s.id, s.codigo_produto]));
+  const key = JSON.stringify(orig);
+  const [v, setV] = useState<Record<string, string>>(orig);
   useEffect(() => setV(JSON.parse(key)), [key]);
   const codigos = tax.codes.filter((c) => c.ativo !== false && c.ofertas?.includes("zabbix"));
   const temNoMunicipio = (cod: string) => {
     const id = tax.codes.find((c) => c.codigo === cod)?.id;
     return tax.rates.some((r) => r.tax_product_code_id === id && r.municipio === st.config.municipio);
   };
+  const alterados = cad.subs.filter((s) => v[s.id] && v[s.id] !== s.codigo_produto);
   const salvar = async () => {
     try {
-      if (v.suporte !== params.produtos.suporte) await salvarParam("produto_suporte", v.suporte, user?.id);
-      if (v.academy !== params.produtos.academy) await salvarParam("produto_academy", v.academy, user?.id);
-      toast.success("Produtos por categoria salvos"); cad.refresh();
+      for (const s of alterados) {
+        const { error } = await supabase.from("zabbix_subscriptions").update({ codigo_produto: v[s.id] }).eq("id", s.id);
+        if (error) throw error;
+      }
+      toast.success("Produtos fiscais salvos"); cad.refresh();
     } catch (e) { toast.error((e as Error).message); }
   };
+  const grupos = [["suporte", "Suporte"], ["academy", "Academy"]] as const;
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
-          <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Produto fiscal por categoria</CardTitle>
-          <p className="text-xs text-muted-foreground">Cada item usa o SKU da sua categoria. A lista mostra os produtos marcados para Subscrições Zabbix no Cadastro tributário.</p>
+          <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Produto fiscal por subscrição</CardTitle>
+          <p className="text-xs text-muted-foreground">Cada subscrição usa o seu próprio SKU fiscal. A lista mostra os produtos marcados para Subscrições Zabbix no Cadastro tributário.</p>
         </div>
-        {pode && <Button size="sm" onClick={salvar} disabled={v.suporte === params.produtos.suporte && v.academy === params.produtos.academy}>Salvar</Button>}
+        {pode && <Button size="sm" onClick={salvar} disabled={alterados.length === 0}>Salvar</Button>}
       </CardHeader>
-      <CardContent className="grid gap-3 md:grid-cols-2">
-        {(["suporte", "academy"] as const).map((k) => (
-          <div key={k} className="space-y-1">
-            <Label className="text-xs">SKU · {k === "suporte" ? "Suporte" : "Academy"}</Label>
-            <Select value={v[k]} disabled={!pode} onValueChange={(x) => setV({ ...v, [k]: x })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{(codigos.length ? codigos : [{ codigo: v[k], nome: "" }]).map((c) => <SelectItem key={c.codigo} value={c.codigo}>{c.codigo}{c.nome && c.nome !== c.codigo ? ` · ${c.nome}` : ""}</SelectItem>)}</SelectContent>
-            </Select>
-            {!temNoMunicipio(v[k]) && <p className="text-[11px] text-destructive">Sem alíquotas em {st.config.municipio}.</p>}
-          </div>
-        ))}
+      <CardContent className="space-y-4">
+        {grupos.map(([cat, nome]) => {
+          const itens = cad.subs.filter((s) => s.categoria === cat);
+          if (!itens.length) return null;
+          return (
+            <div key={cat} className="space-y-2">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">{nome}</p>
+              {itens.map((s) => (
+                <div key={s.id} className="grid gap-2 sm:grid-cols-[1fr_220px] sm:items-center">
+                  <div className="min-w-0"><p className="text-sm font-medium">{s.part_number}</p><p className="text-xs text-muted-foreground truncate">{s.nome}</p></div>
+                  <div>
+                    <Select value={v[s.id]} disabled={!pode} onValueChange={(x) => setV({ ...v, [s.id]: x })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{(codigos.some((c) => c.codigo === v[s.id]) ? codigos : [{ codigo: v[s.id], nome: "" }, ...codigos]).map((c) => <SelectItem key={c.codigo} value={c.codigo}>{c.codigo}{c.nome && c.nome !== c.codigo ? ` · ${c.nome}` : ""}</SelectItem>)}</SelectContent>
+                    </Select>
+                    {!temNoMunicipio(v[s.id]) && <p className="text-[11px] text-destructive">Sem alíquotas em {st.config.municipio}.</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );
