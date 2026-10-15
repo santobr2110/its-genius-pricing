@@ -80,9 +80,7 @@ export default function TreinamentoProposta() {
     } catch (e) { toast.error((e as Error).message); } finally { setEmitindo(false); }
   };
 
-  const baixarWord = async () => {
-    try {
-      const blob = await gerarPropostaDocx({
+  const gerarWord = () => gerarPropostaDocx({
         cliente: st.atual.cliente, contato: d.contato, email: d.email, codigo: st.atual.codigo, versao: emissoes.length || null,
         especialista: st.atual.especialistaBU,
         emissao: dataBR(hojeISO), validade: dataBR(validaAte), validadeDias: d.validadeDias,
@@ -92,6 +90,9 @@ export default function TreinamentoProposta() {
           return { curso, conteudo: contentById.get(curso.id), modalidade: MOD[l.linha.modalidade] ?? l.linha.modalidade, alunos: l.linha.alunos, somenteExame: l.linha.somenteExame, precoPorAluno: l.precoFinalPorAluno, total: l.precoFinal };
         }),
       });
+  const baixarWord = async () => {
+    try {
+      const blob = await gerarWord();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `Proposta Treinamento - ${st.atual.cliente || "cliente"}${st.atual.codigo ? ` - ${st.atual.codigo}` : ""}.docx`;
@@ -99,6 +100,23 @@ export default function TreinamentoProposta() {
       setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     } catch (e) { toast.error((e as Error).message); }
   };
+  const [verWord, setVerWord] = useState(false);
+  const [wordBlob, setWordBlob] = useState<Blob | null>(null);
+  const wordRef = useRef<HTMLDivElement>(null);
+  const abrirWord = async () => {
+    try { setWordBlob(null); setVerWord(true); setWordBlob(await gerarWord()); }
+    catch (e) { setVerWord(false); toast.error((e as Error).message); }
+  };
+  useEffect(() => {
+    if (!verWord || !wordBlob) return;
+    const t = setTimeout(async () => {
+      if (!wordRef.current) return;
+      const { renderAsync } = await import("docx-preview");
+      wordRef.current.innerHTML = "";
+      await renderAsync(wordBlob, wordRef.current, undefined, { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: true });
+    }, 0);
+    return () => clearTimeout(t);
+  }, [verWord, wordBlob]);
 
   return (
     <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
