@@ -155,8 +155,66 @@ export default function ZbxProposta() {
         </Card>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border bg-muted/40 p-4">
-        <PropostaDoc m={emPdf ?? modelo} />
+      {/* Documento A4 fora da tela: usado só para gerar o PDF. */}
+      <div aria-hidden style={{ position: "fixed", left: -20000, top: 0 }}><PropostaDoc m={emPdf ?? modelo} /></div>
+      <div className="rounded-lg border bg-card text-card-foreground p-8 space-y-6">
+        <header className="flex justify-between items-start border-b pb-4">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Proposta comercial · Subscrições Zabbix</p>
+            <h1 className="text-2xl font-bold">{st.atual.cliente || "Cliente"}</h1>
+            {d.contato && <p className="text-sm">A/C {d.contato}{d.email ? ` · ${d.email}` : ""}</p>}
+          </div>
+          <div className="text-right text-sm">
+            {st.atual.codigo && <p className="font-mono">{st.atual.codigo}{emissoes.length ? ` · v${emissoes.length}` : ""}</p>}
+            <p>Emissão: {new Date(modelo.dataEmissao + "T12:00:00").toLocaleDateString("pt-BR")}</p>
+            <p>Validade: {new Date(modelo.dataValidade + "T12:00:00").toLocaleDateString("pt-BR")}</p>
+          </div>
+        </header>
+
+        <section className="space-y-5">
+          <h2 className="text-lg font-semibold">Subscrições</h2>
+          {modelo.blocos.map((b) => (
+            <article key={b.partNumber} className="space-y-3 rounded-lg border bg-muted/20 p-4 break-inside-avoid">
+              <div className="flex flex-wrap items-baseline gap-2">
+                <h3 className="font-semibold">{b.titulo}</h3>
+                <Badge variant="secondary">{b.partNumber}</Badge>
+                {b.aConfirmar && <Badge variant="outline" className="text-[10px]">A CONFIRMAR</Badge>}
+              </div>
+              {b.tagline && <p className="text-sm italic whitespace-pre-line">{b.tagline}</p>}
+              <dl className="grid gap-2 text-sm">
+                {b.campos.filter((c) => c.texto !== "[A CONFIRMAR]").map((c) => (
+                  <div key={c.label} className="rounded-md border border-border/60 px-3 py-2 break-inside-avoid">
+                    <dt className="text-xs font-semibold">{c.label}</dt>
+                    <dd className="whitespace-pre-line leading-relaxed break-words text-foreground/90">{c.texto}</dd>
+                  </div>
+                ))}
+              </dl>
+            </article>
+          ))}
+        </section>
+
+        <section className="space-y-2 rounded-lg border bg-muted/20 p-4 break-inside-avoid">
+          <h2 className="text-lg font-semibold">Investimento</h2>
+          <table className="w-full text-sm">
+            <thead><tr className="border-b text-left"><th className="py-1">Item</th><th className="text-right">Qtd.</th><th className="text-right">Unitário</th><th className="text-right">Total</th></tr></thead>
+            <tbody>
+              {modelo.itens.map((i) => (
+                <tr key={i.descricao} className="border-b">
+                  <td className="py-1">{i.descricao}</td><td className="text-right">{i.quantidade}</td>
+                  <td className="text-right">{brl(i.unitario)}</td><td className="text-right">{brl(i.total)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot><tr><td colSpan={3} className="py-1 font-semibold text-right">Total</td><td className="text-right font-bold">{brl(modelo.total)}</td></tr></tfoot>
+          </table>
+        </section>
+
+        {modelo.observacoes && (
+          <section className="space-y-1">
+            <h2 className="text-lg font-semibold">Observações</h2>
+            <p className="text-sm whitespace-pre-line">{modelo.observacoes}</p>
+          </section>
+        )}
       </div>
 
       <Dialog open={verResumo} onOpenChange={setVerResumo}>
