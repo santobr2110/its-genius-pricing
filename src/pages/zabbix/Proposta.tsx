@@ -57,16 +57,35 @@ export default function ZbxProposta() {
     niveis: Object.fromEntries(cad.subs.map((s) => [s.id, s.nivel])), matriz: matriz.linhas, salesforce: st.atual.salesforce ?? null,
   }), [res, cad.contents, cad.params, cad.subs, matriz.linhas, st.atual, d.contato, d.email, d.prazoPagamento, d.observacoes, emissoes.length, hojeISO, validadeDias]);
 
+  const [abrirWord, setAbrirWord] = useState(false);
+  const [wordUrl, setWordUrl] = useState<string | null>(null);
+  const [modoSimples, setModoSimples] = useState(false);
+  const visualizarWord = async (m: ModeloPropostaZbx) => {
+    try {
+      setWordUrl(null); setVerWord(null); setModoSimples(false); setAbrirWord(true);
+      const blob = await gerarPropostaZbxDocx(m);
+      setVerWord(blob);
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Sessão expirada");
+      const path = `${u.user.id}/proposta-zbx-${Date.now()}.docx`;
+      const up = await supabase.storage.from("trn-previews").upload(path, blob, { contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", upsert: true });
+      if (up.error) throw up.error;
+      const sg = await supabase.storage.from("trn-previews").createSignedUrl(path, 600);
+      if (sg.error || !sg.data) throw sg.error ?? new Error("Falha ao gerar link");
+      setWordUrl(`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(sg.data.signedUrl)}`);
+      setTimeout(() => { supabase.storage.from("trn-previews").remove([path]); }, 10 * 60_000);
+    } catch (e) { setModoSimples(true); toast.error(`Visualização exata indisponível: ${(e as Error).message}`); }
+  };
   useEffect(() => {
-    if (!verWord) return;
+    if (!abrirWord || !verWord || !modoSimples) return;
     const t = setTimeout(async () => {
       if (!wordRef.current) return;
       const { renderAsync } = await import("docx-preview");
       wordRef.current.innerHTML = "";
-      await renderAsync(verWord, wordRef.current, undefined, { inWrapper: true, breakPages: true });
+      await renderAsync(verWord, wordRef.current, undefined, { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: true });
     }, 0);
     return () => clearTimeout(t);
-  }, [verWord]);
+  }, [abrirWord, verWord, modoSimples]);
 
   // PDF de uma emissão antiga: renderiza o modelo congelado fora da tela e exporta.
   useEffect(() => {
@@ -137,7 +156,7 @@ export default function ZbxProposta() {
               {nPend > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Há {nPend} campo(s) a confirmar (destacados em amarelo no Word).</p>}
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" disabled={!pode} onClick={async () => { const b = await word(modelo); if (b) baixar(b, nomeWord(modelo, `${nomeBase}.docx`)); }}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
-                <Button variant="outline" size="icon" title="Visualizar Word" onClick={async () => setVerWord(await word(modelo))}><Eye className="h-4 w-4" /></Button>
+                <Button variant="outline" size="icon" title="Visualizar Word" aria-label="Visualizar Word" onClick={() => visualizarWord(modelo)}><Eye className="h-4 w-4" /></Button>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" disabled={!pode} onClick={() => { setVerResumo(true); setTimeout(() => exportarResumoZbxPdf(`${st.atual.codigo || "resumo-zabbix"}.pdf`).catch((e) => toast.error(e.message)).finally(() => setVerResumo(false)), 400); }}><FileDown className="h-4 w-4 mr-2" />Baixar Cotação/ROI</Button>
@@ -232,10 +251,15 @@ export default function ZbxProposta() {
           <ZbxResumo embedded />
         </DialogContent>
       </Dialog>
-      <Dialog open={!!verWord} onOpenChange={(o) => !o && setVerWord(null)}>
-        <DialogContent className="max-w-[960px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Proposta (Word)</DialogTitle></DialogHeader>
-          <div ref={wordRef} />
+      <Dialog open={abrirWord} onOpenChange={setAbrirWord}>
+        <DialogContent className="max-w-5xl h-[90vh] flex flex-col">
+          <DialogHeader className="flex-row items-center justify-between gap-2 pr-8">
+            <DialogTitle>Proposta (Word)</DialogTitle>
+            {verWord && <Button variant="ghost" size="sm" onClick={() => setModoSimples(!modoSimples)}>{modoSimples ? "Visualização exata" : "Visualização rápida"}</Button>}
+          </DialogHeader>
+          {!modoSimples && !wordUrl && <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>}
+          {!modoSimples && wordUrl && <iframe title="Proposta" src={wordUrl} className="flex-1 w-full rounded-md border" />}
+          {modoSimples && <div ref={wordRef} className="flex-1 overflow-auto rounded-md" />}
         </DialogContent>
       </Dialog>
     </div>
