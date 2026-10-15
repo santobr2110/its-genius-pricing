@@ -20,10 +20,12 @@ export default function ZbxParametrosTab({ params, refresh }: ZbxCadastro) {
   const { user } = useAuth();
   const tax = useTaxCodes() as unknown as { codes?: { codigo: string; nome: string; ofertas?: string[] }[] };
   const skus = useMemo(() => (tax.codes ?? []).filter((c) => (c.ofertas ?? []).includes("zabbix")), [tax.codes]);
-  // Fora desta tela: descontos (aba própria), SKUs (Financeiro › Impostos & Markup) e textos da
-  // proposta marcados como reuso (virão do documento padrão). Fica só "Observações da proposta".
+  // Fora desta tela: descontos (aba própria), SKUs (Financeiro › Impostos & Markup), preço de lista
+  // (não usado) e textos que o Word atual não usa. Textos da proposta ficam visíveis e editáveis.
+  const OCULTOS = ["exibir_lista_na_proposta", "proposta_quem_somos"];
   const filtrados = useMemo(
-    () => params.filter((p) => !p.key.startsWith("desconto_") && !p.key.startsWith("produto_") && (p.status as string) !== "reuso"),
+    () => params.filter((p) => !p.key.startsWith("desconto_") && !p.key.startsWith("produto_") && !OCULTOS.includes(p.key)
+      && ((p.status as string) !== "reuso" || p.key.startsWith("proposta_"))),
     [params],
   );
   const [rows, setRows] = useState<ZabbixParam[]>(filtrados);
