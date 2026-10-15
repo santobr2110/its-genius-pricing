@@ -119,7 +119,8 @@ export default function ZbxProposta() {
   const nomeWord = (m: ModeloPropostaZbx, fallback: string) => (m.layoutVersao === 2 ? nomeArquivoV2(m) : fallback);
   const word = async (m: ModeloPropostaZbx) => { try { return await gerarPropostaZbxDocx(m); } catch (e) { toast.error((e as Error).message); return null; } };
   const nPend = contarPendencias(modelo);
-  const pend = modelo.blocos.some((b) => b.aConfirmar) || JSON.stringify(modelo).includes("[A CONFIRMAR]");
+  const faltaCotacao = [!modelo.consultor.trim() && "consultor", !modelo.cliente.trim() && "cliente"].filter(Boolean) as string[];
+  const pend = modelo.layoutVersao === 2 ? nPend > 0 && faltaCotacao.length === 0 : modelo.blocos.some((b) => b.aConfirmar) || nPend > 0;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
@@ -138,6 +139,7 @@ export default function ZbxProposta() {
             {pend && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Há textos marcados [A CONFIRMAR]. Preencha em Configurações › Conteúdo e Parâmetros.</p>}
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !pode}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar proposta)</Button>
+              {faltaCotacao.length > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Preencha na cotação: {faltaCotacao.join(" e ")}.</p>}
               {nPend > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Há {nPend} campo(s) a confirmar (destacados em amarelo no Word).</p>}
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" disabled={!pode} onClick={async () => { const b = await word(modelo); if (b) baixar(b, nomeWord(modelo, `${nomeBase}.docx`)); }}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
