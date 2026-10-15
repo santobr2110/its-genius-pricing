@@ -15,6 +15,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useZabbixCotacoes } from "@/hooks/useZabbixCotacoes";
 import { montarModeloProposta, type EmissaoZBX, type ModeloPropostaZbx } from "@/lib/zabbix/proposta";
 import { gerarPropostaZbxDocx } from "@/lib/zabbix/propostaDocx";
+import { contarPendencias, nomeArquivoV2 } from "@/lib/zabbix/propostaDocxV2";
+import { useZabbixMatriz } from "@/hooks/useZabbixMatriz";
 import { useZabbixResultado } from "./useZabbixResultado";
 import { ZBX_BASE } from "./useZbxState";
 import PropostaDoc, { exportarPropostaPdf } from "./PropostaDoc";
@@ -33,6 +35,7 @@ function baixar(blob: Blob, nome: string) {
 export default function ZbxProposta() {
   const { cad, st, res, params, congeladoIntacto, loading } = useZabbixResultado();
   const cot = useZabbixCotacoes();
+  const matriz = useZabbixMatriz();
   const { can } = useAuth();
   const pode = can("page.zbx.proposal");
   const [dados, setDados] = usePersistentState<Dados>("observabilidade.zabbix.proposta", PADRAO);
@@ -51,7 +54,8 @@ export default function ZbxProposta() {
     res, contents: cad.contents, params: cad.params, cliente: st.atual.cliente, contato: d.contato, email: d.email,
     consultor: st.atual.especialistaBU ?? "", codigo: st.atual.codigo, versao: emissoes.length || null,
     hojeISO, validadeDias, prazoPagamento: d.prazoPagamento, observacoesExtra: d.observacoes,
-  }), [res, cad.contents, cad.params, st.atual, d.contato, d.email, d.prazoPagamento, d.observacoes, emissoes.length, hojeISO, validadeDias]);
+    niveis: Object.fromEntries(cad.subs.map((s) => [s.id, s.nivel])), matriz: matriz.linhas, salesforce: st.atual.salesforce ?? null,
+  }), [res, cad.contents, cad.params, cad.subs, matriz.linhas, st.atual, d.contato, d.email, d.prazoPagamento, d.observacoes, emissoes.length, hojeISO, validadeDias]);
 
   useEffect(() => {
     if (!verWord) return;
@@ -104,6 +108,9 @@ export default function ZbxProposta() {
     } catch (e) { toast.error((e as Error).message); } finally { setEmitindo(false); }
   };
 
+  const nomeWord = (m: ModeloPropostaZbx, fallback: string) => (m.layoutVersao === 2 ? nomeArquivoV2(m) : fallback);
+  const word = async (m: ModeloPropostaZbx) => { try { return await gerarPropostaZbxDocx(m); } catch (e) { toast.error((e as Error).message); return null; } };
+  const nPend = contarPendencias(modelo);
   const pend = modelo.blocos.some((b) => b.aConfirmar) || JSON.stringify(modelo).includes("[A CONFIRMAR]");
 
   return (
@@ -126,9 +133,11 @@ export default function ZbxProposta() {
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" disabled={!pode} onClick={() => exportarPropostaPdf(`${nomeBase}.pdf`).catch((e) => toast.error(e.message))}><FileDown className="h-4 w-4 mr-2" />Baixar PDF</Button>
               </div>
+              <p className="text-[11px] text-muted-foreground -mt-1">PDF no layout padrão; o Word é a versão com identidade Selbetti.</p>
+              {nPend > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Há {nPend} campo(s) a confirmar (destacados em amarelo no Word).</p>}
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" disabled={!pode} onClick={async () => baixar(await gerarPropostaZbxDocx(modelo), `${nomeBase}.docx`)}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
-                <Button variant="outline" size="icon" title="Visualizar Word" onClick={async () => setVerWord(await gerarPropostaZbxDocx(modelo))}><Eye className="h-4 w-4" /></Button>
+                <Button variant="outline" className="flex-1" disabled={!pode} onClick={async () => { const b = await word(modelo); if (b) baixar(b, nomeWord(modelo, `${nomeBase}.docx`)); }}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
+                <Button variant="outline" size="icon" title="Visualizar Word" onClick={async () => setVerWord(await word(modelo))}><Eye className="h-4 w-4" /></Button>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" disabled={!pode} onClick={() => { setVerResumo(true); setTimeout(() => exportarResumoZbxPdf(`${st.atual.codigo || "resumo-zabbix"}.pdf`).catch((e) => toast.error(e.message)).finally(() => setVerResumo(false)), 400); }}><FileDown className="h-4 w-4 mr-2" />Baixar Cotação/ROI</Button>
@@ -146,7 +155,7 @@ export default function ZbxProposta() {
                 <div className="flex items-center justify-between"><Badge variant="secondary">v{em.versao}</Badge><span className="text-muted-foreground">{new Date(em.emitidaEm).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span></div>
                 <p>{brl(em.modelo.total)} · válida até {new Date(em.validaAte + "T12:00:00").toLocaleDateString("pt-BR")}</p>
                 <div className="flex gap-1">
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => baixar(await gerarPropostaZbxDocx(em.modelo), `Proposta Zabbix - ${em.modelo.cliente} - v${em.versao}.docx`)}>Word</Button>
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => { const b = await word(em.modelo); if (b) baixar(b, nomeWord(em.modelo, `Proposta Zabbix - ${em.modelo.cliente} - v${em.versao}.docx`)); }}>Word</Button>
                   <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEmPdf(em.modelo)}>PDF</Button>
                 </div>
               </div>
