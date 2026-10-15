@@ -55,9 +55,10 @@ export function useZabbixResultado() {
   const globais = congeladoIntacto && st.snapshot ? globaisDoSnapshot(st.snapshot) : globaisVivos;
 
   const municipios = useMemo(() => {
-    const ids = tax.codes.filter((c) => Object.values(params.produtos).includes(c.codigo)).map((c) => c.id);
+    const usados = new Set([...Object.values(params.produtos), ...cad.subs.map((s) => s.codigo_produto)]);
+    const ids = tax.codes.filter((c) => usados.has(c.codigo)).map((c) => c.id);
     return Array.from(new Set(tax.rates.filter((r) => ids.includes(r.tax_product_code_id)).map((r) => r.municipio))).sort();
-  }, [tax.codes, tax.rates, params.produtos]);
+  }, [tax.codes, tax.rates, params.produtos, cad.subs]);
 
   return {
     cad, tax, st, params, res, vivo, congelado, congeladoIntacto, globais, globaisVivos, entradasVivas, diffs, municipios,
