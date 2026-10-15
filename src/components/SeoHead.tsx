@@ -43,6 +43,10 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     title: "Níveis de Observabilidade — Smart ITO",
     description: "Precificação de observabilidade por nível M1–M4 e carga de coleta (NVPS).",
   },
+  "/observabilidade/subscricoes-zabbix": {
+    title: "Subscrições Zabbix — Observabilidade",
+    description: "Suporte oficial Zabbix e Academy: preço por SKU e valor de chegada.",
+  },
   "/precificacoes": {
     title: "Precificações Salvas — Smart ITO",
     description:
