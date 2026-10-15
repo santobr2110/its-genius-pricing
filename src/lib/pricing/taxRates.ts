@@ -10,6 +10,10 @@ export interface TaxCode {
   a_confirmar: boolean;
   /** Ofertas que usam o código; vazio = geral. */
   ofertas?: string[];
+  /** Código de serviço (LC 116) de onde vêm as alíquotas. */
+  service_code_id?: string | null;
+  /** true = ignora o código de serviço e usa as alíquotas próprias do produto. */
+  usa_aliquota_propria?: boolean;
 }
 
 export interface TaxRate {
@@ -81,4 +85,58 @@ export function taxPorProdutoFactory(municipio: string, data: string, codes: Tax
     const r = resolveTaxRates(codigo, municipio, data, codes, rates);
     return r ? { pisPerc: r.pisPerc, cofinsPerc: r.cofinsPerc, issPerc: r.issPerc } : null;
   };
+}
+
+/** Código de serviço (item LC 116): PIS/COFINS únicos e ISS por município. */
+export interface ServiceCode {
+  id: string;
+  lc116_item: string;
+  descricao: string | null;
+  pis_perc: number;
+  cofins_perc: number;
+  a_confirmar: boolean;
+  ativo: boolean;
+}
+export interface ServiceCodeIss {
+  id: string;
+  service_code_id: string;
+  municipio: string;
+  iss_perc: number;
+  vigencia_inicio: string;
+  vigencia_fim: string | null;
+  a_confirmar: boolean;
+}
+
+/**
+ * Alíquotas efetivas por produto: herda do código de serviço vinculado, salvo
+ * quando o produto usa alíquota própria (linhas de tax_product_code_rates).
+ */
+export function aliquotasEfetivas(
+  codes: TaxCode[],
+  proprias: TaxRate[],
+  servicos: ServiceCode[],
+  iss: ServiceCodeIss[],
+): TaxRate[] {
+  const out: TaxRate[] = [];
+  for (const c of codes) {
+    const sc = c.service_code_id ? servicos.find((s) => s.id === c.service_code_id) : undefined;
+    if (c.usa_aliquota_propria || !sc) {
+      out.push(...proprias.filter((r) => r.tax_product_code_id === c.id));
+      continue;
+    }
+    for (const i of iss.filter((x) => x.service_code_id === sc.id)) {
+      out.push({
+        id: `${c.id}:${i.id}`,
+        tax_product_code_id: c.id,
+        municipio: i.municipio,
+        pis_perc: Number(sc.pis_perc),
+        cofins_perc: Number(sc.cofins_perc),
+        iss_perc: Number(i.iss_perc),
+        vigencia_inicio: i.vigencia_inicio,
+        vigencia_fim: i.vigencia_fim,
+        a_confirmar: !!(sc.a_confirmar || i.a_confirmar),
+      });
+    }
+  }
+  return out;
 }
