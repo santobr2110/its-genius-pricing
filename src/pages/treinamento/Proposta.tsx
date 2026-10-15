@@ -30,6 +30,8 @@ export interface EmissaoTRN {
   condicoesPagamento: string; observacoes: string;
   itens: { curso: string; modalidade: string; alunos: number; precoPorAluno: number; total: number; somenteExame: boolean }[];
   total: number; custoTotal: number; rentabilidadePerc: number;
+  /** Entrada do Word congelada na emissão (ausente em versões antigas). */
+  docx?: Parameters<typeof gerarPropostaDocx>[0];
 }
 
 export default function TreinamentoProposta() {
@@ -71,6 +73,7 @@ export default function TreinamentoProposta() {
         contato: d.contato, email: d.email, condicoesPagamento: d.condicoesPagamento, observacoes: obsFinal,
         itens: itens.map((l) => ({ curso: l.cursoOriginal?.nome ?? l.curso!.nome, modalidade: l.linha.modalidade, alunos: l.linha.alunos, precoPorAluno: l.precoFinalPorAluno, total: l.precoFinal, somenteExame: l.linha.somenteExame })),
         total: res.precoFinalTotal, custoTotal: res.custoTotal, rentabilidadePerc: res.rentabilidadePerc,
+        docx: entradaWord(emissoes.length + 1),
       };
       const payload = { ...(salvo.payload as object), linhas: st.linhas, config: st.config, emissoes: [...emissoes, em] };
       const { error } = await supabase.from("pricing_presets").update({ payload: payload as never }).eq("id", salvo.id);
@@ -80,8 +83,8 @@ export default function TreinamentoProposta() {
     } catch (e) { toast.error((e as Error).message); } finally { setEmitindo(false); }
   };
 
-  const gerarWord = () => gerarPropostaDocx({
-        cliente: st.atual.cliente, contato: d.contato, email: d.email, codigo: st.atual.codigo, versao: emissoes.length || null,
+  const entradaWord = (versao: number | null): Parameters<typeof gerarPropostaDocx>[0] => ({
+        cliente: st.atual.cliente, contato: d.contato, email: d.email, codigo: st.atual.codigo, versao,
         especialista: st.atual.especialistaBU,
         emissao: dataBR(hojeISO), validade: dataBR(validaAte), validadeDias: d.validadeDias,
         condicoesPagamento: d.condicoesPagamento, observacoes: obsFinal, total: res.precoFinalTotal,
@@ -90,6 +93,17 @@ export default function TreinamentoProposta() {
           return { curso, conteudo: contentById.get(curso.id), modalidade: MOD[l.linha.modalidade] ?? l.linha.modalidade, alunos: l.linha.alunos, somenteExame: l.linha.somenteExame, precoPorAluno: l.precoFinalPorAluno, total: l.precoFinal };
         }),
       });
+  const gerarWord = () => gerarPropostaDocx(entradaWord(emissoes.length || null));
+  const baixarEmissao = async (e: EmissaoTRN) => {
+    try {
+      const blob = await gerarPropostaDocx(e.docx!);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `Proposta Treinamento - ${e.cliente || "cliente"}${e.docx!.codigo ? ` - ${e.docx!.codigo}` : ""} - v${e.versao}.docx`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    } catch (err) { toast.error((err as Error).message); }
+  };
   const baixarWord = async () => {
     try {
       const blob = await gerarWord();
@@ -183,9 +197,14 @@ export default function TreinamentoProposta() {
             <CardHeader><CardTitle className="text-base">Versões emitidas</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
               {[...emissoes].reverse().map((e) => (
-                <div key={e.versao} className="flex justify-between border-b pb-1">
+                <div key={e.versao} className="flex items-center justify-between gap-2 border-b pb-1">
                   <span>v{e.versao} · {new Date(e.emitidaEm).toLocaleString("pt-BR")}</span>
-                  <span className="font-medium">{brl(e.total)}</span>
+                  <span className="flex items-center gap-1">
+                    <span className="font-medium">{brl(e.total)}</span>
+                    {e.docx
+                      ? <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => baixarEmissao(e)}>Word</Button>
+                      : <span className="text-[11px] text-muted-foreground" title="Versão emitida antes desta função">—</span>}
+                  </span>
                 </div>
               ))}
             </CardContent>
