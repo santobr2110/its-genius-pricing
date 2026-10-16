@@ -13,7 +13,7 @@ import FinanceiroSubNav from "@/components/itsm/FinanceiroSubNav";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { usePersistentState } from "@/hooks/usePersistentState";
-import ProdutoFiscalCard from "@/components/financeiro/ProdutoFiscalCard";
+import ITOFiscalCard from "@/components/financeiro/ITOFiscalCard";
 import { useEffect } from "react";
 import WriteFence from "@/components/auth/WriteFence";
 
@@ -58,7 +58,7 @@ export default function ConfiguracoesImpostos() {
 <WriteFence permission="page.financeiro.write" anyOf={["financeiro.edit"]}>
         <FinanceiroSubNav />
 
-        <ProdutoFiscalCard oferta="smart-ito" storagePrefix="financeiro" current={state} onApply={(r) => { update("pisPerc", r.pisPerc); update("cofinsPerc", r.cofinsPerc); update("issPerc", r.issPerc); }} />
+        <ITOFiscalCard />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>

@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 import { useActivePresetSession, type ActivePresetStatus } from "@/hooks/useActivePresetSession";
 import { useApplyDefaultProfileOnLogin } from "@/hooks/useApplyDefaultProfileOnLogin";
+import { useITOFiscal } from "@/hooks/useITOFiscal";
 import { isPresetActive } from "@/lib/activePreset";
 import { toast } from "sonner";
 import { type Rotina, ROTINAS_DEFAULT } from "@/data/rotinas";
@@ -28,6 +29,7 @@ import {
 
 interface ITSMContextType {
   state: ITSMState;
+  fiscalITO: ReturnType<typeof useITOFiscal>;
   update: <K extends keyof ITSMState>(key: K, value: ITSMState[K]) => void;
   updateFunnel: (level: "percN1" | "percN2" | "percN3", value: number) => void;
   results: ITSMResults;
@@ -61,6 +63,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const n1 = useN1TeamState();
   const n2 = useN2TeamState();
   const activePreset = useActivePresetSession();
+  const fiscalITO = useITOFiscal(calc.state, calc.setState, activePreset.loaded);
 
   // Smart Flow: alocação N1 cobra 15 min por chamado ao custo/hora médio da Equipe N1.
   const custoHoraN1Medio = Math.round((n1.results.custoPorPessoa / HORAS_MES_N1) * 100) / 100;
@@ -187,6 +190,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
 
   const value: ITSMContextType = {
     state: calc.state,
+    fiscalITO,
     update: calc.update,
     updateFunnel: calc.updateFunnel,
     results: unifiedResults,

@@ -36,6 +36,7 @@ export const SMART_ITO_PARAM_KEYS: string[] = SMART_ITO_RAW.map(
 const SMART_ITO_FINANCEIRO = [
   "financeiro.codigoProduto",
   "financeiro.cidadeIss",
+  "financeiro.municipio",
 ] as const;
 SMART_ITO_PARAM_KEYS.push(
   ...SMART_ITO_FINANCEIRO.map((k) => SMART_ITO_NS + k),
