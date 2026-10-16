@@ -68,15 +68,9 @@ export default function AuthPage() {
             <Calculator className="h-5 w-5 text-primary" />
           </div>
           <CardTitle>Smart ITO</CardTitle>
-          <CardDescription>Acesse sua conta ou crie uma nova</CardDescription>
+          <CardDescription>Acesse sua conta</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-3 pt-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="le">Email</Label>
@@ -89,31 +83,10 @@ export default function AuthPage() {
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />} Entrar
                 </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-3 pt-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="sn">Nome</Label>
-                  <Input id="sn" value={signName} onChange={(e) => setSignName(e.target.value)} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="se">Email</Label>
-                  <Input id="se" type="email" value={signEmail} onChange={(e) => setSignEmail(e.target.value)} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="sp">Senha (mín. 8)</Label>
-                  <Input id="sp" type="password" value={signPassword} onChange={(e) => setSignPassword(e.target.value)} required />
-                </div>
-                <Button type="submit" className="w-full" disabled={busy}>
-                  {busy && <Loader2 className="h-4 w-4 animate-spin" />} Criar conta
-                </Button>
                 <p className="text-xs text-muted-foreground text-center">
-                  O primeiro usuário cadastrado torna-se Administrador.
+                  Acesso restrito a usuários cadastrados pelo administrador.
                 </p>
               </form>
-            </TabsContent>
-          </Tabs>
         </CardContent>
       </Card>
     </div>
