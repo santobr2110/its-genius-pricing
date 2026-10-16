@@ -130,12 +130,6 @@ export function TrnImpostos() {
   );
   return (
     <Shell>
-      <ProdutoFiscalCard
-        oferta="treinamento" storagePrefix="trn.financeiro" codigoPadrao="TRN"
-        codigo={config.codigoProduto || "TRN"} municipio={config.municipio}
-        onChange={(v) => setConfig({ ...config, codigoProduto: v.codigo, municipio: v.municipio })}
-        current={b} onApply={() => {}}
-      />
       <ProdutosPorCondicao />
       <ResumoCards custo={res.custoTotal} sigma={sigma} pv={pv} />
       {sigma >= 100 && <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">A soma dos percentuais é {pct(sigma)} (≥ 100%). Reduza algum componente para tornar o preço calculável.</div>}

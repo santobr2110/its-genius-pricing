@@ -125,12 +125,6 @@ export function ZbxImpostos() {
   const t0 = res.linhas.find((l) => l.fixos)?.fixos;
   return (
     <Shell>
-      <ProdutoFiscalCard
-        oferta="zabbix" storagePrefix="zbx.financeiro" codigoPadrao={params.produtos.suporte}
-        codigo={params.produtos.suporte} municipio={config.municipio}
-        onChange={(v) => setConfig({ ...config, municipio: v.municipio })}
-        current={t0 ?? { pisPerc: 0, cofinsPerc: 0, issPerc: 0 }} onApply={() => {}}
-      />
       <ProdutosPorCategoria />
       <Card>
         <CardHeader>
