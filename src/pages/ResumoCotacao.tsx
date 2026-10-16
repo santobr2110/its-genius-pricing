@@ -553,6 +553,10 @@ export default function ResumoCotacao() {
           </div>
 
           {/* Taxas e Impostos */}
+          {calcState.fiscalITO && <div className="mb-6 text-xs space-y-1 break-words">
+            <p><strong>SKU:</strong> {calcState.fiscalITO.sku}</p>
+            <p><strong>Código Protheus:</strong> {calcState.fiscalITO.codigo} · <strong>Município de faturamento:</strong> {calcState.fiscalITO.municipio}</p>
+          </div>}
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Taxas e Impostos</h2>
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Investimento Total:" value={formatBRL(investimentoTotal)} />

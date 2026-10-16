@@ -55,7 +55,7 @@ export default function ITOFiscalCard() {
       {registro.loading || cadastro.loading ? <p className="text-sm text-muted-foreground">Carregando produtos…</p> : COMPOSICOES_ITO.map((c) => <div key={c.key} className={`grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)] items-center gap-2 border rounded-md p-3 ${ativo === c.key ? "border-primary/40 bg-primary/5" : "bg-background"}`}>
         <Label className="text-xs font-semibold">{c.label}</Label>
         <Select value={draft[c.key] ?? ""} disabled={!editavel || saving} onValueChange={(v) => setDraft((prev) => ({ ...prev, [c.key]: v }))}>
-          <SelectTrigger aria-label={`SKU ${c.label}`} className="min-h-10 h-auto text-xs text-left [&>span]:whitespace-normal [&>span]:break-words"><SelectValue placeholder="Selecionar SKU" /></SelectTrigger>
+          <SelectTrigger aria-label={`SKU ${c.label}`} className="min-h-10 h-auto text-xs text-left [&>span]:line-clamp-none [&>span]:whitespace-normal [&>span]:break-words"><SelectValue placeholder="Selecionar SKU">{produtos.find((p) => p.codigo === draft[c.key])?.nome}</SelectValue></SelectTrigger>
           <SelectContent className="max-w-[calc(100vw-3rem)] max-h-80">{produtos.map((p) => <SelectItem key={p.id} value={p.codigo} className="text-xs"><span className="block whitespace-normal break-words">{p.nome}</span><span className="block text-muted-foreground text-[10px]">{p.codigo}</span></SelectItem>)}</SelectContent>
         </Select>
       </div>)}
