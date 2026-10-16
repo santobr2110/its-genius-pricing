@@ -1631,6 +1631,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      has_any_role: { Args: never; Returns: boolean }
       has_permission: {
         Args: { _permission_key: string; _user_id: string }
         Returns: boolean
