@@ -52,6 +52,16 @@ export function mergeCalculatorWithParameterPayload(
     if (key in quoteRecord) merged[key] = quoteRecord[key];
   }
 
+  // Nunca herdar o produto congelado de outra cotação/perfil.
+  if (quoteCalculator.fiscalITO) {
+    merged.fiscalITO = quoteCalculator.fiscalITO;
+    merged.pisPerc = quoteCalculator.pisPerc;
+    merged.cofinsPerc = quoteCalculator.cofinsPerc;
+    merged.issPerc = quoteCalculator.issPerc;
+  } else {
+    delete merged.fiscalITO;
+  }
+
   return merged as unknown as ITSMState;
 }
 

@@ -77,8 +77,8 @@ export const PISO_NIVEL_POR_CAMADA: Record<string, NivelObservabilidade> = {
   Monitor: "M1",
   Flow: "M1",
   Operation: "M2",
-  Performance: "M3",
-  Enterprise: "M3",
+  Performance: "M2",
+  Enterprise: "M2",
 };
 
 const ORDEM: Record<NivelObservabilidade, number> = { M1: 1, M2: 2, M3: 3, M4: 4 };

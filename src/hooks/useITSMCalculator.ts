@@ -1,4 +1,5 @@
 import { composicaoSmartITO, percsFromState } from "@/lib/pricing/cascata";
+import type { FiscalSnapshotITO } from "@/lib/pricing/itoFiscal";
 // @refresh reset
 import { useMemo, useCallback } from "react";
 import { usePersistentState } from "./usePersistentState";
@@ -168,6 +169,8 @@ export interface ITSMState {
   // === Observabilidade em níveis (modelo novo, campos isolados) ===
   modeloObservabilidade: ModeloObservabilidade;
   nivelObservabilidade: NivelObservabilidade;
+  /** Produto e alíquotas congelados na precificação; ausente em cotações históricas. */
+  fiscalITO?: FiscalSnapshotITO;
   obsPesos: ObsPesos;
   obsNvpsPorAtivo: ObsNvpsPorAtivo;
   obsFaixas: ObsFaixaVolume[];
