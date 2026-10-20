@@ -18,3 +18,8 @@
 - [x] Financeiro: resultado mensal/contrato, impostos por cargo, parâmetros e comissões; alterações de cadastro sincronizadas nas telas.
 - [x] Resumo A4 e PDF, com modo incorporado para a futura Proposta; exportação e logo verificados.
 - [x] Testar fechamento financeiro, isolamento fiscal por cargo e congelamento (178 testes); fluxo autenticado de exceção fiscal salva/reaberta/desfeita e PDF, largura 390 sem corte, dados temporários excluídos.
+
+# BodyShop — Fase 5
+- [ ] Modelo puro da proposta a partir do snapshot, com conteúdo e condições congelados na emissão.
+- [ ] Documento PDF/Word, prévias e download das versões originais.
+- [ ] Validar totais, bloqueio de emissão e preservação de versões no fluxo autenticado.
