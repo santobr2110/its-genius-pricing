@@ -23,3 +23,9 @@
 - [x] Modelo puro da proposta a partir do snapshot, com conteúdo e condições congelados na emissão.
 - [x] Documento PDF/Word, prévia Microsoft e alternativa rápida; versões originais armazenadas. Word programático provisório conforme roteiro, até receber o modelo visual próprio.
 - [x] Totais Word/PDF iguais ao Configurador; bloqueio sem salvamento; emissão v1/v2, reabertura e download v1 byte-idêntico; 187 testes passaram, Word validado e PDF A4 inspecionado.
+
+# BodyShop — Fase 6
+- [ ] Registrar aprovação sem faixas ativas e conferir continuidade dos acessos e segurança.
+- [ ] Guardar contagem/data do histórico de testes e limpar apenas scope profissionais.
+- [ ] Redirecionar rotas antigas e remover telas/dependências aposentadas, mantendo parser e motor histórico.
+- [ ] Validar testes completos, rotas autenticadas e ausência de mudanças nas demais ofertas.
