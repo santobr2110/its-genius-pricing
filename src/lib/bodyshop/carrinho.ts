@@ -1,5 +1,5 @@
 import { comissaoFromRent, type ComissaoTier } from "@/lib/comissaoRentabilidade";
-import { computeCascata } from "@/lib/pricing/cascata";
+import { cascataNucleo, REGRA_SMART_ITO } from "@/lib/pricing/cascata";
 import { decomporVenda, type ChegadaFixos } from "@/lib/pricing/chegada";
 import { resolveParamsCargo, salarioFaixa, type BodyshopCargo, type BodyshopParams, type Faixa, type OrigemParam, type Regime } from "./calc";
 
@@ -75,8 +75,8 @@ export function computeLinhaBS(e: EntradaLinhaBS, g: GlobaisBS, tiers: ComissaoT
   const vazio = { entrada: e, custoUnitario, custoLinha: 0, vendaTabela: 0, precoFinal: 0, lucro: 0, rentabilidadePerc: 0, comissaoPerc: 0, descontoEfetivoPerc, comissaoInstavel: false, abaixoPiso: false, sigma: 0, fixos: null, erros };
   if (erros.length || !e.tax) return vazio;
   const custoLinha = custoUnitario * e.quantidade;
-  const subida = computeCascata(custoLinha, { ...e.tax, comissaoPerc: comissao + g.retencaoPerc, irpjCsllPerc: g.irpjCsllPerc, encFinancPerc: g.encFinancPerc, lucroPerc: g.rentabilidadeAlvoPerc });
-  if (subida.invalido) return { ...vazio, sigma: subida.totalEncargosPerc, erros: ["Soma dos percentuais ≥ 100%: preço impossível."] };
+  const subida = cascataNucleo(custoLinha, { pis: e.tax.pisPerc, cofins: e.tax.cofinsPerc, iss: e.tax.issPerc, comissao: comissao + g.retencaoPerc, irpjCsll: g.irpjCsllPerc, encFinanc: g.encFinancPerc, lucro: g.rentabilidadeAlvoPerc }, REGRA_SMART_ITO);
+  if (subida.totalEncargosPerc >= 100) return { ...vazio, sigma: subida.totalEncargosPerc, erros: ["Soma dos percentuais ≥ 100%: preço impossível."] };
   const fixos = { ...e.tax, irpjCsllPerc: g.irpjCsllPerc, encFinancPerc: g.encFinancPerc, retencaoPerc: g.retencaoPerc };
   const d = decomporVenda(custoLinha, subida.precoVenda, descontoEfetivoPerc, fixos, tiers, g.comissaoFixaPerc);
   return { ...vazio, ...d, custoLinha, vendaTabela: subida.precoVenda, sigma: subida.totalEncargosPerc, fixos, abaixoPiso: e.pisoRentabilidadePerc != null && d.rentabilidadePerc < e.pisoRentabilidadePerc };
