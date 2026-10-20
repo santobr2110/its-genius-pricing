@@ -57,6 +57,21 @@ export function nomeArquivoBS(m: ModeloPropostaBS) {
   const limpar = (s: string) => s.replace(/[<>:"/\\|?*\u0000-\u001f]/g,'_');
   return `${limpar(m.cliente)}_OP${limpar(m.salesforce || 'sem-op')}_BodyShop_${m.dataEmissao.split('-').reverse().join('')}.docx`;
 }
+export function secoesPropostaBS(m: ModeloPropostaBS) {
+  return [
+    { titulo:'Carta de apresentação', textos:[`${m.cidade}, ${m.dataEmissao.split('-').reverse().join('/')}.`,m.cliente,`A/C ${m.contato}`,m.email,'Prezado(a),','Agradecemos a oportunidade de apresentar nossa proposta de alocação de profissionais. A seguir apresentamos os perfis, o escopo e as condições comerciais.','Atenciosamente,',m.consultor,'Selbetti IT Solutions'] },
+    { titulo:'Quem somos', textos:[m.quemSomos,...m.numeros] },
+    { titulo:'Objeto e escopo da alocação', textos:[m.objeto,`Duração: ${m.duracaoMeses} meses.`,`Início: ${m.dataInicio}.`,`Regime: ${m.regime}.`] },
+    ...m.blocos.map(b=>({titulo:b.titulo,textos:[...(b.aConfirmar?[A_CONFIRMAR]:[]),...b.campos.flatMap(c=>[c.label,c.texto])]})),
+    { titulo:'Investimento', textos:[`Total mensal: ${moedaBS(m.totalMensal)}`,`Total do contrato: ${moedaBS(m.totalContrato)}`], investimento:true },
+    { titulo:'Condições comerciais', textos:[`Duração: ${m.duracaoMeses} meses.`,`Data de início: ${m.dataInicio}.`,`Regime de alocação: ${m.regime}.`,`Validade da proposta: ${m.validadeDias} dias, até ${m.dataValidade.split('-').reverse().join('/')}.`,`Prazo de pagamento: ${m.prazoPagamento}`,'Impostos: inclusos.',`Reajuste anual pelo índice: ${m.reajusteIndice}.`,'Faturamento sujeito à aprovação de crédito.'] },
+    { titulo:'Observações', textos:[m.observacoes] },
+    { titulo:'Informações tributárias', textos:[m.textoTributario] },
+    { titulo:'Dados de faturamento da Selbetti', textos:m.dadosFaturamento },
+    { titulo:'Aceite', textos:[`Declaramos estar de acordo com a proposta ${m.codigo ?? ''} (versão ${m.versao}), contemplando:`,...m.itens.map(i=>`${i.quantidade} × ${i.perfil} (${i.regime}) — ${moedaBS(i.total)} por mês.`),`Total mensal: ${moedaBS(m.totalMensal)}. Total do contrato: ${moedaBS(m.totalContrato)}.`,'_____________________________________________',m.cliente,'Nome / Cargo / Data'] },
+  ];
+}
+export const moedaBS = (n:number) => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 export async function blobBase64(blob: Blob): Promise<string> {
   const bytes = new Uint8Array(await blob.arrayBuffer());
   let s = ''; for (let i=0;i<bytes.length;i+=8192) s += String.fromCharCode(...bytes.subarray(i,i+8192));
