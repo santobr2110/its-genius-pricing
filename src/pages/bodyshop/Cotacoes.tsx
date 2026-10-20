@@ -15,7 +15,7 @@ import { Calendar, Download, ExternalLink, FolderOpen, Pencil, Search, Trash2, U
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useBodyshopCotacoes, type BodyshopCotacao } from "@/hooks/useBodyshopCotacoes";
-import { useBSState as useCarrinhoState, urlNovaAbaBS as urlNovaAba } from "./useBSState";
+import { useBSState as useCarrinhoState, urlNovaAbaBS as urlNovaAba } from "./useBsState";
 import { CONFIG_BS_PADRAO as CONFIG_PADRAO } from "@/lib/bodyshop/carrinho";
 
 import { useAuth } from "@/contexts/AuthContext";

@@ -1,37 +1,30 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
-  AlertTriangle, Building2, ChevronDown, FilePlus2, FileSignature, ListChecks, Loader2, Lock, Percent, Plus, RefreshCw,
-  Save, ShieldCheck, Tag, Trash2, TrendingUp, Wallet, Handshake, type LucideIcon,
+  AlertTriangle, Building2, FilePlus2, FileSignature, ListChecks, Loader2, Lock, Percent, Plus, RefreshCw,
+  Save, ShieldCheck, Tag, TrendingUp, Wallet, Handshake, type LucideIcon,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { useBodyshopCotacoes } from "@/hooks/useBodyshopCotacoes";
 import ApprovalBadge from "@/components/approval/ApprovalBadge";
-import { congelar, CONFIG_BS_PADRAO, type CarrinhoBS, type LinhaResultadoBS, type LinhaBS } from "@/lib/bodyshop/carrinho";
+import { congelar, CONFIG_BS_PADRAO, type CarrinhoBS, type LinhaBS } from "@/lib/bodyshop/carrinho";
 import { BSLineEditor } from "./LinhaEditor";
 import { BsIaDialog } from "./IaDialog";
-import { Textarea } from "@/components/ui/textarea";
-import { COTACAO_BS_VAZIA, BS_BASE } from "./useBsState";
+import { COTACAO_BS_VAZIA } from "./useBsState";
 import { useBodyshopResultado } from "./useBodyshopResultado";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const pct = (n: number) => `${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}%`;
 const pct2 = (n: number) => `${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
-const usd = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const novoId = () => Math.random().toString(36).slice(2, 10);
-const NIVEIS = ["Silver", "Gold", "Platinum", "Enterprise", "Global"];
 
 export default function BsConfigurador() {
   const { can, user } = useAuth();
@@ -43,6 +36,11 @@ export default function BsConfigurador() {
   const [comparar, setComparar] = useState(false);
   const [ia, setIa] = useState(false);
   const podeCotar = can("page.prof.quote");
+  useEffect(() => {
+    if (!R.loading && !atual.id && !linhas.length && config.duracaoMeses === CONFIG_BS_PADRAO.duracaoMeses) {
+      setConfig({ ...config, duracaoMeses: params.duracaoMeses, convencao: params.irpjCsllConvencao === "roi_ito" ? "roi_ito" : "padrao_site" });
+    }
+  }, [R.loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ativos = useMemo(() => cad.cargos.filter((s) => s.ativo), [cad.cargos]);
   const approval = usePricingApproval({
@@ -123,18 +121,18 @@ export default function BsConfigurador() {
       <Card>
         <CardContent className="pt-4 space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 h-4 text-muted-foreground"><Building2 className="h-3.5 w-3.5 text-primary" /> Nome do Cliente *</Label><Input value={atual.cliente} onChange={(e) => setAtual({ ...atual, cliente: e.target.value })} /></div>
+            <div className="space-y-1"><Label htmlFor="bs-cliente" className="text-xs flex items-center gap-1.5 text-muted-foreground"><Building2 className="h-3.5 w-3.5 text-primary" /> Nome do Cliente *</Label><Input id="bs-cliente" disabled={!podeCotar} value={atual.cliente} onChange={(e) => setAtual({ ...atual, cliente: e.target.value })} /></div>
             {([
               ["gerenteConta", "Gerente de Conta *", ""], ["especialistaBU", "Especialista da BU *", ""],
               ["salesforce", "No. Oportunidade Sales Force *", "Ex.: 0061x00000ABCDE"], ["arquitetoBU", "Arquiteto BU *", ""],
             ] as const).map(([k, label, ph]) => (
-              <div key={k} className="space-y-1"><Label className="text-xs flex items-center h-4 text-muted-foreground">{label}</Label><Input value={atual[k] ?? ""} placeholder={ph} onChange={(e) => setAtual({ ...atual, [k]: e.target.value })} /></div>
+              <div key={k} className="space-y-1"><Label htmlFor={`bs-${k}`} className="text-xs text-muted-foreground">{label}</Label><Input id={`bs-${k}`} disabled={!podeCotar} value={atual[k] ?? ""} placeholder={ph} onChange={(e) => setAtual({ ...atual, [k]: e.target.value })} /></div>
             ))}
-            <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 h-4 text-muted-foreground"><FileSignature className="h-3.5 w-3.5 text-primary" /> Nome da cotação (opcional)</Label><Input value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} placeholder="Ex.: Suporte Gold 2027" /></div>
+            <div className="space-y-1"><Label htmlFor="bs-nome" className="text-xs text-muted-foreground"><FileSignature className="inline h-3.5 w-3.5" /> Nome da cotação (opcional)</Label><Input id="bs-nome" disabled={!podeCotar} value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} /></div>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {codigoAtual && <Badge variant="outline" className="font-mono">{codigoAtual}</Badge>}
-            <Button variant="outline" onClick={nova}><FilePlus2 className="h-4 w-4 mr-1" /> Nova</Button>
+            <Button variant="outline" disabled={!podeCotar} onClick={nova}><FilePlus2 className="h-4 w-4 mr-1" /> Nova</Button>
             <Button onClick={salvar} disabled={salvando || linhas.length === 0 || !podeCotar || res.temErros}><Save className="h-4 w-4 mr-1" /> Salvar</Button>
           </div>
         </CardContent>
@@ -151,14 +149,14 @@ export default function BsConfigurador() {
         <div className="flex flex-wrap gap-3" id="condicoes">
           <div><Label htmlFor="bs-desconto">Desconto total %</Label><Input id="bs-desconto" type="number" min={0} max={100} disabled={!podeCotar} value={config.descontoTotalPerc} onChange={e => setConfig({ ...config, descontoTotalPerc: Number(e.target.value) })} /></div>
           <div><Label htmlFor="bs-alvo">Rentabilidade alvo %</Label><Input id="bs-alvo" type="number" disabled={!podeCotar} value={config.rentabilidadeAlvoPerc ?? params.rentabilidadeAlvoPerc} onChange={e => setConfig({ ...config, rentabilidadeAlvoPerc: e.target.value === "" ? null : Number(e.target.value) })} /></div>
-          <div><Label>Convenção IR/CSLL</Label><Select disabled={!podeCotar || !can("page.prof.irpj") } value={config.convencao} onValueChange={(convencao: "padrao_site" | "roi_ito") => setConfig({ ...config, convencao })}><SelectTrigger aria-label="Convenção IR/CSLL"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="padrao_site">Padrão do site</SelectItem><SelectItem value="roi_ito">ROI ITO</SelectItem></SelectContent></Select></div>
+          <div><Label>Convenção IR/CSLL</Label><Select disabled={!podeCotar || !can("page.prof.financeiro") } value={config.convencao} onValueChange={(convencao: "padrao_site" | "roi_ito") => setConfig({ ...config, convencao })}><SelectTrigger aria-label="Convenção IR/CSLL"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="padrao_site">Padrão do site</SelectItem><SelectItem value="roi_ito">ROI ITO</SelectItem></SelectContent></Select></div>
           <div><Label htmlFor="bs-financeiros">Encargos financeiros %</Label><Input id="bs-financeiros" type="number" disabled={!podeCotar} value={config.encFinancPerc ?? params.encFinancPerc} onChange={e => setConfig({ ...config, encFinancPerc: e.target.value === "" ? null : Number(e.target.value) })} /></div>
         </div>
       </section>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row flex-wrap gap-3 items-center justify-between">
             <div>
               <CardTitle className="text-base flex items-center gap-2"><ListChecks className="h-4 w-4 text-primary" /> Itens da proposta</CardTitle>
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground mt-1">{linhas.length} item(ns) · vagas profissionais</p>
@@ -193,7 +191,7 @@ export default function BsConfigurador() {
                 <Mini icon={TrendingUp} l="Lucro" v={brl(res.lucroTotalMensal)} />
               </div>
               {res.precoTabelaTotal !== res.precoFinalTotalMensal && <div className="flex justify-between"><span className="text-muted-foreground">Desconto</span><span className="tabular-nums font-medium">− {brl(res.precoTabelaTotal - res.precoFinalTotalMensal)}</span></div>}
-              <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Mensal Total</span><span className="text-xl font-bold tabular-nums">{brl(res.precoFinalTotalMensal)}</span></div>
+              <div className="flex flex-wrap gap-2 justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Mensal Total</span><span className="text-xl font-bold tabular-nums">{brl(res.precoFinalTotalMensal)}</span></div>
               <div className="flex flex-wrap justify-between gap-2"><span>Valor Total do Contrato</span><strong>{brl(res.precoFinalTotalContrato)}</strong></div>
               <div className="bg-muted/50 p-2 text-xs text-muted-foreground space-y-1"><p>{config.municipio} · {config.duracaoMeses} meses</p><p>Comissão {res.cascataBase.comissaoFixaPerc ?? "Escala Selbetti"}% · Retenção {pct2(res.cascataBase.retencaoPerc)} · IR/CSLL {pct2(res.cascataBase.irpjCsllPerc)}</p><a href="#condicoes" className="text-primary underline">Alterar condições</a></div>
               {res.abaixoPiso && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens abaixo do piso de rentabilidade.</p>}
@@ -219,19 +217,6 @@ function Mini({ icon: Icon, l, v, alerta }: { icon: LucideIcon; l: string; v: st
       <p className={`font-semibold tabular-nums ${alerta ? "text-destructive" : ""}`}>{v}</p>
     </div>
   );
-}
-
-function Kpi({ l, v, destaque, alerta }: { l: string; v: string; destaque?: boolean; alerta?: boolean }) {
-  return (
-    <div>
-      <p className="text-[10px] text-muted-foreground">{l}</p>
-      <p className={`font-semibold tabular-nums ${destaque ? "text-primary" : ""} ${alerta ? "text-destructive" : ""}`}>{v}</p>
-    </div>
-  );
-}
-
-function M({ l, v, strong, neg }: { l: string; v: string; strong?: boolean; neg?: boolean }) {
-  return <div className={`flex justify-between gap-3 ${strong ? "font-semibold" : ""}`}><span className={neg ? "text-muted-foreground" : ""}>{l}</span><span className="tabular-nums">{v}</span></div>;
 }
 
 function Comparacao({ open, onOpenChange, antes, depois, diffs, avisoAprovacao, salvando, onConfirm }: {

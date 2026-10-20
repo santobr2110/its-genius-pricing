@@ -1,4 +1,10 @@
+import { useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { BS_TAB_COTACAO_ID, useBSState } from "./useBsState";
+import { CONFIG_BS_PADRAO } from "@/lib/bodyshop/carrinho";
+import type { BodyshopPayload } from "@/hooks/useBodyshopCotacoes";
 import {
   BriefcaseBusiness, Calculator, FileText, FolderOpen, DollarSign, Settings, ChevronDown, Receipt, Table as TableIcon,
   UsersRound, BookOpen, SlidersHorizontal, ClipboardList, History, type LucideIcon,
@@ -81,9 +87,24 @@ export function BodyshopEmConstrucao({ titulo = "Em construção" }: { titulo?: 
 }
 
 export default function BodyshopLayout() {
-  const { can } = useAuth();
+  const { can, user } = useAuth();
   const { pathname } = useLocation();
   const naRaiz = pathname.replace(/\/+$/, "") === BASE;
+  const { atual, setAtual, setLinhas, setConfig, setSnapshot } = useBSState();
+  useEffect(() => {
+    if (!user || !BS_TAB_COTACAO_ID || atual.id === BS_TAB_COTACAO_ID) return;
+    let cancelado = false;
+    supabase.from("pricing_presets").select("id,name,client_name,quote_code,account_manager,bu_specialist,salesforce_code,bu_architect,payload")
+      .eq("group_slug", "ito").eq("offering_slug", "profissionais-alocados").eq("id", BS_TAB_COTACAO_ID).is("deleted_at", null).maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelado) return;
+        if (error || !data) { toast.error("Cotação não encontrada nesta oferta."); return; }
+        const p = data.payload as unknown as BodyshopPayload;
+        setLinhas(p.linhas ?? []); setConfig({ ...CONFIG_BS_PADRAO, ...p.config }); setSnapshot(p.snapshot ?? null);
+        setAtual({ id: data.id, nome: data.name, cliente: data.client_name ?? "", codigo: data.quote_code, gerenteConta: data.account_manager ?? "", especialistaBU: data.bu_specialist ?? "", salesforce: data.salesforce_code ?? "", arquitetoBU: data.bu_architect ?? "" });
+      });
+    return () => { cancelado = true; };
+  }, [user, atual.id]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
