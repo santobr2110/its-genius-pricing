@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { paramsFromRows, resolveParamsCargo, type BodyshopCargo } from "@/lib/bodyshop/calc";
 import { custoMensalUnitario, computeLinhaBS, computeCarrinhoBS, montarEntradas, congelar, entradasDoSnapshot, globaisDoSnapshot, mesmasEntradas, diferencasParametros, proximoCodigoBS, CONFIG_BS_PADRAO, type GlobaisBS, type LinhaBS } from "@/lib/bodyshop/carrinho";
 import { DEFAULT_COMISSAO_TIERS as tiers } from "@/lib/comissaoRentabilidade";
+import { resultadoOperacaoBS } from '@/lib/bodyshop/financeiro';
 const p = paramsFromRows([]);
 const tax = { pisPerc: 1.65, cofinsPerc: 7.6, issPerc: 2 };
 const vazio = { beneficios_mensais: null, encargos_perc: null, indiretos_perc: null, horas_mensais: null, piso_rentabilidade_perc: null, codigo_produto: null };
@@ -10,6 +11,30 @@ const linha: LinhaBS = { id: "linha", cargoId: "cargo", faixa: "c3", quantidade:
 const g: GlobaisBS = { rentabilidadeAlvoPerc: 20, comissaoFixaPerc: 7.32, retencaoPerc: 5, irpjCsllPerc: 10.3, encFinancPerc: 0, descontoTotalPerc: 0, duracaoMeses: 12 };
 const e = montarEntradas([linha], [cargo], p, () => tax)[0];
 const close = (a: number, b: number, tol = .010001) => expect(Math.abs(a - b)).toBeLessThan(tol);
+describe('BodyShop Fase 4 — financeiro e produto por cargo', () => {
+  it('fechamento mensal e contratual coincide com o configurador em centavos', () => {
+    const res = computeCarrinhoBS([{ ...e, quantidade: 2 }, { ...e, linhaId: 'outra', salarioBase: 4500, descontoPerc: 5 }], g, tiers);
+    for (const meses of [1, 12]) {
+      const r = resultadoOperacaoBS(res, meses);
+      const cents = (n: number) => Math.round(n * 100);
+      expect(cents(r.venda)).toBe(cents(meses === 1 ? res.precoFinalTotalMensal : res.precoFinalTotalContrato));
+      expect(cents(r.lucro)).toBe(cents(meses === 1 ? res.lucroTotalMensal : res.lucroTotalContrato));
+      expect(cents(r.venda) - [r.impostos, r.comissao, r.retencao, r.ir, r.financeiro, r.custo].reduce((s,n) => s + cents(n), 0) + cents(r.ajuste)).toBe(cents(r.lucro));
+    }
+  });
+  it('trocar o SKU de um cargo altera somente os impostos e o preço daquela linha', () => {
+    const outro = { ...cargo, id: 'outro' };
+    const linhas = [linha, { ...linha, id: 'outra', cargoId: outro.id }];
+    const resolver = (sku: string) => sku === 'BS' ? tax : { ...tax, issPerc: 5 };
+    const antes = computeCarrinhoBS(montarEntradas(linhas, [cargo, outro], p, resolver), g, tiers);
+    const depois = computeCarrinhoBS(montarEntradas(linhas, [{ ...cargo, codigo_produto: 'BS-EXCECAO' }, outro], p, resolver), g, tiers);
+    expect(antes.linhas[0].entrada.codigoProduto).toBe('BS');
+    expect(depois.linhas[0].entrada.tax?.issPerc).toBe(5);
+    expect(depois.linhas[0].precoFinal).toBeGreaterThan(antes.linhas[0].precoFinal);
+    expect(depois.linhas[1]).toEqual(antes.linhas[1]);
+    expect(montarEntradas(linhas, [{ ...cargo, codigo_produto: null }, outro], p, resolver)).toEqual(montarEntradas(linhas, [cargo, outro], p, resolver));
+  });
+});
 describe("BodyShop novo — custo mensal", () => {
   it.each([[2200, 5192.25], [4500, 9104.55], [10000, 18460.05], [18000, 32068.05]])("salário %s gera custo %s incluindo benefícios nos indiretos", (salarioBase, custo) => close(custoMensalUnitario({ ...e, salarioBase }), custo));
   it("meio período proporcional é exatamente metade do integral", () => { const meio = { ...e, horasLinha: 88, regime: "meio_periodo" as const }; close(custoMensalUnitario(meio), 9230.02); expect(custoMensalUnitario(meio)).toBe(custoMensalUnitario(e) / 2); });

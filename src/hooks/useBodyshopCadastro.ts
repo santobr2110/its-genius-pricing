@@ -25,7 +25,12 @@ export function useBodyshopCadastro() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    refresh();
+    const atualizar = () => { void refresh(); };
+    window.addEventListener('bodyshop:cadastro', atualizar);
+    return () => window.removeEventListener('bodyshop:cadastro', atualizar);
+  }, [refresh]);
   const p = useMemo(() => paramsFromRows(params), [params]);
   return { cargos, contents, params, p, loading, error, refresh };
 }

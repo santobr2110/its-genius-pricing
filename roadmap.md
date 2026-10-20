@@ -13,3 +13,8 @@
 - [x] Snapshots e reavaliação comparativa confirmada (salário alterado, cancelamento preservou v1 e confirmação gravou v2).
 - [x] Validar testes e fluxo autenticado de salvar/reabrir/reavaliar (176 testes, telas antigas intocadas, dados temporários excluídos, largura 390 sem corte).
 - [ ] Validar inserção de perfil pela IA: depende da base salarial antiga por usuário e de um cargo correspondente no catálogo BodyShop vigente; catálogo oficial está vazio.
+
+# BodyShop — Fase 4
+- [x] Financeiro: resultado mensal/contrato, impostos por cargo, parâmetros e comissões; alterações de cadastro sincronizadas nas telas.
+- [x] Resumo A4 e PDF, com modo incorporado para a futura Proposta; exportação e logo verificados.
+- [x] Testar fechamento financeiro, isolamento fiscal por cargo e congelamento (178 testes); fluxo autenticado de exceção fiscal salva/reaberta/desfeita e PDF, largura 390 sem corte, dados temporários excluídos.

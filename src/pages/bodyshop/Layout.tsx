@@ -116,6 +116,7 @@ export default function BodyshopLayout() {
             <BUMenu />
             <NavBtn to={BASE} label="Configurador" icon={Calculator} end />
             <NavBtn to={`${BASE}/proposta`} label="Proposta" icon={FileText} />
+            <NavBtn to={`${BASE}/resumo`} label="Resumo de Cotação" icon={Receipt} />
             <NavBtn to={`${BASE}/cotacoes`} label="Cotações" icon={FolderOpen} />
             <NavMenu label="Financeiro" icon={DollarSign} items={FIN} prefix={`${BASE}/financeiro`} />
             {can("page.prof.admin") && <NavMenu label="Configurações" icon={Settings} items={CFG} prefix={`${BASE}/configuracoes`} />}

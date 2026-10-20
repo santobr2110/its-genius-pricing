@@ -50,6 +50,8 @@ import BodyshopLayout, { BodyshopEmConstrucao } from "./pages/bodyshop/Layout";
 import BsConfiguracoes from "./pages/bodyshop/Configuracoes";
 import BsConfigurador from "./pages/bodyshop/Configurador";
 import BsCotacoes from "./pages/bodyshop/Cotacoes";
+import BsResumo from "./pages/bodyshop/Resumo";
+import { BsResultado, BsImpostos, BsComissoes } from "./pages/bodyshop/Financeiro";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
 import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
@@ -145,11 +147,11 @@ const App = () => (
               <Route path="/profissionais-alocados" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.view"><BodyshopLayout /></ProtectedRoute>}>
                 <Route index element={<BsConfigurador />} />
                 <Route path="proposta" element={<BodyshopEmConstrucao titulo="Proposta" />} />
-                <Route path="resumo" element={<BodyshopEmConstrucao titulo="Resumo" />} />
+                <Route path="resumo" element={<BsResumo />} />
                 <Route path="cotacoes" element={<BsCotacoes />} />
-                <Route path="financeiro" element={<BodyshopEmConstrucao titulo="Resultado da Operação" />} />
-                <Route path="financeiro/impostos" element={<BodyshopEmConstrucao titulo="Impostos & Markup" />} />
-                <Route path="financeiro/comissoes" element={<BodyshopEmConstrucao titulo="Comissões" />} />
+                <Route path="financeiro" element={<BsResultado />} />
+                <Route path="financeiro/impostos" element={<BsImpostos />} />
+                <Route path="financeiro/comissoes" element={<BsComissoes />} />
                 <Route path="configuracoes/*" element={<BsConfiguracoes />} />
               </Route>
               <Route path="/profissionais-alocados/legado" element={<ProtectedRoute group="ito" offering="profissionais-alocados"><ProfissionaisLayout /></ProtectedRoute>}>
