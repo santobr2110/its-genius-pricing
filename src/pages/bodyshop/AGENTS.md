@@ -1,0 +1,1 @@
+- BodyShop is being rebuilt alongside the old one: new screens in src/pages/bodyshop/ (Zabbix layout, gated by page.prof.*), old screens kept under /profissionais-alocados/legado/* until Phase 6; src/lib/profissionais/calc.ts and useProfFinanceiro.ts stay frozen until then — no user loses access mid-migration.
