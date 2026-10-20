@@ -56,10 +56,16 @@ const BODYSHOP_RAW = [
   "prof.fin.state.v1",
   "prof.fin.comissaoTiers.v1",
 ] as const;
+// Chaves do BodyShop novo (namespace ito.profissionais-alocados.). Acréscimo — Fase 1.
+const BODYSHOP_NOVO = [
+  "ito.profissionais-alocados.configurador",
+  "ito.profissionais-alocados.financeiro",
+] as const;
 
 export const BODYSHOP_PARAM_KEYS: string[] = [
   ...BODYSHOP_NAMESPACED.map((k) => SMART_ITO_NS + k),
   ...BODYSHOP_RAW,
+  ...BODYSHOP_NOVO,
 ];
 
 

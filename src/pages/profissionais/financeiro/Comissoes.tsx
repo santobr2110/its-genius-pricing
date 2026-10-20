@@ -6,7 +6,7 @@ import { Table as TableIcon, Plus, Trash2, RefreshCw } from "lucide-react";
 import { DEFAULT_COMISSAO_TIERS, comissaoFromRent } from "@/lib/comissaoRentabilidade";
 import FinanceiroSubNav from "@/components/itsm/FinanceiroSubNav";
 
-const BASE = "/profissionais-alocados/financeiro";
+const BASE = "/profissionais-alocados/legado/financeiro";
 
 export default function FinanceiroComissoesProf() {
   const { state, comissaoTiers, setComissaoTiers } = useProfFinanceiro();

@@ -71,7 +71,14 @@ export type PermissionKey =
   | "page.zbx.proposal"
   | "page.zbx.params"
   | "page.zbx.admin"
-  | "page.zbx.approve";
+  | "page.zbx.approve"
+  // ITO › Profissionais Alocados (BodyShop novo)
+  | "page.prof.view"
+  | "page.prof.admin"
+  | "page.prof.params"
+  | "page.prof.quote"
+  | "page.prof.proposal"
+  | "page.prof.approve";
 
 export interface PermissionDef {
   key: PermissionKey;
@@ -154,6 +161,12 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.zbx.params", label: "Ver/editar parâmetros financeiros de Subscrições Zabbix", group: "Observabilidade › Subscrições Zabbix" },
   { key: "page.zbx.admin", label: "Administrar Subscrições Zabbix (SKUs e parâmetros)", group: "Observabilidade › Subscrições Zabbix" },
   { key: "page.zbx.approve", label: "Aprovar descontos de Subscrições Zabbix fora da faixa", group: "Observabilidade › Subscrições Zabbix" },
+  { key: "page.prof.view", label: "Acessar BodyShop (cargos e parâmetros)", group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.admin", label: "Administrar BodyShop (cargos, conteúdo, parâmetros)", group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.params", label: "Ver/editar convenção de IR/CSLL e parâmetros financeiros do BodyShop", group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.quote", label: "Montar e salvar cotações de BodyShop", group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.proposal", label: "Emitir proposta de BodyShop", group: "ITO › Profissionais Alocados" },
+  { key: "page.prof.approve", label: "Aprovar descontos de BodyShop fora da faixa", group: "ITO › Profissionais Alocados" },
 ];
 
 export const PERMISSION_GROUPS = Array.from(new Set(PERMISSIONS.map((p) => p.group)));
