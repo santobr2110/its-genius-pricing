@@ -20,6 +20,6 @@
 - [x] Testar fechamento financeiro, isolamento fiscal por cargo e congelamento (178 testes); fluxo autenticado de exceção fiscal salva/reaberta/desfeita e PDF, largura 390 sem corte, dados temporários excluídos.
 
 # BodyShop — Fase 5
-- [ ] Modelo puro da proposta a partir do snapshot, com conteúdo e condições congelados na emissão.
-- [ ] Documento PDF/Word, prévias e download das versões originais.
-- [ ] Validar totais, bloqueio de emissão e preservação de versões no fluxo autenticado.
+- [x] Modelo puro da proposta a partir do snapshot, com conteúdo e condições congelados na emissão.
+- [x] Documento PDF/Word, prévia Microsoft e alternativa rápida; versões originais armazenadas. Word programático provisório conforme roteiro, até receber o modelo visual próprio.
+- [x] Totais Word/PDF iguais ao Configurador; bloqueio sem salvamento; emissão v1/v2, reabertura e download v1 byte-idêntico; 187 testes passaram, Word validado e PDF A4 inspecionado.
