@@ -38,9 +38,9 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
     {r.erros.map(msg => <p key={msg} className="text-xs text-destructive">{msg}</p>)}
     {r.abaixoPiso && <p className="text-xs text-destructive">Rentabilidade abaixo do piso de {pct(e.pisoRentabilidadePerc ?? 0)}{origem("piso")}.</p>}
     {r.comissaoInstavel && <p className="text-xs text-destructive">A comissão oscila entre faixas. Confira com o Financeiro.</p>}
-    {!r.erros.length && <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 border-y py-2 text-xs">{[
+    {!r.erros.length && <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 rounded-md bg-muted/40 p-2 text-xs">{[
       ["Custo mensal", brl(r.custoLinha)], ["Preço mensal", brl(r.precoFinal)], ["Rentabilidade", pct(r.rentabilidadePerc)], ["Comissão", pct(r.comissaoPerc)], ["Lucro mensal", brl(r.lucro)], ["Desconto", pct(r.descontoEfetivoPerc)],
-    ].map(([l, v]) => <div key={l} className="min-w-0"><p className="text-muted-foreground text-[10px]">{l}</p><strong className={`tabular-nums break-words ${l === "Rentabilidade" && (r.abaixoPiso || r.rentabilidadePerc < 0) ? "text-destructive" : ""}`}>{v}</strong></div>)}</div>}
+    ].map(([l, v]) => <div key={l} className="min-w-0"><p className="text-muted-foreground text-[10px] uppercase tracking-wide">{l}</p><strong className={`tabular-nums break-words ${l === "Rentabilidade" && (r.abaixoPiso || r.rentabilidadePerc < 0) ? "text-destructive" : ""}`}>{v}</strong></div>)}</div>}
     <Collapsible><CollapsibleTrigger asChild><Button variant="link" size="sm" className="p-0 h-auto gap-1"><ChevronDown className="h-3 w-3" />Detalhes do cálculo</Button></CollapsibleTrigger><CollapsibleContent className="mt-3 text-xs space-y-1">
       <M l={`Salário base ${e.faixa.toUpperCase()}`} v={brl(e.salarioBase)} />
       <M l={`× Regime ${e.regime === "integral" ? "integral" : "meio período"} (${e.horasLinha}h / ${e.horasPadrao}h)${origem("horas")}`} v={brl(m.base)} />
