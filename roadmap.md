@@ -15,6 +15,6 @@
 - [ ] Validar inserção de perfil pela IA: depende da base salarial antiga por usuário e de um cargo correspondente no catálogo BodyShop vigente; catálogo oficial está vazio.
 
 # BodyShop — Fase 4
-- [ ] Financeiro: resultado mensal/contrato, impostos por cargo, parâmetros e comissões.
-- [ ] Resumo A4 e PDF, com modo incorporado para a futura Proposta.
-- [ ] Testar fechamento financeiro, isolamento fiscal por cargo, congelamento e fluxo autenticado.
+- [x] Financeiro: resultado mensal/contrato, impostos por cargo, parâmetros e comissões; alterações de cadastro sincronizadas nas telas.
+- [x] Resumo A4 e PDF, com modo incorporado para a futura Proposta; exportação e logo verificados.
+- [x] Testar fechamento financeiro, isolamento fiscal por cargo e congelamento (178 testes); fluxo autenticado de exceção fiscal salva/reaberta/desfeita e PDF, largura 390 sem corte, dados temporários excluídos.
