@@ -3,6 +3,9 @@ import { cascataNucleo, REGRA_SMART_ITO } from "@/lib/pricing/cascata";
 import { decomporVenda, type ChegadaFixos } from "@/lib/pricing/chegada";
 import { resolveParamsCargo, salarioFaixa, type BodyshopCargo, type BodyshopParams, type Faixa, type OrigemParam, type Regime } from "./calc";
 
+/** New BodyShop rejects impossible prices; unlike legacy BodyShop it never caps Σ. */
+export const REGRA_BODYSHOP_NOVO = { ...REGRA_SMART_ITO, ordem: [...REGRA_SMART_ITO.ordem] };
+
 export type TaxPercs = { pisPerc: number; cofinsPerc: number; issPerc: number };
 export interface LinhaBS {
   id: string; cargoId: string; faixa: Faixa; quantidade: number; regime: Regime;
@@ -75,7 +78,7 @@ export function computeLinhaBS(e: EntradaLinhaBS, g: GlobaisBS, tiers: ComissaoT
   const vazio = { entrada: e, custoUnitario, custoLinha: 0, vendaTabela: 0, precoFinal: 0, lucro: 0, rentabilidadePerc: 0, comissaoPerc: 0, descontoEfetivoPerc, comissaoInstavel: false, abaixoPiso: false, sigma: 0, fixos: null, erros };
   if (erros.length || !e.tax) return vazio;
   const custoLinha = custoUnitario * e.quantidade;
-  const subida = cascataNucleo(custoLinha, { pis: e.tax.pisPerc, cofins: e.tax.cofinsPerc, iss: e.tax.issPerc, comissao: comissao + g.retencaoPerc, irpjCsll: g.irpjCsllPerc, encFinanc: g.encFinancPerc, lucro: g.rentabilidadeAlvoPerc }, REGRA_SMART_ITO);
+  const subida = cascataNucleo(custoLinha, { pis: e.tax.pisPerc, cofins: e.tax.cofinsPerc, iss: e.tax.issPerc, comissao: comissao + g.retencaoPerc, irpjCsll: g.irpjCsllPerc, encFinanc: g.encFinancPerc, lucro: g.rentabilidadeAlvoPerc }, REGRA_BODYSHOP_NOVO);
   if (subida.totalEncargosPerc >= 100) return { ...vazio, sigma: subida.totalEncargosPerc, erros: ["Soma dos percentuais ≥ 100%: preço impossível."] };
   const fixos = { ...e.tax, irpjCsllPerc: g.irpjCsllPerc, encFinancPerc: g.encFinancPerc, retencaoPerc: g.retencaoPerc };
   const d = decomporVenda(custoLinha, subida.precoVenda, descontoEfetivoPerc, fixos, tiers, g.comissaoFixaPerc);
@@ -117,7 +120,14 @@ export function diferencasParametros(s: SnapshotBS, e: EntradaLinhaBS[], g: Glob
   for (const k of Object.keys(g) as Array<keyof GlobaisBS>) if (s[k] !== g[k]) diffs.push(`${k}: ${s[k] ?? "escala"} → ${g[k] ?? "escala"}`);
   if (JSON.stringify(tiers) !== JSON.stringify(s.tiers)) diffs.push("Escala de comissão alterada");
   const antigos = entradasDoSnapshot(s);
-  for (const linha of e) { const a = antigos.find(i => i.linhaId === linha.linhaId); if (JSON.stringify(a) !== JSON.stringify(linha)) diffs.push(`${linha.cargo} · ${linha.senioridade}: entradas alteradas`); }
+  const igual = (a: unknown, b: unknown): boolean => {
+    if (a === b) return true;
+    if (a == null || b == null || typeof a !== "object" || typeof b !== "object") return false;
+    const aa = a as Record<string, unknown>, bb = b as Record<string, unknown>;
+    const keys = Array.from(new Set([...Object.keys(aa), ...Object.keys(bb)]));
+    return keys.every(k => igual(aa[k], bb[k]));
+  };
+  for (const linha of e) { const a = antigos.find(i => i.linhaId === linha.linhaId); if (!igual(a, linha)) diffs.push(`${linha.cargo} · ${linha.senioridade}: entradas alteradas`); }
   return diffs;
 }
 export function proximoCodigoBS(existentes: (string | null)[], hoje = new Date()): string {

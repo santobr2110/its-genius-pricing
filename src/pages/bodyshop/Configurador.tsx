@@ -44,7 +44,7 @@ export default function BsConfigurador() {
 
   const ativos = useMemo(() => cad.cargos.filter((s) => s.ativo), [cad.cargos]);
   const approval = usePricingApproval({
-    offering: "profissionais-alocados", targetType: "pricing_preset", targetId: atual.id, rentPct: res.rentabilidadePerc,
+    offering: "profissionais-alocados", targetType: "pricing_preset", targetId: atual.id, rentPct: congelado?.rentabilidadePerc ?? res.rentabilidadePerc,
     summary: { cliente: atual.cliente, valor: res.precoFinalTotalMensal, codigo: atual.codigo },
   });
 
@@ -196,7 +196,7 @@ export default function BsConfigurador() {
               <div className="bg-muted/50 p-2 text-xs text-muted-foreground space-y-1"><p>{config.municipio} · {config.duracaoMeses} meses</p><p>Comissão {res.cascataBase.comissaoFixaPerc ?? "Escala Selbetti"}% · Retenção {pct2(res.cascataBase.retencaoPerc)} · IR/CSLL {pct2(res.cascataBase.irpjCsllPerc)}</p><a href="#condicoes" className="text-primary underline">Alterar condições</a></div>
               {res.abaixoPiso && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens abaixo do piso de rentabilidade.</p>}
               {res.temErros && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens com erro; eles não entram no total.</p>}
-              <ApprovalBadge approval={approval} canRequest={!!atual.id} disabledReason={!atual.id ? "Salve a cotação primeiro" : undefined} />
+              <ApprovalBadge approval={approval} canRequest={!!atual.id && congeladoIntacto && podeCotar} disabledReason={!atual.id ? "Salve a cotação primeiro" : !congeladoIntacto ? "Salve e confirme os valores antes de solicitar" : undefined} />
             </CardContent>
           </Card>
         </div>

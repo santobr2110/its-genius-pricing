@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { paramsFromRows, resolveParamsCargo, type BodyshopCargo } from "@/lib/bodyshop/calc";
-import { custoMensalUnitario, computeLinhaBS, computeCarrinhoBS, montarEntradas, congelar, entradasDoSnapshot, globaisDoSnapshot, mesmasEntradas, proximoCodigoBS, CONFIG_BS_PADRAO, type EntradaLinhaBS, type GlobaisBS, type LinhaBS } from "@/lib/bodyshop/carrinho";
+import { custoMensalUnitario, computeLinhaBS, computeCarrinhoBS, montarEntradas, congelar, entradasDoSnapshot, globaisDoSnapshot, mesmasEntradas, diferencasParametros, proximoCodigoBS, CONFIG_BS_PADRAO, type GlobaisBS, type LinhaBS } from "@/lib/bodyshop/carrinho";
 import { DEFAULT_COMISSAO_TIERS as tiers } from "@/lib/comissaoRentabilidade";
 const p = paramsFromRows([]);
 const tax = { pisPerc: 1.65, cofinsPerc: 7.6, issPerc: 2 };
@@ -55,6 +55,7 @@ describe("BodyShop novo — herança e bordas", () => {
   it("Σ ≥ 100 não gera preço", () => { const r = computeLinhaBS(e, { ...g, rentabilidadeAlvoPerc: 80 }, tiers); expect(r.erros.length).toBeGreaterThan(0); expect(r.precoFinal).toBe(0); });
 });
 describe("BodyShop novo — congelamento", () => {
+  it("ordem de chaves do JSON do banco não é alteração de entrada", () => { const s = congelar([e], g, CONFIG_BS_PADRAO, "user", tiers); const stored = JSON.parse(JSON.stringify(s)); stored.itens = stored.itens.map((item: Record<string, unknown>) => Object.fromEntries(Object.entries(item).reverse())); expect(diferencasParametros(stored, [e], g, tiers)).toEqual([]); });
   it("vivo e snapshot são idênticos e congelado não muda com parâmetro", () => {
     const vivo = montarEntradas([{ ...linha, iaJustificativa: "Perfil", iaIndiceAderencia: 87 }], [cargo], p, () => tax);
     const s = congelar(vivo, g, CONFIG_BS_PADRAO, "user", tiers);
