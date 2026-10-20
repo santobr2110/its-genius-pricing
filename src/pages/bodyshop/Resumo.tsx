@@ -44,7 +44,7 @@ export default function BsResumo({ embedded = false }: { embedded?: boolean }) {
   const ok = res.linhas.filter(l => !l.erros.length && l.fixos);
   if (embedded && (loading || !ok.length)) return null;
   if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;
-  if (error) return <p className="text-destructive">{error}</p>;
+  if (error) return <p className="text-destructive">{error instanceof Error ? error.message : error}</p>;
   if (!ok.length) return <div className="p-12 flex flex-col items-center text-center gap-3"><FileText className="h-12 w-12 text-muted-foreground" /><h2 className="text-xl font-bold">Nenhum item na cotação</h2><p className="text-sm text-muted-foreground">Adicione cargos no <Link to={BS_BASE} className="text-primary underline">Configurador</Link>.</p></div>;
   const r = resultadoOperacaoBS(res), meses = res.cascataBase.duracaoMeses;
   const config = congeladoIntacto && st.snapshot ? st.snapshot : st.config;

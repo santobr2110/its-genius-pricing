@@ -28,7 +28,7 @@ const BASE = `${BS_BASE}/financeiro`;
 const ITEMS = [{ to: BASE, label: 'Resultado da Operação', icon: Receipt, end: true }, { to: `${BASE}/impostos`, label: 'Impostos & Markup', icon: Calculator }, { to: `${BASE}/comissoes`, label: 'Comissões', icon: TableIcon }];
 function Shell({ children }: { children: React.ReactNode }) {
   const { loading, error, st, congeladoIntacto } = useBodyshopResultado();
-  return <div className="mx-auto max-w-5xl space-y-6"><SubNav items={ITEMS} />{loading ? <p className="flex gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Carregando…</p> : error ? <p className="text-destructive">{error}</p> : <>{st.snapshot && <p className="text-xs text-muted-foreground">{congeladoIntacto ? 'Valores congelados da cotação. Alterações dos cadastros só serão aplicadas após reavaliação.' : 'Cotação editada: valores atuais, ainda não congelados.'}</p>}{children}</>}</div>;
+  return <div className="mx-auto max-w-5xl space-y-6"><SubNav items={ITEMS} />{loading ? <p className="flex gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Carregando…</p> : error ? <p className="text-destructive">{error instanceof Error ? error.message : error}</p> : <>{st.snapshot && <p className="text-xs text-muted-foreground">{congeladoIntacto ? 'Valores congelados da cotação. Alterações dos cadastros só serão aplicadas após reavaliação.' : 'Cotação editada: valores atuais, ainda não congelados.'}</p>}{children}</>}</div>;
 }
 async function salvarParam(key: string, value: unknown, userId?: string) {
   const { data, error } = await supabase.from('bodyshop_params').update({ value: value as never, updated_by: userId ?? null }).eq('key', key).select('key');
