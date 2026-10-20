@@ -14,6 +14,7 @@ import { useBodyshopCotacoes, BS_GROUP, BS_OFFERING } from '@/hooks/useBodyshopC
 import { montarModeloPropostaBS, erroEmissaoBS, nomeArquivoBS, blobBase64, blobOriginal, moedaBS, type EmissaoBS, type ModeloPropostaBS } from '@/lib/bodyshop/proposta';
 import { gerarPropostaBsDocx } from '@/lib/bodyshop/propostaDocx';
 import { gerarPropostaBsPdf } from '@/lib/bodyshop/propostaPdf';
+import { computeCarrinhoBS, entradasDoSnapshot, globaisDoSnapshot } from '@/lib/bodyshop/carrinho';
 import { useBodyshopResultado } from './useBodyshopResultado';
 import { BS_BASE } from './useBsState';
 import PropostaDoc from './PropostaDoc';
@@ -65,9 +66,8 @@ export default function BsProposta() {
       const versao=Math.max(0,...anteriores.map(e=>e.versao))+1;
       const m:ModeloPropostaBS={...modelo,versao};
       const word=await gerarPropostaBsDocx(m),pdf=gerarPropostaBsPdf(m);
-      const em:EmissaoBS={versao,emitidaEm:new Date().toISOString(),validaAte:m.dataValidade,snapshotVersao:st.snapshot.versao,modelo:m,custoTotal:st.snapshot.itens.reduce((sum,i)=>sum+i.salarioBase*0,0),rentabilidadePerc:0,wordBase64:await blobBase64(word),pdfBase64:await blobBase64(pdf),nomeWord:nomeArquivoBS(m)};
-      const {computeCarrinhoBS,entradasDoSnapshot,globaisDoSnapshot}=await import('@/lib/bodyshop/carrinho');
-      const res=computeCarrinhoBS(entradasDoSnapshot(st.snapshot),globaisDoSnapshot(st.snapshot),st.snapshot.tiers);em.custoTotal=res.custoTotal;em.rentabilidadePerc=res.rentabilidadePerc;
+      const res=computeCarrinhoBS(entradasDoSnapshot(st.snapshot),globaisDoSnapshot(st.snapshot),st.snapshot.tiers);
+      const em:EmissaoBS={versao,emitidaEm:new Date().toISOString(),validaAte:m.dataValidade,snapshotVersao:st.snapshot.versao,modelo:m,custoTotal:res.custoTotal,rentabilidadePerc:res.rentabilidadePerc,wordBase64:await blobBase64(word),pdfBase64:await blobBase64(pdf),nomeWord:nomeArquivoBS(m)};
       const {data:gravado,error}=await supabase.from('pricing_presets').update({payload:{...payload,emissoes:[...anteriores,em]} as never}).eq('id',salvo.id).eq('group_slug',BS_GROUP).eq('offering_slug',BS_OFFERING).eq('updated_at',atual.updated_at).is('deleted_at',null).select('id').maybeSingle();
       if(error)throw error;if(!gravado)throw new Error('Outra alteração ocorreu. Tente emitir novamente.');
       await cot.refresh();setSelecionada(em);toast.success(`Proposta v${versao} emitida e congelada`);
