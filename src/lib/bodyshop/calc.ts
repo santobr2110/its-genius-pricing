@@ -67,6 +67,20 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): Bodysho
 }
 
 export type OrigemValor = "parametro" | "cargo";
+export type OrigemParam = OrigemValor;
+export type Regime = "integral" | "meio_periodo";
+
+export function resolveParamsCargo(c: Parameters<typeof resolverCargo>[0], p: BodyshopParams) {
+  const r = resolverCargo(c, p);
+  return {
+    encargosPerc: r.encargosPerc.valor, indiretosPerc: r.indiretosPerc.valor,
+    beneficiosMensais: r.beneficios.valor, horasMensais: r.horasMensais.valor,
+    pisoRentabilidadePerc: r.pisoRentabilidadePerc.valor, codigoProduto: r.codigoProduto.valor,
+    origem: { encargos: r.encargosPerc.origem, indiretos: r.indiretosPerc.origem,
+      beneficios: r.beneficios.origem, horas: r.horasMensais.origem,
+      piso: r.pisoRentabilidadePerc.origem, produto: r.codigoProduto.origem },
+  };
+}
 export interface Resolvido<T> { valor: T; origem: OrigemValor }
 
 export interface CargoResolvido {
