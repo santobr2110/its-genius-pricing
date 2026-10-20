@@ -370,6 +370,14 @@ All colors MUST be HSL.
 }
 
 /* Remove as setas de incremento/decremento dos inputs numéricos */
+.bs-resumo-printable {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --border: 214 20% 82%;
+  --muted: 210 40% 98%;
+  background-image: none;
+}
+
 input[type="number"] {
   -moz-appearance: textfield;
 }
