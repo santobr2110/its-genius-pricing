@@ -112,6 +112,15 @@ const PERMISSION_TREE: GroupNode[] = [
           { id: "financeiro", name: "Financeiro", keys: ["financeiro.edit"] },
         ],
       },
+      {
+        id: "profissionais-alocados",
+        name: "BodyShop - Alocação de Profissionais",
+        accessKey: "offering.ito.profissionais-alocados.access",
+        icon: Package,
+        categories: [
+          { id: "prof", name: "Permissões", keys: ["page.prof.view", "page.prof.quote", "page.prof.proposal", "page.prof.params", "page.prof.admin", "page.prof.approve"] },
+        ],
+      },
     ],
   },
   { id: "datacenter", name: "Datacenter", accessKey: "group.datacenter.access", icon: Server, offerings: [] },
