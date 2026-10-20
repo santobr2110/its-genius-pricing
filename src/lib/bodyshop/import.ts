@@ -1,10 +1,11 @@
 // Import da tabela salarial do BodyShop novo. Reaproveita o parser antigo (intacto) e
 // planeja, de forma pura, o que muda no catálogo antes de gravar.
 import type { CargoRow } from "@/lib/profissionais/parsers";
-import { NIVEL_SENIORIDADE } from "@/lib/profissionais/parsers";
 import { FAIXAS, type BodyshopCargo } from "./calc";
 
-export { parseCargosFile } from "@/lib/profissionais/parsers";
+// Carregado sob demanda: o parser antigo puxa leitores de PDF/Word que só existem no navegador.
+export const parseCargosFile = async (f: File) => (await import("@/lib/profissionais/parsers")).parseCargosFile(f);
+const SENIORIDADE: Record<number, string> = { 1: "Júnior", 2: "Pleno", 3: "Sênior", 4: "Especialista", 5: "Coordenador", 6: "Gerente" };
 
 export const chaveCargo = (cargo: string, nivel: number) =>
   `${cargo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-")}-n${nivel}`;
@@ -45,7 +46,7 @@ export function planejarImport(rows: CargoRow[], existentes: BodyshopCargo[]): P
     itens.push({
       tipo: !ex ? "novo" : igual ? "igual" : "atualizado",
       slug, cargo: r.cargo, area: r.area || null, nivel_num: nivel,
-      senioridade: r.senioridade || NIVEL_SENIORIDADE[nivel] || String(nivel),
+      senioridade: r.senioridade || SENIORIDADE[nivel] || String(nivel),
       salarios, semFaixa, descricao: r.descricao, competencias: r.competencias, existenteId: ex?.id,
     });
   }
