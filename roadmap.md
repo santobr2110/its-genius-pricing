@@ -23,3 +23,10 @@
 - [x] Modelo puro da proposta a partir do snapshot, com conteúdo e condições congelados na emissão.
 - [x] Documento PDF/Word, prévia Microsoft e alternativa rápida; versões originais armazenadas. Word programático provisório conforme roteiro, até receber o modelo visual próprio.
 - [x] Totais Word/PDF iguais ao Configurador; bloqueio sem salvamento; emissão v1/v2, reabertura e download v1 byte-idêntico; 187 testes passaram, Word validado e PDF A4 inspecionado.
+
+# BodyShop — Fase 6
+- [x] Registrar aprovação sem faixas ativas; slug profissionais-alocados coincide com Configurador e função de aprovação. RLS has_permission/admin conferida; permissões existentes intactas (somente admin tinha acesso BodyShop).
+- [x] Guardar contagem/data do histórico: 0 registros, última criação NULL; nenhuma exclusão necessária, tabela e FK preservadas.
+- [x] Redirecionar 11 endereços legado e 6 aliases; remover 14 arquivos aposentados, mantendo parser da importação e motores/testes históricos.
+- [x] INSS opcional nasce em 0% A CONFIRMAR; edição para 11%, leitura após recarga e restauração para 0 verificadas com sessão autenticada.
+- [x] 198 testes passaram; snapshots, testes Treinamento/Zabbix e permissions.ts intactos; rotas autenticadas verificadas, sem erros de execução ou compilação.

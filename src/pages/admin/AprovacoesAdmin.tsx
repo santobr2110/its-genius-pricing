@@ -15,7 +15,7 @@ import type { ApprovalRole, ApprovalTier } from "@/lib/approval/types";
 
 const OFFERINGS = [
   { code: "smart-ito", label: "Smart ITO" },
-  { code: "profissionais", label: "Profissionais" },
+  { code: "profissionais-alocados", label: "BodyShop - Alocação de Profissionais" },
   { code: "subscricoes-zabbix", label: "Subscrições Zabbix" },
 ];
 

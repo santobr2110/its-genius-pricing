@@ -7,10 +7,9 @@ import { CONFIG_BS_PADRAO } from "@/lib/bodyshop/carrinho";
 import type { BodyshopPayload } from "@/hooks/useBodyshopCotacoes";
 import {
   BriefcaseBusiness, Calculator, FileText, FolderOpen, DollarSign, Settings, ChevronDown, Receipt, Table as TableIcon,
-  UsersRound, BookOpen, SlidersHorizontal, ClipboardList, History, type LucideIcon,
+  UsersRound, BookOpen, SlidersHorizontal, ClipboardList, type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -73,19 +72,6 @@ function NavMenu({ label, icon: Icon, items, prefix }: { label: string; icon: Lu
   );
 }
 
-export function BodyshopEmConstrucao({ titulo = "Em construção" }: { titulo?: string }) {
-  return (
-    <Card className="mx-auto max-w-3xl">
-      <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
-        <BriefcaseBusiness className="h-10 w-10 text-primary" />
-        <h1 className="text-xl font-semibold">{titulo}</h1>
-        <p className="text-sm text-muted-foreground">Esta parte do BodyShop novo chega nas próximas fases.</p>
-        <NavLink to={`${BASE}/legado/selecao-manual`}><Button variant="outline" size="sm" className="gap-1.5"><History className="h-3.5 w-3.5" />Usar as telas antigas</Button></NavLink>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function BodyshopLayout() {
   const { can, user } = useAuth();
   const { pathname } = useLocation();
@@ -120,7 +106,6 @@ export default function BodyshopLayout() {
             <NavBtn to={`${BASE}/cotacoes`} label="Cotações" icon={FolderOpen} />
             <NavMenu label="Financeiro" icon={DollarSign} items={FIN} prefix={`${BASE}/financeiro`} />
             {can("page.prof.admin") && <NavMenu label="Configurações" icon={Settings} items={CFG} prefix={`${BASE}/configuracoes`} />}
-            <NavBtn to={`${BASE}/legado/selecao-manual`} label="Telas antigas" icon={History} />
             <ThemeToggle />
             <UserMenu />
           </div>
