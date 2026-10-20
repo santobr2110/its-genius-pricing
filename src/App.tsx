@@ -47,6 +47,7 @@ import ZbxConfiguracoes from "./pages/zabbix/Configuracoes";
 import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
 import BodyshopLayout, { BodyshopEmConstrucao } from "./pages/bodyshop/Layout";
+import BsConfiguracoes from "./pages/bodyshop/Configuracoes";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
 import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
@@ -147,7 +148,7 @@ const App = () => (
                 <Route path="financeiro" element={<BodyshopEmConstrucao titulo="Resultado da Operação" />} />
                 <Route path="financeiro/impostos" element={<BodyshopEmConstrucao titulo="Impostos & Markup" />} />
                 <Route path="financeiro/comissoes" element={<BodyshopEmConstrucao titulo="Comissões" />} />
-                <Route path="configuracoes/*" element={<BodyshopEmConstrucao titulo="Configurações" />} />
+                <Route path="configuracoes/*" element={<BsConfiguracoes />} />
               </Route>
               <Route path="/profissionais-alocados/legado" element={<ProtectedRoute group="ito" offering="profissionais-alocados"><ProfissionaisLayout /></ProtectedRoute>}>
                 <Route index element={<Navigate to="selecao-manual" replace />} />
