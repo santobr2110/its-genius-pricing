@@ -92,6 +92,13 @@
       "when": 1792171904094,
       "tag": "0012_restrict_catalog_reads_to_role_holders",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792260000000,
+      "tag": "0013_bodyshop_fundacao",
+      "breakpoints": true
     }
   ]
 }
