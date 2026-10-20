@@ -1,5 +1,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -15,8 +19,7 @@ Deno.serve(async (req) => {
     const user = userData?.user;
     if (!user) return new Response(JSON.stringify({ error: "Não autenticado" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { descricao, oferta } = await req.json();
-    if (oferta !== undefined && oferta !== "bodyshop") return new Response(JSON.stringify({ error: "Oferta inválida" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const { descricao } = await req.json();
     if (!descricao || typeof descricao !== "string") {
       return new Response(JSON.stringify({ error: "descricao é obrigatória" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -24,32 +27,19 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "descricao muito longa (máx 10000 caracteres)" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    let cargosTxt = "", descTxt = "";
-    if (oferta === "bodyshop") {
-      // User-scoped client: RLS validates access to the official BodyShop catalog.
-      const [cargos, contents] = await Promise.all([
-        supabase.from("bodyshop_cargos").select("id,cargo,area,nivel_num,senioridade,salario_c1,salario_c2,salario_c3,salario_c4,salario_c5,salario_c6").eq("ativo", true).order("ordem"),
-        supabase.from("bodyshop_cargo_content").select("cargo_id,descricao,atividades,competencias,formacao,certificacoes"),
-      ]);
-      if (cargos.error || contents.error) return new Response(JSON.stringify({ error: "Sem acesso ao catálogo BodyShop" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      cargosTxt = JSON.stringify(cargos.data ?? []);
-      descTxt = JSON.stringify(contents.data ?? []);
-      if (!cargos.data?.length) cargosTxt = "";
-    } else {
     const { data: kb } = await supabase
       .from("base_conhecimento")
       .select("tipo, conteudo_texto")
       .eq("user_id", user.id);
 
-    cargosTxt = (kb ?? [])
+    const cargosTxt = (kb ?? [])
       .filter((r: any) => r.tipo === "cargos_salarios")
       .map((r: any) => r.conteudo_texto ?? "")
       .join("\n");
-    descTxt = (kb ?? [])
+    const descTxt = (kb ?? [])
       .filter((r: any) => r.tipo === "descritivos")
       .map((r: any) => r.conteudo_texto ?? "")
       .join("\n\n");
-    }
 
     if (!cargosTxt) {
       return new Response(JSON.stringify({ error: "Carregue a tabela de cargos e salários antes de usar a IA." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });

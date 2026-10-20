@@ -14,7 +14,7 @@ export function useBodyshopResultado() {
   const hoje = new Date().toISOString().slice(0, 10);
   const globaisVivos: GlobaisBS = useMemo(() => ({ rentabilidadeAlvoPerc: st.config.rentabilidadeAlvoPerc ?? params.rentabilidadeAlvoPerc,
     comissaoFixaPerc: params.comissaoFixaPerc, retencaoPerc: params.retencaoPerc,
-    irpjCsllPerc: resolveIrpjCsllPerc(st.config.convencao, { roiPerc: st.config.rentabilidadeAlvoPerc ?? params.rentabilidadeAlvoPerc }),
+    irpjCsllPerc: resolveIrpjCsllPerc(st.config.convencao),
     encFinancPerc: st.config.encFinancPerc ?? params.encFinancPerc, descontoTotalPerc: st.config.descontoTotalPerc,
     duracaoMeses: st.config.duracaoMeses }), [st.config, params]);
   const entradasVivas = useMemo(() => montarEntradas(st.linhas, cad.cargos, params, taxPorProdutoFactory(st.config.municipio, hoje, tax.codes, tax.rates)), [st.linhas, cad.cargos, params, st.config.municipio, hoje, tax.codes, tax.rates]);
