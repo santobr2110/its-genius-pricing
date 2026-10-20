@@ -21,13 +21,12 @@ describe("BodyShop — parâmetros e herança", () => {
   it("exceção 0 é valor real, não herança", () => {
     expect(resolverCargo({ ...vazio, encargos_perc: 0 }, p).encargosPerc).toEqual({ valor: 0, origem: "cargo" });
   });
-  it("custo mensal: 10.000 + 62% + 5% sobre (sal+enc) + 1.381", () => {
-    // 10000 + 6200 + 810 + 1381 = 18391
-    expect(custoMensal(10000, resolverCargo(vazio, p)).total).toBeCloseTo(18391, 6);
+  it("custo mensal: 10.000 + 62% + 1.381 + 5% sobre (sal+enc+benef)", () => {
+    expect(custoMensal(10000, resolverCargo(vazio, p)).total).toBeCloseTo(18460.05, 6);
   });
   it("exceção de encargos muda o custo e voltar a herdar restaura", () => {
-    expect(custoMensal(10000, resolverCargo({ ...vazio, encargos_perc: 70 }, p)).total).toBeCloseTo(10000 + 7000 + 850 + 1381, 6);
-    expect(custoMensal(10000, resolverCargo({ ...vazio, encargos_perc: null }, p)).total).toBeCloseTo(18391, 6);
+    expect(custoMensal(10000, resolverCargo({ ...vazio, encargos_perc: 70 }, p)).total).toBeCloseTo(19300.05, 6);
+    expect(custoMensal(10000, resolverCargo({ ...vazio, encargos_perc: null }, p)).total).toBeCloseTo(18460.05, 6);
   });
 });
 

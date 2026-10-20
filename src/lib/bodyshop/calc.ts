@@ -67,6 +67,20 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): Bodysho
 }
 
 export type OrigemValor = "parametro" | "cargo";
+export type OrigemParam = OrigemValor;
+export type Regime = "integral" | "meio_periodo";
+
+export function resolveParamsCargo(c: Parameters<typeof resolverCargo>[0], p: BodyshopParams) {
+  const r = resolverCargo(c, p);
+  return {
+    encargosPerc: r.encargosPerc.valor, indiretosPerc: r.indiretosPerc.valor,
+    beneficiosMensais: r.beneficios.valor, horasMensais: r.horasMensais.valor,
+    pisoRentabilidadePerc: r.pisoRentabilidadePerc.valor, codigoProduto: r.codigoProduto.valor,
+    origem: { encargos: r.encargosPerc.origem, indiretos: r.indiretosPerc.origem,
+      beneficios: r.beneficios.origem, horas: r.horasMensais.origem,
+      piso: r.pisoRentabilidadePerc.origem, produto: r.codigoProduto.origem },
+  };
+}
 export interface Resolvido<T> { valor: T; origem: OrigemValor }
 
 export interface CargoResolvido {
@@ -94,12 +108,12 @@ export function salarioFaixa(c: BodyshopCargo, f: Faixa): number | null {
 
 export interface CustoMensal { salario: number; encargos: number; indiretos: number; beneficios: number; total: number }
 
-/** Custo mensal do profissional: salário + encargos (sobre salário) + indiretos (sobre salário+encargos) + benefícios. */
+/** Custo mensal integral do BodyShop novo: indiretos incluem benefícios. Legado permanece isolado. */
 export function custoMensal(salario: number, r: Pick<CargoResolvido, "beneficios" | "encargosPerc" | "indiretosPerc">): CustoMensal {
   const s = Number(salario) || 0;
   const encargos = s * r.encargosPerc.valor / 100;
-  const indiretos = (s + encargos) * r.indiretosPerc.valor / 100;
   const beneficios = r.beneficios.valor;
+  const indiretos = (s + encargos + beneficios) * r.indiretosPerc.valor / 100;
   return { salario: s, encargos, indiretos, beneficios, total: s + encargos + indiretos + beneficios };
 }
 

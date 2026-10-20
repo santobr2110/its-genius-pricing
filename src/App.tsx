@@ -48,6 +48,8 @@ import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
 import BodyshopLayout, { BodyshopEmConstrucao } from "./pages/bodyshop/Layout";
 import BsConfiguracoes from "./pages/bodyshop/Configuracoes";
+import BsConfigurador from "./pages/bodyshop/Configurador";
+import BsCotacoes from "./pages/bodyshop/Cotacoes";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
 import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
@@ -141,10 +143,10 @@ const App = () => (
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}
               <Route path="/profissionais-alocados" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.view"><BodyshopLayout /></ProtectedRoute>}>
-                <Route index element={<BodyshopEmConstrucao titulo="Configurador" />} />
+                <Route index element={<BsConfigurador />} />
                 <Route path="proposta" element={<BodyshopEmConstrucao titulo="Proposta" />} />
                 <Route path="resumo" element={<BodyshopEmConstrucao titulo="Resumo" />} />
-                <Route path="cotacoes" element={<BodyshopEmConstrucao titulo="Cotações" />} />
+                <Route path="cotacoes" element={<BsCotacoes />} />
                 <Route path="financeiro" element={<BodyshopEmConstrucao titulo="Resultado da Operação" />} />
                 <Route path="financeiro/impostos" element={<BodyshopEmConstrucao titulo="Impostos & Markup" />} />
                 <Route path="financeiro/comissoes" element={<BodyshopEmConstrucao titulo="Comissões" />} />
