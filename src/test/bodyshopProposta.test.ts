@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { montarModeloPropostaBS, erroEmissaoBS, blobBase64, blobOriginal } from '@/lib/bodyshop/proposta';
+import { montarModeloPropostaBS, erroEmissaoBS, blobBase64, blobOriginal, snapshotsIguaisBS } from '@/lib/bodyshop/proposta';
 import { congelar, computeCarrinhoBS, CONFIG_BS_PADRAO, type EntradaLinhaBS, type LinhaBS } from '@/lib/bodyshop/carrinho';
 import { DEFAULT_COMISSAO_TIERS } from '@/lib/comissaoRentabilidade';
 const linha:LinhaBS={id:'l',cargoId:'c',faixa:'c3',quantidade:2,regime:'integral',horasLinha:176,descontoPerc:0};
@@ -18,5 +18,6 @@ describe('BodyShop Fase 5',()=>{
   it('emissão aceita snapshot íntegro',()=>expect(erroEmissaoBS(snapshot,[linha],CONFIG_BS_PADRAO)).toBeNull());
   it('conteúdo ausente começa vazio e marcado a confirmar',()=>{expect(modelo().blocos[0].campos.every(c=>c.texto==='[A CONFIRMAR]')).toBe(true);expect(modelo().blocos[0].aConfirmar).toBe(true);});
   it('a validade de 15 dias termina em 4 de novembro',()=>expect(modelo().dataValidade).toBe('2026-11-04'));
-  it('arquivo original permanece byte idêntico ao recuperar versão',async()=>{const original=new Blob([new Uint8Array([0,255,65,128,32])]);const base64=await blobBase64(original);expect(new Uint8Array(await blobOriginal(base64,'application/pdf').arrayBuffer())).toEqual(new Uint8Array([0,255,65,128,32]));});
+  it('arquivo original permanece byte idêntico ao recuperar versão',async()=>{const original=new Blob([new Uint8Array([0,255,65,128,32])]);const base64=await blobBase64(original);expect(await blobBase64(blobOriginal(base64,'application/pdf'))).toBe('AP9BgCA=');});
+  it('ordem JSONB não invalida snapshot, mas alteração de preço sim',()=>{expect(snapshotsIguaisBS({a:1,b:2},{b:2,a:1})).toBe(true);expect(snapshotsIguaisBS({a:1,b:2},{b:3,a:1})).toBe(false);});
 });

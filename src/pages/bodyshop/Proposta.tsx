@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBodyshopCotacoes, BS_GROUP, BS_OFFERING } from '@/hooks/useBodyshopCotacoes';
-import { montarModeloPropostaBS, erroEmissaoBS, nomeArquivoBS, blobBase64, blobOriginal, moedaBS, type EmissaoBS, type ModeloPropostaBS } from '@/lib/bodyshop/proposta';
+import { montarModeloPropostaBS, erroEmissaoBS, nomeArquivoBS, blobBase64, blobOriginal, moedaBS, snapshotsIguaisBS, type EmissaoBS, type ModeloPropostaBS } from '@/lib/bodyshop/proposta';
 import { gerarPropostaBsDocx } from '@/lib/bodyshop/propostaDocx';
 import { gerarPropostaBsPdf } from '@/lib/bodyshop/propostaPdf';
 import { computeCarrinhoBS, entradasDoSnapshot, globaisDoSnapshot } from '@/lib/bodyshop/carrinho';
@@ -61,7 +61,7 @@ export default function BsProposta() {
       const {data:atual,error:leitura}=await supabase.from('pricing_presets').select('payload,updated_at').eq('id',salvo.id).eq('group_slug',BS_GROUP).eq('offering_slug',BS_OFFERING).is('deleted_at',null).single();
       if(leitura)throw leitura;
       const payload=atual.payload as unknown as typeof salvo.payload;
-      if(JSON.stringify(payload.snapshot)!==JSON.stringify(st.snapshot))throw new Error('A cotação foi alterada em outra tela. Reabra antes de emitir.');
+      if(!snapshotsIguaisBS(payload.snapshot,st.snapshot))throw new Error('A cotação foi alterada em outra tela. Reabra antes de emitir.');
       const anteriores=(payload.emissoes??[]) as EmissaoBS[];
       const versao=Math.max(0,...anteriores.map(e=>e.versao))+1;
       const m:ModeloPropostaBS={...modelo,versao};

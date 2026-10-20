@@ -73,9 +73,17 @@ export function secoesPropostaBS(m: ModeloPropostaBS) {
 }
 export const moedaBS = (n:number) => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 export async function blobBase64(blob: Blob): Promise<string> {
-  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const buffer = typeof blob.arrayBuffer === 'function' ? await blob.arrayBuffer() : await new Promise<ArrayBuffer>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>{if(reader.result instanceof ArrayBuffer)resolve(reader.result);else reject(new Error('Arquivo inválido.'));};reader.onerror=()=>reject(reader.error);reader.readAsArrayBuffer(blob);});
+  const bytes = new Uint8Array(buffer);
   let s = ''; for (let i=0;i<bytes.length;i+=8192) s += String.fromCharCode(...bytes.subarray(i,i+8192));
   return btoa(s);
+}
+/** JSONB key ordering must not invalidate a semantically identical snapshot. */
+export function snapshotsIguaisBS(a: unknown,b: unknown): boolean {
+  const canonical = (v:unknown):string => v!==null&&typeof v==='object'
+    ? Array.isArray(v)?`[${v.map(canonical).join(',')}]`:`{${Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>`${JSON.stringify(k)}:${canonical(x)}`).join(',')}}`
+    : JSON.stringify(v)??'null';
+  return canonical(a)===canonical(b);
 }
 export function blobOriginal(base64: string, mime: string): Blob {
   return new Blob([Uint8Array.from(atob(base64), c=>c.charCodeAt(0))], {type:mime});
