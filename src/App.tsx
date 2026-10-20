@@ -46,7 +46,8 @@ import { ZbxResultado, ZbxImpostos, ZbxComissoes } from "./pages/zabbix/Financei
 import ZbxConfiguracoes from "./pages/zabbix/Configuracoes";
 import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
-import BodyshopLayout, { BodyshopEmConstrucao } from "./pages/bodyshop/Layout";
+import BodyshopLayout from "./pages/bodyshop/Layout";
+import BsProposta from "./pages/bodyshop/Proposta";
 import BsConfiguracoes from "./pages/bodyshop/Configuracoes";
 import BsConfigurador from "./pages/bodyshop/Configurador";
 import BsCotacoes from "./pages/bodyshop/Cotacoes";
@@ -146,7 +147,7 @@ const App = () => (
               {/* bodyshop oferta removida */}
               <Route path="/profissionais-alocados" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.view"><BodyshopLayout /></ProtectedRoute>}>
                 <Route index element={<BsConfigurador />} />
-                <Route path="proposta" element={<BodyshopEmConstrucao titulo="Proposta" />} />
+                <Route path="proposta" element={<BsProposta />} />
                 <Route path="resumo" element={<BsResumo />} />
                 <Route path="cotacoes" element={<BsCotacoes />} />
                 <Route path="financeiro" element={<BsResultado />} />
