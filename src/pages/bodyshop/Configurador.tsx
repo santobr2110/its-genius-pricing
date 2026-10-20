@@ -138,19 +138,21 @@ export default function BsConfigurador() {
         </CardContent>
       </Card>
 
-      <section className="border-b pb-4 space-y-3">
-        <h2 className="text-base font-semibold flex items-center gap-2"><Handshake className="h-4 w-4 text-primary" />Condição comercial da cotação</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div><Label htmlFor="bs-duracao">Duração do contrato (meses)</Label><Input id="bs-duracao" type="number" min={1} disabled={!podeCotar} value={config.duracaoMeses} onChange={e => setConfig({ ...config, duracaoMeses: Number(e.target.value) })} /></div>
-          <div><Label htmlFor="bs-inicio">Data de início prevista</Label><Input id="bs-inicio" type="date" disabled={!podeCotar} value={config.dataInicio ?? ""} onChange={e => setConfig({ ...config, dataInicio: e.target.value || null })} /></div>
-          <div><Label>Município de prestação (ISS)</Label><Select disabled={!podeCotar} value={config.municipio} onValueChange={municipio => setConfig({ ...config, municipio })}><SelectTrigger aria-label="Município de prestação"><SelectValue /></SelectTrigger><SelectContent>{municipios.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select></div>
-        </div>
-        <p className="text-xs text-muted-foreground">Contrato de {config.duracaoMeses} meses, início {config.dataInicio ? `em ${new Date(config.dataInicio + "T12:00:00").toLocaleDateString("pt-BR")}` : "a definir"}, faturamento em {config.municipio}</p>
-        <div className="flex flex-wrap gap-3" id="condicoes">
-          <div><Label htmlFor="bs-desconto">Desconto total %</Label><Input id="bs-desconto" type="number" min={0} max={100} disabled={!podeCotar} value={config.descontoTotalPerc} onChange={e => setConfig({ ...config, descontoTotalPerc: Number(e.target.value) })} /></div>
-          <div><Label htmlFor="bs-alvo">Rentabilidade alvo %</Label><Input id="bs-alvo" type="number" disabled={!podeCotar} value={config.rentabilidadeAlvoPerc ?? params.rentabilidadeAlvoPerc} onChange={e => setConfig({ ...config, rentabilidadeAlvoPerc: e.target.value === "" ? null : Number(e.target.value) })} /></div>
-        </div>
-      </section>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2"><Handshake className="h-4 w-4 text-primary" /> Condição comercial da cotação</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3" id="condicoes">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="space-y-1"><Label htmlFor="bs-duracao" className="text-xs text-muted-foreground">Duração (meses)</Label><Input id="bs-duracao" className="h-9" type="number" min={1} disabled={!podeCotar} value={config.duracaoMeses} onChange={e => setConfig({ ...config, duracaoMeses: Number(e.target.value) })} /></div>
+            <div className="space-y-1"><Label htmlFor="bs-inicio" className="text-xs text-muted-foreground">Início previsto</Label><Input id="bs-inicio" className="h-9" type="date" disabled={!podeCotar} value={config.dataInicio ?? ""} onChange={e => setConfig({ ...config, dataInicio: e.target.value || null })} /></div>
+            <div className="space-y-1"><Label className="text-xs text-muted-foreground">Município (ISS)</Label><Select disabled={!podeCotar} value={config.municipio} onValueChange={municipio => setConfig({ ...config, municipio })}><SelectTrigger className="h-9" aria-label="Município de prestação"><SelectValue /></SelectTrigger><SelectContent>{municipios.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-1"><Label htmlFor="bs-desconto" className="text-xs text-muted-foreground">Desconto total %</Label><Input id="bs-desconto" className="h-9" type="number" min={0} max={100} disabled={!podeCotar} value={config.descontoTotalPerc} onChange={e => setConfig({ ...config, descontoTotalPerc: Number(e.target.value) })} /></div>
+            <div className="space-y-1"><Label htmlFor="bs-alvo" className="text-xs text-muted-foreground">Rentabilidade alvo %</Label><Input id="bs-alvo" className="h-9" type="number" disabled={!podeCotar} value={config.rentabilidadeAlvoPerc ?? params.rentabilidadeAlvoPerc} onChange={e => setConfig({ ...config, rentabilidadeAlvoPerc: e.target.value === "" ? null : Number(e.target.value) })} /></div>
+          </div>
+          <p className="text-xs rounded-md bg-muted/50 px-3 py-2 text-muted-foreground">Contrato de {config.duracaoMeses} meses, início {config.dataInicio ? `em ${new Date(config.dataInicio + "T12:00:00").toLocaleDateString("pt-BR")}` : "a definir"}, faturamento em {config.municipio}.</p>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-4 items-start">
         <Card>
