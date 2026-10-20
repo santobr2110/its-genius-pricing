@@ -1,0 +1,118 @@
+// Modelo de dados e helpers puros do BodyShop novo (Fase 2).
+import { parseComissao } from "@/lib/treinamento/calc";
+import type { StatusParam } from "@/lib/treinamento/types";
+
+export const FAIXAS = ["c1", "c2", "c3", "c4", "c5", "c6"] as const;
+export type Faixa = (typeof FAIXAS)[number];
+
+export interface BodyshopCargo {
+  id: string; slug: string | null; cargo: string; area: string | null;
+  nivel_num: number; senioridade: string;
+  salario_c1: number | null; salario_c2: number | null; salario_c3: number | null;
+  salario_c4: number | null; salario_c5: number | null; salario_c6: number | null;
+  beneficios_mensais: number | null; encargos_perc: number | null; indiretos_perc: number | null;
+  horas_mensais: number | null; piso_rentabilidade_perc: number | null;
+  part_number_interno: string | null; codigo_produto: string | null;
+  vigencia_inicio: string; vigencia_fim: string | null;
+  ativo: boolean; ordem: number; campos_a_confirmar: string[];
+}
+
+export interface BodyshopContent {
+  cargo_id: string;
+  descricao: string | null; atividades: string | null; competencias: string | null; formacao: string | null;
+  certificacoes: string | null; entregaveis: string | null; pre_requisitos: string | null; observacoes: string | null;
+  a_confirmar: boolean;
+}
+
+export interface BodyshopParam {
+  key: string; label: string; value: unknown;
+  tipo: "number" | "percent" | "boolean" | "text";
+  status: StatusParam; descricao: string | null; ordem: number;
+}
+
+export interface BodyshopParams {
+  encargosPerc: number; beneficiosPadrao: number; indiretosPerc: number;
+  beneficiosProporcionais: boolean;
+  horasIntegral: number; horasMeioPeriodo: number;
+  retencaoPerc: number; comissaoFixaPerc: number | null;
+  irpjCsllConvencao: string; encFinancPerc: number;
+  rentabilidadeAlvoPerc: number; pisoRentabilidadePerc: number | null;
+  produtoPadrao: string; validadeDias: number; duracaoMeses: number;
+  reajusteIndice: string | null;
+}
+
+export function paramsFromRows(rows: { key: string; value: unknown }[]): BodyshopParams {
+  const m = new Map(rows.map((r) => [r.key, r.value]));
+  const n = (k: string, d: number) => (m.has(k) && m.get(k) !== null && String(m.get(k)).trim() !== "" && Number.isFinite(Number(m.get(k))) ? Number(m.get(k)) : d);
+  const nOpt = (k: string) => (m.get(k) == null || String(m.get(k)).trim() === "" ? null : n(k, 0));
+  const t = (k: string) => (m.get(k) == null || String(m.get(k)).trim() === "" ? null : String(m.get(k)));
+  return {
+    encargosPerc: n("encargos_perc", 62),
+    beneficiosPadrao: n("beneficios_padrao", 1381),
+    indiretosPerc: n("indiretos_perc", 5),
+    beneficiosProporcionais: m.has("beneficios_proporcionais_ao_regime") ? m.get("beneficios_proporcionais_ao_regime") === true : true,
+    horasIntegral: n("horas_mensais_integral", 176),
+    horasMeioPeriodo: n("horas_mensais_meio_periodo", 88),
+    retencaoPerc: n("retencao_perc", 5),
+    comissaoFixaPerc: parseComissao(m.get("comissao_regra")),
+    irpjCsllConvencao: t("irpj_csll_convencao") ?? "padrao_site",
+    encFinancPerc: n("encargos_financeiros_perc", 0),
+    rentabilidadeAlvoPerc: n("rentabilidade_alvo_perc", 20),
+    pisoRentabilidadePerc: nOpt("piso_rentabilidade_perc"),
+    produtoPadrao: t("produto_padrao") ?? "BS",
+    validadeDias: n("validade_proposta_dias", 15),
+    duracaoMeses: n("duracao_padrao_meses", 12),
+    reajusteIndice: t("reajuste_indice"),
+  };
+}
+
+export type OrigemValor = "parametro" | "cargo";
+export interface Resolvido<T> { valor: T; origem: OrigemValor }
+
+export interface CargoResolvido {
+  beneficios: Resolvido<number>; encargosPerc: Resolvido<number>; indiretosPerc: Resolvido<number>;
+  horasMensais: Resolvido<number>; pisoRentabilidadePerc: Resolvido<number | null>; codigoProduto: Resolvido<string>;
+}
+
+/** Herança: coluna NULL no cargo = parâmetro geral; valor preenchido (inclusive 0) = exceção do cargo. */
+export function resolverCargo(c: Pick<BodyshopCargo, "beneficios_mensais" | "encargos_perc" | "indiretos_perc" | "horas_mensais" | "piso_rentabilidade_perc" | "codigo_produto">, p: BodyshopParams): CargoResolvido {
+  const pick = <T,>(v: T | null | undefined, d: T): Resolvido<T> => (v == null || (typeof v === "string" && v.trim() === "") ? { valor: d, origem: "parametro" } : { valor: (typeof d === "number" ? Number(v) : v) as T, origem: "cargo" });
+  return {
+    beneficios: pick(c.beneficios_mensais, p.beneficiosPadrao),
+    encargosPerc: pick(c.encargos_perc, p.encargosPerc),
+    indiretosPerc: pick(c.indiretos_perc, p.indiretosPerc),
+    horasMensais: pick(c.horas_mensais, p.horasIntegral),
+    pisoRentabilidadePerc: pick<number | null>(c.piso_rentabilidade_perc, p.pisoRentabilidadePerc),
+    codigoProduto: pick(c.codigo_produto, p.produtoPadrao),
+  };
+}
+
+export function salarioFaixa(c: BodyshopCargo, f: Faixa): number | null {
+  const v = c[`salario_${f}` as const];
+  return v == null ? null : Number(v);
+}
+
+export interface CustoMensal { salario: number; encargos: number; indiretos: number; beneficios: number; total: number }
+
+/** Custo mensal do profissional: salário + encargos (sobre salário) + indiretos (sobre salário+encargos) + benefícios. */
+export function custoMensal(salario: number, r: Pick<CargoResolvido, "beneficios" | "encargosPerc" | "indiretosPerc">): CustoMensal {
+  const s = Number(salario) || 0;
+  const encargos = s * r.encargosPerc.valor / 100;
+  const indiretos = (s + encargos) * r.indiretosPerc.valor / 100;
+  const beneficios = r.beneficios.valor;
+  return { salario: s, encargos, indiretos, beneficios, total: s + encargos + indiretos + beneficios };
+}
+
+export interface PendenciaBs { origem: "cargo" | "conteudo" | "parametro"; titulo: string; detalhe: string }
+const PEND: StatusParam[] = ["simulado", "a_confirmar"];
+
+export function listarPendenciasBs(cargos: BodyshopCargo[], contents: BodyshopContent[], params: BodyshopParam[]): PendenciaBs[] {
+  const out: PendenciaBs[] = [];
+  const nome = (c?: BodyshopCargo) => (c ? `${c.cargo} · ${c.senioridade}` : "—");
+  for (const c of cargos) if (c.campos_a_confirmar.length) out.push({ origem: "cargo", titulo: nome(c), detalhe: `A confirmar: ${c.campos_a_confirmar.join(", ")}` });
+  for (const ct of contents) if (ct.a_confirmar) out.push({ origem: "conteudo", titulo: nome(cargos.find((c) => c.id === ct.cargo_id)), detalhe: "Descritivo a confirmar" });
+  for (const p of params) if (PEND.includes(p.status)) out.push({ origem: "parametro", titulo: p.label, detalhe: p.status === "simulado" ? "Simulado" : "A confirmar" });
+  return out;
+}
+
+export const brl = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
