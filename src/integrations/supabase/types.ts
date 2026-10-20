@@ -389,6 +389,179 @@ export type Database = {
         }
         Relationships: []
       }
+      bodyshop_cargo_content: {
+        Row: {
+          a_confirmar: boolean
+          atividades: string | null
+          cargo_id: string
+          certificacoes: string | null
+          competencias: string | null
+          descricao: string | null
+          entregaveis: string | null
+          formacao: string | null
+          observacoes: string | null
+          pre_requisitos: string | null
+          updated_at: string
+        }
+        Insert: {
+          a_confirmar?: boolean
+          atividades?: string | null
+          cargo_id: string
+          certificacoes?: string | null
+          competencias?: string | null
+          descricao?: string | null
+          entregaveis?: string | null
+          formacao?: string | null
+          observacoes?: string | null
+          pre_requisitos?: string | null
+          updated_at?: string
+        }
+        Update: {
+          a_confirmar?: boolean
+          atividades?: string | null
+          cargo_id?: string
+          certificacoes?: string | null
+          competencias?: string | null
+          descricao?: string | null
+          entregaveis?: string | null
+          formacao?: string | null
+          observacoes?: string | null
+          pre_requisitos?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bodyshop_cargo_content_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: true
+            referencedRelation: "bodyshop_cargos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bodyshop_cargos: {
+        Row: {
+          area: string | null
+          ativo: boolean
+          beneficios_mensais: number | null
+          campos_a_confirmar: string[]
+          cargo: string
+          codigo_produto: string | null
+          created_at: string
+          encargos_perc: number | null
+          horas_mensais: number | null
+          id: string
+          indiretos_perc: number | null
+          nivel_num: number
+          ordem: number
+          part_number_interno: string | null
+          piso_rentabilidade_perc: number | null
+          salario_c1: number | null
+          salario_c2: number | null
+          salario_c3: number | null
+          salario_c4: number | null
+          salario_c5: number | null
+          salario_c6: number | null
+          senioridade: string
+          slug: string | null
+          updated_at: string
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          area?: string | null
+          ativo?: boolean
+          beneficios_mensais?: number | null
+          campos_a_confirmar?: string[]
+          cargo: string
+          codigo_produto?: string | null
+          created_at?: string
+          encargos_perc?: number | null
+          horas_mensais?: number | null
+          id?: string
+          indiretos_perc?: number | null
+          nivel_num: number
+          ordem?: number
+          part_number_interno?: string | null
+          piso_rentabilidade_perc?: number | null
+          salario_c1?: number | null
+          salario_c2?: number | null
+          salario_c3?: number | null
+          salario_c4?: number | null
+          salario_c5?: number | null
+          salario_c6?: number | null
+          senioridade: string
+          slug?: string | null
+          updated_at?: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Update: {
+          area?: string | null
+          ativo?: boolean
+          beneficios_mensais?: number | null
+          campos_a_confirmar?: string[]
+          cargo?: string
+          codigo_produto?: string | null
+          created_at?: string
+          encargos_perc?: number | null
+          horas_mensais?: number | null
+          id?: string
+          indiretos_perc?: number | null
+          nivel_num?: number
+          ordem?: number
+          part_number_interno?: string | null
+          piso_rentabilidade_perc?: number | null
+          salario_c1?: number | null
+          salario_c2?: number | null
+          salario_c3?: number | null
+          salario_c4?: number | null
+          salario_c5?: number | null
+          salario_c6?: number | null
+          senioridade?: string
+          slug?: string | null
+          updated_at?: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: []
+      }
+      bodyshop_params: {
+        Row: {
+          descricao: string | null
+          key: string
+          label: string
+          ordem: number
+          status: string
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          descricao?: string | null
+          key: string
+          label: string
+          ordem?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          descricao?: string | null
+          key?: string
+          label?: string
+          ordem?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       catalog_products: {
         Row: {
           ativo: boolean
