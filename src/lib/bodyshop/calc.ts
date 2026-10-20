@@ -108,12 +108,12 @@ export function salarioFaixa(c: BodyshopCargo, f: Faixa): number | null {
 
 export interface CustoMensal { salario: number; encargos: number; indiretos: number; beneficios: number; total: number }
 
-/** Custo mensal do profissional: salário + encargos (sobre salário) + indiretos (sobre salário+encargos) + benefícios. */
+/** Custo mensal integral do BodyShop novo: indiretos incluem benefícios. Legado permanece isolado. */
 export function custoMensal(salario: number, r: Pick<CargoResolvido, "beneficios" | "encargosPerc" | "indiretosPerc">): CustoMensal {
   const s = Number(salario) || 0;
   const encargos = s * r.encargosPerc.valor / 100;
-  const indiretos = (s + encargos) * r.indiretosPerc.valor / 100;
   const beneficios = r.beneficios.valor;
+  const indiretos = (s + encargos + beneficios) * r.indiretosPerc.valor / 100;
   return { salario: s, encargos, indiretos, beneficios, total: s + encargos + indiretos + beneficios };
 }
 
