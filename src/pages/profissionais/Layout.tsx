@@ -94,6 +94,10 @@ export default function ProfissionaisLayout() {
         </div>
       </header>
       <main className="px-6 py-6">
+        <div className="mb-4 rounded-md border border-primary/40 bg-primary/5 p-3 text-sm">
+          Tela antiga do BodyShop. O configurador novo está em{" "}
+          <Link to="/profissionais-alocados" className="font-medium text-primary underline">Configurador</Link>.
+        </div>
         <Outlet />
       </main>
     </div>

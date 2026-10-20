@@ -46,6 +46,7 @@ import { ZbxResultado, ZbxImpostos, ZbxComissoes } from "./pages/zabbix/Financei
 import ZbxConfiguracoes from "./pages/zabbix/Configuracoes";
 import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
 import ProfissionaisLayout from "./pages/profissionais/Layout";
+import BodyshopLayout, { BodyshopEmConstrucao } from "./pages/bodyshop/Layout";
 import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
 import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
 import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
@@ -138,26 +139,34 @@ const App = () => (
               </Route>
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}
-              <Route
-                path="/profissionais-alocados"
-                element={
-                  <ProtectedRoute group="ito" offering="profissionais-alocados">
-                    <ProfissionaisLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
+              <Route path="/profissionais-alocados" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.view"><BodyshopLayout /></ProtectedRoute>}>
+                <Route index element={<BodyshopEmConstrucao titulo="Configurador" />} />
+                <Route path="proposta" element={<BodyshopEmConstrucao titulo="Proposta" />} />
+                <Route path="resumo" element={<BodyshopEmConstrucao titulo="Resumo" />} />
+                <Route path="cotacoes" element={<BodyshopEmConstrucao titulo="Cotações" />} />
+                <Route path="financeiro" element={<BodyshopEmConstrucao titulo="Resultado da Operação" />} />
+                <Route path="financeiro/impostos" element={<BodyshopEmConstrucao titulo="Impostos & Markup" />} />
+                <Route path="financeiro/comissoes" element={<BodyshopEmConstrucao titulo="Comissões" />} />
+                <Route path="configuracoes/*" element={<BodyshopEmConstrucao titulo="Configurações" />} />
+              </Route>
+              <Route path="/profissionais-alocados/legado" element={<ProtectedRoute group="ito" offering="profissionais-alocados"><ProfissionaisLayout /></ProtectedRoute>}>
+                <Route index element={<Navigate to="selecao-manual" replace />} />
                 <Route path="base-conhecimento" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.base_conhecimento"><BaseConhecimento /></ProtectedRoute>} />
                 <Route path="financeiro" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroResultadoProf /></ProtectedRoute>} />
                 <Route path="financeiro/impostos" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroImpostosProf /></ProtectedRoute>} />
                 <Route path="financeiro/comissoes" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroComissoesProf /></ProtectedRoute>} />
                 <Route path="financeiro-legacy" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroProfissionais /></ProtectedRoute>} />
                 <Route path="selecao-manual" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
-                <Route path="precificacao-manual" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
                 <Route path="selecao-ia" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_ia"><PrecificacaoIA /></ProtectedRoute>} />
-                <Route path="precificacao-ia" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_ia"><PrecificacaoIA /></ProtectedRoute>} />
                 <Route path="cotacoes" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.cotacoes"><CotacoesSalvas /></ProtectedRoute>} />
               </Route>
+              {/* Endereços antigos → telas antigas (até a Fase 6) */}
+              <Route path="/profissionais-alocados/selecao-manual" element={<Navigate to="/profissionais-alocados/legado/selecao-manual" replace />} />
+              <Route path="/profissionais-alocados/precificacao-manual" element={<Navigate to="/profissionais-alocados/legado/selecao-manual" replace />} />
+              <Route path="/profissionais-alocados/selecao-ia" element={<Navigate to="/profissionais-alocados/legado/selecao-ia" replace />} />
+              <Route path="/profissionais-alocados/precificacao-ia" element={<Navigate to="/profissionais-alocados/legado/selecao-ia" replace />} />
+              <Route path="/profissionais-alocados/base-conhecimento" element={<Navigate to="/profissionais-alocados/legado/base-conhecimento" replace />} />
+              <Route path="/profissionais-alocados/financeiro-legacy" element={<Navigate to="/profissionais-alocados/legado/financeiro" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
