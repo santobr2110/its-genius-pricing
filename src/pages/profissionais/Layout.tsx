@@ -21,16 +21,16 @@ const GROUPS: Group[] = [
     label: "Configurações",
     icon: Settings2,
     items: [
-      { to: "/profissionais-alocados/base-conhecimento", label: "Base de Conhecimento", icon: Database, permission: "page.prof.base_conhecimento" },
-      { to: "/profissionais-alocados/financeiro", label: "Financeiro", icon: DollarSign, permission: "page.prof.financeiro" },
+      { to: "/profissionais-alocados/legado/base-conhecimento", label: "Base de Conhecimento", icon: Database, permission: "page.prof.base_conhecimento" },
+      { to: "/profissionais-alocados/legado/financeiro", label: "Financeiro", icon: DollarSign, permission: "page.prof.financeiro" },
     ],
   },
   {
     label: "Seleção",
     icon: UsersRound,
     items: [
-      { to: "/profissionais-alocados/selecao-manual", label: "Seleção Manual", icon: Hand, permission: "page.prof.selecao_manual" },
-      { to: "/profissionais-alocados/selecao-ia", label: "Seleção com IA", icon: Bot, permission: "page.prof.selecao_ia" },
+      { to: "/profissionais-alocados/legado/selecao-manual", label: "Seleção Manual", icon: Hand, permission: "page.prof.selecao_manual" },
+      { to: "/profissionais-alocados/legado/selecao-ia", label: "Seleção com IA", icon: Bot, permission: "page.prof.selecao_ia" },
     ],
   },
 ];

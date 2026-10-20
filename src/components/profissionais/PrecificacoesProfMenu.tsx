@@ -23,7 +23,7 @@ export default function PrecificacoesProfMenu() {
   };
 
   const handleRestore = (id: string) => {
-    navigate(`/profissionais-alocados/cotacoes?open=${encodeURIComponent(id)}`);
+    navigate(`/profissionais-alocados/legado/cotacoes?open=${encodeURIComponent(id)}`);
   };
 
   return (
@@ -66,7 +66,7 @@ export default function PrecificacoesProfMenu() {
         {canView && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 text-sm" onClick={() => navigate("/profissionais-alocados/cotacoes")}>
+            <DropdownMenuItem className="gap-2 text-sm" onClick={() => navigate("/profissionais-alocados/legado/cotacoes")}>
               <Eye className="h-4 w-4" />
               <span className="flex-1">Visualizar</span>
             </DropdownMenuItem>

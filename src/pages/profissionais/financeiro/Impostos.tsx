@@ -14,7 +14,7 @@ import { usePersistentState } from "@/hooks/usePersistentState";
 import ProdutoFiscalCard from "@/components/financeiro/ProdutoFiscalCard";
 import type { ProfFinState } from "@/hooks/useProfFinanceiro";
 
-const BASE = "/profissionais-alocados/financeiro";
+const BASE = "/profissionais-alocados/legado/financeiro";
 
 type CompKey = keyof Pick<ProfFinState, "pisPerc" | "cofinsPerc" | "issPerc" | "irpjCsllPerc" | "encFinancPerc" | "lucroPerc">;
 

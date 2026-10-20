@@ -8,7 +8,7 @@ import { TrendingUp, Percent, Wallet, Receipt } from "lucide-react";
 import FinanceiroSubNav from "@/components/itsm/FinanceiroSubNav";
 import { Link } from "react-router-dom";
 
-const BASE = "/profissionais-alocados/financeiro";
+const BASE = "/profissionais-alocados/legado/financeiro";
 
 export default function FinanceiroResultadoProf() {
   const { state, update, results } = useProfFinanceiro();
