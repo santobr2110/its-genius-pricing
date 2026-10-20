@@ -16,7 +16,7 @@ export interface BodyshopCotacao {
   saved_by_name?: string | null; saved_by_email?: string | null;
 }
 
-/** Cotações de Subscrições Bodyshop em pricing_presets (observabilidade/subscricoes-zabbix). */
+/** Cotações BodyShop isoladas em pricing_presets (ito/profissionais-alocados). */
 export function useBodyshopCotacoes() {
   const { user } = useAuth();
   const qc = useQueryClient();

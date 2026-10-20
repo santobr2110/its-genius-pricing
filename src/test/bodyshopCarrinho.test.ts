@@ -55,7 +55,7 @@ describe("BodyShop novo — herança e bordas", () => {
   it("Σ ≥ 100 não gera preço", () => { const r = computeLinhaBS(e, { ...g, rentabilidadeAlvoPerc: 80 }, tiers); expect(r.erros.length).toBeGreaterThan(0); expect(r.precoFinal).toBe(0); });
 });
 describe("BodyShop novo — congelamento", () => {
-  it("ordem de chaves do JSON do banco não é alteração de entrada", () => { const s = congelar([e], g, CONFIG_BS_PADRAO, "user", tiers); const stored = JSON.parse(JSON.stringify(s)); stored.itens = stored.itens.map((item: Record<string, unknown>) => Object.fromEntries(Object.entries(item).reverse())); expect(diferencasParametros(stored, [e], g, tiers)).toEqual([]); });
+  it("ordem de chaves do JSON do banco não é alteração de entrada nem comissão", () => { const s = congelar([e], g, CONFIG_BS_PADRAO, "user", tiers); const stored = JSON.parse(JSON.stringify(s)); stored.itens = stored.itens.map((item: Record<string, unknown>) => Object.fromEntries(Object.entries(item).reverse())); stored.tiers = stored.tiers.map((item: Record<string, unknown>) => Object.fromEntries(Object.entries(item).reverse())); expect(diferencasParametros(stored, [e], g, tiers)).toEqual([]); });
   it("vivo e snapshot são idênticos e congelado não muda com parâmetro", () => {
     const vivo = montarEntradas([{ ...linha, iaJustificativa: "Perfil", iaIndiceAderencia: 87 }], [cargo], p, () => tax);
     const s = congelar(vivo, g, CONFIG_BS_PADRAO, "user", tiers);

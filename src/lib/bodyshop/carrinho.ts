@@ -118,7 +118,7 @@ export function mesmasEntradas(s: SnapshotBS, linhas: LinhaBS[], c: ConfigBS) {
 export function diferencasParametros(s: SnapshotBS, e: EntradaLinhaBS[], g: GlobaisBS, tiers: ComissaoTier[]) {
   const diffs: string[] = [];
   for (const k of Object.keys(g) as Array<keyof GlobaisBS>) if (s[k] !== g[k]) diffs.push(`${k}: ${s[k] ?? "escala"} → ${g[k] ?? "escala"}`);
-  if (JSON.stringify(tiers) !== JSON.stringify(s.tiers)) diffs.push("Escala de comissão alterada");
+  if (tiers.length !== s.tiers.length || tiers.some((t, k) => { const a = s.tiers[k]; return !a || a.minRent !== t.minRent || a.maxRent !== t.maxRent || a.comissao !== t.comissao; })) diffs.push("Escala de comissão alterada");
   const antigos = entradasDoSnapshot(s);
   const igual = (a: unknown, b: unknown): boolean => {
     if (a === b) return true;

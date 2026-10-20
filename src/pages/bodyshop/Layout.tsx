@@ -108,11 +108,11 @@ export default function BodyshopLayout() {
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex min-h-12 max-w-[1600px] items-center gap-2 px-4 py-1.5">
+        <div className="mx-auto flex flex-wrap min-h-12 max-w-[1600px] items-center gap-2 px-4 py-1.5">
           <BackHomeButton to={naRaiz ? "/" : BASE} />
           <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0"><BriefcaseBusiness className="h-4 w-4" /></div>
-          <h1 className="font-bold text-foreground truncate text-sm">BodyShop - Alocação de Profissionais</h1>
-          <div className="ml-auto flex items-center gap-1.5">
+          <h1 className="font-bold text-foreground text-sm min-w-0 flex-1 md:flex-none md:max-w-52">BodyShop - Alocação de Profissionais</h1>
+          <div className="w-full md:w-auto md:ml-auto flex flex-wrap items-center gap-1.5 [&>div:first-child]:max-w-full [&>div:first-child]:min-w-0">
             <BUMenu />
             <NavBtn to={BASE} label="Configurador" icon={Calculator} end />
             <NavBtn to={`${BASE}/proposta`} label="Proposta" icon={FileText} />

@@ -46,7 +46,7 @@ const useEstado: typeof useTabState = BS_TAB_COTACAO_ID
   ? useTabState
   : ((key, inicial) => usePersistentState(`ito.bodyshop.${key}`, inicial) as never);
 
-/** Estado da cotação aberta no configurador de Subscrições Zabbix. */
+/** Estado da cotação aberta no configurador BodyShop. */
 export function useBSState() {
   const [linhas, setLinhas] = useEstado<LinhaBS[]>("linhas", []);
   const [config, setConfig] = useEstado<ConfigBS>("config", CONFIG_BS_PADRAO);
