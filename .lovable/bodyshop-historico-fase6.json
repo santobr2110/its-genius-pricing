@@ -1,0 +1,7 @@
+{
+  "verificadoEm": "2026-10-20",
+  "consulta": "SELECT count(*), max(criado_em) FROM public.cotacoes WHERE scope = 'profissionais'",
+  "total": 0,
+  "ultimaCriacao": null,
+  "acao": "Nenhum registro encontrado; nenhuma exclusão necessária. Tabela cotacoes e vínculos de aprovação preservados."
+}

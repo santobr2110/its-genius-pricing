@@ -45,7 +45,7 @@ import ZbxResumo from "./pages/zabbix/Resumo";
 import { ZbxResultado, ZbxImpostos, ZbxComissoes } from "./pages/zabbix/Financeiro";
 import ZbxConfiguracoes from "./pages/zabbix/Configuracoes";
 import TrnConfiguracoes from "./pages/treinamento/configuracoes/Configuracoes";
-import ProfissionaisLayout from "./pages/profissionais/Layout";
+import { ROTAS_LEGADO_BS, ALIASES_LEGADO_BS } from "@/lib/bodyshop/rotasLegado";
 import BodyshopLayout from "./pages/bodyshop/Layout";
 import BsProposta from "./pages/bodyshop/Proposta";
 import BsConfiguracoes from "./pages/bodyshop/Configuracoes";
@@ -53,14 +53,6 @@ import BsConfigurador from "./pages/bodyshop/Configurador";
 import BsCotacoes from "./pages/bodyshop/Cotacoes";
 import BsResumo from "./pages/bodyshop/Resumo";
 import { BsResultado, BsImpostos, BsComissoes } from "./pages/bodyshop/Financeiro";
-import BaseConhecimento from "./pages/profissionais/BaseConhecimento";
-import PrecificacaoManual from "./pages/profissionais/PrecificacaoManual";
-import PrecificacaoIA from "./pages/profissionais/PrecificacaoIA";
-import CotacoesSalvas from "./pages/profissionais/CotacoesSalvas";
-import FinanceiroProfissionais from "./pages/profissionais/FinanceiroProfissionais";
-import FinanceiroResultadoProf from "./pages/profissionais/financeiro/Resultado";
-import FinanceiroImpostosProf from "./pages/profissionais/financeiro/Impostos";
-import FinanceiroComissoesProf from "./pages/profissionais/financeiro/Comissoes";
 import { ITSMProvider } from "./contexts/ITSMContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -155,24 +147,11 @@ const App = () => (
                 <Route path="financeiro/comissoes" element={<BsComissoes />} />
                 <Route path="configuracoes/*" element={<BsConfiguracoes />} />
               </Route>
-              <Route path="/profissionais-alocados/legado" element={<ProtectedRoute group="ito" offering="profissionais-alocados"><ProfissionaisLayout /></ProtectedRoute>}>
-                <Route index element={<Navigate to="selecao-manual" replace />} />
-                <Route path="base-conhecimento" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.base_conhecimento"><BaseConhecimento /></ProtectedRoute>} />
-                <Route path="financeiro" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroResultadoProf /></ProtectedRoute>} />
-                <Route path="financeiro/impostos" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroImpostosProf /></ProtectedRoute>} />
-                <Route path="financeiro/comissoes" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroComissoesProf /></ProtectedRoute>} />
-                <Route path="financeiro-legacy" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.financeiro"><FinanceiroProfissionais /></ProtectedRoute>} />
-                <Route path="selecao-manual" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_manual"><PrecificacaoManual /></ProtectedRoute>} />
-                <Route path="selecao-ia" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.selecao_ia"><PrecificacaoIA /></ProtectedRoute>} />
-                <Route path="cotacoes" element={<ProtectedRoute group="ito" offering="profissionais-alocados" permission="page.prof.cotacoes"><CotacoesSalvas /></ProtectedRoute>} />
-              </Route>
-              {/* Endereços antigos → telas antigas (até a Fase 6) */}
-              <Route path="/profissionais-alocados/selecao-manual" element={<Navigate to="/profissionais-alocados/legado/selecao-manual" replace />} />
-              <Route path="/profissionais-alocados/precificacao-manual" element={<Navigate to="/profissionais-alocados/legado/selecao-manual" replace />} />
-              <Route path="/profissionais-alocados/selecao-ia" element={<Navigate to="/profissionais-alocados/legado/selecao-ia" replace />} />
-              <Route path="/profissionais-alocados/precificacao-ia" element={<Navigate to="/profissionais-alocados/legado/selecao-ia" replace />} />
-              <Route path="/profissionais-alocados/base-conhecimento" element={<Navigate to="/profissionais-alocados/legado/base-conhecimento" replace />} />
-              <Route path="/profissionais-alocados/financeiro-legacy" element={<Navigate to="/profissionais-alocados/legado/financeiro" replace />} />
+              {/* Fase 6: endereços publicados continuam válidos, com os gates do destino. */}
+              {[...ROTAS_LEGADO_BS, ...ALIASES_LEGADO_BS].map(({ origem, destino }) => (
+                <Route key={origem} path={origem} element={<Navigate to={destino} replace />} />
+              ))}
+              <Route path="/profissionais-alocados/legado/*" element={<Navigate to="/profissionais-alocados" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

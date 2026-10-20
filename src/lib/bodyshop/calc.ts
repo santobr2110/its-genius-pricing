@@ -53,7 +53,8 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): Bodysho
     beneficiosProporcionais: m.has("beneficios_proporcionais_ao_regime") ? m.get("beneficios_proporcionais_ao_regime") === true : true,
     horasIntegral: n("horas_mensais_integral", 176),
     horasMeioPeriodo: n("horas_mensais_meio_periodo", 88),
-    retencaoPerc: n("retencao_perc", 5),
+    // The effective total is frozen in existing snapshots; old quotes never gain INSS implicitly.
+    retencaoPerc: n("retencao_perc", 5) + n("retencao_inss_perc", 0),
     comissaoFixaPerc: parseComissao(m.get("comissao_regra")),
     irpjCsllConvencao: t("irpj_csll_convencao") ?? "padrao_site",
     encFinancPerc: n("encargos_financeiros_perc", 0),
