@@ -12,7 +12,7 @@ export function BsIaDialog({ open, onOpenChange, cargos, onAdd }: { open: boolea
   const analisar = async () => {
     setBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("precificacao-ia", { body: { descricao } });
+      const { data, error } = await supabase.functions.invoke("precificacao-ia", { body: { descricao, oferta: "bodyshop" } });
       if (error) throw error; if (data?.error) throw new Error(data.error);
       const norm = (v: string) => v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
       const cargo = cargos.find(c => norm(c.cargo) === norm(String(data.cargo_identificado ?? "")) && c.nivel_num === Number(data.nivel_num));
