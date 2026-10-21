@@ -55,18 +55,18 @@ export function planejarImport(rows: CargoRow[], existentes: BodyshopCargo[]): P
 }
 
 // ---- Conteúdo do cargo (descrição, atividades, competências...) lido de qualquer aba ----
-export const CAMPOS_CONTEUDO = ["descricao", "atividades", "competencias", "formacao", "certificacoes", "pre_requisitos", "entregaveis", "observacoes"] as const;
+export const CAMPOS_CONTEUDO = ["descricao", "atividades", "competencias", "formacao", "certificacoes", "escopo_atuacao", "pre_requisitos", "observacoes"] as const;
 export type CampoConteudo = typeof CAMPOS_CONTEUDO[number];
-export type ConteudoImport = Partial<Record<CampoConteudo, string>>;
+export type ConteudoImport = Partial<Record<CampoConteudo, string>> & { revisado?: boolean };
 export const ROTULO_CONTEUDO: Record<CampoConteudo, string> = {
   descricao: "Descrição", atividades: "Atividades", competencias: "Competências", formacao: "Formação",
-  certificacoes: "Certificações", pre_requisitos: "Pré-requisitos", entregaveis: "Entregáveis", observacoes: "Observações",
+  certificacoes: "Certificações", pre_requisitos: "Pré-requisitos (cliente)", escopo_atuacao: "Escopo de atuação", observacoes: "Observações",
 };
 // Ordem importa: o primeiro campo cujo termo aparece no cabeçalho vence.
 const TERMOS: [CampoConteudo, string[]][] = [
   ["pre_requisitos", ["pre-requisito", "pre requisito", "prerequisito", "requisito", "experiencia"]],
   ["certificacoes", ["certifica"]],
-  ["entregaveis", ["entregave", "entregas"]],
+  ["escopo_atuacao", ["escopo", "frentes de atuacao"]],
   ["formacao", ["formacao", "escolaridade", "graduacao"]],
   ["competencias", ["competenc", "habilidade", "conhecimento", "skill"]],
   ["atividades", ["atividade", "responsabilidade", "atribuic"]],
@@ -79,7 +79,7 @@ const nomeCargo = (s: string) => n(s).replace(/^an\s/, "analista ").replace(/[^a
 export function campoDoCabecalho(h: string): CampoConteudo | null {
   const k = n(h);
   // Colunas de referência/rastreio não são conteúdo de proposta.
-  if (/(codigo|^nome|original|fonte|revisao|salario|^area|senioridade)/.test(k)) return null;
+  if (/(codigo|^nome|original|fonte|revisao|salario|^area|senioridade|entregave)/.test(k)) return null;
   for (const [c, ts] of TERMOS) if (ts.some((t) => k.includes(t))) return c;
   return null;
 }
@@ -95,10 +95,11 @@ export function indexarConteudo(linhas: Record<string, unknown>[]): Map<string, 
       if (!val) continue;
       if (!cargo && /(cargo|funcao|posicao|^nome)/.test(k) && !k.includes("descri")) { cargo = val; continue; }
       if (!nivel && /(nivel|senioridade)/.test(k)) { const m = val.match(/\d+/); nivel = m ? +m[0] : /junior/.test(n(val)) ? 1 : /pleno/.test(n(val)) ? 2 : /senior/.test(n(val)) ? 3 : 0; continue; }
+      if (/revisao/.test(k) && /arquitet/.test(k)) { c.revisado = n(val) === "revisado"; continue; }
       const campo = campoDoCabecalho(h);
       if (campo) c[campo] = c[campo] ? `${c[campo]}\n${val}` : val;
     }
-    if (!cargo || !Object.keys(c).length) continue;
+    if (!cargo || !CAMPOS_CONTEUDO.some((f) => c[f])) continue;
     const base = nomeCargo(cargo);
     for (const key of nivel ? [`${base}|${nivel}`] : [base]) idx.set(key, { ...idx.get(key), ...c });
   }

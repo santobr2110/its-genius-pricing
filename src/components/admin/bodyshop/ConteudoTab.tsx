@@ -11,14 +11,14 @@ import { supabase } from "@/integrations/supabase/client";
 import type { BodyshopContent } from "@/lib/bodyshop/calc";
 import type { BsCadastro } from "@/hooks/useBodyshopCadastro";
 
-const CAMPOS: { k: keyof BodyshopContent; label: string }[] = [
+const CAMPOS: { k: keyof BodyshopContent; label: string; ajuda?: string }[] = [
   { k: "descricao", label: "Descrição" },
   { k: "atividades", label: "Atividades" },
   { k: "competencias", label: "Competências" },
   { k: "formacao", label: "Formação" },
   { k: "certificacoes", label: "Certificações" },
-  { k: "entregaveis", label: "Entregáveis" },
-  { k: "pre_requisitos", label: "Pré-requisitos" },
+  { k: "escopo_atuacao", label: "Escopo de atuação", ajuda: "Frentes de atuação do profissional. Não descreva resultado, SLA ou disponibilidade — os entregáveis contratuais da alocação ficam em Parâmetros e valem para todos os cargos." },
+  { k: "pre_requisitos", label: "Pré-requisitos (o que o cliente provê)" },
   { k: "observacoes", label: "Observações" },
 ];
 
@@ -52,8 +52,8 @@ export default function BsConteudoTab({ cargos, contents, refresh }: BsCadastro)
           {d && (
             <>
               <div className="flex items-center gap-2"><Switch checked={d.a_confirmar} onCheckedChange={(v) => setD({ ...d, a_confirmar: v })} /><Label>Conteúdo a confirmar</Label></div>
-              {CAMPOS.map(({ k, label }) => (
-                <div key={k}><Label className="text-xs">{label}</Label>
+              {CAMPOS.map(({ k, label, ajuda }) => (
+                <div key={k}><Label className="text-xs">{label}</Label>{ajuda && <p className="text-[11px] text-muted-foreground">{ajuda}</p>}
                   <Textarea rows={3} value={(d[k] as string) ?? ""} onChange={(e) => setD({ ...d, [k]: e.target.value || null })} /></div>
               ))}
             </>
