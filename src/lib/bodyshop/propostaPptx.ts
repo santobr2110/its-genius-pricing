@@ -106,6 +106,7 @@ export function montarModeloPropostaPptx(a: {
     const requisitos = [...linhas(c?.competencias), ...(txt(c?.formacao) ? [`Formação: ${linhas(c?.formacao).join("; ")}`] : []), ...(certs.length ? [`Certificações: ${certs.join("; ")}`] : [])];
     const ded = modalidade ? (qtd > 1 ? `${modalidade.toLowerCase()}s` : modalidade.toLowerCase()) : "";
     if (!cabe(col1, CAPACIDADE.escopoCol1) || !cabe(col2, CAPACIDADE.escopoCol2)) avisos.push(`O escopo do perfil ${nome} não cabe no slide; reduza os itens em Configurações › Conteúdo ou divida o perfil em dois blocos.`);
+    if (semAcento(`${nome} ${modalidade}`).length > 30) avisos.push(`O título do perfil ${nome} pode ocupar duas linhas no slide de escopo; confira o arquivo antes de enviar.`);
     if (!cabe(requisitos, CAPACIDADE.requisitos)) avisos.push(`Os requisitos do perfil ${nome} não cabem no slide; reduza os itens em Configurações › Conteúdo.`);
     return {
       titulo: semAcento(`${nome} ${modalidade}`.trim()).toUpperCase(),
