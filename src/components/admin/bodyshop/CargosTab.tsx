@@ -15,7 +15,7 @@ import { useTaxCodes } from "@/hooks/useTaxCodes";
 import type { BsCadastro } from "@/hooks/useBodyshopCadastro";
 import { FAIXAS, brl, custoMensal, resolverCargo, salarioFaixa, type BodyshopCargo } from "@/lib/bodyshop/calc";
 import { NIVEL_SENIORIDADE } from "@/lib/profissionais/parsers";
-import { parseCargosFile, planejarImport, type PlanoImport } from "@/lib/bodyshop/import";
+import { parseCargosFile, planejarImport, lerConteudoArquivo, anexarConteudo, CAMPOS_CONTEUDO, ROTULO_CONTEUDO, type PlanoImport, type ConteudoImport } from "@/lib/bodyshop/import";
 
 type Override = "beneficios_mensais" | "encargos_perc" | "indiretos_perc" | "horas_mensais" | "piso_rentabilidade_perc" | "codigo_produto";
 const OVERRIDES: { k: Override; label: string; un: string; texto?: boolean }[] = [
@@ -198,6 +198,12 @@ export default function BsCargosTab({ cargos, p, refresh }: BsCadastro) {
   );
 }
 
+// Só envia os campos presentes no arquivo: campos ausentes mantêm o conteúdo já cadastrado.
+async function gravarConteudo(cargo_id: string, c: ConteudoImport) {
+  const r = await supabase.from("bodyshop_cargo_content").upsert({ cargo_id, ...c, a_confirmar: true }, { onConflict: "cargo_id" });
+  if (r.error) throw r.error;
+}
+
 function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh">) {
   const ref = useRef<HTMLInputElement>(null);
   const [plano, setPlano] = useState<PlanoImport | null>(null);
@@ -207,7 +213,8 @@ function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh"
   const ler = async (f: File) => {
     try {
       const { rows } = await parseCargosFile(f);
-      setPlano(planejarImport(rows, cargos));
+      const idx = await lerConteudoArquivo(f).catch(() => new Map());
+      setPlano(anexarConteudo(planejarImport(rows, cargos), idx));
     } catch (e) { toast.error(`Não foi possível ler o arquivo: ${(e as Error).message}`); }
   };
 
@@ -217,7 +224,10 @@ function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh"
     try {
       let ordem = cargos.length;
       for (const it of plano.itens) {
-        if (it.tipo === "igual") continue;
+        if (it.tipo === "igual") {
+          if (it.conteudo && it.existenteId) await gravarConteudo(it.existenteId, it.conteudo);
+          continue;
+        }
         const base = { ...it.salarios, ativo: !it.semFaixa, campos_a_confirmar: it.semFaixa ? ["salario"] : [], vigencia_inicio: vig, vigencia_fim: null };
         let id = it.existenteId;
         if (id) {
@@ -227,10 +237,8 @@ function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh"
           const r = await supabase.from("bodyshop_cargos").insert({ ...base, slug: it.slug, cargo: it.cargo, area: it.area, nivel_num: it.nivel_num, senioridade: it.senioridade, ordem: ordem++ }).select("id").single();
           if (r.error) throw r.error;
           id = r.data.id;
-          if (it.descricao || it.competencias?.length) {
-            await supabase.from("bodyshop_cargo_content").upsert({ cargo_id: id, descricao: it.descricao ?? null, competencias: it.competencias?.join("\n") ?? null, a_confirmar: true }, { onConflict: "cargo_id", ignoreDuplicates: true });
-          }
         }
+        if (it.conteudo && id) await gravarConteudo(id, it.conteudo);
       }
       if (plano.desativar.length) {
         const r = await supabase.from("bodyshop_cargos").update({ ativo: false }).in("id", plano.desativar.map((c) => c.id));
@@ -259,7 +267,21 @@ function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh"
               </div>
               {plano.itens.some((i) => i.semFaixa) && <p className="text-xs text-muted-foreground">{plano.itens.filter((i) => i.semFaixa).length} cargo(s) sem faixa salarial entram inativos e marcados "a confirmar".</p>}
               {plano.desativar.length > 0 && <p className="text-xs">Fora do arquivo (ficam inativos, não são apagados): {plano.desativar.map((c) => `${c.cargo} · ${c.senioridade}`).join("; ")}</p>}
-              <p className="text-xs text-muted-foreground">Atualizar mantém exceções, part number, produto fiscal e conteúdo já cadastrados.</p>
+              {(() => {
+                const com = plano.itens.filter((i) => i.conteudo);
+                if (!com.length) return <p className="text-xs text-muted-foreground">Nenhum conteúdo (descrição, atividades, competências…) encontrado no arquivo; o conteúdo já cadastrado é mantido.</p>;
+                const campos = CAMPOS_CONTEUDO.filter((c) => com.some((i) => i.conteudo?.[c]));
+                return (
+                  <div className="rounded-md border p-2 space-y-1">
+                    <p className="text-xs font-semibold">Conteúdo encontrado para {com.length} cargo(s): {campos.map((c) => ROTULO_CONTEUDO[c]).join(", ")}</p>
+                    <div className="max-h-40 overflow-auto text-xs space-y-0.5">
+                      {com.map((i) => <p key={i.slug}><b>{i.cargo} · {i.senioridade}</b> — {CAMPOS_CONTEUDO.filter((c) => i.conteudo?.[c]).map((c) => ROTULO_CONTEUDO[c]).join(", ")}</p>)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Campos presentes no arquivo substituem os atuais e ficam "a confirmar"; os demais são mantidos.</p>
+                  </div>
+                );
+              })()}
+              <p className="text-xs text-muted-foreground">Atualizar mantém exceções, part number e produto fiscal já cadastrados.</p>
               <div><Label className="text-xs">Vigência a partir de (data do dissídio)</Label><Input type="date" value={vig} onChange={(e) => setVig(e.target.value)} className="w-48" /></div>
             </div>
           )}
