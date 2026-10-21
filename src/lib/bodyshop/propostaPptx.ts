@@ -100,7 +100,9 @@ export function montarModeloPropostaPptx(a: {
     const qtd = gr.reduce((s, d) => s + d.e.quantidade, 0);
     const c = a.contents.find(x => x.cargo_id === e.cargoId);
     const nome = `${e.cargo} ${e.senioridade}`.trim();
-    const escopo = linhas(c?.escopo_atuacao);
+    // Escopo de atuação tem preferência; sem ele, usa as Atividades do cargo (vindas da planilha).
+    const escopoProprio = linhas(c?.escopo_atuacao);
+    const escopo = escopoProprio.length ? escopoProprio : linhas(c?.atividades);
     const [col1, col2] = dividirColunas(escopo);
     const certs = linhas(c?.certificacoes?.replace(/;\s*/g, "\n"));
     const requisitos = [...linhas(c?.competencias), ...(txt(c?.formacao) ? [`Formação: ${linhas(c?.formacao).join("; ")}`] : []), ...(certs.length ? [`Certificações: ${certs.join("; ")}`] : [])];
