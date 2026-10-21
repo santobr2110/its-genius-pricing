@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBodyshopCotacoes, BS_GROUP, BS_OFFERING } from '@/hooks/useBodyshopCotacoes';
-import { montarModeloPropostaBS, erroEmissaoBS, nomeArquivoBS, blobBase64, blobOriginal, moedaBS, snapshotsIguaisBS, type EmissaoBS, type ModeloPropostaBS } from '@/lib/bodyshop/proposta';
+import { montarModeloPropostaBS, erroEmissaoBS, blobOriginal, moedaBS, snapshotsIguaisBS, type EmissaoBS, type ModeloPropostaBS } from '@/lib/bodyshop/proposta';
 import { gerarPropostaBsPptx, montarModeloPropostaPptx, nomeArquivoPptx, contarPendenciasPptx, type ModeloPropostaPptx } from '@/lib/bodyshop/propostaPptx';
 import { MIME_PPTX } from '@/lib/bodyshop/pptxTemplate';
 import { computeCarrinhoBS, entradasDoSnapshot, globaisDoSnapshot } from '@/lib/bodyshop/carrinho';
