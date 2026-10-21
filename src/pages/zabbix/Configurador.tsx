@@ -228,7 +228,6 @@ function Mini({ icon: Icon, l, v, alerta }: { icon: LucideIcon; l: string; v: st
     <div className="rounded-md border p-2">
       <p className="text-[10px] text-muted-foreground flex items-center gap-1"><Icon className="h-3 w-3" /> {l}</p>
       <p className={`font-semibold tabular-nums ${alerta ? "text-destructive" : ""}`}>{v}</p>
-      {sub && <p className="text-[10px] text-muted-foreground tabular-nums">{sub}</p>}
     </div>
   );
 }
@@ -238,6 +237,7 @@ function Kpi({ l, v, destaque, alerta, sub }: { l: string; v: string; destaque?:
     <div>
       <p className="text-[10px] text-muted-foreground">{l}</p>
       <p className={`font-semibold tabular-nums ${destaque ? "text-primary" : ""} ${alerta ? "text-destructive" : ""}`}>{v}</p>
+      {sub && <p className="text-[10px] text-muted-foreground tabular-nums">{sub}</p>}
     </div>
   );
 }
