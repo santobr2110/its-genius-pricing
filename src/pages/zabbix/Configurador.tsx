@@ -202,9 +202,9 @@ export default function ZbxConfigurador() {
                 <Mini icon={Percent} l="Rentabilidade" v={pct2(res.rentabilidadePerc)} alerta={res.abaixoPiso || res.rentabilidadePerc < 0} />
                 <Mini icon={TrendingUp} l="Lucro" v={brl(res.lucroTotal)} />
               </div>
-              {res.precoTabelaTotal !== res.precoFinalTotal && <div className="flex justify-between"><span className="text-muted-foreground">Desconto</span><span className="tabular-nums font-medium">− {brl(res.precoTabelaTotal - res.precoFinalTotal)}</span></div>}
-              <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Total de Venda</span><span className="text-2xl font-bold tabular-nums">{brl(res.precoFinalTotal)}</span></div>
-              <div className="flex justify-between items-baseline"><span className="text-muted-foreground">Valor mensal (contrato 12 meses)</span><span className="text-lg font-semibold tabular-nums text-primary">{brl(res.precoFinalTotal / 12)}/mês</span></div>
+              {res.precoTabelaTotal !== res.precoFinalTotal && <div className="flex justify-between"><span className="text-muted-foreground">Desconto</span><span className="tabular-nums font-medium whitespace-nowrap">− {brl(res.precoTabelaTotal - res.precoFinalTotal)}</span></div>}
+              <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold gap-2">Valor Total de Venda</span><span className="text-xl font-bold tabular-nums whitespace-nowrap">{brl(res.precoFinalTotal)}</span></div>
+              <div className="flex justify-between items-baseline"><span className="text-muted-foreground text-xs">Mensal (12 meses)</span><span className="text-base font-semibold tabular-nums whitespace-nowrap text-primary">{brl(res.precoFinalTotal / 12)}/mês</span></div>
               <div className="rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground space-y-0.5">
                 <p>Município {config.municipio} · {config.temRO ? "com RO" : "sem RO"}{config.pagamento30d ? " · pagamento 30 dias" : ""}{config.descontoTotalPerc ? ` · desconto ${pct2(config.descontoTotalPerc)}` : ""}</p>
                 <p>Comissão {res.cascataBase.comissaoFixaPerc != null ? `fixa ${pct2(res.cascataBase.comissaoFixaPerc)}` : "Escala Selbetti"} · Retenção {pct2(res.cascataBase.retencaoPerc)} · IR/CSLL {pct2(res.cascataBase.irpjCsllPerc)} · <Link to={`${ZBX_BASE}/financeiro/impostos`} className="text-primary hover:underline">Alterar condições</Link></p>
@@ -228,7 +228,7 @@ function Mini({ icon: Icon, l, v, alerta }: { icon: LucideIcon; l: string; v: st
   return (
     <div className="rounded-md border p-2">
       <p className="text-[10px] text-muted-foreground flex items-center gap-1"><Icon className="h-3 w-3" /> {l}</p>
-      <p className={`font-semibold tabular-nums ${alerta ? "text-destructive" : ""}`}>{v}</p>
+      <p className={`font-semibold tabular-nums whitespace-nowrap text-[13px] ${alerta ? "text-destructive" : ""}`}>{v}</p>
     </div>
   );
 }
@@ -237,8 +237,8 @@ function Kpi({ l, v, destaque, alerta, sub }: { l: string; v: string; destaque?:
   return (
     <div>
       <p className="text-[10px] text-muted-foreground">{l}</p>
-      <p className={`font-semibold tabular-nums ${destaque ? "text-primary" : ""} ${alerta ? "text-destructive" : ""}`}>{v}</p>
-      {sub && <p className="text-[10px] text-muted-foreground tabular-nums">{sub}</p>}
+      <p className={`font-semibold tabular-nums whitespace-nowrap ${destaque ? "text-primary" : ""} ${alerta ? "text-destructive" : ""}`}>{v}</p>
+      {sub && <p className="text-[10px] text-muted-foreground tabular-nums whitespace-nowrap">{sub}</p>}
     </div>
   );
 }
@@ -303,7 +303,7 @@ function LinhaEditor({ r, linha, ativos, quantidadeLivre, onChange, onRemove }: 
       {r.comissaoInstavel && <p className="text-xs text-amber-600 flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> A comissão oscila entre faixas da Escala Selbetti neste valor; confira com o Financeiro.</p>}
 
       {ok && (
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 rounded-md bg-muted/40 p-2 text-xs">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(110px,1fr))] gap-2 rounded-md bg-muted/40 p-2 text-xs">
           <Kpi l="Custo" v={brl(r.custoLinha)} />
           <Kpi l="Preço de venda" v={brl(r.precoFinal)} destaque sub={`${brl(r.precoFinal / 12)}/mês (12 meses)`} />
           <Kpi l="Rentabilidade" v={pct2(r.rentabilidadePerc)} alerta={r.abaixoPiso || r.rentabilidadePerc < 0} />
