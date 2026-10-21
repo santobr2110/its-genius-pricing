@@ -78,6 +78,8 @@ const nomeCargo = (s: string) => n(s).replace(/^an\s/, "analista ").replace(/[^a
 
 export function campoDoCabecalho(h: string): CampoConteudo | null {
   const k = n(h);
+  // Colunas de referência/rastreio não são conteúdo de proposta.
+  if (/(codigo|^nome|original|fonte|revisao|salario|^area|senioridade)/.test(k)) return null;
   for (const [c, ts] of TERMOS) if (ts.some((t) => k.includes(t))) return c;
   return null;
 }
