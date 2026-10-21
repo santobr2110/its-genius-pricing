@@ -204,6 +204,7 @@ export default function ZbxConfigurador() {
               </div>
               {res.precoTabelaTotal !== res.precoFinalTotal && <div className="flex justify-between"><span className="text-muted-foreground">Desconto</span><span className="tabular-nums font-medium">− {brl(res.precoTabelaTotal - res.precoFinalTotal)}</span></div>}
               <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Total de Venda</span><span className="text-2xl font-bold tabular-nums">{brl(res.precoFinalTotal)}</span></div>
+              <div className="flex justify-between items-baseline"><span className="text-muted-foreground">Valor mensal (contrato 12 meses)</span><span className="text-lg font-semibold tabular-nums text-primary">{brl(res.precoFinalTotal / 12)}/mês</span></div>
               <div className="rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground space-y-0.5">
                 <p>Município {config.municipio} · {config.temRO ? "com RO" : "sem RO"}{config.pagamento30d ? " · pagamento 30 dias" : ""}{config.descontoTotalPerc ? ` · desconto ${pct2(config.descontoTotalPerc)}` : ""}</p>
                 <p>Comissão {res.cascataBase.comissaoFixaPerc != null ? `fixa ${pct2(res.cascataBase.comissaoFixaPerc)}` : "Escala Selbetti"} · Retenção {pct2(res.cascataBase.retencaoPerc)} · IR/CSLL {pct2(res.cascataBase.irpjCsllPerc)} · <Link to={`${ZBX_BASE}/financeiro/impostos`} className="text-primary hover:underline">Alterar condições</Link></p>
