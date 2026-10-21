@@ -11,7 +11,10 @@ export interface LinhaBS {
   id: string; cargoId: string; faixa: Faixa; quantidade: number; regime: Regime;
   horasLinha: number | null; descontoPerc: number;
   iaJustificativa?: string; iaIndiceAderencia?: number;
+  /** Dados de proposta (não afetam preço): formato, local de alocação (≠ município do ISS) e horário. */
+  formato?: FormatoBS; local?: string; horario?: string;
 }
+export type FormatoBS = "presencial" | "remoto" | "hibrido";
 export interface ConfigBS {
   municipio: string; duracaoMeses: number; dataInicio: string | null;
   descontoTotalPerc: number; convencao: "padrao_site" | "roi_ito";
@@ -24,7 +27,8 @@ export interface EntradaLinhaBS {
   beneficiosProporcionais: boolean; horasPadrao: number; horasLinha: number; regime: Regime;
   quantidade: number; descontoPerc: number; codigoProduto: string; tax: TaxPercs | null;
   pisoRentabilidadePerc: number | null; origemParam: Record<string, OrigemParam>;
-  iaJustificativa?: string; iaIndiceAderencia?: number; ausente?: boolean; salarioAusente?: boolean;
+  iaJustificativa?: string; iaIndiceAderencia?: number; ausente?: boolean;
+  formato?: FormatoBS; local?: string; horario?: string; salarioAusente?: boolean;
 }
 export interface GlobaisBS {
   rentabilidadeAlvoPerc: number; comissaoFixaPerc: number | null; retencaoPerc: number;
@@ -43,6 +47,7 @@ export function montarEntradas(linhas: LinhaBS[], catalogo: BodyshopCargo[], p: 
       pisoRentabilidadePerc: r.pisoRentabilidadePerc, origemParam: r.origem,
       ...(l.iaJustificativa !== undefined ? { iaJustificativa: l.iaJustificativa } : {}),
       ...(l.iaIndiceAderencia !== undefined ? { iaIndiceAderencia: l.iaIndiceAderencia } : {}),
+      ...(l.formato ? { formato: l.formato } : {}), ...(l.local?.trim() ? { local: l.local.trim() } : {}), ...(l.horario?.trim() ? { horario: l.horario.trim() } : {}),
       ...(!c ? { ausente: true } : {}), ...(c && salario === null ? { salarioAusente: true } : {}) };
   });
 }
@@ -113,7 +118,7 @@ export const globaisDoSnapshot = (s: SnapshotBS): GlobaisBS => ({ rentabilidadeA
 export function mesmasEntradas(s: SnapshotBS, linhas: LinhaBS[], c: ConfigBS) {
   return s.municipio === c.municipio && s.duracaoMeses === c.duracaoMeses && s.dataInicio === c.dataInicio && s.convencao === c.convencao && s.descontoTotalPerc === c.descontoTotalPerc
     && (c.encFinancPerc == null || c.encFinancPerc === s.encFinancPerc) && (c.rentabilidadeAlvoPerc == null || c.rentabilidadeAlvoPerc === s.rentabilidadeAlvoPerc)
-    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia; });
+    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && (l.horario?.trim() || undefined) === (i.horario || undefined); });
 }
 export function diferencasParametros(s: SnapshotBS, e: EntradaLinhaBS[], g: GlobaisBS, tiers: ComissaoTier[]) {
   const diffs: string[] = [];
