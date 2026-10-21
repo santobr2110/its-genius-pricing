@@ -15,7 +15,7 @@ import { useTaxCodes } from "@/hooks/useTaxCodes";
 import type { BsCadastro } from "@/hooks/useBodyshopCadastro";
 import { FAIXAS, brl, custoMensal, resolverCargo, salarioFaixa, type BodyshopCargo } from "@/lib/bodyshop/calc";
 import { NIVEL_SENIORIDADE } from "@/lib/profissionais/parsers";
-import { parseCargosFile, planejarImport, type PlanoImport } from "@/lib/bodyshop/import";
+import { parseCargosFile, planejarImport, lerConteudoArquivo, anexarConteudo, CAMPOS_CONTEUDO, ROTULO_CONTEUDO, type PlanoImport, type ConteudoImport } from "@/lib/bodyshop/import";
 
 type Override = "beneficios_mensais" | "encargos_perc" | "indiretos_perc" | "horas_mensais" | "piso_rentabilidade_perc" | "codigo_produto";
 const OVERRIDES: { k: Override; label: string; un: string; texto?: boolean }[] = [
