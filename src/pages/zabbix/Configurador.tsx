@@ -232,11 +232,12 @@ function Mini({ icon: Icon, l, v, alerta }: { icon: LucideIcon; l: string; v: st
   );
 }
 
-function Kpi({ l, v, destaque, alerta }: { l: string; v: string; destaque?: boolean; alerta?: boolean }) {
+function Kpi({ l, v, destaque, alerta, sub }: { l: string; v: string; destaque?: boolean; alerta?: boolean; sub?: string }) {
   return (
     <div>
       <p className="text-[10px] text-muted-foreground">{l}</p>
       <p className={`font-semibold tabular-nums ${destaque ? "text-primary" : ""} ${alerta ? "text-destructive" : ""}`}>{v}</p>
+      {sub && <p className="text-[10px] text-muted-foreground tabular-nums">{sub}</p>}
     </div>
   );
 }
@@ -303,7 +304,7 @@ function LinhaEditor({ r, linha, ativos, quantidadeLivre, onChange, onRemove }: 
       {ok && (
         <div className="grid grid-cols-3 md:grid-cols-6 gap-2 rounded-md bg-muted/40 p-2 text-xs">
           <Kpi l="Custo" v={brl(r.custoLinha)} />
-          <Kpi l="Preço de venda" v={brl(r.precoFinal)} destaque />
+          <Kpi l="Preço de venda" v={brl(r.precoFinal)} destaque sub={`${brl(r.precoFinal / 12)}/mês (12 meses)`} />
           <Kpi l="Rentabilidade" v={pct2(r.rentabilidadePerc)} alerta={r.abaixoPiso || r.rentabilidadePerc < 0} />
           <Kpi l="Comissão" v={pct2(r.comissaoPerc)} />
           <Kpi l="Lucro" v={brl(r.lucro)} />
