@@ -4,7 +4,7 @@ import { CONFIG_BS_PADRAO, type ConfigBS, type LinhaBS, type SnapshotBS } from "
 
 export interface CotacaoAtualBS {
   id: string | null; nome: string; cliente: string; codigo: string | null;
-  gerenteConta?: string; especialistaBU?: string; salesforce?: string; arquitetoBU?: string;
+  gerenteConta?: string; gerenteContaEmail?: string; especialistaBU?: string; salesforce?: string; arquitetoBU?: string;
 }
 export const COTACAO_BS_VAZIA: CotacaoAtualBS = { id: null, nome: "", cliente: "", codigo: null, gerenteConta: "", especialistaBU: "", salesforce: "", arquitetoBU: "" };
 

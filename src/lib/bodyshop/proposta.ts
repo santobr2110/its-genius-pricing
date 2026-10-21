@@ -19,7 +19,9 @@ export interface EmissaoBS {
   versao: number; emitidaEm: string; validaAte: string; snapshotVersao: number;
   modelo: ModeloPropostaBS; custoTotal: number; rentabilidadePerc: number;
   /** Original bytes, not a reconstruction against a future template. */
-  wordBase64: string; pdfBase64: string; nomeWord: string;
+  wordBase64?: string; pdfBase64?: string; nomeWord?: string;
+  /** Proposta PowerPoint (pptx-v1): regenerada sempre a partir deste modelo congelado. */
+  modeloPptx?: import('./propostaPptx').ModeloPropostaPptx;
 }
 export function erroEmissaoBS(snapshot: SnapshotBS | null | undefined, linhas: LinhaBS[], config: ConfigBS): string | null {
   if (!snapshot || !mesmasEntradas(snapshot, linhas, config)) return 'Salve a cotação no Configurador para congelar os valores antes de emitir.';

@@ -113,6 +113,13 @@
       "when": 1792583028367,
       "tag": "0016_bodyshop_escopo_atuacao",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792591447053,
+      "tag": "0017_bodyshop_proposta_pptx_params",
+      "breakpoints": true
     }
   ]
 }
