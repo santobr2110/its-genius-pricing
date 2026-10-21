@@ -87,7 +87,7 @@ export default function BodyshopLayout() {
         if (error || !data) { toast.error("Cotação não encontrada nesta oferta."); return; }
         const p = data.payload as unknown as BodyshopPayload;
         setLinhas(p.linhas ?? []); setConfig({ ...CONFIG_BS_PADRAO, ...p.config }); setSnapshot(p.snapshot ?? null);
-        setAtual({ id: data.id, nome: data.name, cliente: data.client_name ?? "", codigo: data.quote_code, gerenteConta: data.account_manager ?? "", especialistaBU: data.bu_specialist ?? "", salesforce: data.salesforce_code ?? "", arquitetoBU: data.bu_architect ?? "" });
+        setAtual({ id: data.id, nome: data.name, cliente: data.client_name ?? "", codigo: data.quote_code, gerenteConta: data.account_manager ?? "", gerenteContaEmail: p?.gerenteContaEmail ?? "", especialistaBU: data.bu_specialist ?? "", salesforce: data.salesforce_code ?? "", arquitetoBU: data.bu_architect ?? "" });
       });
     return () => { cancelado = true; };
   }, [user, atual.id]); // eslint-disable-line react-hooks/exhaustive-deps

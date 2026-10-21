@@ -54,7 +54,7 @@ export default function BsCotacoes() {
     setLinhas(c.payload?.linhas ?? []);
     setConfig({ ...CONFIG_PADRAO, ...(c.payload?.config ?? {}) });
     setSnapshot(c.payload?.snapshot ?? null);
-    setAtual({ id: c.id, nome: c.name, cliente: c.client_name ?? "", codigo: c.quote_code, gerenteConta: c.account_manager ?? "", especialistaBU: c.bu_specialist ?? "", salesforce: c.salesforce_code ?? "", arquitetoBU: c.bu_architect ?? "" });
+    setAtual({ id: c.id, nome: c.name, cliente: c.client_name ?? "", codigo: c.quote_code, gerenteConta: c.account_manager ?? "", gerenteContaEmail: c.payload?.gerenteContaEmail ?? "", especialistaBU: c.bu_specialist ?? "", salesforce: c.salesforce_code ?? "", arquitetoBU: c.bu_architect ?? "" });
     navigate("/profissionais-alocados");
   };
 

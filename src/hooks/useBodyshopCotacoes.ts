@@ -7,7 +7,7 @@ import { proximoCodigoBS, type ConfigBS, type LinhaBS, type SnapshotBS } from "@
 export const BS_GROUP = "ito";
 export const BS_OFFERING = "profissionais-alocados";
 
-export interface BodyshopPayload { emissoes?: unknown[]; linhas: LinhaBS[]; config: ConfigBS; snapshot?: SnapshotBS; resumo?: Record<string, unknown> }
+export interface BodyshopPayload { emissoes?: unknown[]; gerenteContaEmail?: string; linhas: LinhaBS[]; config: ConfigBS; snapshot?: SnapshotBS; resumo?: Record<string, unknown> }
 export interface BodyshopMeta { gerenteConta?: string; especialistaBU?: string; salesforce?: string; arquitetoBU?: string }
 export interface BodyshopCotacao {
   id: string; name: string; client_name: string | null; quote_code: string | null;
