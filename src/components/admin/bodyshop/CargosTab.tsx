@@ -198,6 +198,12 @@ export default function BsCargosTab({ cargos, p, refresh }: BsCadastro) {
   );
 }
 
+// Só envia os campos presentes no arquivo: campos ausentes mantêm o conteúdo já cadastrado.
+async function gravarConteudo(cargo_id: string, c: ConteudoImport) {
+  const r = await supabase.from("bodyshop_cargo_content").upsert({ cargo_id, ...c, a_confirmar: true }, { onConflict: "cargo_id" });
+  if (r.error) throw r.error;
+}
+
 function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh">) {
   const ref = useRef<HTMLInputElement>(null);
   const [plano, setPlano] = useState<PlanoImport | null>(null);
@@ -207,7 +213,8 @@ function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh"
   const ler = async (f: File) => {
     try {
       const { rows } = await parseCargosFile(f);
-      setPlano(planejarImport(rows, cargos));
+      const idx = await lerConteudoArquivo(f).catch(() => new Map());
+      setPlano(anexarConteudo(planejarImport(rows, cargos), idx));
     } catch (e) { toast.error(`Não foi possível ler o arquivo: ${(e as Error).message}`); }
   };
 
@@ -217,7 +224,10 @@ function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh"
     try {
       let ordem = cargos.length;
       for (const it of plano.itens) {
-        if (it.tipo === "igual") continue;
+        if (it.tipo === "igual") {
+          if (it.conteudo && it.existenteId) await gravarConteudo(it.existenteId, it.conteudo);
+          continue;
+        }
         const base = { ...it.salarios, ativo: !it.semFaixa, campos_a_confirmar: it.semFaixa ? ["salario"] : [], vigencia_inicio: vig, vigencia_fim: null };
         let id = it.existenteId;
         if (id) {
@@ -227,10 +237,8 @@ function ImportDialog({ cargos, refresh }: Pick<BsCadastro, "cargos" | "refresh"
           const r = await supabase.from("bodyshop_cargos").insert({ ...base, slug: it.slug, cargo: it.cargo, area: it.area, nivel_num: it.nivel_num, senioridade: it.senioridade, ordem: ordem++ }).select("id").single();
           if (r.error) throw r.error;
           id = r.data.id;
-          if (it.descricao || it.competencias?.length) {
-            await supabase.from("bodyshop_cargo_content").upsert({ cargo_id: id, descricao: it.descricao ?? null, competencias: it.competencias?.join("\n") ?? null, a_confirmar: true }, { onConflict: "cargo_id", ignoreDuplicates: true });
-          }
         }
+        if (it.conteudo && id) await gravarConteudo(id, it.conteudo);
       }
       if (plano.desativar.length) {
         const r = await supabase.from("bodyshop_cargos").update({ ativo: false }).in("id", plano.desativar.map((c) => c.id));

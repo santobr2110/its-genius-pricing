@@ -16,7 +16,7 @@ export interface ItemImport {
   tipo: "novo" | "atualizado" | "igual";
   slug: string; cargo: string; area: string | null; nivel_num: number; senioridade: string;
   salarios: Salarios; semFaixa: boolean; descricao?: string; competencias?: string[];
-  existenteId?: string;
+  existenteId?: string; conteudo?: ConteudoImport;
 }
 export interface PlanoImport { itens: ItemImport[]; desativar: BodyshopCargo[] }
 
@@ -52,4 +52,78 @@ export function planejarImport(rows: CargoRow[], existentes: BodyshopCargo[]): P
   }
   const desativar = existentes.filter((c) => c.ativo && !vistos.has(c.slug ?? chaveCargo(c.cargo, c.nivel_num)));
   return { itens, desativar };
+}
+
+// ---- Conteúdo do cargo (descrição, atividades, competências...) lido de qualquer aba ----
+export const CAMPOS_CONTEUDO = ["descricao", "atividades", "competencias", "formacao", "certificacoes", "pre_requisitos", "entregaveis", "observacoes"] as const;
+export type CampoConteudo = typeof CAMPOS_CONTEUDO[number];
+export type ConteudoImport = Partial<Record<CampoConteudo, string>>;
+export const ROTULO_CONTEUDO: Record<CampoConteudo, string> = {
+  descricao: "Descrição", atividades: "Atividades", competencias: "Competências", formacao: "Formação",
+  certificacoes: "Certificações", pre_requisitos: "Pré-requisitos", entregaveis: "Entregáveis", observacoes: "Observações",
+};
+// Ordem importa: o primeiro campo cujo termo aparece no cabeçalho vence.
+const TERMOS: [CampoConteudo, string[]][] = [
+  ["pre_requisitos", ["pre-requisito", "pre requisito", "prerequisito", "requisito", "experiencia"]],
+  ["certificacoes", ["certifica"]],
+  ["entregaveis", ["entregave", "entregas"]],
+  ["formacao", ["formacao", "escolaridade", "graduacao"]],
+  ["competencias", ["competenc", "habilidade", "conhecimento", "skill"]],
+  ["atividades", ["atividade", "responsabilidade", "atribuic"]],
+  ["observacoes", ["observ"]],
+  ["descricao", ["descricao", "descritivo", "resumo", "missao", "objetivo"]],
+];
+const n = (s: unknown) => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const nomeCargo = (s: string) => n(s).replace(/^an\s/, "analista ").replace(/[^a-z0-9]+/g, " ").trim();
+
+export function campoDoCabecalho(h: string): CampoConteudo | null {
+  const k = n(h);
+  for (const [c, ts] of TERMOS) if (ts.some((t) => k.includes(t))) return c;
+  return null;
+}
+
+/** Indexa por "cargo|nível" e por "cargo" (nome normalizado). */
+export function indexarConteudo(linhas: Record<string, unknown>[]): Map<string, ConteudoImport> {
+  const idx = new Map<string, ConteudoImport>();
+  for (const r of linhas) {
+    let cargo = "", nivel = 0;
+    const c: ConteudoImport = {};
+    for (const [h, v] of Object.entries(r)) {
+      const k = n(h), val = String(v ?? "").trim();
+      if (!val) continue;
+      if (!cargo && /(cargo|funcao|posicao|^nome)/.test(k) && !k.includes("descri")) { cargo = val; continue; }
+      if (!nivel && /(nivel|senioridade)/.test(k)) { const m = val.match(/\d+/); nivel = m ? +m[0] : /junior/.test(n(val)) ? 1 : /pleno/.test(n(val)) ? 2 : /senior/.test(n(val)) ? 3 : 0; continue; }
+      const campo = campoDoCabecalho(h);
+      if (campo) c[campo] = c[campo] ? `${c[campo]}\n${val}` : val;
+    }
+    if (!cargo || !Object.keys(c).length) continue;
+    const base = nomeCargo(cargo);
+    for (const key of nivel ? [`${base}|${nivel}`] : [base]) idx.set(key, { ...idx.get(key), ...c });
+  }
+  return idx;
+}
+
+export function conteudoDoCargo(idx: Map<string, ConteudoImport>, cargo: string, nivel: number, senioridade: string): ConteudoImport | undefined {
+  const b = nomeCargo(cargo);
+  return idx.get(`${b}|${nivel}`) ?? idx.get(nomeCargo(`${cargo} ${senioridade}`)) ?? idx.get(b);
+}
+
+export async function lerConteudoArquivo(f: File): Promise<Map<string, ConteudoImport>> {
+  const XLSX = await import("xlsx");
+  const wb = XLSX.read(await f.arrayBuffer(), { type: "array" });
+  const linhas = wb.SheetNames.flatMap((s) => XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[s], { defval: "" }));
+  return indexarConteudo(linhas);
+}
+
+/** Junta ao plano o conteúdo encontrado no arquivo (com o descritivo do parser antigo como reserva). */
+export function anexarConteudo(plano: PlanoImport, idx: Map<string, ConteudoImport>): PlanoImport {
+  return {
+    ...plano,
+    itens: plano.itens.map((it) => {
+      const c: ConteudoImport = { ...conteudoDoCargo(idx, it.cargo, it.nivel_num, it.senioridade) };
+      if (!c.descricao && it.descricao) c.descricao = it.descricao;
+      if (!c.competencias && it.competencias?.length) c.competencias = it.competencias.join("\n");
+      return Object.keys(c).length ? { ...it, conteudo: c } : it;
+    }),
+  };
 }
