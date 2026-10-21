@@ -80,6 +80,13 @@ describe("BodyShop · proposta PowerPoint", () => {
     expect(m.avisos.some(a => a.includes("escopo"))).toBe(true);
     expect(m.perfis[0].escopoCol1.length + m.perfis[0].escopoCol2.length).toBe(14);
   });
+  it("10b. sem escopo de atuação, usa as atividades do cargo; escopo próprio tem preferência", () => {
+    const base = { snapshot: congelar([ent()], g, CONFIG_BS_PADRAO, "u", DEFAULT_COMISSAO_TIERS), params, cliente: "X", salesforce: "", especialista: "Y", amNome: "Z", amEmail: "z@x", hojeISO: "2026-10-21" };
+    const semEscopo = montarModeloPropostaPptx({ ...base, contents: [{ ...contents[0], escopo_atuacao: null, atividades: "• Atv 1\n• Atv 2" }] });
+    expect([...semEscopo.perfis[0].escopoCol1, ...semEscopo.perfis[0].escopoCol2].join(" ")).toContain("Atv 1");
+    const comEscopo = montarModeloPropostaPptx({ ...base, contents: [{ ...contents[0], atividades: "• Atv 1" }] });
+    expect([...comEscopo.perfis[0].escopoCol1, ...comEscopo.perfis[0].escopoCol2].join(" ")).not.toContain("Atv 1");
+  });
   it("11. reemitir usa o modelo congelado, não os parâmetros atuais", () => {
     const congelado = JSON.parse(JSON.stringify(modelo([ent()])));
     modelo([ent()], [{ key: "reajuste_indice", value: "IGPM" }]);
