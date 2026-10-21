@@ -106,6 +106,13 @@
       "when": 1792518445041,
       "tag": "0015_bodyshop_modelo",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792583028367,
+      "tag": "0016_bodyshop_escopo_atuacao",
+      "breakpoints": true
     }
   ]
 }

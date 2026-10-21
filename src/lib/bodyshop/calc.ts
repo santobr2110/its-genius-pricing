@@ -20,7 +20,7 @@ export interface BodyshopCargo {
 export interface BodyshopContent {
   cargo_id: string;
   descricao: string | null; atividades: string | null; competencias: string | null; formacao: string | null;
-  certificacoes: string | null; entregaveis: string | null; pre_requisitos: string | null; observacoes: string | null;
+  certificacoes: string | null; entregaveis?: string | null; escopo_atuacao: string | null; pre_requisitos: string | null; observacoes: string | null;
   a_confirmar: boolean;
 }
 

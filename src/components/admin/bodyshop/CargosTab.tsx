@@ -200,7 +200,7 @@ export default function BsCargosTab({ cargos, p, refresh }: BsCadastro) {
 
 // Só envia os campos presentes no arquivo: campos ausentes mantêm o conteúdo já cadastrado.
 async function gravarConteudo(cargo_id: string, c: ConteudoImport) {
-  const r = await supabase.from("bodyshop_cargo_content").upsert({ cargo_id, ...c, a_confirmar: true, updated_at: new Date().toISOString() }, { onConflict: "cargo_id" }).select("cargo_id");
+  const r = await supabase.from("bodyshop_cargo_content").upsert({ cargo_id, ...Object.fromEntries(CAMPOS_CONTEUDO.filter((f) => c[f] !== undefined).map((f) => [f, c[f]])), a_confirmar: c.revisado !== true, updated_at: new Date().toISOString() }, { onConflict: "cargo_id" }).select("cargo_id");
   if (r.error) throw r.error;
   if (!r.data?.length) throw new Error("Sem permissão para gravar o conteúdo do cargo.");
 }

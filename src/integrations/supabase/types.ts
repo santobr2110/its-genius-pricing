@@ -398,6 +398,7 @@ export type Database = {
           competencias: string | null
           descricao: string | null
           entregaveis: string | null
+          escopo_atuacao: string | null
           formacao: string | null
           observacoes: string | null
           pre_requisitos: string | null
@@ -411,6 +412,7 @@ export type Database = {
           competencias?: string | null
           descricao?: string | null
           entregaveis?: string | null
+          escopo_atuacao?: string | null
           formacao?: string | null
           observacoes?: string | null
           pre_requisitos?: string | null
@@ -424,6 +426,7 @@ export type Database = {
           competencias?: string | null
           descricao?: string | null
           entregaveis?: string | null
+          escopo_atuacao?: string | null
           formacao?: string | null
           observacoes?: string | null
           pre_requisitos?: string | null

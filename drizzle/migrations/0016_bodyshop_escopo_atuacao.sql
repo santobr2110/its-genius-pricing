@@ -1,0 +1,4 @@
+ALTER TABLE public.bodyshop_cargo_content ADD COLUMN IF NOT EXISTS escopo_atuacao text;
+COMMENT ON COLUMN public.bodyshop_cargo_content.escopo_atuacao IS 'Frentes de atuação do profissional, sem promessa de resultado. Entregáveis contratuais da alocação ficam em bodyshop_params.';
+COMMENT ON COLUMN public.bodyshop_cargo_content.pre_requisitos IS 'O que o cliente precisa prover: acessos, credenciais, infraestrutura e pontos focais. Requisitos do profissional ficam em formacao e certificacoes.';
+COMMENT ON COLUMN public.bodyshop_cargo_content.entregaveis IS 'DEPRECATED: substituído por escopo_atuacao; entregáveis contratuais ficam em bodyshop_params.proposta_entregaveis_contratuais. Conteúdo antigo promete resultado e não vai para a proposta.';

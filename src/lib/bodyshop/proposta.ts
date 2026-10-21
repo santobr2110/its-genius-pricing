@@ -9,6 +9,8 @@ export interface ModeloPropostaBS {
   validadeDias: number; duracaoMeses: number; dataInicio: string; regime: string; prazoPagamento: string;
   quemSomos: string; numeros: string[]; objeto: string; reajusteIndice: string; observacoes: string;
   textoTributario: string; dadosFaturamento: string[];
+  /** Nível do documento (não por perfil); ausentes em emissões antigas. */
+  entregaveisContratuais?: string[]; regimeObrigacao?: string;
   blocos: { id: string; titulo: string; aConfirmar: boolean; campos: { label: string; texto: string }[] }[];
   itens: { id: string; perfil: string; quantidade: number; regime: string; unitario: number; total: number }[];
   totalMensal: number; totalContrato: number;
@@ -33,7 +35,7 @@ export function montarModeloPropostaBS(a: {
   const p = new Map(a.params.map(r => [r.key, r.value]));
   const res = computeCarrinhoBS(entradasDoSnapshot(a.snapshot), globaisDoSnapshot(a.snapshot), a.snapshot.tiers);
   if (!res.linhas.length || res.temErros) throw new Error('Snapshot inválido para emissão.');
-  const campos = [{k:'descricao',label:'Descrição'}, {k:'atividades',label:'Atividades'}, {k:'competencias',label:'Competências'}, {k:'formacao',label:'Formação'}, {k:'certificacoes',label:'Certificações'}, {k:'entregaveis',label:'Entregáveis'}, {k:'pre_requisitos',label:'Pré-requisitos'}] as const;
+  const campos = [{k:'descricao',label:'Descrição'}, {k:'atividades',label:'Atividades'}, {k:'competencias',label:'Competências'}, {k:'formacao',label:'Formação'}, {k:'certificacoes',label:'Certificações'}, {k:'escopo_atuacao',label:'Escopo de atuação'}, {k:'pre_requisitos',label:'Pré-requisitos'}] as const;
   const itens = res.linhas.map(l => ({ id:l.entrada.linhaId, perfil:`${l.entrada.cargo} · ${l.entrada.senioridade}`, quantidade:l.entrada.quantidade,
     regime:l.entrada.regime === 'integral' ? 'Integral' : 'Meio período', unitario:l.precoFinal/l.entrada.quantidade, total:l.precoFinal }));
   const ids = [...new Set(res.linhas.map(l => l.entrada.cargoId))];
@@ -50,7 +52,7 @@ export function montarModeloPropostaBS(a: {
     prazoPagamento:texto(a.prazoPagamento?.trim() || p.get('proposta_prazo_pagamento')), quemSomos:texto(p.get('proposta_quem_somos')), numeros:lista('proposta_numeros'),
     objeto:`Alocação de profissionais por ${a.snapshot.duracaoMeses} meses. ${texto(p.get('proposta_objeto'))}`,
     reajusteIndice:texto(p.get('reajuste_indice')), observacoes:[a.observacoesExtra?.trim(), texto(p.get('proposta_observacoes'))].filter(Boolean).join('\n\n'),
-    textoTributario:texto(p.get('proposta_texto_tributario')), dadosFaturamento:lista('proposta_dados_faturamento'), blocos,itens,
+    textoTributario:texto(p.get('proposta_texto_tributario')), dadosFaturamento:lista('proposta_dados_faturamento'), entregaveisContratuais:lista('proposta_entregaveis_contratuais'), regimeObrigacao:texto(p.get('proposta_regime_obrigacao')), blocos,itens,
     totalMensal:res.precoFinalTotalMensal,totalContrato:res.precoFinalTotalContrato };
 }
 export function nomeArquivoBS(m: ModeloPropostaBS) {
@@ -63,8 +65,10 @@ export function secoesPropostaBS(m: ModeloPropostaBS) {
     { titulo:'Quem somos', textos:[m.quemSomos,...m.numeros] },
     { titulo:'Objeto e escopo da alocação', textos:[m.objeto,`Duração: ${m.duracaoMeses} meses.`,`Início: ${m.dataInicio}.`,`Regime: ${m.regime}.`] },
     ...m.blocos.map(b=>({titulo:b.titulo,textos:[...(b.aConfirmar?[A_CONFIRMAR]:[]),...b.campos.flatMap(c=>[c.label,c.texto])]})),
+    ...(m.regimeObrigacao ? [{ titulo:'Regime da obrigação', textos:[m.regimeObrigacao] }] : []),
     { titulo:'Investimento', textos:[`Total mensal: ${moedaBS(m.totalMensal)}`,`Total do contrato: ${moedaBS(m.totalContrato)}`], investimento:true },
     { titulo:'Condições comerciais', textos:[`Duração: ${m.duracaoMeses} meses.`,`Data de início: ${m.dataInicio}.`,`Regime de alocação: ${m.regime}.`,`Validade da proposta: ${m.validadeDias} dias, até ${m.dataValidade.split('-').reverse().join('/')}.`,`Prazo de pagamento: ${m.prazoPagamento}`,'Impostos: inclusos.',`Reajuste anual pelo índice: ${m.reajusteIndice}.`,'Faturamento sujeito à aprovação de crédito.'] },
+    ...(m.entregaveisContratuais?.length ? [{ titulo:'Entregáveis contratuais da alocação', textos:m.entregaveisContratuais.map(t=>`• ${t}`) }] : []),
     { titulo:'Observações', textos:[m.observacoes] },
     { titulo:'Informações tributárias', textos:[m.textoTributario] },
     { titulo:'Dados de faturamento da Selbetti', textos:m.dadosFaturamento },
