@@ -118,6 +118,7 @@ export function computeCarrinho(
     const base = porVaga ? Math.max(1, curso.min_alunos || 1) : vagas;
     const custoBase = computeCursoCusto(curso, modalidade, base, params, { locacao: linha.locacao, diarias: linha.diarias ?? undefined });
     if (porVaga && vagas < 1) custoBase.erros.push("Informe ao menos 1 aluno.");
+    if (curso.tipo === "exame" && !(Number(curso.valor_fabricante) > 0)) custoBase.erros.push("Exame sem valor do fabricante cadastrado.");
     if (taxPorProduto && !taxPorProduto(codigoProduto)) custoBase.erros.push(`Produto ${codigoProduto} sem alíquotas para o município.`);
     if (custoBase.erros.length) {
       return { linha, curso, cursoOriginal: original, custo: custoBase, preco: null, descontoEfetivoPerc: 0, precoFinal: 0, precoFinalPorAluno: 0, rentabilidadePerc: 0, comissaoPerc: 0, lucro: 0, avisos, curva: [], codigoProduto, tax: taxL };
@@ -128,7 +129,11 @@ export function computeCarrinho(
       ? { ...custoBase, custoTurma: custoBase.custoPorAluno * vagas,
           detalhe: { instrutor: custoBase.detalhe.instrutor * fator, gestao: custoBase.detalhe.gestao * fator, locacao: custoBase.detalhe.locacao * fator, materialCloud: custoBase.detalhe.materialCloud * fator } }
       : custoBase;
-    const preco: PrecoResult = porVaga ? { ...precoBase, precoTurma: precoBase.precoPorAluno * vagas } : precoBase;
+    // Exames: o preço de venda é o valor do fabricante por aluno (não passa pela cascata de markup).
+    const ehExame = curso.tipo === "exame";
+    const preco: PrecoResult = ehExame
+      ? { ...precoBase, precoPorAluno: Number(curso.valor_fabricante) || 0, precoTurma: (Number(curso.valor_fabricante) || 0) * Math.max(1, vagas) }
+      : porVaga ? { ...precoBase, precoTurma: precoBase.precoPorAluno * vagas } : precoBase;
     
     const descontoEfetivoPerc = 100 * (1 - (1 - (linha.descontoPerc || 0) / 100) * (1 - (cfg.descontoTotalPerc || 0) / 100));
     const d = aplicarDesconto(custo.custoTurma, preco.precoTurma, descontoEfetivoPerc, fixos, tiers, params.comissaoFixaPerc ?? null, params.retencaoPerc ?? 0);
