@@ -51,6 +51,7 @@ function parseMonths(term: string | null | undefined): number {
 export default function ResumoCotacao() {
   const { state, results, activePreset } = useITSMContext();
   const { can } = useAuth();
+  const { cbsPerc: cbsReforma } = useReformaCBS();
   const isSaved = !!activePreset.activeId;
   const canExport = can("pricing.export_pdf");
   const approval = usePricingApproval({

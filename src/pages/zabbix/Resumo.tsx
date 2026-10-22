@@ -33,6 +33,7 @@ export async function exportarResumoZbxPdf(nomeArquivo: string) {
 export default function ZbxResumo({ embedded = false }: { embedded?: boolean }) {
   const { st, res, tax, globais, congeladoIntacto, loading } = useZabbixResultado();
   const { can } = useAuth();
+  const { cbsPerc: cbsReforma } = useReformaCBS();
   const ok = res.linhas.filter((l) => l.erros.length === 0 && l.fixos);
   if (embedded && (loading || !ok.length)) return null;
   if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;

@@ -43,6 +43,7 @@ export async function exportarResumoBsPdf(nomeArquivo: string) {
 export default function BsResumo({ embedded = false }: { embedded?: boolean }) {
   const { st, res, congeladoIntacto, loading, error } = useBodyshopResultado();
   const { can } = useAuth(); const [exportando, setExportando] = useState(false);
+  const { cbsPerc: cbsReforma } = useReformaCBS();
   const ok = res.linhas.filter(l => !l.erros.length && l.fixos);
   if (embedded && (loading || !ok.length)) return null;
   if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;

@@ -33,6 +33,7 @@ export async function exportarResumoPdf(nomeArquivo: string) {
 export default function TreinamentoResumo({ embedded = false }: { embedded?: boolean }) {
   const { st, res, irpj, tax, loading } = useTreinamentoResultado();
   const { can } = useAuth();
+  const { cbsPerc: cbsReforma } = useReformaCBS();
   const podeExportar = can("page.trn.proposal");
   const itens = res.linhas.filter((l) => l.curso);
   const _produtos = Array.from(new Set(itens.map((l) => l.codigoProduto ?? ""))).filter(Boolean).map((codigo) => {
