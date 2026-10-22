@@ -1,3 +1,5 @@
+import { useReformaCBS } from "@/hooks/useReformaCBS";
+import { calcPrecoReforma, parcelasDeLinhas, textoPrecoReforma, REFORMA_VIGENCIA } from "@/lib/pricing/reformaTributaria";
 import { obsEfetivos } from "@/lib/custoObservabilidadeNiveis";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -560,6 +562,7 @@ export default function ResumoCotacao() {
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Taxas e Impostos</h2>
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Investimento Total:" value={formatBRL(investimentoTotal)} />
+            <Field label={`Mensal a partir de ${REFORMA_VIGENCIA}:`} value={textoPrecoReforma(calcPrecoReforma([{ preco: receitaMes, pisPerc: calcState.pisPerc || 0, cofinsPerc: calcState.cofinsPerc || 0, issPerc: calcState.issPerc || 0 }], cbsReforma))} />
             <Field label="Impostos:" value={formatBRL(impostos)} />
             <Field label="Receita por Mês:" value={formatBRL(receitaMes)} />
             <Field label="Comercial:" value={formatBRL(comercial)} />

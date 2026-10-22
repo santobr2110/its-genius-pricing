@@ -1,3 +1,5 @@
+import { useReformaCBS } from "@/hooks/useReformaCBS";
+import { calcPrecoReforma, parcelasDeLinhas, textoPrecoReforma, REFORMA_VIGENCIA } from "@/lib/pricing/reformaTributaria";
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import { FileDown, FileText, Loader2 } from "lucide-react";
@@ -47,6 +49,7 @@ export default function ZbxResumo({ embedded = false }: { embedded?: boolean }) 
   };
   const soma = (f: (l: typeof ok[number]) => number) => ok.reduce((s, l) => s + f(l), 0);
   const total = res.precoFinalTotal;
+  const cbsPerc = cbsReforma;
   const impostos = soma((l) => l.precoFinal * (l.fixos!.pisPerc + l.fixos!.cofinsPerc + l.fixos!.issPerc + l.fixos!.irpjCsllPerc) / 100);
   const comercial = soma((l) => l.precoFinal * l.comissaoPerc / 100);
   const retencao = soma((l) => l.precoFinal * l.fixos!.retencaoPerc / 100);
@@ -84,6 +87,7 @@ export default function ZbxResumo({ embedded = false }: { embedded?: boolean }) 
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Taxas e Impostos</h2>
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Investimento Total:" value={brl(total)} />
+            <Field label={`Investimento a partir de ${REFORMA_VIGENCIA}:`} value={textoPrecoReforma(calcPrecoReforma(parcelasDeLinhas(ok), cbsPerc))} />
             <Field label="Impostos:" value={brl(impostos)} />
             <Field label="Comercial:" value={brl(comercial)} />
             <Field label="Financeiro:" value={brl(financeiro)} />

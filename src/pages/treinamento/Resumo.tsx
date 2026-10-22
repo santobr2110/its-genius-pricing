@@ -1,3 +1,5 @@
+import { useReformaCBS } from "@/hooks/useReformaCBS";
+import { calcPrecoReforma, parcelasDeLinhas, textoPrecoReforma, REFORMA_VIGENCIA } from "@/lib/pricing/reformaTributaria";
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import { FileDown, FileText, Loader2 } from "lucide-react";
@@ -61,6 +63,7 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
   const mods = Array.from(new Set(itens.map((l) => MOD[l.linha.modalidade])));
   const modalidade = itens.every((l) => l.linha.somenteExame) ? "Somente exame" : mods.length > 1 ? "Misto (" + mods.join(" e ") + ")" : mods[0];
   const total = res.precoFinalTotal;
+  const cbsPerc = cbsReforma;
   const impostos = itens.reduce((a, l) => a + l.precoFinal * (((l.tax?.pisPerc ?? 0) + (l.tax?.cofinsPerc ?? 0) + (l.tax?.issPerc ?? 0) + irpj) / 100), 0);
   const comercial = itens.reduce((a, l) => a + l.precoFinal * ((l.comissaoPerc ?? 0) / 100), 0);
   const retencao = itens.reduce((a, l) => a + l.precoFinal * ((l.retencaoPerc ?? 0) / 100), 0);
@@ -98,6 +101,7 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Taxas e Impostos</h2>
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Investimento Total:" value={brl(total)} />
+            <Field label={`Investimento a partir de ${REFORMA_VIGENCIA}:`} value={textoPrecoReforma(calcPrecoReforma(parcelasDeLinhas(itens), cbsPerc))} />
             <Field label="Impostos:" value={brl(impostos)} />
             <Field label="Comercial:" value={brl(comercial)} />
             <Field label="Financeiro:" value={brl(financeiro)} />
