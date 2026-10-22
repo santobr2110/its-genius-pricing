@@ -1,3 +1,4 @@
+import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { computeCustoObservabilidadeNiveis, obsEfetivos, obsHorasLimites } from "@/lib/custoObservabilidadeNiveis";
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
@@ -2046,6 +2047,7 @@ export default function SmartTiersPanel() {
             <span className="text-sm font-bold">Valor Total de Venda</span>
             <span className="text-base font-extrabold text-primary tabular-nums">{formatBRL(totalSelecionado)}</span>
           </div>
+          <PrecoReformaInfo parcelas={[{ preco: totalSelecionado, pisPerc: state.pisPerc || 0, cofinsPerc: state.cofinsPerc || 0, issPerc: state.issPerc || 0 }]} className="mt-2" />
         </div>
       </CardContent>
     </Card>

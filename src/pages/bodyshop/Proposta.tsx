@@ -1,3 +1,5 @@
+import { useReformaCBS } from "@/hooks/useReformaCBS";
+import { calcPrecoReforma, fraseReforma, parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, FileDown, Loader2, Stamp } from 'lucide-react';
@@ -23,7 +25,7 @@ import BsResumo, { exportarResumoBsPdf } from './Resumo';
 const MIME='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 function baixar(blob:Blob,nome:string) {const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
 export default function BsProposta() {
-  const {cad,st,params,loading}=useBodyshopResultado(); const cot=useBodyshopCotacoes(); const {can}=useAuth();
+  const {cad,st,params,loading,res}=useBodyshopResultado(); const {cbsPerc:cbsReforma}=useReformaCBS(); const cot=useBodyshopCotacoes(); const {can}=useAuth();
   const [contato,setContato]=useState(''),[email,setEmail]=useState(''),[validade,setValidade]=useState<number|null>(null),[prazo,setPrazo]=useState(''),[obs,setObs]=useState('');
   const [emitindo,setEmitindo]=useState(false),[resumo,setResumo]=useState(false),[selecionada,setSelecionada]=useState<EmissaoBS|null>(null);
   const [abrirWord,setAbrirWord]=useState(false),[wordBlob,setWordBlob]=useState<Blob|null>(null),[wordUrl,setWordUrl]=useState<string|null>(null),[simples,setSimples]=useState(false);
@@ -38,8 +40,8 @@ export default function BsProposta() {
   },[st.snapshot,erro,cad.contents,cad.params,st.atual,contato,email,validade,params.validadeDias,prazo,obs,emissoes]);
   const modeloPptx=useMemo<ModeloPropostaPptx|null>(()=>{
     if(!st.snapshot || erro) return null;
-    try { return montarModeloPropostaPptx({snapshot:st.snapshot,contents:cad.contents,params:cad.params,cliente:st.atual.cliente,salesforce:st.atual.salesforce??'',especialista:st.atual.especialistaBU??'',amNome:st.atual.gerenteConta??'',amEmail:st.atual.gerenteContaEmail??'',hojeISO:new Date().toISOString().slice(0,10)}); } catch { return null; }
-  },[st.snapshot,erro,cad.contents,cad.params,st.atual]);
+    try { return montarModeloPropostaPptx({snapshot:st.snapshot,contents:cad.contents,params:cad.params,cliente:st.atual.cliente,salesforce:st.atual.salesforce??'',especialista:st.atual.especialistaBU??'',amNome:st.atual.gerenteConta??'',amEmail:st.atual.gerenteContaEmail??'',reformaTributaria:fraseReforma(calcPrecoReforma(parcelasDeLinhas(res.linhas),cbsReforma),undefined,' por mês'),hojeISO:new Date().toISOString().slice(0,10)}); } catch { return null; }
+  },[st.snapshot,erro,cad.contents,cad.params,st.atual,res.linhas,cbsReforma]);
   const [gerando,setGerando]=useState(false),[abrirPpt,setAbrirPpt]=useState(false),[pptUrl,setPptUrl]=useState<string|null>(null),[pptErro,setPptErro]=useState<string|null>(null),[pptBlob,setPptBlob]=useState<{blob:Blob;nome:string}|null>(null);
   const baixarPptx=async(m:ModeloPropostaPptx|null|undefined)=>{ if(!m)return; setGerando(true); try{ baixar(await gerarPropostaBsPptx(m),nomeArquivoPptx(m)); }catch(e){toast.error((e as Error).message);}finally{setGerando(false);} };
   const visualizarPptx=async(m:ModeloPropostaPptx|null|undefined)=>{

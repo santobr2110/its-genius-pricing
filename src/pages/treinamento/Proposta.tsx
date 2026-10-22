@@ -1,3 +1,5 @@
+import { useReformaCBS } from "@/hooks/useReformaCBS";
+import { calcPrecoReforma, fraseReforma, parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +49,9 @@ export default function TreinamentoProposta() {
   const emissoes = ((salvo?.payload as unknown as { emissoes?: EmissaoTRN[] })?.emissoes) ?? [];
 
   const obsParam = String(cad.params.find((x) => x.key === "observacoes_proposta")?.value ?? "").trim();
-  const obsFinal = [d.observacoes.trim(), obsParam].filter(Boolean).join("\n\n");
+  const { cbsPerc: cbsReforma } = useReformaCBS();
+  const reforma = fraseReforma(calcPrecoReforma(parcelasDeLinhas(res.linhas.filter((l) => l.preco != null)), cbsReforma));
+  const obsFinal = [d.observacoes.trim(), obsParam, reforma].filter(Boolean).join("\n\n");
   const contentById = useMemo(() => new Map(cad.contents.map((c) => [c.course_id, c])), [cad.contents]);
   const itens = res.linhas.filter((l) => l.curso);
   const hojeISO = new Date().toISOString().slice(0, 10);

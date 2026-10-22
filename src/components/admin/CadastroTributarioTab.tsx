@@ -1,3 +1,4 @@
+import ReformaCBSCard from "./ReformaCBSCard";
 import { useState } from "react";
 import { Plus, Trash2, Save, Package } from "lucide-react";
 import { useMemo } from "react";
@@ -150,6 +151,7 @@ export default function CadastroTributarioTab() {
   };
   return (
     <div className="space-y-4">
+    <ReformaCBSCard />
     <CodigosServicoSection servicos={servicos} iss={iss} codes={codes} refresh={refresh} />
     <Card>
       <CardHeader className="flex-row items-start justify-between space-y-0 gap-3">
