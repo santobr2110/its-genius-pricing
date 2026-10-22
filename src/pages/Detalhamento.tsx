@@ -1,3 +1,5 @@
+import { useReformaCBS } from "@/hooks/useReformaCBS";
+import { calcPrecoReforma, fraseReforma } from "@/lib/pricing/reformaTributaria";
 import { obsEfetivos, computeCustoObservabilidadeNiveis, NIVEL_INFO } from "@/lib/custoObservabilidadeNiveis";
 import { useEffect, useMemo, useState } from "react";
 import { useITSMContext } from "@/contexts/ITSMContext";
@@ -100,6 +102,7 @@ const TIER_ALIAS: Record<string, { name: string; icon: React.ElementType }> = {
 
 export default function Detalhamento() {
   const { state, results, activePreset, extrasOperacionais } = useITSMContext();
+  const { cbsPerc: cbsReforma } = useReformaCBS();
   // Modelo de níveis: horas de automação e proxies vêm de obs* (os campos clássicos não são cobrados).
   const obsNiveisAtivo = state.modeloObservabilidade === "niveis";
   const obsEf = obsEfetivos(state);
@@ -1858,6 +1861,9 @@ export default function Detalhamento() {
                 <p className="mt-1 text-3xl md:text-4xl font-bold text-primary">{formatBRL(investimentoTotal)}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Valor mensal de contrato{contractTerm ? ` · Prazo: ${contractTerm}` : ""}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 max-w-md">
+                  {fraseReforma(calcPrecoReforma([{ preco: investimentoTotal, pisPerc: state.pisPerc || 0, cofinsPerc: state.cofinsPerc || 0, issPerc: state.issPerc || 0 }], cbsReforma), formatBRL, " por mês")}
                 </p>
               </div>
               <div className="text-right text-xs space-y-1">
