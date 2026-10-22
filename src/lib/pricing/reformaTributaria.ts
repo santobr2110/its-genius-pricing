@@ -60,3 +60,13 @@ export function textoPrecoReforma(r: PrecoReforma, fmt: (v: number) => string = 
 export function fraseReforma(r: PrecoReforma, fmt: (v: number) => string = brlReforma, sufixo = ""): string {
   return `A partir de ${REFORMA_VIGENCIA}, com a entrada em vigência da reforma tributária (substituição de PIS/COFINS pela CBS), o valor passa a ser ${textoPrecoReforma(r, fmt)}${sufixo}.`;
 }
+
+type TaxLike = { pisPerc: number; cofinsPerc: number; issPerc: number } | null | undefined;
+/** Parcelas a partir das linhas de um carrinho (usa `fixos` ou `tax`; ignora linhas sem alíquota/preço). */
+export function parcelasDeLinhas(linhas: Array<{ precoFinal: number; fixos?: TaxLike; tax?: TaxLike; erros?: string[] }>): ParcelaReforma[] {
+  return linhas.flatMap((l) => {
+    const t = l.fixos ?? l.tax;
+    if (!t || !(l.precoFinal > 0) || (l.erros && l.erros.length)) return [];
+    return [{ preco: l.precoFinal, pisPerc: t.pisPerc, cofinsPerc: t.cofinsPerc, issPerc: t.issPerc }];
+  });
+}
