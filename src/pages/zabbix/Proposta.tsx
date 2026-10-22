@@ -1,3 +1,5 @@
+import { useReformaCBS } from "@/hooks/useReformaCBS";
+import { calcPrecoReforma, fraseReforma, parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, FileDown, FileText, Loader2, Stamp } from "lucide-react";
@@ -47,13 +49,14 @@ export default function ZbxProposta() {
   const salvo = cot.lista.find((c) => c.id === st.atual.id);
   const emissoes = ((salvo?.payload as unknown as { emissoes?: EmissaoZBX[] })?.emissoes) ?? [];
   const hojeISO = new Date().toISOString().slice(0, 10);
+  const { cbsPerc: cbsReforma } = useReformaCBS();
 
   const modelo = useMemo(() => montarModeloProposta({
     res, contents: cad.contents, params: cad.params, cliente: st.atual.cliente, contato: d.contato, email: d.email,
     consultor: st.atual.especialistaBU ?? "", codigo: st.atual.codigo, versao: emissoes.length || null,
-    hojeISO, validadeDias, prazoPagamento: d.prazoPagamento, observacoesExtra: d.observacoes,
+    hojeISO, validadeDias, prazoPagamento: d.prazoPagamento, observacoesExtra: [d.observacoes, fraseReforma(calcPrecoReforma(parcelasDeLinhas(res.linhas), cbsReforma))].filter((t) => t && t.trim()).join("\n\n"),
     niveis: Object.fromEntries(cad.subs.map((s) => [s.id, s.nivel])), matriz: matriz.linhas, salesforce: st.atual.salesforce ?? null,
-  }), [res, cad.contents, cad.params, cad.subs, matriz.linhas, st.atual, d.contato, d.email, d.prazoPagamento, d.observacoes, emissoes.length, hojeISO, validadeDias]);
+  }), [res, cad.contents, cad.params, cad.subs, matriz.linhas, st.atual, d.contato, d.email, d.prazoPagamento, d.observacoes, cbsReforma, emissoes.length, hojeISO, validadeDias]);
 
   const [abrirWord, setAbrirWord] = useState(false);
   const [wordUrl, setWordUrl] = useState<string | null>(null);

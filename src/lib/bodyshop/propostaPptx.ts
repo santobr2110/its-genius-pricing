@@ -75,7 +75,7 @@ const cabe = (itens: string[], cap: { itens: number; chars: number }) => itens.l
 
 export function montarModeloPropostaPptx(a: {
   snapshot: SnapshotBS; contents: BodyshopContent[]; params: { key: string; value: unknown }[];
-  cliente: string; salesforce: string; especialista: string; amNome: string; amEmail: string; hojeISO: string;
+  cliente: string; salesforce: string; especialista: string; amNome: string; amEmail: string; hojeISO: string; reformaTributaria?: string;
 }): ModeloPropostaPptx {
   const p = new Map(a.params.map(r => [r.key, r.value]));
   const g = (k: string) => ouPendente(p.get(k));
@@ -136,6 +136,7 @@ export function montarModeloPropostaPptx(a: {
   obs.push(Number.isFinite(prazo) && prazo > 0
     ? `O prazo para disponibilização do profissional é de até ${comExtenso(prazo)} dias, contados a partir da formalização da contratação e/ou autorização para início da operação.`
     : `O prazo para disponibilização do profissional é de até ${A_CONFIRMAR} dias, contados a partir da formalização da contratação e/ou autorização para início da operação.`);
+  if (a.reformaTributaria) obs.push(a.reformaTributaria);
   if (!cabe(obs, CAPACIDADE.observacoes)) avisos.push("As observações comerciais não cabem no slide de investimento; revise os textos em Configurações › Parâmetros.");
 
   const nums = linhas(p.get("proposta_inst_numeros")).map(l => { const [valor, rotulo] = par(l); return { valor: ouPendente(valor), rotulo: ouPendente(rotulo) }; });
