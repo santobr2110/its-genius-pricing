@@ -1,3 +1,5 @@
+import PrecoReformaInfo from "@/components/PrecoReformaInfo";
+import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -165,6 +167,7 @@ export default function Configurador() {
               </div>
               {res.precoTabelaTotal !== res.precoFinalTotal && <Linha l="Desconto" v={`− ${brl(res.precoTabelaTotal - res.precoFinalTotal)}`} />}
               <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Total de Venda</span><span className="text-2xl font-bold tabular-nums">{brl(res.precoFinalTotal)}</span></div>
+              <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas.filter((l) => l.preco != null))} />
               <div className="rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground space-y-0.5">
                 <p>Município {config.municipio} · rentabilidade alvo {pct(config.lucroPerc)}{config.descontoTotalPerc ? ` · desconto ${pct(config.descontoTotalPerc)}` : ""}</p>
                 <p>Comissão {pct(res.cascataBase.comissaoPerc)} · IR/CSLL {pct(res.cascataBase.irpjCsllPerc)} · <Link to="/observabilidade/treinamento/financeiro/impostos" className="text-primary hover:underline">Alterar condições</Link></p>
