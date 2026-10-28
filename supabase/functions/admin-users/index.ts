@@ -53,8 +53,11 @@ Deno.serve(async (req) => {
       const { data: assignments } = await admin
         .from("user_roles")
         .select("user_id, role_id, roles ( id, name, slug )");
-      const map = new Map<string, any>();
-      (assignments ?? []).forEach((a: any) => map.set(a.user_id, a.roles));
+      const map = new Map<string, any[]>();
+      (assignments ?? []).forEach((a: any) => {
+        if (!a.roles) return;
+        map.set(a.user_id, [...(map.get(a.user_id) ?? []), a.roles]);
+      });
       const { data: profilesData } = await admin
         .from("profiles")
         .select("id, full_name");
@@ -65,7 +68,8 @@ Deno.serve(async (req) => {
         email: u.email,
         created_at: u.created_at,
         full_name: nameMap.get(u.id) ?? (u.user_metadata as any)?.full_name ?? null,
-        role: map.get(u.id) ?? null,
+        roles: map.get(u.id) ?? [],
+        role: (map.get(u.id) ?? [])[0] ?? null,
       }));
       return json({ users });
     }
@@ -128,11 +132,15 @@ Deno.serve(async (req) => {
     }
 
     if (action === "assign_role") {
-      const { user_id, role_id } = body;
+      const { user_id, role_id, role_ids } = body;
       if (!user_id) return json({ error: "user_id obrigatório" }, 400);
-      await admin.from("user_roles").delete().eq("user_id", user_id);
-      if (role_id) {
-        const { error } = await admin.from("user_roles").insert({ user_id, role_id });
+      const ids: string[] = Array.isArray(role_ids)
+        ? [...new Set(role_ids.filter((x: unknown) => typeof x === "string" && x))] as string[]
+        : role_id ? [role_id] : [];
+      const { error: delErr } = await admin.from("user_roles").delete().eq("user_id", user_id);
+      if (delErr) return json({ error: delErr.message }, 400);
+      if (ids.length) {
+        const { error } = await admin.from("user_roles").insert(ids.map((rid) => ({ user_id, role_id: rid })));
         if (error) return json({ error: error.message }, 400);
       }
       return json({ ok: true });

@@ -30,6 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -163,6 +164,7 @@ interface UserRow {
   created_at: string;
   full_name: string | null;
   role: { id: string; name: string; slug: string } | null;
+  roles?: { id: string; name: string; slug: string }[];
 }
 
 export default function Admin() {
@@ -259,13 +261,13 @@ function UsersTab({
   const [pwOpen, setPwOpen] = useState<UserRow | null>(null);
   const [editOpen, setEditOpen] = useState<UserRow | null>(null);
 
-  const handleAssign = async (userId: string, roleId: string) => {
+  const handleAssign = async (userId: string, roleIds: string[]) => {
     const { error } = await supabase.functions.invoke("admin-users", {
-      body: { action: "assign_role", user_id: userId, role_id: roleId || null },
+      body: { action: "assign_role", user_id: userId, role_ids: roleIds },
     });
     if (error) toast.error(error.message);
     else {
-      toast.success("Perfil atribuído.");
+      toast.success("Perfis atualizados.");
       reload();
     }
   };
@@ -309,22 +311,44 @@ function UsersTab({
                   {u.id === currentUserId && <Badge variant="secondary" className="ml-2 text-[10px]">você</Badge>}
                 </TableCell>
                 <TableCell>
-                  <Select
-                    value={u.role?.id ?? "none"}
-                    onValueChange={(v) => handleAssign(u.id, v === "none" ? "" : v)}
-                  >
-                    <SelectTrigger className="h-8 w-[200px] text-xs">
-                      <SelectValue placeholder="Sem perfil" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem perfil</SelectItem>
-                      {roles.map((r) => (
-                        <SelectItem key={r.id} value={r.id}>
-                          {r.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {(() => {
+                    const atuais = (u.roles ?? (u.role ? [u.role] : [])).map((r) => r.id);
+                    const nomes = roles.filter((r) => atuais.includes(r.id)).map((r) => r.name);
+                    return (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-auto min-h-8 w-[220px] justify-start text-xs font-normal flex-wrap gap-1 py-1">
+                            {nomes.length === 0 ? (
+                              <span className="text-muted-foreground">Sem perfil</span>
+                            ) : (
+                              nomes.map((n) => (
+                                <Badge key={n} variant="secondary" className="text-[10px]">{n}</Badge>
+                              ))
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-60 p-2" align="start">
+                          <p className="px-1 pb-2 text-xs text-muted-foreground">
+                            As permissões dos perfis marcados são somadas.
+                          </p>
+                          {roles.map((r) => {
+                            const marcado = atuais.includes(r.id);
+                            return (
+                              <label key={r.id} className="flex items-center gap-2 rounded px-1 py-1.5 text-sm hover:bg-muted cursor-pointer">
+                                <Checkbox
+                                  checked={marcado}
+                                  onCheckedChange={(c) =>
+                                    handleAssign(u.id, c ? [...atuais, r.id] : atuais.filter((x) => x !== r.id))
+                                  }
+                                />
+                                {r.name}
+                              </label>
+                            );
+                          })}
+                        </PopoverContent>
+                      </Popover>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button variant="ghost" size="sm" onClick={() => setEditOpen(u)} className="gap-1 h-8">
