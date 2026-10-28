@@ -53,21 +53,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: ur } = await supabase
       .from("user_roles")
       .select("role_id, roles ( id, slug, name, is_system )")
-      .eq("user_id", uid)
-      .maybeSingle();
+      .eq("user_id", uid);
 
-    const r = (ur?.roles ?? null) as RoleInfo | null;
-    setRole(r);
-
-    if (!r) {
+    const lista = ((ur ?? []).map((x: any) => x.roles).filter(Boolean)) as RoleInfo[];
+    if (lista.length === 0) {
+      setRole(null);
       setPermissions(new Set());
       return;
     }
+    // Vários perfis: admin prevalece; o nome exibido junta todos.
+    const adminRole = lista.find((x) => x.slug === "admin");
+    const r: RoleInfo = adminRole
+      ? adminRole
+      : lista.length === 1
+        ? lista[0]
+        : { ...lista[0], name: lista.map((x) => x.name).join(" + ") };
+    setRole(r);
 
     const { data: perms } = await supabase
       .from("role_permissions")
       .select("permission_key, allowed")
-      .eq("role_id", r.id);
+      .in("role_id", lista.map((x) => x.id));
 
     setPermissions(new Set((perms ?? []).filter((p) => p.allowed).map((p) => p.permission_key)));
   }, []);
