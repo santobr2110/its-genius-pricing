@@ -23,10 +23,9 @@ const COMPONENTES_AUTO: { key: CompKey; label: string; descricao: string }[] = [
   { key: "pisPerc",      label: "PIS",         descricao: "Imposto federal sobre receita bruta. Definido pelo código de produto." },
   { key: "cofinsPerc",   label: "COFINS",      descricao: "Contribuição federal sobre receita bruta. Definido pelo código de produto." },
   { key: "issPerc",      label: "ISS",         descricao: "Imposto municipal sobre serviços. Definido pelo município selecionado." },
+  { key: "irpjCsllPerc", label: "IRPJ / CSLL", descricao: "Percentual sobre o preço de venda, definido na Administração. Cotações salvas preservam o imposto original." },
 ];
 const EDITAVEIS: { key: CompKey; label: string; descricao: string; max: number }[] = [
-  { key: "irpjCsllPerc", label: "IRPJ / CSLL",
-    descricao: "Imposto de renda e contribuição social sobre o lucro presumido. Não consta no cadastro de produto.", max: 20 },
   { key: "encFinancPerc", label: "Encargos Financeiros",
     descricao: "Custos financeiros do contrato (prazos, antecipações, garantias).", max: 15 },
 ];
@@ -201,7 +200,7 @@ export default function ConfiguracoesImpostos() {
                 <div className="min-w-0">
                   <Label className="text-sm font-medium">Comissão (automática)</Label>
                   <p className="text-[11px] text-muted-foreground leading-snug">
-                    Definida pela faixa de rentabilidade. Editável em{" "}
+                    Definida pela faixa de rentabilidade cadastrada na Administração. Consulte em{" "}
                     <Link to="/financeiro/comissoes" className="text-primary hover:underline">Comissões</Link>.
                   </p>
                 </div>

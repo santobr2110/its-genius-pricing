@@ -69,7 +69,7 @@ export default function ZbxConfigurador() {
     const nome = atual.nome.trim() || atual.cliente.trim();
     setSalvando(true);
     try {
-      const snap = congelar(entradasVivas, globaisVivos, config.municipio, params.cambioUsd, user?.id ?? "", snapshot?.versao ?? 0);
+      const snap = congelar(entradasVivas, globaisVivos, config.municipio, params.cambioUsd, user?.id ?? "", snapshot?.versao ?? 0, new Date(), R.tiersVivos);
       const r = await cot.salvar(atual.id, nome, atual.cliente, {
         linhas, config, snapshot: snap,
         resumo: { custoTotal: vivo.custoTotal, precoFinalTotal: vivo.precoFinalTotal, rentabilidadePerc: vivo.rentabilidadePerc },

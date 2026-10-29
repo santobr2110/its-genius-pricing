@@ -11,6 +11,7 @@ import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 import { useActivePresetSession, type ActivePresetStatus } from "@/hooks/useActivePresetSession";
 import { useApplyDefaultProfileOnLogin } from "@/hooks/useApplyDefaultProfileOnLogin";
 import { useITOFiscal } from "@/hooks/useITOFiscal";
+import { useParametrosFinanceiros } from "@/hooks/useParametrosFinanceiros";
 import { isPresetActive } from "@/lib/activePreset";
 import { toast } from "sonner";
 import { type Rotina, ROTINAS_DEFAULT } from "@/data/rotinas";
@@ -35,7 +36,6 @@ interface ITSMContextType {
   results: ITSMResults;
   extrasOperacionais: ExtrasOperacionais;
   comissaoTiers: ComissaoTier[];
-  setComissaoTiers: (t: ComissaoTier[]) => void;
   n1Team: N1TeamState;
   updateN1Professional: ReturnType<typeof useN1TeamState>["updateProfessional"];
   addN1Professional: ReturnType<typeof useN1TeamState>["addProfessional"];
@@ -64,6 +64,11 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const n2 = useN2TeamState();
   const activePreset = useActivePresetSession();
   const fiscalITO = useITOFiscal(calc.state, calc.setState, activePreset.loaded);
+  const central = useParametrosFinanceiros();
+  useEffect(() => {
+    if (activePreset.activeId || central.loading || central.error) return;
+    if (calc.state.irpjCsllPerc !== central.irpjCsllPerc) calc.update("irpjCsllPerc", central.irpjCsllPerc);
+  }, [activePreset.activeId, central.loading, central.error, central.irpjCsllPerc, calc.state.irpjCsllPerc, calc.update]);
 
   // Smart Flow: alocação N1 cobra 15 min por chamado ao custo/hora médio da Equipe N1.
   const custoHoraN1Medio = Math.round((n1.results.custoPorPessoa / HORAS_MES_N1) * 100) / 100;
@@ -85,11 +90,16 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const rotinas = useMemo(() => filterRotinasAtivas(rotinasAll, offSet), [rotinasAll, offSet]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
 
-  // Tabela de comissão por faixa de rentabilidade (editável em Configurações Financeiras).
-  const [comissaoTiers, setComissaoTiers] = usePersistentState<ComissaoTier[]>(
+  // Tabela corporativa administrada centralmente; estado local guarda a escala da cotação.
+  const [tiersSalvos, persistirTiers] = usePersistentState<ComissaoTier[]>(
     "itsm:comissaoTiers:v1",
     DEFAULT_COMISSAO_TIERS,
   );
+  const comissaoTiers = activePreset.activeId ? tiersSalvos : central.comissaoTiers;
+  useEffect(() => {
+    if (activePreset.activeId || central.loading || central.error) return;
+    if (JSON.stringify(tiersSalvos) !== JSON.stringify(central.comissaoTiers)) persistirTiers(central.comissaoTiers);
+  }, [activePreset.activeId, central.loading, central.error, central.comissaoTiers, tiersSalvos, persistirTiers]);
 
   // Sincroniza automaticamente a comissão com base na rentabilidade (lucroPerc)
   // usando a tabela. Sempre que rentabilidade ou tiers mudarem, a comissão é
@@ -196,7 +206,6 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     results: unifiedResults,
     extrasOperacionais,
     comissaoTiers,
-    setComissaoTiers,
     n1Team: n1.teamState,
     updateN1Professional: n1.updateProfessional,
     addN1Professional: n1.addProfessional,

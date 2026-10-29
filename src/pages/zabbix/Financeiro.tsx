@@ -13,7 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import ProdutoFiscalCard from "@/components/financeiro/ProdutoFiscalCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { resolveIrpjCsllPerc } from "@/lib/pricing/cascata";
+import { useParametrosFinanceiros } from "@/hooks/useParametrosFinanceiros";
 import { DEFAULT_COMISSAO_TIERS } from "@/lib/comissaoRentabilidade";
 import { parseComissao } from "@/lib/treinamento/calc";
 import SubNav from "@/pages/treinamento/financeiro/SubNav";
@@ -133,12 +133,7 @@ export function ZbxImpostos() {
         </CardHeader>
         <CardContent className="space-y-3">
           <Comp label="PIS · COFINS · ISS" tag="automático" desc="Vêm do produto fiscal de cada subscrição no município escolhido." valor={t0 ? t0.pisPerc + t0.cofinsPerc + t0.issPerc : 0} />
-          <Comp label="IRPJ / CSLL" tag={podeParams ? "editável" : "convenção"} edit={podeParams} desc="Convenção de IR/CSLL. Só quem tem a permissão de parâmetros altera.">
-            <Select value={config.convencao} disabled={!podeParams} onValueChange={(v) => setConfig({ ...config, convencao: v as typeof config.convencao })}>
-              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="padrao_site">Padrão do site ({pct(resolveIrpjCsllPerc("padrao_site"))})</SelectItem><SelectItem value="roi_ito">ROI ITO ({pct(resolveIrpjCsllPerc("roi_ito"))}) · a confirmar</SelectItem></SelectContent>
-            </Select>
-          </Comp>
+          <Comp label="IRPJ / CSLL" tag="central" desc="Percentual sobre a venda. Cadastro na Administração; cotações congeladas preservam o imposto original." valor={globais.irpjCsllPerc} />
           <Comp label="Encargos financeiros" tag="editável" edit desc="Custos financeiros do contrato.">{editPerc("encFinancPerc", config.encFinancPerc ?? params.encFinancPerc, 15)}</Comp>
           <Comp label="Retenção" tag="parâmetro" desc={<>Definida em Configurações › Parâmetros.</>} valor={globais.retencaoPerc} />
           <Comp label="Desconto total" tag="editável" edit desc="Aplicado sobre todos os itens da cotação.">{editPerc("descontoTotalPerc", config.descontoTotalPerc, 50)}</Comp>
@@ -288,6 +283,9 @@ function ComissaoModoCard() {
 
 export function ZbxComissoes() {
   const { res } = useZabbixResultado();
+  const central = useParametrosFinanceiros();
+  const { st } = useZabbixResultado();
+  const tiers = st.snapshot?.comissaoTiers ?? central.comissaoTiers;
   const fixa = res.cascataBase.comissaoFixaPerc;
   const rent = res.rentabilidadePerc;
   return (
@@ -303,7 +301,7 @@ export function ZbxComissoes() {
           <div className="grid grid-cols-3 gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2">
             <span>Rent. mínima (%)</span><span>Rent. máxima (%)</span><span>Comissão (%)</span>
           </div>
-          {DEFAULT_COMISSAO_TIERS.map((t, i) => (
+          {tiers.map((t, i) => (
             <div key={i} className="grid grid-cols-3 gap-2 items-center">
               <Input disabled value={t.minRent} className="h-8 text-right" />
               <Input disabled value={t.maxRent == null ? "—" : t.maxRent} className="h-8 text-right" />

@@ -60,6 +60,7 @@ export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   "modeloObservabilidade",
   "nivelObservabilidade",
   "fiscalITO",
+  "irpjCsllPerc",
   "obsNvpsMedido",
   "obsHorasManutencao",
   "obsQtdProxies",

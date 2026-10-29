@@ -16,7 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import ProdutoFiscalCard from "@/components/financeiro/ProdutoFiscalCard";
 import { Calculator, DollarSign, Loader2, Percent, Receipt, Table as TableIcon, TrendingUp, Wallet } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { resolveIrpjCsllPerc } from "@/lib/pricing/cascata";
+import { useParametrosFinanceiros } from "@/hooks/useParametrosFinanceiros";
 import { DEFAULT_COMISSAO_TIERS, comissaoFromRent, formatRentLabel } from "@/lib/comissaoRentabilidade";
 import { useTreinamentoResultado } from "../useTreinamentoResultado";
 import SubNav from "./SubNav";
@@ -142,12 +142,7 @@ export function TrnImpostos() {
           <Comp label="PIS" tag="automático" desc="Imposto federal sobre receita bruta. Definido pelo código de produto." valor={b.pisPerc} rs={pv * b.pisPerc / 100} />
           <Comp label="COFINS" tag="automático" desc="Contribuição federal sobre receita bruta. Definido pelo código de produto." valor={b.cofinsPerc} rs={pv * b.cofinsPerc / 100} />
           <Comp label="ISS" tag="automático" desc="Imposto municipal sobre serviços. Definido pelo município selecionado." valor={b.issPerc} rs={pv * b.issPerc / 100} />
-          <Comp label="IRPJ / CSLL" tag={podeParams ? "editável" : "convenção"} tone={podeParams ? "edit" : "auto"} desc="Convenção de IR/CSLL sobre o lucro. Somente quem tem a permissão de parâmetros altera." valor={b.irpjCsllPerc} rs={pv * b.irpjCsllPerc / 100}>
-            <Select value={config.convencao} disabled={!podeParams} onValueChange={(v) => setConfig({ ...config, convencao: v as typeof config.convencao })}>
-              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="padrao_site">Padrão do site ({pct(resolveIrpjCsllPerc("padrao_site"))})</SelectItem><SelectItem value="roi_ito">ROI ITO ({pct(resolveIrpjCsllPerc("roi_ito"))}) · a confirmar</SelectItem></SelectContent>
-            </Select>
-          </Comp>
+          <Comp label="IRPJ / CSLL" tag="central" desc="Percentual sobre a venda. Cadastro na Administração; cotações salvas preservam o imposto original." valor={b.irpjCsllPerc} rs={pv * b.irpjCsllPerc / 100} />
           <Comp label="Encargos Financeiros" tag="editável" tone="edit" desc="Custos financeiros do contrato (prazos, antecipações, garantias)." valor={config.encFinancPerc} rs={pv * config.encFinancPerc / 100}>{edit("encFinancPerc", 15)}</Comp>
           <Comp label="Rentabilidade" tag="editável" tone="edit" desc="Lucro pretendido sobre o preço de venda. Determina a comissão pela tabela de faixas." valor={config.lucroPerc} rs={pv * config.lucroPerc / 100}>{edit("lucroPerc", 60)}</Comp>
           <Comp label="Desconto total" tag="editável" tone="edit" desc="Aplicado sobre todos os itens da cotação." valor={config.descontoTotalPerc} rs={-pv * config.descontoTotalPerc / 100}>{edit("descontoTotalPerc", 50)}</Comp>
@@ -207,8 +202,8 @@ function ComissaoModoCard() {
 }
 
 export function TrnComissoes() {
-  const { st, res } = useTreinamentoResultado();
-  const atual = comissaoFromRent(st.config.lucroPerc, DEFAULT_COMISSAO_TIERS);
+  const { st, res, tiers } = useTreinamentoResultado();
+  const atual = comissaoFromRent(st.config.lucroPerc, tiers);
   const fixa = res.cascataBase.comissaoPerc !== atual ? res.cascataBase.comissaoPerc : null;
   return (
     <Shell>
@@ -223,7 +218,7 @@ export function TrnComissoes() {
           <div className="grid grid-cols-3 gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2">
             <span>Rent. mínima (%)</span><span>Rent. máxima (%)</span><span>Comissão (%)</span>
           </div>
-          {DEFAULT_COMISSAO_TIERS.map((t, i) => {
+          {tiers.map((t, i) => {
             const ativa = st.config.lucroPerc >= t.minRent && (t.maxRent == null || st.config.lucroPerc < t.maxRent);
             return (
               <div key={i} className={`grid grid-cols-3 gap-2 items-center rounded-md ${ativa ? "ring-1 ring-primary bg-primary/5" : ""}`}>

@@ -22,6 +22,9 @@ export interface ConfigCarrinho {
   /** Código Protheus de faturamento (padrão "TRN"). */
   codigoProduto?: string;
   convencao: "padrao_site" | "roi_ito";
+  /** Percentuais corporativos capturados ao salvar; ausência = cotação legada. */
+  irpjCsllPerc?: number;
+  comissaoTiers?: ComissaoTier[];
   lucroPerc: number;
   encFinancPerc: number;
   descontoTotalPerc: number;

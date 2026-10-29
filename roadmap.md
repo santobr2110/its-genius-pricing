@@ -1,3 +1,8 @@
+# Parâmetros compartilhados — IRPJ/CSLL
+- [x] Centralizar IRPJ/CSLL em 10,34% e Escala Selbetti na Administração; retirar seleção ROI ITO e edição local das políticas compartilhadas.
+- [x] Integrar os quatro motores preservando percentuais históricos; capturar IR e escala no Treinamento e escala no snapshot Zabbix.
+- [x] Testar imposto e rentabilidade independentes, quatro motores, merge de perfil e não regressão; salvar/ler parâmetros na Administração e conferir novas cotações com 10,34% nas quatro telas autenticadas.
+
 # Downloads do Treinamento — Fernanda
 - [x] Conferir permissões e reproduzir a falha na conta afetada.
 - [x] Corrigir a ordem de carregamento da página de proposta, sem alterar permissões ou preços.
