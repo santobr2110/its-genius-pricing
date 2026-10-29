@@ -90,7 +90,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const rotinas = useMemo(() => filterRotinasAtivas(rotinasAll, offSet), [rotinasAll, offSet]);
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
 
-  // Tabela de comissão por faixa de rentabilidade (editável em Configurações Financeiras).
+  // Tabela corporativa administrada centralmente; estado local guarda a escala da cotação.
   const [tiersSalvos, persistirTiers] = usePersistentState<ComissaoTier[]>(
     "itsm:comissaoTiers:v1",
     DEFAULT_COMISSAO_TIERS,

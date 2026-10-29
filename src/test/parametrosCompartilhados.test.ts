@@ -49,7 +49,7 @@ describe("Parâmetros corporativos separados da rentabilidade", () => {
     expect(r.rentabilidadePerc).toBeCloseTo(20, 10);
   });
   it("Treinamento aplica imposto de 10,34% sobre venda", () => {
-    const r = computePreco(1000, 1, { pisPerc: 0, cofinsPerc: 0, issPerc: 0, comissaoPerc: 0, irpjCsllPerc: parametrosFinanceiros(null).irpjCsllPerc, encFinancPerc: 0, lucroPerc: 20 }, false, 0);
+    const r = computePreco(1000, 1, { pisPerc: 0, cofinsPerc: 0, issPerc: 0, comissaoPerc: 0, irpjCsllPerc: parametrosFinanceiros(null).irpjCsllPerc, encFinancPerc: 0, lucroPerc: 20 }, 0, 0);
     expect(r.cascata.irpjCsll / r.cascata.precoVenda * 100).toBeCloseTo(10.34, 10);
     expect(r.cascata.lucro / r.cascata.precoVenda * 100).toBeCloseTo(20, 10);
   });
