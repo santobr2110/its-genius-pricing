@@ -43,7 +43,7 @@ export default function ParametrosTab({ params, refresh }: CadastroProps) {
         <Button onClick={salvar} disabled={sujos.length === 0}>Salvar{sujos.length ? ` (${sujos.length})` : ""}</Button>
       </CardHeader>
       <CardContent className="divide-y">
-        {rows.filter((r) => r.key !== "comissao_regra" && !r.key.startsWith("produto_")).map((r) => (
+        {rows.filter((r) => r.key !== "comissao_regra" && r.key !== "irpjCsllConvencao" && !r.key.startsWith("produto_")).map((r) => (
           <div key={r.key} className="grid grid-cols-1 md:grid-cols-[1fr_180px_160px] items-center gap-3 py-2.5">
             <div className="min-w-0">
               <p className="text-sm font-medium flex items-center gap-2">

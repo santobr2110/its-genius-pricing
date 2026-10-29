@@ -22,7 +22,7 @@ export default function ZbxParametrosTab({ params, refresh }: ZbxCadastro) {
   const skus = useMemo(() => (tax.codes ?? []).filter((c) => (c.ofertas ?? []).includes("zabbix")), [tax.codes]);
   // Fora desta tela: descontos (aba própria), SKUs (Financeiro › Impostos & Markup), preço de lista
   // (não usado) e textos que o Word atual não usa. Textos da proposta ficam visíveis e editáveis.
-  const OCULTOS = ["exibir_lista_na_proposta", "proposta_quem_somos"];
+  const OCULTOS = ["irpj_csll_convencao", "exibir_lista_na_proposta", "proposta_quem_somos"];
   const filtrados = useMemo(
     () => params.filter((p) => !p.key.startsWith("desconto_") && !p.key.startsWith("produto_") && !OCULTOS.includes(p.key)
       && ((p.status as string) !== "reuso" || p.key.startsWith("proposta_"))),

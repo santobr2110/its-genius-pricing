@@ -20,7 +20,7 @@ import { useTreinamentoCotacoes } from "@/hooks/useTreinamentoCotacoes";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import ApprovalBadge from "@/components/approval/ApprovalBadge";
 import { resolveTaxRates, taxPorProdutoFactory } from "@/lib/pricing/taxRates";
-import { resolveIrpjCsllPerc } from "@/lib/pricing/cascata";
+import { useTreinamentoResultado } from "./useTreinamentoResultado";
 import { DEFAULT_COMISSAO_TIERS } from "@/lib/comissaoRentabilidade";
 import { paramsFromRows } from "@/lib/treinamento/calc";
 import { computeCarrinho, CONFIG_PADRAO, PRODUTO_TRN, type LinhaCarrinho, type LinhaResultado } from "@/lib/treinamento/carrinho";
@@ -34,8 +34,8 @@ const CODIGO_TRN = "TRN";
 
 export default function Configurador() {
   const { can } = useAuth();
-  const cad = useTreinamentoCadastro();
-  const tax = useTaxCodes();
+  const R = useTreinamentoResultado();
+  const { cad, tax, res, irpj, tiers } = R;
   const cot = useTreinamentoCotacoes();
   const { linhas, setLinhas, config, setConfig, atual, setAtual } = useCarrinhoState();
   const [salvando, setSalvando] = useState(false);
@@ -48,14 +48,6 @@ export default function Configurador() {
     return Array.from(new Set(tax.rates.filter((r) => ids.includes(r.tax_product_code_id)).map((r) => r.municipio))).sort();
   }, [tax.codes, tax.rates, params.produtos]);
   const rates = resolveTaxRates(config.codigoProduto || CODIGO_TRN, config.municipio, hoje(), tax.codes, tax.rates);
-  const irpj = resolveIrpjCsllPerc(config.convencao);
-
-  const res = useMemo(() => computeCarrinho(
-    linhas, cad.courses, cad.comboItems, params, config,
-    { pisPerc: rates?.pisPerc ?? 0, cofinsPerc: rates?.cofinsPerc ?? 0, issPerc: rates?.issPerc ?? 0 }, irpj, DEFAULT_COMISSAO_TIERS,
-    taxPorProdutoFactory(config.municipio, hoje(), tax.codes, tax.rates),
-  ), [linhas, cad.courses, cad.comboItems, params, config, rates?.pisPerc, rates?.cofinsPerc, rates?.issPerc, irpj, tax.codes, tax.rates]);
-
   const approval = usePricingApproval({
     offering: "treinamento", targetType: "pricing_preset", targetId: atual.id, rentPct: res.rentabilidadePerc,
     summary: { cliente: atual.cliente, valor: res.precoFinalTotal, codigo: atual.codigo },
@@ -78,8 +70,9 @@ export default function Configurador() {
     setSalvando(true);
     try {
       const id = await cot.salvar(atual.id, nome, atual.cliente, {
-        linhas, config, resumo: { custoTotal: res.custoTotal, precoFinalTotal: res.precoFinalTotal, rentabilidadePerc: res.rentabilidadePerc },
+        linhas, config: { ...config, irpjCsllPerc: irpj, comissaoTiers: tiers }, resumo: { custoTotal: res.custoTotal, precoFinalTotal: res.precoFinalTotal, rentabilidadePerc: res.rentabilidadePerc },
       }, atual);
+      setConfig({ ...config, irpjCsllPerc: irpj, comissaoTiers: tiers });
       const salvo = cot.lista.find((x) => x.id === id);
       setAtual({ ...atual, id, nome, codigo: salvo?.quote_code ?? (id === atual.id ? atual.codigo : null) });
       toast.success("Cotação salva");
@@ -96,7 +89,7 @@ export default function Configurador() {
   const codigoAtual = atual.codigo ?? cot.lista.find((x) => x.id === atual.id)?.quote_code ?? null;
   const paramsPendentes = cad.params.filter((p) => p.status === "simulado" || p.status === "a_confirmar");
 
-  if (cad.loading || tax.loading) return <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Carregando…</p>;
+  if (R.loading) return <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Carregando…</p>;
   if (cad.error) return <p className="text-sm text-destructive">Você não tem acesso ao cadastro de cursos do Treinamento. Peça a permissão "Acessar Treinamento" a um administrador.</p>;
 
   return (
