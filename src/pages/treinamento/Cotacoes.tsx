@@ -15,7 +15,7 @@ import { Calendar, Download, ExternalLink, FolderOpen, Pencil, Search, Trash2, U
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useTreinamentoCotacoes, type TreinamentoCotacao } from "@/hooks/useTreinamentoCotacoes";
-import { useCarrinhoState, urlNovaAba } from "./useCarrinhoState";
+import { useCarrinhoState, urlNovaAba, COTACAO_VAZIA } from "./useCarrinhoState";
 import { CONFIG_PADRAO } from "@/lib/treinamento/carrinho";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -208,7 +208,7 @@ export default function TreinamentoCotacoes() {
             <AlertDialogAction onClick={async () => {
               const c = confirmDel; setConfirmDel(null);
               if (!c) return;
-              try { await excluir(c.id); toast.success("Cotação excluída."); } catch (e) { toast.error((e as Error).message); }
+              try { await excluir(c.id); if (atual.id === c.id) { setAtual(COTACAO_VAZIA); setLinhas([]); setConfig({ ...CONFIG_PADRAO }); } toast.success("Cotação excluída."); } catch (e) { toast.error((e as Error).message); }
             }}>Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
