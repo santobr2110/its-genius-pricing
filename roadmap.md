@@ -1,3 +1,8 @@
+# Parâmetros compartilhados — IRPJ/CSLL
+- [ ] Centralizar IRPJ/CSLL em 10,34% na Administração e retirar seleção ROI ITO das calculadoras.
+- [ ] Integrar os quatro motores preservando os percentuais das cotações congeladas.
+- [ ] Testar independência entre imposto e rentabilidade, não regressão e fluxo autenticado.
+
 # Downloads do Treinamento — Fernanda
 - [x] Conferir permissões e reproduzir a falha na conta afetada.
 - [x] Corrigir a ordem de carregamento da página de proposta, sem alterar permissões ou preços.
