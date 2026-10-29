@@ -11,6 +11,7 @@ import { applyParamsPayload } from "@/hooks/useParameterProfiles";
 import { useActivePresetSession, type ActivePresetStatus } from "@/hooks/useActivePresetSession";
 import { useApplyDefaultProfileOnLogin } from "@/hooks/useApplyDefaultProfileOnLogin";
 import { useITOFiscal } from "@/hooks/useITOFiscal";
+import { useParametrosFinanceiros } from "@/hooks/useParametrosFinanceiros";
 import { isPresetActive } from "@/lib/activePreset";
 import { toast } from "sonner";
 import { type Rotina, ROTINAS_DEFAULT } from "@/data/rotinas";
@@ -64,6 +65,11 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const n2 = useN2TeamState();
   const activePreset = useActivePresetSession();
   const fiscalITO = useITOFiscal(calc.state, calc.setState, activePreset.loaded);
+  const central = useParametrosFinanceiros();
+  useEffect(() => {
+    if (activePreset.activeId || central.loading || central.error) return;
+    if (calc.state.irpjCsllPerc !== central.irpjCsllPerc) calc.update("irpjCsllPerc", central.irpjCsllPerc);
+  }, [activePreset.activeId, central.loading, central.error, central.irpjCsllPerc, calc.state.irpjCsllPerc, calc.update]);
 
   // Smart Flow: alocação N1 cobra 15 min por chamado ao custo/hora médio da Equipe N1.
   const custoHoraN1Medio = Math.round((n1.results.custoPorPessoa / HORAS_MES_N1) * 100) / 100;
@@ -86,10 +92,13 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
 
   // Tabela de comissão por faixa de rentabilidade (editável em Configurações Financeiras).
-  const [comissaoTiers, setComissaoTiers] = usePersistentState<ComissaoTier[]>(
+  const [tiersSalvos] = usePersistentState<ComissaoTier[]>(
     "itsm:comissaoTiers:v1",
     DEFAULT_COMISSAO_TIERS,
   );
+  const comissaoTiers = activePreset.activeId ? tiersSalvos : central.comissaoTiers;
+  // A tabela corporativa só pode ser alterada na Administração.
+  const setComissaoTiers = (_t: ComissaoTier[]) => {};
 
   // Sincroniza automaticamente a comissão com base na rentabilidade (lucroPerc)
   // usando a tabela. Sempre que rentabilidade ou tiers mudarem, a comissão é

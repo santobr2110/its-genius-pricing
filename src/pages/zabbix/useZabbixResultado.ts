@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useZabbixCadastro } from "@/hooks/useZabbixCadastro";
 import { useTaxCodes } from "@/hooks/useTaxCodes";
 import { taxPorProdutoFactory } from "@/lib/pricing/taxRates";
-import { resolveIrpjCsllPerc } from "@/lib/pricing/cascata";
+import { useParametrosFinanceiros } from "@/hooks/useParametrosFinanceiros";
 import { DEFAULT_COMISSAO_TIERS } from "@/lib/comissaoRentabilidade";
 import { paramsFromRows } from "@/lib/zabbix/calc";
 import {
@@ -28,21 +28,22 @@ export function useZabbixResultado() {
   const cad = useZabbixCadastro();
   const tax = useTaxCodes();
   const st = useZbxState();
+  const central = useParametrosFinanceiros();
   const params = useMemo(() => paramsFromRows(cad.params), [cad.params]);
   const hoje = new Date().toISOString().slice(0, 10);
 
   const globaisVivos: GlobaisZbx = useMemo(() => ({
     cenario: { temRO: st.config.temRO, pagamento30d: st.config.pagamento30d },
     comissaoFixaPerc: params.comissaoFixaPerc, retencaoPerc: params.retencaoPerc,
-    irpjCsllPerc: resolveIrpjCsllPerc(st.config.convencao), encFinancPerc: st.config.encFinancPerc ?? params.encFinancPerc,
+    irpjCsllPerc: central.irpjCsllPerc, encFinancPerc: st.config.encFinancPerc ?? params.encFinancPerc,
     descontoTotalPerc: st.config.descontoTotalPerc || 0,
-  }), [st.config, params]);
+  }), [st.config, params, central.irpjCsllPerc]);
 
   const entradasVivas = useMemo(
     () => montarEntradas(st.linhas, cad.subs, params, taxPorProdutoFactory(st.config.municipio, hoje, tax.codes, tax.rates)),
     [st.linhas, cad.subs, params, st.config.municipio, hoje, tax.codes, tax.rates],
   );
-  const vivo = useMemo(() => computeCarrinhoZbx(entradasVivas, globaisVivos, DEFAULT_COMISSAO_TIERS), [entradasVivas, globaisVivos]);
+  const vivo = useMemo(() => computeCarrinhoZbx(entradasVivas, globaisVivos, central.comissaoTiers), [entradasVivas, globaisVivos, central.comissaoTiers]);
 
   const congeladoIntacto = !!st.snapshot && mesmasEntradas(st.snapshot, st.linhas, st.config);
   const congelado = useMemo(
@@ -62,6 +63,6 @@ export function useZabbixResultado() {
 
   return {
     cad, tax, st, params, res, vivo, congelado, congeladoIntacto, globais, globaisVivos, entradasVivas, diffs, municipios,
-    loading: cad.loading || tax.loading,
+    loading: cad.loading || tax.loading || central.loading,
   };
 }

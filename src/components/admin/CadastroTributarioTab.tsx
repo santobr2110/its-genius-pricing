@@ -1,4 +1,5 @@
 import ReformaCBSCard from "./ReformaCBSCard";
+import ParametrosFinanceirosCard from "./ParametrosFinanceirosCard";
 import { useState } from "react";
 import { Plus, Trash2, Save, Package } from "lucide-react";
 import { useMemo } from "react";
@@ -151,6 +152,7 @@ export default function CadastroTributarioTab() {
   };
   return (
     <div className="space-y-4">
+    <ParametrosFinanceirosCard />
     <ReformaCBSCard />
     <CodigosServicoSection servicos={servicos} iss={iss} codes={codes} refresh={refresh} />
     <Card>
