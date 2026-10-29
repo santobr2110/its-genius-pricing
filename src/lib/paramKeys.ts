@@ -12,6 +12,7 @@ export type ParamOffering = "smart-ito" | "profissionais-alocados";
 // ---- Smart ITO ----
 const SMART_ITO_RAW = [
   "itsm:calculator:v1",
+  "itsm:comissaoTiers:v1",
   "itsm:n1team:v1",
   "itsm:n2team:v1",
   "gestao-ti:rotinas",

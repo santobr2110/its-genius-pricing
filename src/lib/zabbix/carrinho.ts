@@ -144,14 +144,16 @@ export interface SnapshotItem {
   quantidade: number; descontoPerc: number; permiteQuantidade: boolean; quantidadeMaxima: number | null; pisoRentabilidadePerc: number | null;
 }
 export interface SnapshotZbx {
+  comissaoTiers?: ComissaoTier[];
   versao: number; congeladoEm: string; congeladoPor: string;
   cambio: number; cenario: CenarioCusto; municipio: string;
   comissaoFixaPerc: number | null; retencaoPerc: number; irpjCsllPerc: number; encFinancPerc: number; descontoTotalPerc: number;
   itens: SnapshotItem[];
 }
 
-export function congelar(entradas: EntradaLinha[], g: GlobaisZbx, municipio: string, cambio: number, usuario: string, versaoAnterior = 0, agora = new Date()): SnapshotZbx {
+export function congelar(entradas: EntradaLinha[], g: GlobaisZbx, municipio: string, cambio: number, usuario: string, versaoAnterior = 0, agora = new Date(), tiers?: ComissaoTier[]): SnapshotZbx {
   return {
+    ...(tiers ? { comissaoTiers: tiers.map(t => ({ ...t })) } : {}),
     versao: versaoAnterior + 1, congeladoEm: agora.toISOString(), congeladoPor: usuario,
     cambio, cenario: { ...g.cenario }, municipio,
     comissaoFixaPerc: g.comissaoFixaPerc, retencaoPerc: g.retencaoPerc, irpjCsllPerc: g.irpjCsllPerc, encFinancPerc: g.encFinancPerc, descontoTotalPerc: g.descontoTotalPerc,

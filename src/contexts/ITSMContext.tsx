@@ -92,11 +92,15 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
 
   // Tabela de comissão por faixa de rentabilidade (editável em Configurações Financeiras).
-  const [tiersSalvos] = usePersistentState<ComissaoTier[]>(
+  const [tiersSalvos, persistirTiers] = usePersistentState<ComissaoTier[]>(
     "itsm:comissaoTiers:v1",
     DEFAULT_COMISSAO_TIERS,
   );
   const comissaoTiers = activePreset.activeId ? tiersSalvos : central.comissaoTiers;
+  useEffect(() => {
+    if (activePreset.activeId || central.loading || central.error) return;
+    if (JSON.stringify(tiersSalvos) !== JSON.stringify(central.comissaoTiers)) persistirTiers(central.comissaoTiers);
+  }, [activePreset.activeId, central.loading, central.error, central.comissaoTiers, tiersSalvos, persistirTiers]);
   // A tabela corporativa só pode ser alterada na Administração.
   const setComissaoTiers = (_t: ComissaoTier[]) => {};
 

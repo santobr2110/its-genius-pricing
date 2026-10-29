@@ -47,10 +47,15 @@ export function useZabbixResultado() {
 
   const congeladoIntacto = !!st.snapshot && mesmasEntradas(st.snapshot, st.linhas, st.config);
   const congelado = useMemo(
-    () => (st.snapshot ? computeCarrinhoZbx(entradasDoSnapshot(st.snapshot), globaisDoSnapshot(st.snapshot), DEFAULT_COMISSAO_TIERS) : null),
+    () => (st.snapshot ? computeCarrinhoZbx(entradasDoSnapshot(st.snapshot), globaisDoSnapshot(st.snapshot), st.snapshot.comissaoTiers ?? DEFAULT_COMISSAO_TIERS) : null),
     [st.snapshot],
   );
-  const diffs = useMemo(() => (st.snapshot ? diferencasParametros(st.snapshot, entradasVivas, globaisVivos) : []), [st.snapshot, entradasVivas, globaisVivos]);
+  const diffs = useMemo(() => {
+    if (!st.snapshot) return [];
+    const out = diferencasParametros(st.snapshot, entradasVivas, globaisVivos);
+    if (JSON.stringify(st.snapshot.comissaoTiers ?? DEFAULT_COMISSAO_TIERS) !== JSON.stringify(central.comissaoTiers)) out.push("Escala Selbetti alterada");
+    return out;
+  }, [st.snapshot, entradasVivas, globaisVivos, central.comissaoTiers]);
 
   const res = congeladoIntacto && congelado ? congelado : vivo;
   const globais = congeladoIntacto && st.snapshot ? globaisDoSnapshot(st.snapshot) : globaisVivos;
@@ -62,7 +67,7 @@ export function useZabbixResultado() {
   }, [tax.codes, tax.rates, params.produtos, cad.subs]);
 
   return {
-    cad, tax, st, params, res, vivo, congelado, congeladoIntacto, globais, globaisVivos, entradasVivas, diffs, municipios,
+    cad, tax, st, params, res, vivo, congelado, congeladoIntacto, globais, globaisVivos, entradasVivas, diffs, municipios, tiersVivos: central.comissaoTiers,
     loading: cad.loading || tax.loading || central.loading,
   };
 }
