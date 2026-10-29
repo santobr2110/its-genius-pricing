@@ -36,7 +36,6 @@ interface ITSMContextType {
   results: ITSMResults;
   extrasOperacionais: ExtrasOperacionais;
   comissaoTiers: ComissaoTier[];
-  setComissaoTiers: (t: ComissaoTier[]) => void;
   n1Team: N1TeamState;
   updateN1Professional: ReturnType<typeof useN1TeamState>["updateProfessional"];
   addN1Professional: ReturnType<typeof useN1TeamState>["addProfessional"];
@@ -101,8 +100,6 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     if (activePreset.activeId || central.loading || central.error) return;
     if (JSON.stringify(tiersSalvos) !== JSON.stringify(central.comissaoTiers)) persistirTiers(central.comissaoTiers);
   }, [activePreset.activeId, central.loading, central.error, central.comissaoTiers, tiersSalvos, persistirTiers]);
-  // A tabela corporativa só pode ser alterada na Administração.
-  const setComissaoTiers = (_t: ComissaoTier[]) => {};
 
   // Sincroniza automaticamente a comissão com base na rentabilidade (lucroPerc)
   // usando a tabela. Sempre que rentabilidade ou tiers mudarem, a comissão é
@@ -209,7 +206,6 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     results: unifiedResults,
     extrasOperacionais,
     comissaoTiers,
-    setComissaoTiers,
     n1Team: n1.teamState,
     updateN1Professional: n1.updateProfessional,
     addN1Professional: n1.addProfessional,

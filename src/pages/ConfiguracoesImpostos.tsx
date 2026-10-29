@@ -200,7 +200,7 @@ export default function ConfiguracoesImpostos() {
                 <div className="min-w-0">
                   <Label className="text-sm font-medium">Comissão (automática)</Label>
                   <p className="text-[11px] text-muted-foreground leading-snug">
-                    Definida pela faixa de rentabilidade. Editável em{" "}
+                    Definida pela faixa de rentabilidade cadastrada na Administração. Consulte em{" "}
                     <Link to="/financeiro/comissoes" className="text-primary hover:underline">Comissões</Link>.
                   </p>
                 </div>
