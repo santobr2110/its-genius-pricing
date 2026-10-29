@@ -11,7 +11,7 @@ import FinanceiroSubNav from "@/components/itsm/FinanceiroSubNav";
 import WriteFence from "@/components/auth/WriteFence";
 
 export default function ConfiguracoesComissoes() {
-  const { state, comissaoTiers, setComissaoTiers } = useITSMContext();
+  const { state, comissaoTiers } = useITSMContext();
   const comissaoAuto = comissaoFromRent(state.lucroPerc || 0, comissaoTiers);
 
   return (
@@ -54,85 +54,13 @@ export default function ConfiguracoesComissoes() {
             </div>
             {comissaoTiers.map((t, idx) => (
               <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
-                <Input
-                  type="number"
-                  step={0.01}
-                  value={t.minRent}
-                  onChange={(e) => {
-                    const v = parseFloat(e.target.value) || 0;
-                    const next = [...comissaoTiers];
-                    next[idx] = { ...next[idx], minRent: v };
-                    setComissaoTiers(next);
-                  }}
-                  className="h-8 text-right"
-                />
-                <Input
-                  type={t.maxRent == null ? "text" : "number"}
-                  step={0.01}
-                  value={t.maxRent == null ? "—" : t.maxRent}
-                  disabled={t.maxRent == null}
-                  onChange={(e) => {
-                    const v = parseFloat(e.target.value);
-                    const next = [...comissaoTiers];
-                    next[idx] = { ...next[idx], maxRent: Number.isFinite(v) ? v : null };
-                    setComissaoTiers(next);
-                  }}
-                  className="h-8 text-right"
-                />
-                <Input
-                  type="number"
-                  step={0.01}
-                  value={t.comissao}
-                  onChange={(e) => {
-                    const v = parseFloat(e.target.value) || 0;
-                    const next = [...comissaoTiers];
-                    next[idx] = { ...next[idx], comissao: v };
-                    setComissaoTiers(next);
-                  }}
-                  className="h-8 text-right"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={() => setComissaoTiers(comissaoTiers.filter((_, i) => i !== idx))}
-                  disabled={comissaoTiers.length <= 1}
-                  title="Remover faixa"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <Input disabled value={t.minRent} className="h-8 text-right" />
+                <Input disabled value={t.maxRent ?? "—"} className="h-8 text-right" />
+                <Input disabled value={t.comissao} className="h-8 text-right" />
+                <span className="w-8" />
               </div>
             ))}
-            <div className="flex flex-wrap gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const last = comissaoTiers[comissaoTiers.length - 1];
-                  const base = last ? (last.maxRent ?? last.minRent) + 0.01 : 0;
-                  setComissaoTiers([
-                    ...comissaoTiers,
-                    { minRent: base, maxRent: base + 4.99, comissao: 0 },
-                  ]);
-                }}
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar faixa
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setComissaoTiers(DEFAULT_COMISSAO_TIERS)}
-              >
-                <RefreshCw className="h-3.5 w-3.5 mr-1" /> Restaurar padrão
-              </Button>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Use <span className="font-semibold">máxima vazia</span> ou <code>null</code> para a última faixa (sem limite superior).
-              Mantenha as faixas em ordem crescente e sem sobreposição.
-            </p>
+            <p className="text-xs text-muted-foreground">Escala corporativa cadastrada na Administração. Cotações salvas preservam a escala original.</p>
           </CardContent>
         </Card>
       </WriteFence>
