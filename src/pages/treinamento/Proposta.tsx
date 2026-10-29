@@ -57,15 +57,6 @@ export default function TreinamentoProposta() {
   const hojeISO = new Date().toISOString().slice(0, 10);
   const validaAte = new Date(Date.now() + d.validadeDias * 86400000).toISOString().slice(0, 10);
 
-  if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;
-  if (!itens.length) return (
-    <div className="rounded-lg border bg-background p-12 flex flex-col items-center text-center gap-3">
-      <FileText className="h-12 w-12 text-muted-foreground" />
-      <h2 className="text-xl font-bold">Nenhum item na proposta</h2>
-      <p className="text-muted-foreground text-sm">Adicione cursos no <Link to="/observabilidade/treinamento" className="text-primary hover:underline">Configurador</Link>.</p>
-    </div>
-  );
-
   const emitir = async () => {
     if (!salvo) { toast.error("Salve a cotação no Configurador antes de emitir."); return; }
     if (res.temErros) { toast.error("Corrija os erros do Configurador antes de emitir."); return; }
@@ -164,6 +155,16 @@ export default function TreinamentoProposta() {
     }, 0);
     return () => clearTimeout(t);
   }, [verWord, wordBlob, modoSimples]);
+
+  // Keep all hooks unconditional while the catalog and user draft load.
+  if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;
+  if (!itens.length) return (
+    <div className="rounded-lg border bg-background p-12 flex flex-col items-center text-center gap-3">
+      <FileText className="h-12 w-12 text-muted-foreground" />
+      <h2 className="text-xl font-bold">Nenhum item na proposta</h2>
+      <p className="text-muted-foreground text-sm">Adicione cursos no <Link to="/observabilidade/treinamento" className="text-primary hover:underline">Configurador</Link>.</p>
+    </div>
+  );
 
   return (
     <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
