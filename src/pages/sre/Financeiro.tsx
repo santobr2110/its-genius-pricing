@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Calculator, Clock, DollarSign, Loader2, Percent, Receipt, Table as TableIcon, TrendingUp, Undo2, Wallet } from "lucide-react";
+import { Calculator, Clock, DollarSign, Loader2, Percent, Receipt, Table as TableIcon, TrendingUp, Undo2, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";

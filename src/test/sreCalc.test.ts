@@ -43,7 +43,7 @@ describe("SRE campanhas sobrepostas", () => {
 import { DEFAULT_COMISSAO_TIERS } from "@/lib/comissaoRentabilidade";
 import {
   campanhaVigente, computeCarrinhoSre, computeLinhaSre, congelar, custoPacote, descontoEfetivo, entradasDoSnapshot,
-  globaisDoSnapshot, montarEntradas as montarEntradasCot, proximoCodigoSre, resolveParamsPacote, type GlobaisSre, type LinhaSre,
+  globaisDoSnapshot, mesmasEntradasSre, montarEntradas as montarEntradasCot, proximoCodigoSre, resolveParamsPacote, type GlobaisSre, type LinhaSre,
 } from "@/lib/sre/carrinho";
 import type { SrePacote } from "@/lib/sre/calc";
 
