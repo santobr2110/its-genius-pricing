@@ -39,6 +39,7 @@ import TreinamentoResumo from "./pages/treinamento/Resumo";
 import { TrnResultado, TrnImpostos, TrnComissoes } from "./pages/treinamento/financeiro/Financeiro";
 import ZabbixLayout from "./pages/zabbix/Layout";
 import SreLayout, { SreEmConstrucao } from "./pages/sre/Layout";
+import SreConfiguracoes from "./pages/sre/Configuracoes";
 import ZbxConfigurador from "./pages/zabbix/Configurador";
 import ZbxCotacoes from "./pages/zabbix/Cotacoes";
 import ZbxProposta from "./pages/zabbix/Proposta";
@@ -144,7 +145,7 @@ const App = () => (
                 <Route path="financeiro" element={<SreEmConstrucao titulo="Resultado da Operação" />} />
                 <Route path="financeiro/impostos" element={<SreEmConstrucao titulo="Impostos & Markup" />} />
                 <Route path="financeiro/comissoes" element={<SreEmConstrucao titulo="Comissões" />} />
-                <Route path="configuracoes/*" element={<SreEmConstrucao titulo="Configurações" />} />
+                <Route path="configuracoes/*" element={<SreConfiguracoes />} />
               </Route>
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}
