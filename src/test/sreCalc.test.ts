@@ -43,7 +43,7 @@ describe("SRE campanhas sobrepostas", () => {
 import { DEFAULT_COMISSAO_TIERS } from "@/lib/comissaoRentabilidade";
 import {
   campanhaVigente, computeCarrinhoSre, computeLinhaSre, congelar, custoPacote, descontoEfetivo, entradasDoSnapshot,
-  globaisDoSnapshot, montarEntradas, proximoCodigoSre, resolveParamsPacote, type GlobaisSre, type LinhaSre,
+  globaisDoSnapshot, montarEntradas as montarEntradasCot, proximoCodigoSre, resolveParamsPacote, type GlobaisSre, type LinhaSre,
 } from "@/lib/sre/carrinho";
 import type { SrePacote } from "@/lib/sre/calc";
 
@@ -56,6 +56,9 @@ const ALVOS: [number, number][] = [[5,24.510],[10,24.459],[20,24.355],[40,24.147
 const pac = (h: number, a: number, o: Partial<SrePacote> = {}): SrePacote => ({ id: `p${h}`, slug: `hrs-zbx-${h}`, part_number: `HRS-ZBX-${h}`, nome: `${h} h`, descricao: null,
   horas_execucao: h, pct_horas_gestao: null, custo_hora_execucao: null, custo_hora_gestao: null, rentabilidade_alvo_perc: a, codigo_produto: null,
   ativo: true, ordem: 0, campos_a_confirmar: [], ...o });
+// Rentabilidade agora é da cotação; estes cenários históricos montam cada linha com a rentabilidade da tabela ALVOS.
+const montarEntradas = (ls: LinhaSre[], cat: SrePacote[], prm: typeof PRM, tf: typeof taxFn) =>
+  ls.flatMap((l) => montarEntradasCot([l], cat, prm, tf, cat.find((p) => p.id === l.pacoteId)?.rentabilidade_alvo_perc ?? 20));
 const CAT = ALVOS.map(([h, a]) => pac(h, a));
 const linha = (h: number, q = 1, d = 0): LinhaSre => ({ id: `l${h}`, pacoteId: `p${h}`, quantidade: q, descontoPerc: d });
 const calc = (h: number, g: GlobaisSre = G, q = 1, d = 0, cat = CAT, prm = PRM) => computeLinhaSre(montarEntradas([linha(h, q, d)], cat, prm, taxFn)[0], g, T);
@@ -224,5 +227,25 @@ describe("SRE Fase 4 — Resultado da Operação", () => {
     const tf = (c: string) => (c === "OUTRO" ? { pisPerc: 1.65, cofinsPerc: 7.6, issPerc: 3 } : taxFn(c));
     const [a, b] = montarEntradas([linha(5), linha(10)], cat, PRM, tf);
     expect(a.tax).toEqual(TAX); expect(b.tax).toEqual({ pisPerc: 1.65, cofinsPerc: 7.6, issPerc: 3 });
+  });
+});
+
+describe("SRE rentabilidade definida na cotação (como no Smart ITO)", () => {
+  it("a mesma rentabilidade vale para todos os pacotes e cada um fecha nela", () => {
+    const ent = montarEntradasCot([linha(5), linha(360), linha(1500)], CAT, PRM, taxFn, 30);
+    for (const e of ent) expect(e.rentabilidadeAlvoPerc).toBe(30);
+    for (const l of computeCarrinhoSre(ent, G, T).linhas) P(l.rentabilidadePerc, 30);
+  });
+  it("a rentabilidade do cadastro do pacote é ignorada", () => {
+    const e = montarEntradasCot([linha(5)], [pac(5, 99)], PRM, taxFn, 25)[0];
+    expect(e.rentabilidadeAlvoPerc).toBe(25);
+  });
+  it("valor inicial padrão dos Parâmetros é 20%", () => expect(PRM.rentabilidadePadraoPerc).toBe(20));
+  it("mudar a rentabilidade da cotação tira do congelado", () => {
+    const ent = montarEntradasCot([linha(5)], CAT, PRM, taxFn, 20);
+    const snap = congelar(ent, G, "Joinville", "u", T);
+    const cfg = { municipio: "Joinville", descontoTotalPerc: 0, encFinancPerc: null, rentabilidadePerc: 20 };
+    expect(mesmasEntradasSre(snap, [linha(5)], cfg)).toBe(true);
+    expect(mesmasEntradasSre(snap, [linha(5)], { ...cfg, rentabilidadePerc: 22 })).toBe(false);
   });
 });

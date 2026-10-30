@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AlertTriangle, Calculator, Clock, DollarSign, Loader2, Percent, Receipt, Table as TableIcon, TrendingUp, Undo2, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -18,8 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { parseComissao } from "@/lib/treinamento/calc";
-import { computeCarrinhoSre, computeLinhaSre, montarEntradas, type CarrinhoSre } from "@/lib/sre/carrinho";
-import { taxPorProdutoFactory } from "@/lib/pricing/taxRates";
+import { computeCarrinhoSre, type CarrinhoSre } from "@/lib/sre/carrinho";
 import SubNav from "@/pages/treinamento/financeiro/SubNav";
 import { useSreResultado } from "./useSreResultado";
 import { SRE_BASE } from "./useSreState";
