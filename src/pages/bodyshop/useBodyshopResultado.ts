@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useBodyshopCadastro } from "@/hooks/useBodyshopCadastro";
 import { useTaxCodes } from "@/hooks/useTaxCodes";
-import { useITSMContext } from "@/contexts/ITSMContext";
 import { useParametrosFinanceiros } from "@/hooks/useParametrosFinanceiros";
 import { taxPorProdutoFactory } from "@/lib/pricing/taxRates";
 import { computeCarrinhoBS, montarEntradas, entradasDoSnapshot, globaisDoSnapshot, mesmasEntradas, diferencasParametros, type GlobaisBS } from "@/lib/bodyshop/carrinho";
@@ -10,7 +9,7 @@ import { useBSState } from "./useBsState";
 export function useBodyshopResultado() {
   const cad = useBodyshopCadastro(), tax = useTaxCodes(), st = useBSState();
   const central = useParametrosFinanceiros();
-  const { comissaoTiers: tiers } = useITSMContext();
+  const tiers = central.comissaoTiers;
   const params = cad.p;
   const hoje = new Date().toISOString().slice(0, 10);
   const globaisVivos: GlobaisBS = useMemo(() => ({ rentabilidadeAlvoPerc: st.config.rentabilidadeAlvoPerc ?? params.rentabilidadeAlvoPerc,
