@@ -16,7 +16,11 @@ export function useTreinamentoResultado() {
   const st = useCarrinhoState();
   const central = useParametrosFinanceiros();
   const params = useMemo(() => paramsFromRows(cad.params), [cad.params]);
-  const rates = resolveTaxRates(st.config.codigoProduto || "TRN", st.config.municipio, new Date().toISOString().slice(0, 10), tax.codes, tax.rates);
+  // Cascata base: SKU da Turma Aberta configurado no Financeiro (o código legado "TRN" não existe mais no cadastro).
+  const codigoBase = st.config.codigoProduto && st.config.codigoProduto !== "TRN" && tax.codes.some((c) => c.codigo === st.config.codigoProduto)
+    ? st.config.codigoProduto
+    : (params.produtos?.turmaAberta ?? PRODUTO_TRN.turmaAberta);
+  const rates = resolveTaxRates(codigoBase, st.config.municipio, new Date().toISOString().slice(0, 10), tax.codes, tax.rates);
   const irpj = st.atual.id ? (st.config.irpjCsllPerc ?? resolveIrpjCsllPerc(st.config.convencao)) : central.irpjCsllPerc;
   const tiers = st.atual.id ? (st.config.comissaoTiers ?? DEFAULT_COMISSAO_TIERS) : central.comissaoTiers;
   const res = useMemo(() => computeCarrinho(
