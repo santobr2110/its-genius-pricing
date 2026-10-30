@@ -123,7 +123,7 @@ export default function SreResumo({ embedded = false }: { embedded?: boolean }) 
                   ["PIS", pct(f.pisPerc)], ["COFINS", pct(f.cofinsPerc)], ["ISS", pct(f.issPerc)],
                   ["Horas execução", `${(e.horasExecucao * e.quantidade).toLocaleString("pt-BR")} h × ${brl(e.custoHoraExecucao)}`],
                   ["Horas gestão", `${l.horasGestaoLinha.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} h × ${brl(e.custoHoraGestao)}`],
-                  ["Custo", brl(l.custoLinha)], ["Rentab. alvo", pct(e.rentabilidadeAlvoPerc)],
+                  ["Custo", brl(l.custoLinha)], ["Rentab. definida", pct(e.rentabilidadeAlvoPerc)],
                   ["Comissão", `${pct(l.comissaoPerc)} (${modoCom})`], ["Retenção", pct(f.retencaoPerc)],
                   ["Desc. campanha", camp ? pct(camp.descontoPerc) : ""], ["Desc. linha", e.descontoPerc ? pct(e.descontoPerc) : ""],
                   ["Desc. efetivo", l.descontoEfetivoPerc ? pct(l.descontoEfetivoPerc) : ""], ["Rentab. apurada", pct(l.rentabilidadePerc)],

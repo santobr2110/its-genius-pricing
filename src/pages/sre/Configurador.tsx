@@ -34,7 +34,7 @@ const novoId = () => Math.random().toString(36).slice(2, 10);
 export default function SreConfigurador() {
   const { can, user } = useAuth();
   const R = useSreResultado();
-  const { cad, st, res, vivo, congelado, congeladoIntacto, diffs, municipios, entradasVivas, globaisVivos } = R;
+  const { cad, st, res, vivo, congelado, congeladoIntacto, diffs, municipios, entradasVivas, globaisVivos, rentabilidadeCotacao, params } = R;
   const { linhas, setLinhas, config, setConfig, atual, setAtual, snapshot, setSnapshot } = st;
   const cot = useSreCotacoes();
   const [salvando, setSalvando] = useState(false);
@@ -139,7 +139,12 @@ export default function SreConfigurador() {
           <CardTitle className="text-base flex items-center gap-2"><Handshake className="h-4 w-4 text-primary" /> Condição comercial da cotação</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground shrink-0">Rentabilidade %</Label>
+              <Input type="number" step="0.5" className="h-9" value={rentabilidadeCotacao} title={`Padrão dos Parâmetros: ${pct2(params.rentabilidadePadraoPerc)}`}
+                onChange={(e) => setConfig({ ...config, rentabilidadePerc: Number(e.target.value) || 0 })} />
+            </div>
             <div className="flex items-center gap-2">
               <Label className="text-xs text-muted-foreground shrink-0">Município (ISS)</Label>
               <Select value={config.municipio} onValueChange={(v) => setConfig({ ...config, municipio: v })}>
@@ -156,7 +161,7 @@ export default function SreConfigurador() {
               {campanha ? <>Campanha <strong>{campanha.nome}</strong> ({pct2(campanha.descontoPerc)}) aplicada</> : <span className="text-muted-foreground">Nenhuma campanha vigente</span>}
             </p>
           </div>
-          <p className="text-xs rounded-md bg-muted/50 px-3 py-2 text-muted-foreground">O preço nasce do custo e da rentabilidade alvo de cada pacote. Campanha, desconto do item e desconto no total se compõem (não se somam).</p>
+          <p className="text-xs rounded-md bg-muted/50 px-3 py-2 text-muted-foreground">O preço nasce do custo das horas e da rentabilidade que você define para a cotação (a mesma para todos os pacotes). Campanha, desconto do item e desconto no total se compõem (não se somam).</p>
         </CardContent>
       </Card>
 
@@ -263,7 +268,7 @@ function LinhaEditor({ r, linha, ativos, onChange, onRemove }: {
         <div className="h-9 w-9 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0"><Timer className="h-4 w-4" /></div>
         <div className="min-w-0 flex-1">
           <p className="font-medium truncate">{e.nome}</p>
-          <p className="text-[11px] text-muted-foreground">{e.partNumber} · alvo {pct(e.rentabilidadeAlvoPerc)}{e.codigoProduto ? ` · produto ${e.codigoProduto}` : ""}</p>
+          <p className="text-[11px] text-muted-foreground">{e.partNumber}{e.codigoProduto ? ` · produto ${e.codigoProduto}` : ""}</p>
         </div>
         <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">{hrs(e.horasExecucao)}</Badge>
       </div>
@@ -306,7 +311,7 @@ function LinhaEditor({ r, linha, ativos, onChange, onRemove }: {
             <M l={`Gestão  ${pct2(e.pctHorasGestao)}${tag("pctGestao")} = ${hrs(e.horasExecucao * e.pctHorasGestao / 100)} × ${brl(e.custoHoraGestao)}${tag("custoGestao")}`} v={brl(e.horasExecucao * e.pctHorasGestao / 100 * e.custoHoraGestao)} />
             <M l={`× Quantidade ${e.quantidade}`} v={brl(r.custoLinha)} />
             <div className="h-2" />
-            <M l={`Preço de tabela  (alvo ${pct(e.rentabilidadeAlvoPerc)} · comissão ${pct2(r.comissaoCascataPerc)} + retenção)`} v={brl(r.precoTabela)} />
+            <M l={`Preço de tabela  (rentabilidade ${pct(e.rentabilidadeAlvoPerc)} · comissão ${pct2(r.comissaoCascataPerc)} + retenção)`} v={brl(r.precoTabela)} />
             <M neg l={`(−) Desconto ${pct2(r.descontoEfetivoPerc)}`} v={`− ${brl(r.precoTabela - r.precoFinal)}`} />
             <M strong l="= Preço final" v={brl(r.precoFinal)} />
             <M neg l={`(−) PIS ${pct2(f.pisPerc)} · COFINS ${pct2(f.cofinsPerc)} · ISS ${pct2(f.issPerc)}`} v={`− ${brl(v(f.pisPerc + f.cofinsPerc + f.issPerc))}`} />
