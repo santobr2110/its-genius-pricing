@@ -106,13 +106,12 @@ export function montarModeloPropostaPptx(a: {
     const [col1, col2] = dividirColunas(escopo);
     const certs = linhas(c?.certificacoes?.replace(/;\s*/g, "\n"));
     const requisitos = [...linhas(c?.competencias), ...(txt(c?.formacao) ? [`Formação: ${linhas(c?.formacao).join("; ")}`] : []), ...(certs.length ? [`Certificações: ${certs.join("; ")}`] : [])];
-    const ded = modalidade ? (qtd > 1 ? `${modalidade.toLowerCase()}s` : modalidade.toLowerCase()) : "";
     if (!cabe(col1, CAPACIDADE.escopoCol1) || !cabe(col2, CAPACIDADE.escopoCol2)) avisos.push(`O escopo do perfil ${nome} não cabe no slide; reduza os itens em Configurações › Conteúdo ou divida o perfil em dois blocos.`);
     if (semAcento(`${nome} ${modalidade}`).length > 48) avisos.push(`O título do perfil ${nome} pode ocupar duas linhas no slide de escopo; confira o arquivo antes de enviar.`);
     if (!cabe(requisitos, CAPACIDADE.requisitos)) avisos.push(`Os requisitos do perfil ${nome} não cabem no slide; reduza os itens em Configurações › Conteúdo.`);
     return {
       titulo: semAcento(`${nome} ${modalidade}`.trim()).toUpperCase(),
-      intro: `A Selbetti está considerando ${qtd} ${nome}${ded ? ` ${ded}` : ""} para ${e.area ? e.area.toLowerCase() : A_CONFIRMAR}.`,
+      intro: `A Selbetti está considerando ${qtd} ${nome}.`,
       formato: ouPendente(formato), escopoCol1: col1.length ? col1 : [A_CONFIRMAR], escopoCol2: col2,
       ressalva: txt(c?.observacoes) || g("proposta_ressalva_pecas"), requisitos: requisitos.length ? requisitos : [A_CONFIRMAR],
       modalidade: ouPendente(`${e.cargo}${modalidade ? ` ${modalidade}` : ""}`), local: ouPendente(local), horario: ouPendente(horario),
