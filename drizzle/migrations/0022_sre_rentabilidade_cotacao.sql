@@ -1,0 +1,2 @@
+ALTER TABLE public.sre_pacotes ALTER COLUMN rentabilidade_alvo_perc SET DEFAULT 0;
+COMMENT ON COLUMN public.sre_pacotes.rentabilidade_alvo_perc IS 'DEPRECATED: rentabilidade agora é definida pelo vendedor na cotação (sre_params.rentabilidade_padrao_perc como valor inicial).';

@@ -148,6 +148,13 @@
       "when": 1793382865653,
       "tag": "0021_sre_aprovacao_sku",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793388562348,
+      "tag": "0022_sre_rentabilidade_cotacao",
+      "breakpoints": true
     }
   ]
 }

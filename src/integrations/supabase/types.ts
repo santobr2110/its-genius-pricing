@@ -1277,7 +1277,7 @@ export type Database = {
           ordem?: number
           part_number: string
           pct_horas_gestao?: number | null
-          rentabilidade_alvo_perc: number
+          rentabilidade_alvo_perc?: number
           slug: string
           updated_at?: string
         }
