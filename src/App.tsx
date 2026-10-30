@@ -43,6 +43,7 @@ import SreConfiguracoes from "./pages/sre/Configuracoes";
 import SreConfigurador from "./pages/sre/Configurador";
 import SreCotacoes from "./pages/sre/Cotacoes";
 import SreResumo from "./pages/sre/Resumo";
+import SreProposta from "./pages/sre/Proposta";
 import { SreResultado, SreImpostos, SreComissoes } from "./pages/sre/Financeiro";
 import ZbxConfigurador from "./pages/zabbix/Configurador";
 import ZbxCotacoes from "./pages/zabbix/Cotacoes";
@@ -143,7 +144,7 @@ const App = () => (
               </Route>
               <Route path="/observabilidade/consultivo-sre" element={<ProtectedRoute permission="page.sre.view"><SreLayout /></ProtectedRoute>}>
                 <Route index element={<SreConfigurador />} />
-                <Route path="proposta" element={<SreEmConstrucao titulo="Proposta" />} />
+                <Route path="proposta" element={<SreProposta />} />
                 <Route path="resumo" element={<SreResumo />} />
                 <Route path="cotacoes" element={<SreCotacoes />} />
                 <Route path="financeiro" element={<SreResultado />} />

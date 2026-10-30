@@ -141,6 +141,13 @@
       "when": 1793380825457,
       "tag": "0020_sre_seed",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793382865653,
+      "tag": "0021_sre_aprovacao_sku",
+      "breakpoints": true
     }
   ]
 }
