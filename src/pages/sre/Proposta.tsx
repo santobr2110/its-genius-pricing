@@ -2,7 +2,7 @@ import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, fraseReforma, parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Eye, FileDown, FileText, Loader2, Plus, Stamp, X } from "lucide-react";
+import { Eye, FileDown, FileText, Loader2, Stamp } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { usePersistentState } from "@/hooks/usePersistentState";
@@ -20,17 +19,11 @@ import { contarPendenciasSre, montarModeloPropostaSre, nomeArquivoSre, somarDias
 import { gerarPropostaSreDocx } from "@/lib/sre/propostaDocx";
 import { useSreResultado } from "./useSreResultado";
 import { SRE_BASE } from "./useSreState";
-import PropostaDocSre, { exportarPropostaSrePdf } from "./PropostaDoc";
 import SreResumo, { exportarResumoSrePdf } from "./Resumo";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const CONDICOES_PADRAO = ["À vista, 30 dias após o faturamento", "28 dias após o faturamento", "50% no aceite e 50% em 30 dias"];
-interface Dados {
-  razao: string; cnpj: string; endereco: string; contatoNome: string; contatoCargo: string; email: string;
-  consultorCargo: string; cidade: string; data: string; numero: string; validade: string;
-  prazoPagamento: string; condicoes: string[]; observacoes: string;
-}
-const PADRAO: Dados = { razao: "", cnpj: "", endereco: "", contatoNome: "", contatoCargo: "", email: "", consultorCargo: "", cidade: "", data: "", numero: "", validade: "", prazoPagamento: "", condicoes: CONDICOES_PADRAO, observacoes: "" };
+interface Dados { contatoNome: string; email: string; validadeDias: number | null; prazoPagamento: string; observacoes: string }
+const PADRAO: Dados = { contatoNome: "", email: "", validadeDias: null, prazoPagamento: "", observacoes: "" };
 
 function baixar(blob: Blob, nome: string) {
   const a = document.createElement("a");
@@ -46,29 +39,27 @@ export default function SreProposta() {
   const [dados, setDados] = usePersistentState<Dados>("observabilidade.consultivo-sre.proposta", PADRAO);
   const d = { ...PADRAO, ...dados };
   const set = (k: Partial<Dados>) => setDados({ ...d, ...k });
-  const [novaCond, setNovaCond] = useState("");
   const [emitindo, setEmitindo] = useState(false);
   const [verResumo, setVerResumo] = useState(false);
-  const [pdfModelo, setPdfModelo] = useState<ModeloPropostaSre | null>(null);
   const [verWord, setVerWord] = useState<Blob | null>(null);
   const wordRef = useRef<HTMLDivElement>(null);
   const salvo = cot.lista.find((c) => c.id === st.atual.id);
   const emissoes = ((salvo?.payload as unknown as { emissoes?: EmissaoSre[] })?.emissoes) ?? [];
   const hojeISO = new Date().toISOString().slice(0, 10);
-  const dataISO = d.data || hojeISO;
-  const validadeISO = d.validade || somarDias(dataISO, params.validadeDias);
-  const validadeDias = Math.max(1, Math.round((new Date(validadeISO + "T12:00:00").getTime() - new Date(dataISO + "T12:00:00").getTime()) / 86400000));
+  const dataISO = hojeISO;
+  const validadeDias = d.validadeDias ?? params.validadeDias;
+  const validadeISO = somarDias(dataISO, validadeDias);
   const { cbsPerc: cbsReforma } = useReformaCBS();
 
   const modelo = useMemo(() => montarModeloPropostaSre({
     res, contents: cad.contents, params: cad.params,
-    cliente: { razao: d.razao || st.atual.cliente, cnpj: d.cnpj, endereco: d.endereco },
-    contato: { nome: d.contatoNome, cargo: d.contatoCargo, email: d.email },
-    consultor: { nome: st.atual.especialistaBU ?? "", cargo: d.consultorCargo },
-    numeroProposta: d.numero, codigo: st.atual.codigo, versao: emissoes.length || null, salesforce: st.atual.salesforce ?? null,
-    hojeISO, cidade: d.cidade, dataISO, validadeISO, validadeDias, prazoPagamento: d.prazoPagamento, observacoesExtra: d.observacoes,
+    cliente: { razao: st.atual.cliente, cnpj: "", endereco: "" },
+    contato: { nome: d.contatoNome, cargo: "", email: d.email },
+    consultor: { nome: st.atual.especialistaBU ?? "", cargo: "" },
+    numeroProposta: "", codigo: st.atual.codigo, versao: emissoes.length || null, salesforce: st.atual.salesforce ?? null,
+    hojeISO, cidade: "", dataISO, validadeISO, validadeDias, prazoPagamento: d.prazoPagamento, observacoesExtra: d.observacoes,
     fraseReforma: fraseReforma(calcPrecoReforma(parcelasDeLinhas(res.linhas), cbsReforma)),
-  }), [res, cad.contents, cad.params, d.razao, d.cnpj, d.endereco, d.contatoNome, d.contatoCargo, d.email, d.consultorCargo, d.numero, d.cidade, d.prazoPagamento, d.observacoes, st.atual, emissoes.length, hojeISO, dataISO, validadeISO, validadeDias, cbsReforma]);
+  }), [res, cad.contents, cad.params, d.contatoNome, d.email, d.prazoPagamento, d.observacoes, st.atual, emissoes.length, hojeISO, dataISO, validadeISO, validadeDias, cbsReforma]);
 
   const [abrirWord, setAbrirWord] = useState(false);
   const [wordUrl, setWordUrl] = useState<string | null>(null);
@@ -100,14 +91,6 @@ export default function SreProposta() {
     return () => clearTimeout(t);
   }, [abrirWord, verWord, modoSimples]);
 
-  // PDF de qualquer versão: renderiza o documento daquela versão fora da tela e captura.
-  useEffect(() => {
-    if (!pdfModelo) return;
-    const t = setTimeout(() => {
-      exportarPropostaSrePdf(nomeArquivoSre(pdfModelo, "pdf")).catch((e) => toast.error((e as Error).message)).finally(() => setPdfModelo(null));
-    }, 500);
-    return () => clearTimeout(t);
-  }, [pdfModelo]);
 
   if (loading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>;
   if (!modelo.itens.length) return (
@@ -142,63 +125,29 @@ export default function SreProposta() {
   const word = async (m: ModeloPropostaSre) => { try { return await gerarPropostaSreDocx(m); } catch (e) { toast.error((e as Error).message); return null; } };
   const nPend = contarPendenciasSre(modelo);
   const faltaCotacao = [!modelo.consultor.nome && "consultor", !modelo.cliente.razao && "cliente"].filter(Boolean) as string[];
-  const F = ({ label, k, type = "text" }: { label: string; k: keyof Dados; type?: string }) => (
-    <div><Label className="text-xs">{label}</Label><Input className="h-8" type={type} value={String(d[k] ?? "")} onChange={(e) => set({ [k]: e.target.value } as Partial<Dados>)} /></div>
-  );
-
   return (
-    <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
+    <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
       <div className="space-y-4">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Dados da proposta</CardTitle></CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground pt-1">Cliente</p>
-            <div><Label className="text-xs">Razão social</Label><Input className="h-8" value={d.razao} placeholder={st.atual.cliente} onChange={(e) => set({ razao: e.target.value })} /></div>
-            {F({ label: "CNPJ", k: "cnpj" })}
-            {F({ label: "Endereço", k: "endereco" })}
-            <p className="text-xs font-semibold text-muted-foreground pt-2">Contato</p>
-            <div className="grid grid-cols-2 gap-2">{F({ label: "Nome", k: "contatoNome" })}{F({ label: "Cargo", k: "contatoCargo" })}</div>
-            {F({ label: "E-mail", k: "email" })}
-            <p className="text-xs font-semibold text-muted-foreground pt-2">Consultor</p>
-            <div className="text-sm"><span className="text-muted-foreground">Nome: </span>{st.atual.especialistaBU || <em>defina no Configurador</em>}</div>
-            {F({ label: "Cargo", k: "consultorCargo" })}
-            <p className="text-xs font-semibold text-muted-foreground pt-2">Proposta</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div><Label className="text-xs">Cidade</Label><Input className="h-8" value={d.cidade} placeholder={params.cidade} onChange={(e) => set({ cidade: e.target.value })} /></div>
-              <div><Label className="text-xs">Data</Label><Input className="h-8" type="date" value={dataISO} onChange={(e) => set({ data: e.target.value })} /></div>
-              <div><Label className="text-xs">Número</Label><Input className="h-8" value={d.numero} placeholder={st.atual.codigo ?? ""} onChange={(e) => set({ numero: e.target.value })} /></div>
-              <div><Label className="text-xs">Validade</Label><Input className="h-8" type="date" value={validadeISO} onChange={(e) => set({ validade: e.target.value })} /></div>
-            </div>
-            <div>
-              <Label className="text-xs">Condição de pagamento</Label>
-              <Select value={d.prazoPagamento || undefined} onValueChange={(v) => set({ prazoPagamento: v })}>
-                <SelectTrigger className="h-8"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>{d.condicoes.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
-              <div className="mt-1 flex flex-wrap gap-1">
-                {d.condicoes.map((c) => (
-                  <Badge key={c} variant="secondary" className="gap-1 text-[10px] font-normal">{c}
-                    <button aria-label={`Remover ${c}`} onClick={() => set({ condicoes: d.condicoes.filter((x) => x !== c), prazoPagamento: d.prazoPagamento === c ? "" : d.prazoPagamento })}><X className="h-3 w-3" /></button>
-                  </Badge>
-                ))}
-              </div>
-              <div className="mt-1 flex gap-1">
-                <Input className="h-7 text-xs" placeholder="Nova condição" value={novaCond} onChange={(e) => setNovaCond(e.target.value)} />
-                <Button size="sm" variant="outline" className="h-7" aria-label="Adicionar condição" onClick={() => { const v = novaCond.trim(); if (v && !d.condicoes.includes(v)) set({ condicoes: [...d.condicoes, v] }); setNovaCond(""); }}><Plus className="h-3 w-3" /></Button>
-              </div>
-            </div>
-            <div><Label className="text-xs">Observações</Label><Textarea rows={3} value={d.observacoes} onChange={(e) => set({ observacoes: e.target.value })} /></div>
+          <CardHeader><CardTitle className="text-base">Dados da proposta</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm"><span className="text-muted-foreground">Cliente: </span>{st.atual.cliente || <em>defina no Configurador</em>}</div>
+            <div className="text-sm"><span className="text-muted-foreground">Consultor: </span>{st.atual.especialistaBU || <em>defina no Configurador</em>}</div>
+            <div><Label>Contato (destinatário)</Label><Input value={d.contatoNome} onChange={(e) => set({ contatoNome: e.target.value })} /></div>
+            <div><Label>E-mail</Label><Input value={d.email} onChange={(e) => set({ email: e.target.value })} /></div>
+            <div><Label>Validade (dias)</Label><Input type="number" min={1} value={validadeDias} onChange={(e) => set({ validadeDias: Math.max(1, Number(e.target.value) || 1) })} /></div>
+            <div><Label>Prazo de pagamento</Label><Textarea rows={2} value={d.prazoPagamento} placeholder={String(cad.params.find((p) => p.key === "proposta_prazo_pagamento")?.value ?? "")} onChange={(e) => set({ prazoPagamento: e.target.value })} /></div>
+            <div><Label>Observações específicas</Label><Textarea rows={3} value={d.observacoes} onChange={(e) => set({ observacoes: e.target.value })} /></div>
             {!congeladoIntacto && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Os valores não estão congelados. Salve a cotação no Configurador antes de emitir.</p>}
             {res.temErros && <p className="text-xs rounded border border-destructive/50 bg-destructive/10 p-2">Há erros no Configurador; a emissão está bloqueada.</p>}
-            {faltaCotacao.length > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Preencha: {faltaCotacao.join(" e ")}.</p>}
-            {nPend > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Há {nPend} campo(s) [A CONFIRMAR] (destacados em amarelo). Preencha em Configurações › Conteúdo e Parâmetros.</p>}
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={emitir} disabled={emitindo || !pode}>{emitindo ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Stamp className="h-4 w-4 mr-2" />}Emitir (congelar proposta)</Button>
+              {faltaCotacao.length > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Preencha na cotação: {faltaCotacao.join(" e ")}.</p>}
+              {nPend > 0 && <p className="text-xs rounded border border-amber-500/50 bg-amber-500/10 p-2">Há {nPend} campo(s) a confirmar (destacados em amarelo no Word).</p>}
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" disabled={!pode} onClick={async () => { const b = await word(modelo); if (b) baixar(b, nomeArquivoSre(modelo)); }}><FileDown className="h-4 w-4 mr-2" />Baixar Word</Button>
                 <Button variant="outline" size="icon" title="Visualizar Word" aria-label="Visualizar Word" onClick={() => visualizarWord(modelo)}><Eye className="h-4 w-4" /></Button>
               </div>
-              <Button variant="outline" disabled={!pode || !!pdfModelo} onClick={() => setPdfModelo(modelo)}><FileDown className="h-4 w-4 mr-2" />Baixar PDF</Button>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" disabled={!pode} onClick={() => { setVerResumo(true); setTimeout(() => exportarResumoSrePdf(`${st.atual.codigo || "resumo-sre"}.pdf`).catch((e) => toast.error(e.message)).finally(() => setVerResumo(false)), 400); }}><FileDown className="h-4 w-4 mr-2" />Baixar Cotação/ROI</Button>
                 <Button variant="outline" size="icon" title="Visualizar Cotação/ROI" aria-label="Visualizar Cotação/ROI" onClick={() => setVerResumo(true)}><Eye className="h-4 w-4" /></Button>
@@ -207,7 +156,7 @@ export default function SreProposta() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-base">Emissões</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Emissões</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {emissoes.length === 0 && <p className="text-xs text-muted-foreground">Nenhuma versão emitida ainda.</p>}
             {[...emissoes].reverse().map((em) => (
@@ -216,8 +165,6 @@ export default function SreProposta() {
                 <p>{brl(em.modelo.total)} · válida até {new Date(em.validaAte + "T12:00:00").toLocaleDateString("pt-BR")}</p>
                 <div className="flex gap-1">
                   <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={async () => { const b = await word(em.modelo); if (b) baixar(b, nomeArquivoSre(em.modelo)); }}>Word</Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => visualizarWord(em.modelo)}><Eye className="h-3 w-3" /></Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" disabled={!!pdfModelo} onClick={() => setPdfModelo(em.modelo)}>PDF</Button>
                 </div>
               </div>
             ))}
@@ -225,7 +172,7 @@ export default function SreProposta() {
         </Card>
       </div>
 
-      <div className="rounded-lg border bg-card text-card-foreground p-6 space-y-5">
+      <div className="rounded-lg border bg-card text-card-foreground p-8 space-y-6">
         <header className="flex justify-between items-start border-b pb-4">
           <div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Proposta comercial · Pacotes Consultivos Zabbix SRE</p>
@@ -284,7 +231,6 @@ export default function SreProposta() {
         )}
       </div>
 
-      {pdfModelo && <div aria-hidden style={{ position: "fixed", left: -10000, top: 0 }}><PropostaDocSre m={pdfModelo} /></div>}
       <Dialog open={verResumo} onOpenChange={setVerResumo}>
         <DialogContent className="max-w-[900px] max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Cotação/ROI</DialogTitle></DialogHeader>
