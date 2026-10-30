@@ -108,3 +108,12 @@ export function offeringFromPath(pathname: string): ParamOffering {
     ? "profissionais-alocados"
     : "smart-ito";
 }
+
+// ---- Pacotes Consultivos Zabbix SRE (persistência local) ----
+export const SRE_NS = "observabilidade.consultivo-sre.";
+export const SRE_PARAM_KEYS: string[] = [
+  "cotacao:atual",
+  "cotacao:linhas",
+  "cotacao:config",
+  "cotacao:snapshot",
+].map((k) => SRE_NS + k);

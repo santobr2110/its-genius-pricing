@@ -38,6 +38,7 @@ import TreinamentoCotacoes from "./pages/treinamento/Cotacoes";
 import TreinamentoResumo from "./pages/treinamento/Resumo";
 import { TrnResultado, TrnImpostos, TrnComissoes } from "./pages/treinamento/financeiro/Financeiro";
 import ZabbixLayout from "./pages/zabbix/Layout";
+import SreLayout, { SreEmConstrucao } from "./pages/sre/Layout";
 import ZbxConfigurador from "./pages/zabbix/Configurador";
 import ZbxCotacoes from "./pages/zabbix/Cotacoes";
 import ZbxProposta from "./pages/zabbix/Proposta";
@@ -134,6 +135,16 @@ const App = () => (
                 <Route path="financeiro/impostos" element={<ZbxImpostos />} />
                 <Route path="financeiro/comissoes" element={<ZbxComissoes />} />
                 <Route path="configuracoes/*" element={<ZbxConfiguracoes />} />
+              </Route>
+              <Route path="/observabilidade/consultivo-sre" element={<ProtectedRoute permission="page.sre.view"><SreLayout /></ProtectedRoute>}>
+                <Route index element={<SreEmConstrucao titulo="Configurador" />} />
+                <Route path="proposta" element={<SreEmConstrucao titulo="Proposta" />} />
+                <Route path="resumo" element={<SreEmConstrucao titulo="Resumo de Cotação" />} />
+                <Route path="cotacoes" element={<SreEmConstrucao titulo="Cotações" />} />
+                <Route path="financeiro" element={<SreEmConstrucao titulo="Resultado da Operação" />} />
+                <Route path="financeiro/impostos" element={<SreEmConstrucao titulo="Impostos & Markup" />} />
+                <Route path="financeiro/comissoes" element={<SreEmConstrucao titulo="Comissões" />} />
+                <Route path="configuracoes/*" element={<SreEmConstrucao titulo="Configurações" />} />
               </Route>
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}

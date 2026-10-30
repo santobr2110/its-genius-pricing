@@ -38,7 +38,7 @@ import { PERMISSIONS } from "@/lib/permissions";
 import { toast } from "sonner";
 import DefaultsAdminTab from "@/components/admin/DefaultsAdminTab";
 import {
-  Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, GraduationCap, Pencil, Save,
+  Loader2, Plus, KeyRound, Trash2, ArrowLeft, ShieldCheck, Timer, GraduationCap, Pencil, Save,
   ChevronRight, Layers, Package, Settings2, Server, Cloud, Activity, Calculator,
   RotateCcw, Trash,
 } from "lucide-react";
@@ -139,6 +139,12 @@ const PERMISSION_TREE: GroupNode[] = [
         id: "subscricoes-zabbix", name: "Subscrições Zabbix", accessKey: "page.zbx.view", icon: ShieldCheck,
         categories: [
           { id: "zbx", name: "Permissões", keys: ["page.zbx.quote", "page.zbx.proposal", "page.zbx.params", "page.zbx.admin", "page.zbx.approve"] },
+        ],
+      },
+      {
+        id: "consultivo-sre", name: "Pacotes Consultivos Zabbix SRE", accessKey: "page.sre.view", icon: Timer,
+        categories: [
+          { id: "sre", name: "Permissões", keys: ["page.sre.quote", "page.sre.proposal", "page.sre.params", "page.sre.admin", "page.sre.approve"] },
         ],
       },
     ],
@@ -1305,6 +1311,7 @@ const OFFERING_LABELS: Record<string, string> = {
   "pacote-horas": "Pacote de Horas",
   bodyshop: "Bodyshop",
   "subscricoes-zabbix": "Subscrições Zabbix",
+  "consultivo-sre": "Pacotes Consultivos Zabbix SRE",
 };
 
 function TrashTab() {
