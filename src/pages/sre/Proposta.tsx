@@ -154,14 +154,14 @@ export default function SreProposta() {
           <CardContent className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground pt-1">Cliente</p>
             <div><Label className="text-xs">Razão social</Label><Input className="h-8" value={d.razao} placeholder={st.atual.cliente} onChange={(e) => set({ razao: e.target.value })} /></div>
-            <F label="CNPJ" k="cnpj" />
-            <F label="Endereço" k="endereco" />
+            {F({ label: "CNPJ", k: "cnpj" })}
+            {F({ label: "Endereço", k: "endereco" })}
             <p className="text-xs font-semibold text-muted-foreground pt-2">Contato</p>
-            <div className="grid grid-cols-2 gap-2"><F label="Nome" k="contatoNome" /><F label="Cargo" k="contatoCargo" /></div>
-            <F label="E-mail" k="email" />
+            <div className="grid grid-cols-2 gap-2">{F({ label: "Nome", k: "contatoNome" })}{F({ label: "Cargo", k: "contatoCargo" })}</div>
+            {F({ label: "E-mail", k: "email" })}
             <p className="text-xs font-semibold text-muted-foreground pt-2">Consultor</p>
             <div className="text-sm"><span className="text-muted-foreground">Nome: </span>{st.atual.especialistaBU || <em>defina no Configurador</em>}</div>
-            <F label="Cargo" k="consultorCargo" />
+            {F({ label: "Cargo", k: "consultorCargo" })}
             <p className="text-xs font-semibold text-muted-foreground pt-2">Proposta</p>
             <div className="grid grid-cols-2 gap-2">
               <div><Label className="text-xs">Cidade</Label><Input className="h-8" value={d.cidade} placeholder={params.cidade} onChange={(e) => set({ cidade: e.target.value })} /></div>
