@@ -14,6 +14,11 @@ import BUMenu from "@/components/BUMenu";
 import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/auth/UserMenu";
 import BackHomeButton from "@/components/BackHomeButton";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { CONFIG_SRE_PADRAO, type SnapshotSre } from "@/lib/sre/carrinho";
+import { SRE_TAB_COTACAO_ID, useSreState } from "./useSreState";
 
 export const SRE_BASE = "/observabilidade/consultivo-sre";
 const BASE = SRE_BASE;
@@ -84,6 +89,23 @@ export default function SreLayout() {
   const { can } = useAuth();
   const { pathname } = useLocation();
   const naRaiz = pathname.replace(/\/+$/, "") === BASE;
+  const { atual, setAtual, setLinhas, setConfig, setSnapshot } = useSreState();
+
+  // "Abrir em nova aba": carrega a cotação indicada em ?cotacao=<id> só nesta aba.
+  useEffect(() => {
+    if (!SRE_TAB_COTACAO_ID || atual.id === SRE_TAB_COTACAO_ID) return;
+    supabase.from("pricing_presets")
+      .select("id,name,client_name,quote_code,account_manager,bu_specialist,salesforce_code,bu_architect,payload")
+      .eq("id", SRE_TAB_COTACAO_ID).is("deleted_at", null).maybeSingle()
+      .then(({ data, error }) => {
+        if (error || !data) { toast.error("Cotação não encontrada."); return; }
+        const p = (data.payload ?? {}) as { linhas?: never[]; config?: object; snapshot?: SnapshotSre };
+        setLinhas(p.linhas ?? []);
+        setConfig({ ...CONFIG_SRE_PADRAO, ...(p.config ?? {}) });
+        setSnapshot(p.snapshot ?? null);
+        setAtual({ id: data.id, nome: data.name, cliente: data.client_name ?? "", codigo: data.quote_code, gerenteConta: data.account_manager ?? "", especialistaBU: data.bu_specialist ?? "", salesforce: data.salesforce_code ?? "", arquitetoBU: data.bu_architect ?? "" });
+      });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-muted/30">

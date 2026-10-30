@@ -40,6 +40,8 @@ import { TrnResultado, TrnImpostos, TrnComissoes } from "./pages/treinamento/fin
 import ZabbixLayout from "./pages/zabbix/Layout";
 import SreLayout, { SreEmConstrucao } from "./pages/sre/Layout";
 import SreConfiguracoes from "./pages/sre/Configuracoes";
+import SreConfigurador from "./pages/sre/Configurador";
+import SreCotacoes from "./pages/sre/Cotacoes";
 import ZbxConfigurador from "./pages/zabbix/Configurador";
 import ZbxCotacoes from "./pages/zabbix/Cotacoes";
 import ZbxProposta from "./pages/zabbix/Proposta";
@@ -138,10 +140,10 @@ const App = () => (
                 <Route path="configuracoes/*" element={<ZbxConfiguracoes />} />
               </Route>
               <Route path="/observabilidade/consultivo-sre" element={<ProtectedRoute permission="page.sre.view"><SreLayout /></ProtectedRoute>}>
-                <Route index element={<SreEmConstrucao titulo="Configurador" />} />
+                <Route index element={<SreConfigurador />} />
                 <Route path="proposta" element={<SreEmConstrucao titulo="Proposta" />} />
                 <Route path="resumo" element={<SreEmConstrucao titulo="Resumo de Cotação" />} />
-                <Route path="cotacoes" element={<SreEmConstrucao titulo="Cotações" />} />
+                <Route path="cotacoes" element={<SreCotacoes />} />
                 <Route path="financeiro" element={<SreEmConstrucao titulo="Resultado da Operação" />} />
                 <Route path="financeiro/impostos" element={<SreEmConstrucao titulo="Impostos & Markup" />} />
                 <Route path="financeiro/comissoes" element={<SreEmConstrucao titulo="Comissões" />} />

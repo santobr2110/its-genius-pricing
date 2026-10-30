@@ -15,7 +15,7 @@ import { Calendar, Download, ExternalLink, FolderOpen, Pencil, Search, Trash2, U
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSreCotacoes, type SreCotacao } from "@/hooks/useSreCotacoes";
-import { useSreState as useCarrinhoState, urlNovaAbaSre as urlNovaAba } from "./useSreState";
+import { useSreState as useCarrinhoState, urlNovaAbaSre as urlNovaAba, COTACAO_SRE_VAZIA } from "./useSreState";
 import { CONFIG_SRE_PADRAO as CONFIG_PADRAO } from "@/lib/sre/carrinho";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -209,7 +209,11 @@ export default function SreCotacoes() {
             <AlertDialogAction onClick={async () => {
               const c = confirmDel; setConfirmDel(null);
               if (!c) return;
-              try { await excluir(c.id); toast.success("Cotação excluída."); } catch (e) { toast.error((e as Error).message); }
+              try {
+                await excluir(c.id);
+                if (atual.id === c.id) { setLinhas([]); setConfig(CONFIG_PADRAO); setSnapshot(null); setAtual(COTACAO_SRE_VAZIA); }
+                toast.success("Cotação excluída.");
+              } catch (e) { toast.error((e as Error).message); }
             }}>Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
