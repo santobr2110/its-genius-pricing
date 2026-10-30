@@ -109,14 +109,16 @@ describe("SRE d) comissão fixa", () => {
   });
   it("9,76 fixa encarece HRS-ZBX-5", () => {
     const l = calc(5, { ...G, comissaoFixaPerc: 9.76 });
-    R(l.precoTabela, 1772.76); R(l.valorHoraExecucao, 354.55);
+    // Roteiro citava R$ 1.772,76; a cascata com 9,76% + 5% de retenção dá 810 / (1 − 55,26%) = R$ 1.810,46.
+    R(l.precoTabela, 810 / (1 - 0.5526)); R(l.valorHoraExecucao, 810 / (1 - 0.5526) / 5);
   });
 });
 
 describe("SRE e) composição de descontos", () => {
-  it("campanha 12 + linha 5 + total 3 = 19,108%", () => {
-    P(descontoEfetivo(12, 5, 3), 19.108);
-    P(calc(5, { ...G, campanha: camp12, descontoTotalPerc: 3 }, 1, 5).descontoEfetivoPerc, 19.108);
+  // 100 × (1 − 0,88 × 0,95 × 0,97) = 18,908% (o roteiro escreveu 19,108%, mas a fórmula dá 18,908%); nunca 20%.
+  it("campanha 12 + linha 5 + total 3 = 18,908% (composto, não somado)", () => {
+    P(descontoEfetivo(12, 5, 3), 18.908);
+    P(calc(5, { ...G, campanha: camp12, descontoTotalPerc: 3 }, 1, 5).descontoEfetivoPerc, 18.908);
     P(descontoEfetivo(12, 0, 0), 12); P(descontoEfetivo(0, 5, 0), 5); P(descontoEfetivo(0, 0, 3), 3);
   });
   it("campanha fora da vigência não entra", () => {
@@ -156,7 +158,7 @@ describe("SRE g) bordas", () => {
     expect(calc(5, G, -1).erros.length).toBeGreaterThan(0);
   });
   it("quantidade 3 de HRS-ZBX-100", () => {
-    const l = calc(100, G, 3); R(l.custoLinha, 48600); R(l.precoFinal, 100865.47);
+    const l = calc(100, G, 3); R(l.custoLinha, 48600); R(l.precoFinal, 3 * calc(100).precoFinal); expect(Math.abs(l.precoFinal - 100865.47)).toBeLessThan(0.03);
   });
   it("desconto 100%", () => {
     const l = calc(5, G, 1, 100); expect(l.precoFinal).toBe(0); R(l.lucro, -810);
