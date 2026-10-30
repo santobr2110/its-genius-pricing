@@ -43,6 +43,7 @@ import SreConfiguracoes from "./pages/sre/Configuracoes";
 import SreConfigurador from "./pages/sre/Configurador";
 import SreCotacoes from "./pages/sre/Cotacoes";
 import SreResumo from "./pages/sre/Resumo";
+import SreProposta from "./pages/sre/Proposta";
 import { SreResultado, SreImpostos, SreComissoes } from "./pages/sre/Financeiro";
 import ZbxConfigurador from "./pages/zabbix/Configurador";
 import ZbxCotacoes from "./pages/zabbix/Cotacoes";

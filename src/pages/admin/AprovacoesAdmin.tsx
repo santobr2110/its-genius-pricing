@@ -17,6 +17,7 @@ const OFFERINGS = [
   { code: "smart-ito", label: "Smart ITO" },
   { code: "profissionais-alocados", label: "BodyShop - Alocação de Profissionais" },
   { code: "subscricoes-zabbix", label: "Subscrições Zabbix" },
+  { code: "consultivo-sre", label: "Pacotes Consultivos Zabbix SRE" },
 ];
 
 export default function AprovacoesAdmin() {
