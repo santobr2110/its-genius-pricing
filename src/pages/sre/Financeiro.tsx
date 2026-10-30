@@ -185,12 +185,26 @@ function ProdutosPorPacote() {
       toast.success("Produtos fiscais salvos"); cad.refresh();
     } catch (e) { toast.error((e as Error).message); }
   };
+  const statusPadrao = cad.params.find((p) => p.key === "produto_padrao")?.status;
+  const alternarStatus = async (status: "confirmado" | "a_confirmar") => {
+    const { error } = await supabase.from("sre_params").update({ status }).eq("key", "produto_padrao");
+    if (error) { toast.error(error.message); return; }
+    toast.success(status === "confirmado" ? "Produto fiscal padrão confirmado" : "Marcado como a confirmar"); cad.refresh();
+  };
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
           <CardTitle className="text-base flex items-center gap-2"><TableIcon className="h-4 w-4 text-primary" /> Produto fiscal por pacote</CardTitle>
           <p className="text-xs text-muted-foreground">Sem exceção, o pacote usa o padrão <strong>{params.produtoPadrao}</strong>. A lista mostra os produtos marcados para Pacotes Consultivos SRE no Cadastro tributário.</p>
+          <div className="flex items-center gap-2 mt-1.5">
+            {statusPadrao === "confirmado"
+              ? <Badge variant="outline" className="text-[10px] border-emerald-500 text-emerald-600">Padrão confirmado</Badge>
+              : <Badge variant="outline" className="text-[10px] border-amber-500 text-amber-600">Padrão a confirmar</Badge>}
+            {pode && <Button size="sm" variant="outline" className="h-6 text-[11px]" onClick={() => alternarStatus(statusPadrao === "confirmado" ? "a_confirmar" : "confirmado")}>
+              {statusPadrao === "confirmado" ? "Voltar para a confirmar" : "Confirmar padrão"}
+            </Button>}
+          </div>
         </div>
         {pode && <Button size="sm" onClick={salvar} disabled={alterados.length === 0}>Salvar{alterados.length ? ` (${alterados.length})` : ""}</Button>}
       </CardHeader>
