@@ -47,6 +47,10 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
     title: "Subscrições Zabbix — Observabilidade",
     description: "Suporte oficial Zabbix e Academy: preço por SKU e valor de chegada.",
   },
+  "/observabilidade/consultivo-sre": {
+    title: "Pacotes Consultivos Zabbix SRE — Observabilidade",
+    description: "Pacotes de horas consultivas Zabbix SRE: preço a partir do custo com rentabilidade por pacote.",
+  },
   "/profissionais-alocados": {
     title: "BodyShop - Alocação de Profissionais — ITO",
     description: "Precificação de alocação de profissionais de TI a partir do custo.",

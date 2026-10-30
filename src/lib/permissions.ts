@@ -78,7 +78,14 @@ export type PermissionKey =
   | "page.prof.params"
   | "page.prof.quote"
   | "page.prof.proposal"
-  | "page.prof.approve";
+  | "page.prof.approve"
+  // Observabilidade › Pacotes Consultivos Zabbix SRE
+  | "page.sre.view"
+  | "page.sre.quote"
+  | "page.sre.proposal"
+  | "page.sre.params"
+  | "page.sre.admin"
+  | "page.sre.approve";
 
 export interface PermissionDef {
   key: PermissionKey;
@@ -93,7 +100,8 @@ export interface PermissionDef {
     | "ITO › Profissionais Alocados"
     | "Administração"
     | "Observabilidade › Treinamento"
-    | "Observabilidade › Subscrições Zabbix";
+    | "Observabilidade › Subscrições Zabbix"
+    | "Observabilidade › Pacotes Consultivos Zabbix SRE";
 }
 
 export const PERMISSIONS: PermissionDef[] = [
@@ -167,6 +175,12 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "page.prof.quote", label: "Montar e salvar cotações de BodyShop", group: "ITO › Profissionais Alocados" },
   { key: "page.prof.proposal", label: "Emitir proposta de BodyShop", group: "ITO › Profissionais Alocados" },
   { key: "page.prof.approve", label: "Aprovar descontos de BodyShop fora da faixa", group: "ITO › Profissionais Alocados" },
+  { key: "page.sre.view", label: "Acessar Pacotes Consultivos Zabbix SRE", group: "Observabilidade › Pacotes Consultivos Zabbix SRE" },
+  { key: "page.sre.quote", label: "Montar e salvar cotações de Pacotes Consultivos SRE", group: "Observabilidade › Pacotes Consultivos Zabbix SRE" },
+  { key: "page.sre.proposal", label: "Emitir proposta de Pacotes Consultivos SRE", group: "Observabilidade › Pacotes Consultivos Zabbix SRE" },
+  { key: "page.sre.params", label: "Ver/editar parâmetros financeiros e convenção de IR/CSLL do SRE", group: "Observabilidade › Pacotes Consultivos Zabbix SRE" },
+  { key: "page.sre.admin", label: "Administrar pacotes, conteúdo, campanhas e parâmetros do SRE", group: "Observabilidade › Pacotes Consultivos Zabbix SRE" },
+  { key: "page.sre.approve", label: "Aprovar descontos de Pacotes Consultivos SRE fora da faixa", group: "Observabilidade › Pacotes Consultivos Zabbix SRE" },
 ];
 
 export const PERMISSION_GROUPS = Array.from(new Set(PERMISSIONS.map((p) => p.group)));

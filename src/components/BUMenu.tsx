@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users, Package, BriefcaseBusiness, GraduationCap, ShieldCheck } from "lucide-react";
+import { Briefcase, ChevronDown, Calculator, Server, Cloud, Activity, Check, Home, Clock, Users, Package, BriefcaseBusiness, GraduationCap, ShieldCheck, Timer } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   GROUP_ACCESS_KEYS,
@@ -68,6 +68,7 @@ const GROUPS_MENU: GroupItem[] = [
   { id: "observabilidade", label: "Observabilidade", icon: Activity, offerings: [
     { id: "treinamento", label: "Treinamento", description: "Zabbix e Grafana", to: "/observabilidade/treinamento", icon: GraduationCap, permissionKey: TREINAMENTO_PROVISORIO_GATE },
     { id: "subscricoes-zabbix", label: "Subscrições Zabbix", description: "Suporte oficial Zabbix e Academy", to: "/observabilidade/subscricoes-zabbix", icon: ShieldCheck, permissionKey: "page.zbx.view" },
+    { id: "consultivo-sre", label: "Pacotes Consultivos SRE", description: "Horas consultivas Zabbix SRE", to: "/observabilidade/consultivo-sre", icon: Timer, permissionKey: "page.sre.view" },
   ] },
 ];
 
@@ -83,7 +84,7 @@ export default function BUMenu() {
   const { can } = useAuth();
 
   const visibleGroups = GROUPS_MENU
-    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey) || (g.id === "observabilidade" && (can(TREINAMENTO_PROVISORIO_GATE as PermissionKey) || can("page.zbx.view" as PermissionKey))))
+    .filter((g) => can(GROUP_ACCESS_KEYS[g.id] as PermissionKey) || (g.id === "observabilidade" && (can(TREINAMENTO_PROVISORIO_GATE as PermissionKey) || can("page.zbx.view" as PermissionKey) || can("page.sre.view" as PermissionKey))))
     .map((g) => ({
       ...g,
       offerings: g.offerings.filter((o) => !o.permissionKey || can(o.permissionKey as PermissionKey)),
@@ -98,6 +99,7 @@ export default function BUMenu() {
   const currentOfferingId: string | null =
     pathname.startsWith("/observabilidade/treinamento") ? "treinamento"
     : pathname.startsWith("/observabilidade/subscricoes-zabbix") ? "subscricoes-zabbix"
+    : pathname.startsWith("/observabilidade/consultivo-sre") ? "consultivo-sre"
     : pathname === "/pacote-horas" ? "pacote-horas"
     : pathname.startsWith("/profissionais-alocados") ? "profissionais-alocados"
     : ITO_PATHS.has(pathname) ? "ito"

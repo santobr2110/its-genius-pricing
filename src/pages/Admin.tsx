@@ -141,6 +141,12 @@ const PERMISSION_TREE: GroupNode[] = [
           { id: "zbx", name: "Permissões", keys: ["page.zbx.quote", "page.zbx.proposal", "page.zbx.params", "page.zbx.admin", "page.zbx.approve"] },
         ],
       },
+      {
+        id: "consultivo-sre", name: "Pacotes Consultivos Zabbix SRE", accessKey: "page.sre.view", icon: Timer,
+        categories: [
+          { id: "sre", name: "Permissões", keys: ["page.sre.quote", "page.sre.proposal", "page.sre.params", "page.sre.admin", "page.sre.approve"] },
+        ],
+      },
     ],
   },
 ];
@@ -1305,6 +1311,7 @@ const OFFERING_LABELS: Record<string, string> = {
   "pacote-horas": "Pacote de Horas",
   bodyshop: "Bodyshop",
   "subscricoes-zabbix": "Subscrições Zabbix",
+  "consultivo-sre": "Pacotes Consultivos Zabbix SRE",
 };
 
 function TrashTab() {

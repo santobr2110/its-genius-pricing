@@ -90,6 +90,13 @@ export const GROUPS: GroupDef[] = [
       routePrefix: "/observabilidade/subscricoes-zabbix",
       routes: ["/observabilidade/subscricoes-zabbix"],
     },
+    {
+      slug: "consultivo-sre",
+      name: "Pacotes Consultivos Zabbix SRE",
+      status: "active",
+      routePrefix: "/observabilidade/consultivo-sre",
+      routes: ["/observabilidade/consultivo-sre"],
+    },
   ] },
 ];
 
@@ -152,3 +159,7 @@ export const PROFISSIONAIS_ALOCADOS_ACCESS_KEY = offeringAccessKey("ito", "profi
 export const ZABBIX_ACCESS_KEY = offeringAccessKey("observabilidade", "subscricoes-zabbix");
 /** Gate das Subscrições Zabbix: permissão própria page.zbx.view. */
 export const ZABBIX_GATE = "page.zbx.view";
+
+export const CONSULTIVO_SRE_ACCESS_KEY = offeringAccessKey("observabilidade", "consultivo-sre");
+/** Gate dos Pacotes Consultivos SRE: permissão própria page.sre.view. */
+export const CONSULTIVO_SRE_GATE = "page.sre.view";
