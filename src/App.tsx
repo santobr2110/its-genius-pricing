@@ -147,7 +147,7 @@ const App = () => (
                 <Route path="financeiro" element={<SreEmConstrucao titulo="Resultado da Operação" />} />
                 <Route path="financeiro/impostos" element={<SreEmConstrucao titulo="Impostos & Markup" />} />
                 <Route path="financeiro/comissoes" element={<SreEmConstrucao titulo="Comissões" />} />
-                <Route path="configuracoes/*" element={<SreConfiguracoes />} />
+                <Route path="configuracoes/*" element={<ProtectedRoute permission="page.sre.admin"><SreConfiguracoes /></ProtectedRoute>} />
               </Route>
               <Route path="/pacote-horas" element={<ProtectedRoute group="ito" offering="pacote-horas"><EmBreve /></ProtectedRoute>} />
               {/* bodyshop oferta removida */}
