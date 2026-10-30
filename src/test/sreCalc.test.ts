@@ -205,3 +205,24 @@ describe("SRE h) vivo × congelado", () => {
     expect(proximoCodigoSre(["ITS-SRE-20261030-004", null], new Date(2026, 9, 30))).toBe("ITS-SRE-20261030-005");
   });
 });
+
+describe("SRE Fase 4 — Resultado da Operação", () => {
+  for (const fixa of [null, 7.32, 9.76]) {
+    it(`fecha centavo a centavo com o carrinho (comissão ${fixa ?? "escala"})`, () => {
+      const g = { ...G, comissaoFixaPerc: fixa, campanha: camp12, descontoTotalPerc: 2 };
+      const c = computeCarrinhoSre(montarEntradas([linha(5, 2, 3), linha(360), linha(1500)], CAT, PRM, taxFn), g, T);
+      const ok = c.linhas.filter((l) => !l.erros.length);
+      const deducoes = ok.reduce((s, l) => s + l.precoFinal * (l.fixos!.pisPerc + l.fixos!.cofinsPerc + l.fixos!.issPerc + l.comissaoPerc + l.fixos!.retencaoPerc + l.fixos!.irpjCsllPerc + l.fixos!.encFinancPerc) / 100, 0);
+      R(c.precoFinalTotal - deducoes - c.custoTotal, c.lucroTotal);
+      const exec = ok.reduce((s, l) => s + l.entrada.horasExecucao * l.entrada.custoHoraExecucao * l.entrada.quantidade, 0);
+      const gest = ok.reduce((s, l) => s + l.horasGestaoLinha * l.entrada.custoHoraGestao, 0);
+      R(exec + gest, c.custoTotal);
+    });
+  }
+  it("trocar o produto fiscal de um pacote muda só aquela linha", () => {
+    const cat = CAT.map((p) => (p.horas_execucao === 10 ? { ...p, codigo_produto: "OUTRO" } : p));
+    const tf = (c: string) => (c === "OUTRO" ? { pisPerc: 1.65, cofinsPerc: 7.6, issPerc: 3 } : taxFn(c));
+    const [a, b] = montarEntradas([linha(5), linha(10)], cat, PRM, tf);
+    expect(a.tax).toEqual(TAX); expect(b.tax).toEqual({ pisPerc: 1.65, cofinsPerc: 7.6, issPerc: 3 });
+  });
+});
