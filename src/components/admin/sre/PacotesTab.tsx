@@ -25,7 +25,7 @@ type Override = "pct_horas_gestao" | "custo_hora_execucao" | "custo_hora_gestao"
 type Form = Omit<SrePacote, "id" | "campos_a_confirmar"> & { id: string | null };
 
 const VAZIO: Form = { id: null, slug: "", part_number: "", nome: "", descricao: null, horas_execucao: 0, pct_horas_gestao: null,
-  custo_hora_execucao: null, custo_hora_gestao: null, rentabilidade_alvo_perc: 20, codigo_produto: null, ativo: true, ordem: 0 };
+  custo_hora_execucao: null, custo_hora_gestao: null, codigo_produto: null, ativo: true, ordem: 0 };
 
 export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro) {
   const prm = useMemo(() => paramsFromRows(params), [params]);
@@ -40,7 +40,7 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
     const g: GlobaisSre = { comissaoFixaPerc: prm.comissaoFixaPerc, retencaoPerc: prm.retencaoPerc, irpjCsllPerc: central.irpjCsllPerc,
       irpjCsllConvencao: prm.irpjCsllConvencao, encFinancPerc: prm.encFinancPerc, descontoTotalPerc: 0, campanha: null };
     const taxFn = taxPorProdutoFactory(prm.municipioPadrao, new Date().toISOString().slice(0, 10), tax.codes, tax.rates);
-    const ent = montarEntradas(pacotes.map((p) => ({ id: p.id, pacoteId: p.id, quantidade: 1, descontoPerc: 0 })), pacotes, prm, taxFn);
+    const ent = montarEntradas(pacotes.map((p) => ({ id: p.id, pacoteId: p.id, quantidade: 1, descontoPerc: 0 })), pacotes, prm, taxFn, prm.rentabilidadePadraoPerc);
     return new Map(ent.map((e) => [e.pacoteId, computeLinhaSre(e, g, central.comissaoTiers)]));
   }, [pacotes, prm, tax.codes, tax.rates, central]);
 
@@ -101,8 +101,8 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
     <div className="space-y-4">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Escada de volume</CardTitle>
-          <p className="text-xs text-muted-foreground">Valor por hora de execução contra o tamanho do pacote (município {prm.municipioPadrao}, sem desconto).</p>
+          <CardTitle className="text-base">Valor por hora por pacote</CardTitle>
+          <p className="text-xs text-muted-foreground">Valor por hora de execução contra o tamanho do pacote (município {prm.municipioPadrao}, sem desconto, rentabilidade padrão de {num(prm.rentabilidadePadraoPerc)}%). Na venda, o vendedor define a rentabilidade da cotação.</p>
         </CardHeader>
         <CardContent className="h-56">
           <ResponsiveContainer width="100%" height="100%">
@@ -143,7 +143,6 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
                 <TableHead className="text-right">% gestão</TableHead>
                 <TableHead className="text-right">Custo h exec.</TableHead>
                 <TableHead className="text-right">Custo h gestão</TableHead>
-                <TableHead className="text-right">Rentab. alvo</TableHead>
                 <TableHead className="text-right">Produto</TableHead>
                 <TableHead className="text-right">Custo</TableHead>
                 <TableHead className="text-right">Preço</TableHead>
@@ -171,7 +170,6 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
                     <TableCell className="text-right text-xs">{herdado(p, "pct_horas_gestao", `${num(prm.pctHorasGestao)}%`, (v) => `${num(Number(v))}%`)}</TableCell>
                     <TableCell className="text-right text-xs">{herdado(p, "custo_hora_execucao", brl(prm.custoHoraExecucao), (v) => brl(Number(v)))}</TableCell>
                     <TableCell className="text-right text-xs">{herdado(p, "custo_hora_gestao", brl(prm.custoHoraGestao), (v) => brl(Number(v)))}</TableCell>
-                    <TableCell className="text-right tabular-nums">{num(Number(p.rentabilidade_alvo_perc))}%</TableCell>
                     <TableCell className="text-right text-xs">{herdado(p, "codigo_produto", prm.produtoPadrao, (v) => String(v))}</TableCell>
                     <TableCell className="text-right tabular-nums text-xs">{ok ? brl(r.custoLinha) : "—"}</TableCell>
                     <TableCell className="text-right tabular-nums text-xs font-semibold">{ok ? brl(r.precoTabela) : <span className="text-destructive" title={r?.erros.join(" ")}>erro</span>}</TableCell>
@@ -199,7 +197,6 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
               <div><Label className="text-xs">Slug (vazio = part number)</Label><Input value={ed.slug} onChange={(e) => setEd({ ...ed, slug: e.target.value })} /></div>
               <div className="col-span-2"><Label className="text-xs">Nome comercial</Label><Input value={ed.nome} onChange={(e) => setEd({ ...ed, nome: e.target.value })} /></div>
               <div><Label className="text-xs">Horas de execução</Label><Input type="number" value={ed.horas_execucao} onChange={(e) => setEd({ ...ed, horas_execucao: Number(e.target.value) })} /></div>
-              <div><Label className="text-xs">Rentabilidade alvo %</Label><Input type="number" step="0.001" value={ed.rentabilidade_alvo_perc} onChange={(e) => setEd({ ...ed, rentabilidade_alvo_perc: Number(e.target.value) })} /></div>
               <OverrideField label="% horas de gestão" inicial={prm.pctHorasGestao} herdado={`${num(prm.pctHorasGestao)}%`} value={ed.pct_horas_gestao} onChange={(v) => setEd({ ...ed, pct_horas_gestao: v })} />
               <OverrideField label="Custo hora de execução (R$)" inicial={prm.custoHoraExecucao} herdado={brl(prm.custoHoraExecucao)} value={ed.custo_hora_execucao} onChange={(v) => setEd({ ...ed, custo_hora_execucao: v })} />
               <OverrideField label="Custo hora de gestão (R$)" inicial={prm.custoHoraGestao} herdado={brl(prm.custoHoraGestao)} value={ed.custo_hora_gestao} onChange={(v) => setEd({ ...ed, custo_hora_gestao: v })} />
