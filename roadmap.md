@@ -1,3 +1,8 @@
+# BodyShop — Padronização das telas
+- [ ] Remover Resumo da barra superior e padronizar os botões da proposta.
+- [ ] Ocultar parâmetros legados e rótulos estáticos, mantendo conteúdo institucional e regras comerciais sem excluir dados históricos.
+- [ ] Validar telas autenticadas e testes de proposta.
+
 # Parâmetros compartilhados — IRPJ/CSLL
 - [x] Centralizar IRPJ/CSLL em 10,34% e Escala Selbetti na Administração; retirar seleção ROI ITO e edição local das políticas compartilhadas.
 - [x] Integrar os quatro motores preservando percentuais históricos; capturar IR e escala no Treinamento e escala no snapshot Zabbix.
