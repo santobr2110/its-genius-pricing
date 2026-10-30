@@ -23,7 +23,7 @@ export function useBodyshopResultado() {
   const congelado = useMemo(() => st.snapshot ? computeCarrinhoBS(entradasDoSnapshot(st.snapshot), globaisDoSnapshot(st.snapshot), st.snapshot.tiers ?? tiers) : null, [st.snapshot, tiers]);
   const congeladoIntacto = !!st.snapshot && mesmasEntradas(st.snapshot, st.linhas, st.config);
   const diffs = useMemo(() => st.snapshot ? diferencasParametros(st.snapshot, entradasVivas, globaisVivos, tiers) : [], [st.snapshot, entradasVivas, globaisVivos, tiers]);
-  const usados = new Set([params.produtoPadrao, ...cad.cargos.map(c => c.codigo_produto)]);
+  const usados = new Set([params.produtoPresencial, params.produtoRemoto]);
   const ids = tax.codes.filter(c => usados.has(c.codigo)).map(c => c.id);
   const municipios = Array.from(new Set([st.config.municipio, ...tax.rates.filter(r => ids.includes(r.tax_product_code_id)).map(r => r.municipio)])).sort();
   return { cad, tax, st, params, tiers, globaisVivos, entradasVivas, vivo, congelado, congeladoIntacto, diffs, municipios,

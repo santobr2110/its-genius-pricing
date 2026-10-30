@@ -22,17 +22,14 @@ describe('BodyShop Fase 4 — financeiro e produto por cargo', () => {
       expect(cents(r.venda) - [r.impostos, r.comissao, r.retencao, r.ir, r.financeiro, r.custo].reduce((s,n) => s + cents(n), 0) + cents(r.ajuste)).toBe(cents(r.lucro));
     }
   });
-  it('trocar o SKU de um cargo altera somente os impostos e o preço daquela linha', () => {
-    const outro = { ...cargo, id: 'outro' };
-    const linhas = [linha, { ...linha, id: 'outra', cargoId: outro.id }];
-    const resolver = (sku: string) => sku === 'BS' ? tax : { ...tax, issPerc: 5 };
-    const antes = computeCarrinhoBS(montarEntradas(linhas, [cargo, outro], p, resolver), g, tiers);
-    const depois = computeCarrinhoBS(montarEntradas(linhas, [{ ...cargo, codigo_produto: 'BS-EXCECAO' }, outro], p, resolver), g, tiers);
-    expect(antes.linhas[0].entrada.codigoProduto).toBe('BS');
-    expect(depois.linhas[0].entrada.tax?.issPerc).toBe(5);
-    expect(depois.linhas[0].precoFinal).toBeGreaterThan(antes.linhas[0].precoFinal);
-    expect(depois.linhas[1]).toEqual(antes.linhas[1]);
-    expect(montarEntradas(linhas, [{ ...cargo, codigo_produto: null }, outro], p, resolver)).toEqual(montarEntradas(linhas, [cargo, outro], p, resolver));
+  it('SKU fiscal vem do formato: remoto usa o SKU remoto, presencial/padrão/híbrido legado usam o presencial', () => {
+    const pp = { ...p, produtoPresencial: 'PRES', produtoRemoto: 'REM', formatoPadrao: 'presencial' as const };
+    const resolver = (sku: string) => sku === 'PRES' ? tax : { ...tax, issPerc: 5 };
+    const ls = [{ ...linha, formato: 'remoto' as const }, { ...linha, id: 'b', formato: 'presencial' as const }, { ...linha, id: 'c' }, { ...linha, id: 'd', formato: 'hibrido' as const }];
+    const es = montarEntradas(ls, [{ ...cargo, codigo_produto: 'IGNORADO' }], pp, resolver);
+    expect(es.map(e => e.codigoProduto)).toEqual(['REM', 'PRES', 'PRES', 'PRES']);
+    expect(es[0].tax?.issPerc).toBe(5);
+    expect(montarEntradas([{ ...linha, id: 'c' }], [cargo], { ...pp, formatoPadrao: 'remoto' }, resolver)[0].codigoProduto).toBe('REM');
   });
 });
 describe("BodyShop novo — custo mensal", () => {
