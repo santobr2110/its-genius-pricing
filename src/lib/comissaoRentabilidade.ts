@@ -22,17 +22,12 @@ export const DEFAULT_COMISSAO_TIERS: ComissaoTier[] = [
  * primeira faixa, retorna 0.
  */
 export function comissaoFromRent(rent: number, tiers: ComissaoTier[]): number {
-  const r = Number.isFinite(rent) ? rent : 0;
-  // Acima da última faixa
-  for (const t of tiers) {
-    const hi = t.maxRent ?? Number.POSITIVE_INFINITY;
-    if (r >= t.minRent && r <= hi) return t.comissao;
-  }
-  // Acima de tudo
-  const sorted = [...tiers].sort((a, b) => a.minRent - b.minRent);
-  const last = sorted[sorted.length - 1];
-  if (last && r > (last.maxRent ?? last.minRent)) return last.comissao;
-  return 0;
+  // Faixas são contíguas: vale a de maior mínimo ≤ rentabilidade. Arredonda a 6 casas
+  // para que 19,9999999…% (ponto flutuante) não caia no vão entre 19,99% e 20%.
+  const r = Number.isFinite(rent) ? Math.round(rent * 1e6) / 1e6 : 0;
+  let best: ComissaoTier | null = null;
+  for (const t of tiers) if (r >= t.minRent && (!best || t.minRent > best.minRent)) best = t;
+  return best ? best.comissao : 0;
 }
 
 export function formatRentLabel(t: ComissaoTier): string {

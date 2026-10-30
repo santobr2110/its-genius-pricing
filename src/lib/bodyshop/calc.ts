@@ -129,6 +129,8 @@ const PEND: StatusParam[] = ["simulado", "a_confirmar"];
 export const PARAMETROS_OCULTOS_BS = new Set([
   "produto_padrao", "produto_presencial", "produto_remoto",
   "irpj_csll_convencao",
+  // Editados em Financeiro › Impostos & Markup (evita dois lugares para o mesmo valor):
+  "comissao_regra", "retencao_perc", "rentabilidade_alvo_perc", "piso_rentabilidade_perc",
   "proposta_cidade", "proposta_objeto", "proposta_texto_tributario",
   "proposta_dados_faturamento", "proposta_entregaveis_contratuais",
   "proposta_quem_somos", "proposta_numeros", "proposta_prazo_pagamento", "proposta_observacoes",
