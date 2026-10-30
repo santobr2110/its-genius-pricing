@@ -30,7 +30,7 @@ const FIN: Item[] = [
   { to: `${BASE}/financeiro/comissoes`, label: "Comissões", icon: TableIcon, desc: "Comissão fixa ou Escala Selbetti" },
 ];
 const CFG: Item[] = [
-  { to: `${BASE}/configuracoes/pacotes`, label: "Pacotes", icon: Package, desc: "Horas e rentabilidade alvo por pacote" },
+  { to: `${BASE}/configuracoes/pacotes`, label: "Pacotes", icon: Package, desc: "Horas e custos por pacote" },
   { to: `${BASE}/configuracoes/conteudo`, label: "Conteúdo", icon: BookOpen, desc: "Textos da proposta" },
   { to: `${BASE}/configuracoes/campanhas`, label: "Campanhas", icon: Megaphone, desc: "Condições promocionais" },
   { to: `${BASE}/configuracoes/parametros`, label: "Parâmetros", icon: SlidersHorizontal, desc: "Custos e parâmetros da oferta" },

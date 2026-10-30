@@ -20,6 +20,7 @@ export function useSreResultado() {
   const hoje = new Date().toISOString().slice(0, 10);
   const campanha = useMemo(() => campanhaVigente(cad.campanhas, hoje), [cad.campanhas, hoje]);
 
+  const rentabilidadeCotacao = st.config.rentabilidadePerc ?? params.rentabilidadePadraoPerc;
   const globaisVivos: GlobaisSre = useMemo(() => ({
     comissaoFixaPerc: params.comissaoFixaPerc, retencaoPerc: params.retencaoPerc,
     irpjCsllPerc: central.irpjCsllPerc, irpjCsllConvencao: params.irpjCsllConvencao,
@@ -28,8 +29,8 @@ export function useSreResultado() {
   }), [st.config, params, central.irpjCsllPerc, campanha]);
 
   const entradasVivas = useMemo(
-    () => montarEntradas(st.linhas, cad.pacotes, params, taxPorProdutoFactory(st.config.municipio, hoje, tax.codes, tax.rates)),
-    [st.linhas, cad.pacotes, params, st.config.municipio, hoje, tax.codes, tax.rates],
+    () => montarEntradas(st.linhas, cad.pacotes, params, taxPorProdutoFactory(st.config.municipio, hoje, tax.codes, tax.rates), rentabilidadeCotacao),
+    [rentabilidadeCotacao, st.linhas, cad.pacotes, params, st.config.municipio, hoje, tax.codes, tax.rates],
   );
   const vivo = useMemo(() => computeCarrinhoSre(entradasVivas, globaisVivos, central.comissaoTiers), [entradasVivas, globaisVivos, central.comissaoTiers]);
 
@@ -53,7 +54,7 @@ export function useSreResultado() {
   }, [tax.codes, tax.rates, params.produtoPadrao, cad.pacotes]);
 
   return {
-    cad, tax, st, params, res, vivo, congelado, congeladoIntacto, globais, globaisVivos, entradasVivas, diffs, municipios, tiersVivos: central.comissaoTiers,
+    cad, tax, st, params, res, vivo, congelado, congeladoIntacto, globais, globaisVivos, entradasVivas, rentabilidadeCotacao, diffs, municipios, tiersVivos: central.comissaoTiers,
     loading: cad.loading || tax.loading || central.loading,
   };
 }
