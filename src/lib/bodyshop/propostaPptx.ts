@@ -112,7 +112,7 @@ export function montarModeloPropostaPptx(a: {
     if (!cabe(requisitos, CAPACIDADE.requisitos)) avisos.push(`Os requisitos do perfil ${nome} não cabem no slide; reduza os itens em Configurações › Conteúdo.`);
     return {
       titulo: semAcento(`${nome} ${modalidade}`.trim()).toUpperCase(),
-      intro: `A Selbetti está considerando ${qtd} ${nome}${ded ? ` ${ded}` : ""} para ${e.area ? e.area.toLowerCase() : A_CONFIRMAR}.`,
+      intro: `A Selbetti está considerando ${qtd} ${nome}.`,
       formato: ouPendente(formato), escopoCol1: col1.length ? col1 : [A_CONFIRMAR], escopoCol2: col2,
       ressalva: txt(c?.observacoes) || g("proposta_ressalva_pecas"), requisitos: requisitos.length ? requisitos : [A_CONFIRMAR],
       modalidade: ouPendente(`${e.cargo}${modalidade ? ` ${modalidade}` : ""}`), local: ouPendente(local), horario: ouPendente(horario),
