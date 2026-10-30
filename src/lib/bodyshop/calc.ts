@@ -121,12 +121,26 @@ export function custoMensal(salario: number, r: Pick<CargoResolvido, "beneficios
 export interface PendenciaBs { origem: "cargo" | "conteudo" | "parametro"; titulo: string; detalhe: string }
 const PEND: StatusParam[] = ["simulado", "a_confirmar"];
 
+/** Parâmetros que não são mais usados pela proposta atual (PPTX) nem pelo cálculo vivo:
+ *  ficam fora da edição e das pendências, mas continuam no banco para emissões históricas. */
+export const PARAMETROS_OCULTOS_BS = new Set([
+  "irpj_csll_convencao",
+  "proposta_cidade", "proposta_objeto", "proposta_texto_tributario",
+  "proposta_dados_faturamento", "proposta_entregaveis_contratuais",
+  "proposta_quem_somos", "proposta_numeros", "proposta_prazo_pagamento", "proposta_observacoes",
+  "proposta_confidencialidade",
+  "proposta_capa_titulo", "proposta_capa_subtitulo", "proposta_capa_rotulo_cliente", "proposta_capa_rotulo_por",
+  "proposta_rotulo_objetivo", "proposta_rotulo_escopo", "proposta_rotulo_formato", "proposta_rotulo_perfil",
+  "proposta_rotulo_localidades", "proposta_rotulo_alocado_em", "proposta_rotulo_horario", "proposta_rotulo_comercial",
+  "proposta_rotulo_investimento", "proposta_rotulo_col_desc", "proposta_rotulo_col_valor", "proposta_rotulo_observacoes",
+]);
+
 export function listarPendenciasBs(cargos: BodyshopCargo[], contents: BodyshopContent[], params: BodyshopParam[]): PendenciaBs[] {
   const out: PendenciaBs[] = [];
   const nome = (c?: BodyshopCargo) => (c ? `${c.cargo} · ${c.senioridade}` : "—");
   for (const c of cargos) if (c.campos_a_confirmar.length) out.push({ origem: "cargo", titulo: nome(c), detalhe: `A confirmar: ${c.campos_a_confirmar.join(", ")}` });
   for (const ct of contents) if (ct.a_confirmar) out.push({ origem: "conteudo", titulo: nome(cargos.find((c) => c.id === ct.cargo_id)), detalhe: "Descritivo a confirmar" });
-  for (const p of params) if (PEND.includes(p.status)) out.push({ origem: "parametro", titulo: p.label, detalhe: p.status === "simulado" ? "Simulado" : "A confirmar" });
+  for (const p of params) if (PEND.includes(p.status) && !PARAMETROS_OCULTOS_BS.has(p.key)) out.push({ origem: "parametro", titulo: p.label, detalhe: p.status === "simulado" ? "Simulado" : "A confirmar" });
   return out;
 }
 
