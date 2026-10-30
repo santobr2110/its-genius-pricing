@@ -1143,6 +1143,200 @@ export type Database = {
         }
         Relationships: []
       }
+      sre_campanhas: {
+        Row: {
+          a_confirmar: boolean
+          ativo: boolean
+          created_at: string
+          desconto_perc: number
+          id: string
+          nome: string
+          observacao: string | null
+          updated_at: string
+          vigencia_fim: string | null
+          vigencia_inicio: string
+        }
+        Insert: {
+          a_confirmar?: boolean
+          ativo?: boolean
+          created_at?: string
+          desconto_perc: number
+          id?: string
+          nome: string
+          observacao?: string | null
+          updated_at?: string
+          vigencia_fim?: string | null
+          vigencia_inicio: string
+        }
+        Update: {
+          a_confirmar?: boolean
+          ativo?: boolean
+          created_at?: string
+          desconto_perc?: number
+          id?: string
+          nome?: string
+          observacao?: string | null
+          updated_at?: string
+          vigencia_fim?: string | null
+          vigencia_inicio?: string
+        }
+        Relationships: []
+      }
+      sre_pacote_content: {
+        Row: {
+          a_confirmar: boolean
+          descricao: string | null
+          entregavel: string | null
+          escopo_atividades: string | null
+          forma_acionamento: string | null
+          link_mais_informacoes: string | null
+          observacoes: string | null
+          pacote_id: string
+          perfis_envolvidos: string | null
+          pre_requisito: string | null
+          regra_consumo: string | null
+          sla_atendimento: string | null
+          tagline: string | null
+          updated_at: string
+          validade_horas_texto: string | null
+        }
+        Insert: {
+          a_confirmar?: boolean
+          descricao?: string | null
+          entregavel?: string | null
+          escopo_atividades?: string | null
+          forma_acionamento?: string | null
+          link_mais_informacoes?: string | null
+          observacoes?: string | null
+          pacote_id: string
+          perfis_envolvidos?: string | null
+          pre_requisito?: string | null
+          regra_consumo?: string | null
+          sla_atendimento?: string | null
+          tagline?: string | null
+          updated_at?: string
+          validade_horas_texto?: string | null
+        }
+        Update: {
+          a_confirmar?: boolean
+          descricao?: string | null
+          entregavel?: string | null
+          escopo_atividades?: string | null
+          forma_acionamento?: string | null
+          link_mais_informacoes?: string | null
+          observacoes?: string | null
+          pacote_id?: string
+          perfis_envolvidos?: string | null
+          pre_requisito?: string | null
+          regra_consumo?: string | null
+          sla_atendimento?: string | null
+          tagline?: string | null
+          updated_at?: string
+          validade_horas_texto?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sre_pacote_content_pacote_id_fkey"
+            columns: ["pacote_id"]
+            isOneToOne: true
+            referencedRelation: "sre_pacotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sre_pacotes: {
+        Row: {
+          ativo: boolean
+          campos_a_confirmar: string[]
+          codigo_produto: string | null
+          created_at: string
+          custo_hora_execucao: number | null
+          custo_hora_gestao: number | null
+          descricao: string | null
+          horas_execucao: number
+          id: string
+          nome: string
+          ordem: number
+          part_number: string
+          pct_horas_gestao: number | null
+          rentabilidade_alvo_perc: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          campos_a_confirmar?: string[]
+          codigo_produto?: string | null
+          created_at?: string
+          custo_hora_execucao?: number | null
+          custo_hora_gestao?: number | null
+          descricao?: string | null
+          horas_execucao: number
+          id?: string
+          nome: string
+          ordem?: number
+          part_number: string
+          pct_horas_gestao?: number | null
+          rentabilidade_alvo_perc: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          campos_a_confirmar?: string[]
+          codigo_produto?: string | null
+          created_at?: string
+          custo_hora_execucao?: number | null
+          custo_hora_gestao?: number | null
+          descricao?: string | null
+          horas_execucao?: number
+          id?: string
+          nome?: string
+          ordem?: number
+          part_number?: string
+          pct_horas_gestao?: number | null
+          rentabilidade_alvo_perc?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sre_params: {
+        Row: {
+          descricao: string | null
+          key: string
+          label: string
+          ordem: number
+          status: string
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          descricao?: string | null
+          key: string
+          label: string
+          ordem?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          descricao?: string | null
+          key?: string
+          label?: string
+          ordem?: number
+          status?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
