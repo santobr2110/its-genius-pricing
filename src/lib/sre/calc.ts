@@ -6,7 +6,8 @@ export interface SrePacote {
   id: string; slug: string; part_number: string; nome: string; descricao: string | null;
   horas_execucao: number;
   pct_horas_gestao: number | null; custo_hora_execucao: number | null; custo_hora_gestao: number | null;
-  rentabilidade_alvo_perc: number; codigo_produto: string | null;
+  /** @deprecated rentabilidade agora é da cotação (ConfigSre.rentabilidadePerc). */
+  rentabilidade_alvo_perc?: number; codigo_produto: string | null;
   ativo: boolean; ordem: number; campos_a_confirmar: string[];
 }
 
@@ -31,7 +32,7 @@ export interface SreCampanha {
 
 export interface SreParams {
   custoHoraExecucao: number; custoHoraGestao: number; pctHorasGestao: number;
-  retencaoPerc: number; comissaoFixaPerc: number | null; irpjCsllConvencao: string; encFinancPerc: number;
+  rentabilidadePadraoPerc: number; retencaoPerc: number; comissaoFixaPerc: number | null; irpjCsllConvencao: string; encFinancPerc: number;
   produtoPadrao: string; skuFaturamento: string; municipioPadrao: string;
   validadeDias: number; validadeHorasMeses: number | null; cidade: string;
 }
@@ -45,6 +46,7 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): SrePara
     custoHoraExecucao: n("custo_hora_execucao", 135),
     custoHoraGestao: n("custo_hora_gestao", 135),
     pctHorasGestao: n("pct_horas_gestao", 20),
+    rentabilidadePadraoPerc: n("rentabilidade_padrao_perc", 20),
     retencaoPerc: n("retencao_perc", 5),
     comissaoFixaPerc: parseComissao(m.get("comissao_regra")),
     irpjCsllConvencao: s("irpj_csll_convencao", "padrao_site"),

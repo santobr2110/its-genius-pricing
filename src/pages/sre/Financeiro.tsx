@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { AlertTriangle, Calculator, Clock, DollarSign, Loader2, Percent, Receipt, Table as TableIcon, TrendingUp, Undo2, Wallet } from "lucide-react";
+import { Calculator, Clock, DollarSign, Loader2, Percent, Receipt, Table as TableIcon, TrendingUp, Undo2, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -18,8 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { parseComissao } from "@/lib/treinamento/calc";
-import { computeCarrinhoSre, computeLinhaSre, montarEntradas, type CarrinhoSre } from "@/lib/sre/carrinho";
-import { taxPorProdutoFactory } from "@/lib/pricing/taxRates";
+import { computeCarrinhoSre, type CarrinhoSre } from "@/lib/sre/carrinho";
 import SubNav from "@/pages/treinamento/financeiro/SubNav";
 import { useSreResultado } from "./useSreResultado";
 import { SRE_BASE } from "./useSreState";
@@ -130,10 +128,10 @@ function Comp({ label, tag, desc, valor, children, edit }: { label: string; tag:
 
 export function SreImpostos() {
   const { can } = useAuth();
-  const { st, res, globais, params } = useSreResultado();
+  const { st, res, globais, params, rentabilidadeCotacao } = useSreResultado();
   const { config, setConfig } = st;
   const podeParams = can("page.sre.params");
-  const editPerc = (k: "encFinancPerc" | "descontoTotalPerc", atual: number, max: number) => (
+  const editPerc = (k: "encFinancPerc" | "descontoTotalPerc" | "rentabilidadePerc", atual: number, max: number) => (
     <>
       <div className="flex justify-end items-center gap-2 -mt-9">
         <Input type="number" step={0.01} value={atual} onChange={(e) => setConfig({ ...config, [k]: Number(e.target.value) || 0 })} className="h-8 w-20 text-right" />
@@ -149,9 +147,10 @@ export function SreImpostos() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4 text-primary" /> Componentes sobre a venda</CardTitle>
-          <p className="text-xs text-muted-foreground">A rentabilidade alvo é de cada pacote (veja a escada abaixo). Aqui ficam os percentuais que se somam a ela na cascata.</p>
+          <p className="text-xs text-muted-foreground">Como no Smart ITO: o custo vem das horas e o vendedor define a rentabilidade da cotação. Os demais percentuais se somam a ela na cascata.</p>
         </CardHeader>
         <CardContent className="space-y-3">
+          <Comp label="Rentabilidade" tag="editável" edit desc={`Definida pelo vendedor para a cotação inteira. Valor inicial: ${pct(params.rentabilidadePadraoPerc)} (Configurações › Parâmetros).`}>{editPerc("rentabilidadePerc", rentabilidadeCotacao, 60)}</Comp>
           <Comp label="PIS · COFINS · ISS" tag="automático" desc="Vêm do produto fiscal de cada pacote no município escolhido." valor={t0 ? t0.pisPerc + t0.cofinsPerc + t0.issPerc : 0} />
           <Comp label="IRPJ / CSLL" tag="central" desc={<>Convenção {globais.irpjCsllConvencao === "padrao_site" ? "padrão do site" : globais.irpjCsllConvencao}. Percentual definido na Administração; cotações congeladas preservam o imposto original.{!podeParams && " Só quem tem a permissão de parâmetros do SRE vê a convenção."}</>} valor={globais.irpjCsllPerc} />
           <Comp label="Encargos financeiros" tag="editável" edit desc="Custos financeiros do contrato.">{editPerc("encFinancPerc", config.encFinancPerc ?? params.encFinancPerc, 15)}</Comp>
@@ -159,7 +158,6 @@ export function SreImpostos() {
           <Comp label="Desconto total" tag="editável" edit desc="Aplicado sobre todos os itens, composto com a campanha e o desconto de cada item.">{editPerc("descontoTotalPerc", config.descontoTotalPerc, 50)}</Comp>
         </CardContent>
       </Card>
-      <EscadaCard />
     </Shell>
   );
 }
@@ -224,56 +222,6 @@ function ProdutosPorPacote() {
             </div>
           );
         })}
-      </CardContent>
-    </Card>
-  );
-}
-
-function EscadaCard() {
-  const { cad, params, tax, globaisVivos, tiersVivos, st } = useSreResultado();
-  const linhas = useMemo(() => {
-    const taxFn = taxPorProdutoFactory(st.config.municipio, new Date().toISOString().slice(0, 10), tax.codes, tax.rates);
-    const ativos = cad.pacotes.filter((p) => p.ativo);
-    const ent = montarEntradas(ativos.map((p) => ({ id: p.id, pacoteId: p.id, quantidade: 1, descontoPerc: 0 })), ativos, params, taxFn);
-    return ent.map((e) => computeLinhaSre(e, { ...globaisVivos, descontoTotalPerc: 0, campanha: null }, tiersVivos));
-  }, [cad.pacotes, params, tax, globaisVivos, tiersVivos, st.config.municipio]);
-  const graf = linhas.filter((l) => l.erros.length === 0).map((l) => ({ horas: l.entrada.horasExecucao, valorHora: l.valorHoraExecucao }));
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Escada de rentabilidade alvo</CardTitle>
-        <p className="text-xs text-muted-foreground">A política de volume desta oferta: cada pacote tem a sua rentabilidade alvo (sem desconto, sem campanha, município {st.config.municipio}). O alvo só é editado em <Link to={`${SRE_BASE}/configuracoes/pacotes`} className="text-primary hover:underline">Configurações › Pacotes</Link>.</p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="h-52">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={graf} margin={{ left: 8, right: 16, top: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="horas" scale="log" domain={["dataMin", "dataMax"]} type="number" ticks={graf.map((x) => x.horas)} tick={{ fontSize: 10 }} />
-              <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10 }} tickFormatter={(v) => `R$ ${Math.round(v)}`} width={60} />
-              <Tooltip formatter={(v: number) => brl(v)} labelFormatter={(h) => `${h} horas`} />
-              <Line type="monotone" dataKey="valorHora" name="Valor/hora" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        <Table>
-          <TableHeader><TableRow><TableHead>Part number</TableHead><TableHead className="text-right">Horas</TableHead><TableHead className="text-right">Rentab. alvo</TableHead><TableHead className="text-right">Comissão</TableHead><TableHead className="text-right">Valor por hora</TableHead></TableRow></TableHeader>
-          <TableBody>
-            {linhas.map((l) => (
-              <TableRow key={l.entrada.linhaId}>
-                <TableCell className="font-medium">{l.entrada.partNumber}</TableCell>
-                <TableCell className="text-right tabular-nums">{l.entrada.horasExecucao.toLocaleString("pt-BR")}</TableCell>
-                <TableCell className="text-right tabular-nums">{l.entrada.rentabilidadeAlvoPerc.toLocaleString("pt-BR", { minimumFractionDigits: 3 })}%</TableCell>
-                <TableCell className="text-right tabular-nums">{pct(l.comissaoCascataPerc)}</TableCell>
-                <TableCell className="text-right tabular-nums">{l.erros.length ? <span className="text-destructive">{l.erros[0]}</span> : brl(l.valorHoraExecucao)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <p className="text-xs rounded-md border border-amber-500/50 bg-amber-500/10 p-2 flex gap-2">
-          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-          <span><strong>Zona morta da Escala Selbetti.</strong> A comissão é uma função em degraus da rentabilidade: um alvo de 19,99% cai na faixa de 6,10% e um de 20,00% na de 7,32%. Por isso, alvos entre 19,99% e 20,00% fazem o preço saltar de R$ 303,54 para R$ 313,41 por hora, sem nenhum valor no meio. Considere isso antes de editar um alvo.</span>
-        </p>
       </CardContent>
     </Card>
   );

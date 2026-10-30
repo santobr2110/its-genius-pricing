@@ -1,6 +1,6 @@
 // Motor de cálculo dos Pacotes Consultivos Zabbix SRE (Fase 3). Funções puras — ver src/test/sreCalc.test.ts.
 // Etapa 1 resolve as entradas (catálogo vivo ou snapshot congelado); etapa 2 calcula só sobre EntradaLinhaSre.
-// Preço nasce do custo pela cascata (alvo do pacote como lucro); decomporVenda só reavalia após desconto.
+// Preço nasce do custo (horas × custo/hora) pela cascata, com a rentabilidade definida pelo vendedor na cotação (igual ao Smart ITO); decomporVenda só reavalia após desconto.
 import { computeCascata } from "@/lib/pricing/cascata";
 import { decomporVenda, type ChegadaFixos } from "@/lib/pricing/chegada";
 import { comissaoFromRent, type ComissaoTier } from "@/lib/comissaoRentabilidade";
@@ -25,8 +25,9 @@ export function resolveParamsPacote(
 
 export interface LinhaSre { id: string; pacoteId: string; quantidade: number; descontoPerc: number }
 
-export interface ConfigSre { municipio: string; descontoTotalPerc: number; encFinancPerc: number | null }
-export const CONFIG_SRE_PADRAO: ConfigSre = { municipio: "Joinville", descontoTotalPerc: 0, encFinancPerc: null };
+/** rentabilidadePerc null = padrão dos Parâmetros SRE. */
+export interface ConfigSre { municipio: string; descontoTotalPerc: number; encFinancPerc: number | null; rentabilidadePerc: number | null }
+export const CONFIG_SRE_PADRAO: ConfigSre = { municipio: "Joinville", descontoTotalPerc: 0, encFinancPerc: null, rentabilidadePerc: null };
 
 export interface EntradaLinhaSre {
   linhaId: string; pacoteId: string;
@@ -57,6 +58,8 @@ export function campanhaVigente(campanhas: SreCampanha[], dataRef: string): Camp
 
 export function montarEntradas(
   linhas: LinhaSre[], catalogo: SrePacote[], params: SreParams, taxPorProduto: (codigo: string) => TaxPercs | null,
+  /** Rentabilidade da cotação, definida pelo vendedor — a mesma para todos os pacotes. */
+  rentabilidadePerc: number,
 ): EntradaLinhaSre[] {
   const byId = new Map(catalogo.map((p) => [p.id, p]));
   return linhas.map((l) => {
@@ -71,7 +74,7 @@ export function montarEntradas(
       linhaId: l.id, pacoteId: p.id, partNumber: p.part_number, nome: p.nome,
       horasExecucao: Number(p.horas_execucao), pctHorasGestao: r.pctHorasGestao,
       custoHoraExecucao: r.custoHoraExecucao, custoHoraGestao: r.custoHoraGestao,
-      rentabilidadeAlvoPerc: Number(p.rentabilidade_alvo_perc),
+      rentabilidadeAlvoPerc: rentabilidadePerc,
       quantidade: l.quantidade, descontoPerc: l.descontoPerc,
       codigoProduto: r.codigoProduto, tax: taxPorProduto(r.codigoProduto), origemParam: { ...r.origem },
     };
@@ -209,6 +212,7 @@ export const linhasDoSnapshot = (s: SnapshotSre): LinhaSre[] => s.itens.map((i) 
 export function mesmasEntradasSre(s: SnapshotSre, linhas: LinhaSre[], c: ConfigSre): boolean {
   if (s.municipio !== c.municipio || (s.descontoTotalPerc ?? 0) !== (c.descontoTotalPerc || 0)) return false;
   if (c.encFinancPerc != null && c.encFinancPerc !== s.encFinancPerc) return false;
+  if (c.rentabilidadePerc != null && s.itens.some((i) => i.rentabilidadeAlvoPerc !== c.rentabilidadePerc)) return false;
   if (s.itens.length !== linhas.length) return false;
   return s.itens.every((i, k) => {
     const l = linhas[k];
@@ -229,7 +233,7 @@ export function diferencasParametrosSre(snap: SnapshotSre, vivo: EntradaLinhaSre
   for (const e of vivo) {
     const i = snap.itens.find((x) => x.linhaId === e.linhaId);
     if (!i) continue;
-    if (i.horasExecucao !== e.horasExecucao || i.rentabilidadeAlvoPerc !== e.rentabilidadeAlvoPerc) out.push(`${e.partNumber}: horas ou alvo alterados`);
+    if (i.horasExecucao !== e.horasExecucao || i.rentabilidadeAlvoPerc !== e.rentabilidadeAlvoPerc) out.push(`${e.partNumber}: horas ou rentabilidade alteradas`);
     if (i.custoHoraExecucao !== e.custoHoraExecucao || i.custoHoraGestao !== e.custoHoraGestao || i.pctHorasGestao !== e.pctHorasGestao) out.push(`${e.partNumber}: custos alterados`);
     if (i.pisPerc !== (e.tax?.pisPerc ?? null) || i.cofinsPerc !== (e.tax?.cofinsPerc ?? null) || i.issPerc !== (e.tax?.issPerc ?? null)) out.push(`${e.partNumber}: alíquotas alteradas`);
   }
