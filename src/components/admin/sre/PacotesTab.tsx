@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2, Undo2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -200,9 +200,9 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
               <div className="col-span-2"><Label className="text-xs">Nome comercial</Label><Input value={ed.nome} onChange={(e) => setEd({ ...ed, nome: e.target.value })} /></div>
               <div><Label className="text-xs">Horas de execução</Label><Input type="number" value={ed.horas_execucao} onChange={(e) => setEd({ ...ed, horas_execucao: Number(e.target.value) })} /></div>
               <div><Label className="text-xs">Rentabilidade alvo %</Label><Input type="number" step="0.001" value={ed.rentabilidade_alvo_perc} onChange={(e) => setEd({ ...ed, rentabilidade_alvo_perc: Number(e.target.value) })} /></div>
-              <OverrideField label="% horas de gestão" herdado={`${num(prm.pctHorasGestao)}%`} value={ed.pct_horas_gestao} onChange={(v) => setEd({ ...ed, pct_horas_gestao: v })} />
-              <OverrideField label="Custo hora de execução (R$)" herdado={brl(prm.custoHoraExecucao)} value={ed.custo_hora_execucao} onChange={(v) => setEd({ ...ed, custo_hora_execucao: v })} />
-              <OverrideField label="Custo hora de gestão (R$)" herdado={brl(prm.custoHoraGestao)} value={ed.custo_hora_gestao} onChange={(v) => setEd({ ...ed, custo_hora_gestao: v })} />
+              <OverrideField label="% horas de gestão" inicial={prm.pctHorasGestao} herdado={`${num(prm.pctHorasGestao)}%`} value={ed.pct_horas_gestao} onChange={(v) => setEd({ ...ed, pct_horas_gestao: v })} />
+              <OverrideField label="Custo hora de execução (R$)" inicial={prm.custoHoraExecucao} herdado={brl(prm.custoHoraExecucao)} value={ed.custo_hora_execucao} onChange={(v) => setEd({ ...ed, custo_hora_execucao: v })} />
+              <OverrideField label="Custo hora de gestão (R$)" inicial={prm.custoHoraGestao} herdado={brl(prm.custoHoraGestao)} value={ed.custo_hora_gestao} onChange={(v) => setEd({ ...ed, custo_hora_gestao: v })} />
               <div>
                 <Label className="text-xs">Produto fiscal</Label>
                 <Select value={ed.codigo_produto ?? "__herda"} onValueChange={(v) => setEd({ ...ed, codigo_produto: v === "__herda" ? null : v })}>
@@ -227,7 +227,7 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
 }
 
 /** Campo herdável: NULL mostra o herdado em cinza; "Criar exceção" grava valor próprio (inclusive 0). */
-function OverrideField({ label, herdado, value, onChange }: { label: string; herdado: string; value: number | null; onChange: (v: number | null) => void }) {
+function OverrideField({ label, inicial, herdado, value, onChange }: { label: string; inicial: number; herdado: string; value: number | null; onChange: (v: number | null) => void }) {
   return (
     <div>
       <Label className="text-xs">{label}</Label>
@@ -235,7 +235,7 @@ function OverrideField({ label, herdado, value, onChange }: { label: string; her
         <div className="flex items-center gap-2 h-10">
           <span className="text-sm text-muted-foreground">{herdado}</span>
           <Badge variant="outline" className="text-[9px] text-muted-foreground">herdado do parâmetro</Badge>
-          <Button size="sm" variant="outline" className="h-7 ml-auto text-xs" onClick={() => onChange(0)}>Criar exceção</Button>
+          <Button size="sm" variant="outline" className="h-7 ml-auto text-xs" onClick={() => onChange(inicial)}>Criar exceção</Button>
         </div>
       ) : (
         <div className="flex items-center gap-2">

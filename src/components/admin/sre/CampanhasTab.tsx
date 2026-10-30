@@ -10,6 +10,8 @@ import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { campanhasSobrepostas, type SreCampanha } from "@/lib/sre/calc";
+import { campanhaVigente } from "@/lib/sre/carrinho";
+import { Megaphone } from "lucide-react";
 import type { SreCadastro } from "@/hooks/useSreCadastro";
 
 const fmtData = (d: string | null) => (d ? d.split("-").reverse().join("/") : "sem fim");
@@ -41,7 +43,22 @@ export default function SreCampanhasTab({ campanhas, refresh }: SreCadastro) {
     refresh();
   };
 
+  const hoje = new Date().toISOString().slice(0, 10);
+  const vig = campanhaVigente(campanhas, hoje);
+  const vigente = vig ? campanhas.find((c) => c.id === vig.id) ?? null : null;
+  const ordenadas = vigente ? [vigente, ...campanhas.filter((c) => c.id !== vigente.id)] : campanhas;
+
   return (
+    <div className="space-y-4">
+    <div className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm ${vigente ? "border-primary/50 bg-primary/5" : "bg-muted/40"}`}>
+      <Megaphone className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+      <div>
+        {vigente
+          ? <p><strong>Campanha vigente:</strong> {vigente.nome} — {Number(vigente.desconto_perc).toLocaleString("pt-BR")}% · {fmtData(vigente.vigencia_inicio)} a {fmtData(vigente.vigencia_fim)}</p>
+          : <p><strong>Nenhuma campanha vigente hoje.</strong></p>}
+        <p className="text-xs text-muted-foreground">Ativar uma campanha muda o preço de toda cotação nova; cotações já salvas continuam com os valores congelados.</p>
+      </div>
+    </div>
     <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
@@ -53,12 +70,12 @@ export default function SreCampanhasTab({ campanhas, refresh }: SreCadastro) {
         </CardHeader>
         <CardContent className="space-y-2">
           {campanhas.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma campanha cadastrada.</p>}
-          {campanhas.map((c) => (
-            <div key={c.id} className="flex items-center gap-3 rounded-md border px-3 py-2">
+          {ordenadas.map((c) => (
+            <div key={c.id} className={`flex items-center gap-3 rounded-md border px-3 py-2 ${vigente?.id === c.id ? "border-primary/60 bg-primary/5" : ""}`}>
               <button className="flex-1 text-left" onClick={() => setEd(c)}>
                 <p className="text-sm font-medium flex items-center gap-2">
                   {c.nome}
-                  <Badge variant={c.ativo ? "default" : "secondary"} className="text-[10px]">{c.ativo ? "Ativa" : "Inativa"}</Badge>
+                  <Badge variant={c.ativo ? "default" : "secondary"} className="text-[10px]">{vigente?.id === c.id ? "Vigente" : c.ativo ? "Ativa" : "Inativa"}</Badge>
                   {c.a_confirmar && <Badge variant="outline" className="text-[10px]">a confirmar</Badge>}
                 </p>
                 <p className="text-xs text-muted-foreground">{Number(c.desconto_perc).toLocaleString("pt-BR")}% · {fmtData(c.vigencia_inicio)} a {fmtData(c.vigencia_fim)}</p>
@@ -88,6 +105,7 @@ export default function SreCampanhasTab({ campanhas, refresh }: SreCadastro) {
           </CardContent>
         </Card>
       )}
+    </div>
     </div>
   );
 }
