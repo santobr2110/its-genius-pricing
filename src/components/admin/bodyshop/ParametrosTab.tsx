@@ -13,19 +13,11 @@ import { useTaxCodes } from "@/hooks/useTaxCodes";
 import { STATUS_LABEL, STATUS_PENDENTES, type StatusParam } from "@/lib/treinamento/types";
 import type { BodyshopParam } from "@/lib/bodyshop/calc";
 import type { BsCadastro } from "@/hooks/useBodyshopCadastro";
+import { PARAMETROS_OCULTOS_BS } from "@/lib/bodyshop/calc";
 
 const STATUS = Object.keys(STATUS_LABEL) as StatusParam[];
 // Oculta apenas na edição: valores continuam disponíveis aos modelos e emissões históricos.
-const PARAMETROS_OCULTOS = new Set([
-  "irpj_csll_convencao",
-  "proposta_cidade", "proposta_objeto", "proposta_texto_tributario",
-  "proposta_dados_faturamento", "proposta_entregaveis_contratuais",
-  "proposta_quem_somos", "proposta_numeros", "proposta_prazo_pagamento", "proposta_observacoes",
-  "proposta_capa_titulo", "proposta_capa_subtitulo", "proposta_capa_rotulo_cliente", "proposta_capa_rotulo_por",
-  "proposta_rotulo_objetivo", "proposta_rotulo_escopo", "proposta_rotulo_formato", "proposta_rotulo_perfil",
-  "proposta_rotulo_localidades", "proposta_rotulo_alocado_em", "proposta_rotulo_horario", "proposta_rotulo_comercial",
-  "proposta_rotulo_investimento", "proposta_rotulo_col_desc", "proposta_rotulo_col_valor", "proposta_rotulo_observacoes",
-]);
+const PARAMETROS_OCULTOS = PARAMETROS_OCULTOS_BS;
 
 export default function BsParametrosTab({ params, refresh }: BsCadastro) {
   const { user } = useAuth();
