@@ -37,7 +37,7 @@ export interface BodyshopParams {
   retencaoPerc: number; comissaoFixaPerc: number | null;
   irpjCsllConvencao: string; encFinancPerc: number;
   rentabilidadeAlvoPerc: number; pisoRentabilidadePerc: number | null;
-  produtoPadrao: string; validadeDias: number; duracaoMeses: number;
+  produtoPadrao: string; produtoPresencial: string; produtoRemoto: string; formatoPadrao: "presencial" | "remoto"; validadeDias: number; duracaoMeses: number;
   reajusteIndice: string | null;
 }
 
@@ -61,6 +61,9 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): Bodysho
     rentabilidadeAlvoPerc: n("rentabilidade_alvo_perc", 20),
     pisoRentabilidadePerc: nOpt("piso_rentabilidade_perc"),
     produtoPadrao: t("produto_padrao") ?? "BS",
+    produtoPresencial: t("produto_presencial") ?? "TMP-02",
+    produtoRemoto: t("produto_remoto") ?? "TMP-01",
+    formatoPadrao: /remot/i.test(t("proposta_formato_padrao") ?? "") ? "remoto" : "presencial",
     validadeDias: n("validade_proposta_dias", 15),
     duracaoMeses: n("duracao_padrao_meses", 12),
     reajusteIndice: t("reajuste_indice"),
@@ -124,6 +127,7 @@ const PEND: StatusParam[] = ["simulado", "a_confirmar"];
 /** Parâmetros que não são mais usados pela proposta atual (PPTX) nem pelo cálculo vivo:
  *  ficam fora da edição e das pendências, mas continuam no banco para emissões históricas. */
 export const PARAMETROS_OCULTOS_BS = new Set([
+  "produto_padrao", "produto_presencial", "produto_remoto",
   "irpj_csll_convencao",
   "proposta_cidade", "proposta_objeto", "proposta_texto_tributario",
   "proposta_dados_faturamento", "proposta_entregaveis_contratuais",
@@ -145,3 +149,8 @@ export function listarPendenciasBs(cargos: BodyshopCargo[], contents: BodyshopCo
 }
 
 export const brl = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
+
+/** O SKU fiscal da vaga vem só do formato de alocação (presencial/remoto); "híbrido" legado conta como presencial. */
+export function produtoPorFormato(formato: string | undefined, p: Pick<BodyshopParams, "produtoPresencial" | "produtoRemoto" | "formatoPadrao">): string {
+  return (formato ?? p.formatoPadrao) === "remoto" ? p.produtoRemoto : p.produtoPresencial;
+}

@@ -1,7 +1,7 @@
 import { comissaoFromRent, type ComissaoTier } from "@/lib/comissaoRentabilidade";
 import { cascataNucleo, REGRA_SMART_ITO } from "@/lib/pricing/cascata";
 import { decomporVenda, type ChegadaFixos } from "@/lib/pricing/chegada";
-import { resolveParamsCargo, salarioFaixa, type BodyshopCargo, type BodyshopParams, type Faixa, type OrigemParam, type Regime } from "./calc";
+import { produtoPorFormato, resolveParamsCargo, salarioFaixa, type BodyshopCargo, type BodyshopParams, type Faixa, type OrigemParam, type Regime } from "./calc";
 
 /** New BodyShop rejects impossible prices; unlike legacy BodyShop it never caps Σ. */
 export const REGRA_BODYSHOP_NOVO = { ...REGRA_SMART_ITO, ordem: [...REGRA_SMART_ITO.ordem] };
@@ -39,12 +39,13 @@ export function montarEntradas(linhas: LinhaBS[], catalogo: BodyshopCargo[], p: 
     const c = catalogo.find(c => c.id === l.cargoId);
     const r = resolveParamsCargo(c ?? { beneficios_mensais: null, encargos_perc: null, indiretos_perc: null, horas_mensais: null, piso_rentabilidade_perc: null, codigo_produto: null }, p);
     const salario = c ? salarioFaixa(c, l.faixa) : null;
+    const sku = produtoPorFormato(l.formato, p);
     return { linhaId: l.id, cargoId: l.cargoId, cargo: c?.cargo ?? "Cargo não encontrado", area: c?.area ?? "", senioridade: c?.senioridade ?? "", nivelNum: c?.nivel_num ?? 0, faixa: l.faixa,
       salarioBase: salario ?? 0, encargosPerc: r.encargosPerc, indiretosPerc: r.indiretosPerc, beneficiosMensais: r.beneficiosMensais,
       beneficiosProporcionais: p.beneficiosProporcionais, horasPadrao: r.horasMensais,
       horasLinha: l.horasLinha ?? (l.regime === "integral" ? r.horasMensais : p.horasMeioPeriodo), regime: l.regime,
-      quantidade: l.quantidade, descontoPerc: l.descontoPerc, codigoProduto: r.codigoProduto, tax: taxPorProduto(r.codigoProduto),
-      pisoRentabilidadePerc: r.pisoRentabilidadePerc, origemParam: r.origem,
+      quantidade: l.quantidade, descontoPerc: l.descontoPerc, codigoProduto: sku, tax: taxPorProduto(sku),
+      pisoRentabilidadePerc: r.pisoRentabilidadePerc, origemParam: { ...r.origem, produto: "parametro" },
       ...(l.iaJustificativa !== undefined ? { iaJustificativa: l.iaJustificativa } : {}),
       ...(l.iaIndiceAderencia !== undefined ? { iaIndiceAderencia: l.iaIndiceAderencia } : {}),
       ...(l.formato ? { formato: l.formato } : {}), ...(l.local?.trim() ? { local: l.local.trim() } : {}), ...(l.horario?.trim() ? { horario: l.horario.trim() } : {}),
