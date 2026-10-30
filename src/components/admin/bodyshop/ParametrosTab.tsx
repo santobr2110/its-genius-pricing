@@ -15,6 +15,17 @@ import type { BodyshopParam } from "@/lib/bodyshop/calc";
 import type { BsCadastro } from "@/hooks/useBodyshopCadastro";
 
 const STATUS = Object.keys(STATUS_LABEL) as StatusParam[];
+// Oculta apenas na edição: valores continuam disponíveis aos modelos e emissões históricos.
+const PARAMETROS_OCULTOS = new Set([
+  "irpj_csll_convencao",
+  "proposta_cidade", "proposta_objeto", "proposta_texto_tributario",
+  "proposta_dados_faturamento", "proposta_entregaveis_contratuais",
+  "proposta_quem_somos", "proposta_numeros", "proposta_prazo_pagamento", "proposta_observacoes",
+  "proposta_capa_titulo", "proposta_capa_subtitulo", "proposta_capa_rotulo_cliente", "proposta_capa_rotulo_por",
+  "proposta_rotulo_objetivo", "proposta_rotulo_escopo", "proposta_rotulo_formato", "proposta_rotulo_perfil",
+  "proposta_rotulo_localidades", "proposta_rotulo_alocado_em", "proposta_rotulo_horario", "proposta_rotulo_comercial",
+  "proposta_rotulo_investimento", "proposta_rotulo_col_desc", "proposta_rotulo_col_valor", "proposta_rotulo_observacoes",
+]);
 
 export default function BsParametrosTab({ params, refresh }: BsCadastro) {
   const { user } = useAuth();
@@ -46,7 +57,7 @@ export default function BsParametrosTab({ params, refresh }: BsCadastro) {
         <Button onClick={salvar} disabled={sujos.length === 0}>Salvar{sujos.length ? ` (${sujos.length})` : ""}</Button>
       </CardHeader>
       <CardContent className="divide-y">
-        {rows.filter(r => r.key !== "irpj_csll_convencao").map((r) => (
+        {rows.filter(r => !PARAMETROS_OCULTOS.has(r.key)).map((r) => (
           <div key={r.key} className="grid grid-cols-1 md:grid-cols-[1fr_220px_160px] items-center gap-3 py-2.5">
             <div className="min-w-0">
               <p className="text-sm font-medium flex items-center gap-2">{r.label}
@@ -60,11 +71,6 @@ export default function BsParametrosTab({ params, refresh }: BsCadastro) {
                 <SelectTrigger className="h-9"><SelectValue placeholder="SKU" /></SelectTrigger>
                 <SelectContent>{(skus.length ? skus : [{ codigo: String(r.value ?? "BS"), nome: "" }]).map((c) => (
                   <SelectItem key={c.codigo} value={c.codigo}>{c.codigo}</SelectItem>))}</SelectContent>
-              </Select>
-            ) : r.key === "irpj_csll_convencao" ? (
-              <Select value={String(r.value ?? "padrao_site")} onValueChange={(v) => set(r.key, { value: v })}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="padrao_site">Padrão do site</SelectItem></SelectContent>
               </Select>
             ) : r.tipo === "text" && r.key.startsWith("proposta_") && r.key !== "proposta_cidade" ? (
               <Textarea rows={3} value={String(r.value ?? "")} placeholder="Vazio = [A CONFIRMAR]" onChange={(e) => set(r.key, { value: e.target.value })} />
