@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CadastroTributarioTab from "@/components/admin/CadastroTributarioTab";
+import UserRolePicker from "@/components/admin/UserRolePicker";
 import {
   Table,
   TableBody,
@@ -30,7 +31,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -231,7 +231,10 @@ export default function Admin() {
               <TabsTrigger value="tributario">Cadastro tributário de produtos</TabsTrigger>
             </TabsList>
             <TabsContent value="users">
-              <UsersTab users={users} roles={roles} reload={loadAll} currentUserId={user?.id} />
+              <UsersTab users={users} roles={roles} reload={loadAll} currentUserId={user?.id} onRolesSaved={(userId, assigned) => {
+                setUsers((current) => current.map((u) => u.id === userId ? { ...u, roles: assigned, role: assigned[0] ?? null } : u));
+                if (userId === user?.id) refresh();
+              }} />
             </TabsContent>
             <TabsContent value="roles">
               <RolesTab roles={roles} reload={loadAll} onRolesChanged={refresh} />
@@ -257,26 +260,17 @@ function UsersTab({
   roles,
   reload,
   currentUserId,
+  onRolesSaved,
 }: {
   users: UserRow[];
   roles: RoleRow[];
   reload: () => void;
   currentUserId?: string;
+  onRolesSaved: (userId: string, roles: NonNullable<UserRow["roles"]>) => void;
 }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState<UserRow | null>(null);
   const [editOpen, setEditOpen] = useState<UserRow | null>(null);
-
-  const handleAssign = async (userId: string, roleIds: string[]) => {
-    const { error } = await supabase.functions.invoke("admin-users", {
-      body: { action: "assign_role", user_id: userId, role_ids: roleIds },
-    });
-    if (error) toast.error(error.message);
-    else {
-      toast.success("Perfis atualizados.");
-      reload();
-    }
-  };
 
   const handleDelete = async (u: UserRow) => {
     if (!confirm(`Remover usuário ${u.email}?`)) return;
@@ -317,44 +311,7 @@ function UsersTab({
                   {u.id === currentUserId && <Badge variant="secondary" className="ml-2 text-[10px]">você</Badge>}
                 </TableCell>
                 <TableCell>
-                  {(() => {
-                    const atuais = (u.roles ?? (u.role ? [u.role] : [])).map((r) => r.id);
-                    const nomes = roles.filter((r) => atuais.includes(r.id)).map((r) => r.name);
-                    return (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-auto min-h-8 w-[220px] justify-start text-xs font-normal flex-wrap gap-1 py-1">
-                            {nomes.length === 0 ? (
-                              <span className="text-muted-foreground">Sem perfil</span>
-                            ) : (
-                              nomes.map((n) => (
-                                <Badge key={n} variant="secondary" className="text-[10px]">{n}</Badge>
-                              ))
-                            )}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-60 p-2" align="start">
-                          <p className="px-1 pb-2 text-xs text-muted-foreground">
-                            As permissões dos perfis marcados são somadas.
-                          </p>
-                          {roles.map((r) => {
-                            const marcado = atuais.includes(r.id);
-                            return (
-                              <label key={r.id} className="flex items-center gap-2 rounded px-1 py-1.5 text-sm hover:bg-muted cursor-pointer">
-                                <Checkbox
-                                  checked={marcado}
-                                  onCheckedChange={(c) =>
-                                    handleAssign(u.id, c ? [...atuais, r.id] : atuais.filter((x) => x !== r.id))
-                                  }
-                                />
-                                {r.name}
-                              </label>
-                            );
-                          })}
-                        </PopoverContent>
-                      </Popover>
-                    );
-                  })()}
+                  <UserRolePicker userId={u.id} roles={roles} assigned={u.roles ?? (u.role ? [u.role] : [])} onSaved={(assigned) => onRolesSaved(u.id, assigned)} />
                 </TableCell>
                 <TableCell className="text-right space-x-1">
                   <Button variant="ghost" size="sm" onClick={() => setEditOpen(u)} className="gap-1 h-8">
