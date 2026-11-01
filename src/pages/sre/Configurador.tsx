@@ -276,8 +276,8 @@ function LinhaEditor({ r, linha, ativos, onChange, onRemove }: {
         <div className="space-y-1 col-span-2 md:col-span-1">
           <Label className="text-xs">Pacote</Label>
           <Select value={linha.pacoteId} onValueChange={(id) => onChange({ pacoteId: id })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent className="max-h-[60vh]">
+            <SelectTrigger aria-label="Pacote"><SelectValue /></SelectTrigger>
+            <SelectContent className="max-h-[min(60vh,var(--radix-select-content-available-height))]" collisionPadding={12}>
               {ativos.map((p) => <SelectItem key={p.id} value={p.id}>{p.part_number} · {Number(p.horas_execucao).toLocaleString("pt-BR")} horas</SelectItem>)}
             </SelectContent>
           </Select>
