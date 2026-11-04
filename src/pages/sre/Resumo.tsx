@@ -10,13 +10,13 @@ import selbettiLogo from "@/assets/selbetti-logo.png.asset.json";
 import { useSreResultado } from "./useSreResultado";
 import { SRE_BASE } from "./useSreState";
 import { composicaoSre } from "./Financeiro";
+import { aguardarResumoExportavel } from "@/lib/resumoExport";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 
 export async function exportarResumoSrePdf(nomeArquivo: string) {
-  const el = document.getElementById("sre-resumo-printable");
-  if (!el) throw new Error("Resumo indisponível.");
+  const el = await aguardarResumoExportavel("sre-resumo-printable");
   const html2canvas = (await import("html2canvas")).default;
   const { jsPDF } = await import("jspdf");
   const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });

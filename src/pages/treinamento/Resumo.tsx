@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTreinamentoResultado } from "./useTreinamentoResultado";
 import selbettiLogo from "@/assets/selbetti-logo.png.asset.json";
+import { aguardarResumoExportavel } from "@/lib/resumoExport";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
@@ -15,8 +16,7 @@ const MOD: Record<string, string> = { turma_aberta: "Turma Aberta", in_company: 
 
 /** Resumo de Cotação do Treinamento — mesmo formato do Smart ITO, com detalhamento de cálculo e dados fiscais. */
 export async function exportarResumoPdf(nomeArquivo: string) {
-  const el = document.getElementById("trn-resumo-printable");
-  if (!el) throw new Error("Resumo indisponível.");
+  const el = await aguardarResumoExportavel("trn-resumo-printable");
   const html2canvas = (await import("html2canvas")).default;
   const { jsPDF } = await import("jspdf");
   const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });

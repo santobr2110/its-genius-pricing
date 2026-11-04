@@ -12,11 +12,10 @@ import { brl } from '@/lib/bodyshop/calc';
 import { memorialCusto } from '@/lib/bodyshop/carrinho';
 import { useBodyshopResultado } from './useBodyshopResultado';
 import { BS_BASE } from './useBsState';
+import { aguardarResumoExportavel } from '@/lib/resumoExport';
 const pct = (n: number) => `${n.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`;
 export async function exportarResumoBsPdf(nomeArquivo: string) {
-  const el = document.getElementById('bs-resumo-printable');
-  if (!el) throw new Error('Resumo indisponível.');
-  await document.fonts.ready;
+  const el = await aguardarResumoExportavel('bs-resumo-printable');
   const html2canvas = (await import('html2canvas')).default;
   const { jsPDF } = await import('jspdf');
   const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: getComputedStyle(el).backgroundColor });
