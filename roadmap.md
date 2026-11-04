@@ -1,3 +1,8 @@
+# Download Cotação/ROI Zabbix — Fernanda
+- [x] Reproduzir o aviso com a cotação salva da Fernanda e carregamento lento.
+- [x] Aguardar o resumo antes de exportar, cobrindo também as demais ofertas com a mesma falha.
+- [ ] Validar testes e baixar o PDF autenticado na conta afetada.
+
 # BodyShop — Padronização das telas
 - [x] Remover Resumo da barra superior e padronizar os botões da proposta.
 - [x] Ocultar parâmetros legados e rótulos estáticos, mantendo conteúdo institucional e regras comerciais sem excluir dados históricos.

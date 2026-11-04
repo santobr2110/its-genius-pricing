@@ -43,6 +43,7 @@ export default function ZbxProposta() {
   const d = { ...PADRAO, ...dados };
   const validadeDias = d.validadeDias ?? params.validadeDias;
   const [emitindo, setEmitindo] = useState(false);
+  const [baixandoResumo, setBaixandoResumo] = useState(false);
   const [verResumo, setVerResumo] = useState(false);
   const [verWord, setVerWord] = useState<Blob | null>(null);
   const wordRef = useRef<HTMLDivElement>(null);
@@ -149,7 +150,12 @@ export default function ZbxProposta() {
                 <Button variant="outline" size="icon" title="Visualizar Word" aria-label="Visualizar Word" onClick={() => visualizarWord(modelo)}><Eye className="h-4 w-4" /></Button>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" disabled={!pode} onClick={() => { setVerResumo(true); setTimeout(() => exportarResumoZbxPdf(`${st.atual.codigo || "resumo-zabbix"}.pdf`).catch((e) => toast.error(e.message)).finally(() => setVerResumo(false)), 400); }}><FileDown className="h-4 w-4 mr-2" />Baixar Cotação/ROI</Button>
+                <Button variant="outline" className="flex-1" disabled={!pode || baixandoResumo} onClick={async () => {
+                  setBaixandoResumo(true); setVerResumo(true);
+                  try { await exportarResumoZbxPdf(`${st.atual.codigo || "resumo-zabbix"}.pdf`); }
+                  catch (e) { toast.error((e as Error).message); }
+                  finally { setBaixandoResumo(false); setVerResumo(false); }
+                }}>{baixandoResumo ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}Baixar Cotação/ROI</Button>
                 <Button variant="outline" size="icon" title="Visualizar Cotação/ROI" onClick={() => setVerResumo(true)}><Eye className="h-4 w-4" /></Button>
               </div>
             </div>

@@ -9,13 +9,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import selbettiLogo from "@/assets/selbetti-logo.png.asset.json";
 import { useZabbixResultado } from "./useZabbixResultado";
 import { ZBX_BASE } from "./useZbxState";
+import { aguardarResumoExportavel } from "@/lib/resumoExport";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 
 export async function exportarResumoZbxPdf(nomeArquivo: string) {
-  const el = document.getElementById("zbx-resumo-printable");
-  if (!el) throw new Error("Resumo indisponível.");
+  const el = await aguardarResumoExportavel("zbx-resumo-printable");
   const html2canvas = (await import("html2canvas")).default;
   const { jsPDF } = await import("jspdf");
   const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
