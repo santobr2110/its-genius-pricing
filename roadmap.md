@@ -1,7 +1,7 @@
 # Download Cotação/ROI Zabbix — Fernanda
 - [x] Reproduzir o aviso com a cotação salva da Fernanda e carregamento lento.
 - [x] Aguardar o resumo antes de exportar, cobrindo também as demais ofertas com a mesma falha.
-- [ ] Validar testes e baixar o PDF autenticado na conta afetada.
+- [x] 61 testes passaram; PDF ITS-ZBX-20261028-001 baixado na conta da Fernanda com carregamento lento e prévia conferida, sem alterar valores congelados.
 
 # BodyShop — Padronização das telas
 - [x] Remover Resumo da barra superior e padronizar os botões da proposta.
