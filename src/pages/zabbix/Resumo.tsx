@@ -56,7 +56,7 @@ export default function ZbxResumo({ embedded = false }: { embedded?: boolean }) 
   const retencao = soma((l) => l.precoFinal * l.fixos!.retencaoPerc / 100);
   const financeiro = soma((l) => l.precoFinal * l.fixos!.encFinancPerc / 100);
   const cen = globais.cenario;
-  const condicao = `${cen.temRO ? "Com RO" : "Sem RO"} · ${cen.pagamento30d ? "Pagamento em 30 dias" : "Sem desconto de pagamento 30 dias"}`;
+  const condicao = `${cen.publicTender ? "Public Tender (Suporte)" : cen.temRO ? "Com RO" : "Sem RO"} · ${cen.pagamento30d ? "Pagamento em 30 dias" : "Sem desconto de pagamento 30 dias"}`;
   const Field = ({ label, value }: { label: string; value?: string | null }) => (
     <div className="flex gap-2 text-sm"><span className="font-bold whitespace-nowrap" style={{ color: "#000" }}>{label}</span><span style={{ color: "#000" }}>{value || "—"}</span></div>
   );
@@ -116,7 +116,7 @@ export default function ZbxResumo({ embedded = false }: { embedded?: boolean }) 
                   ["Produto", `${e.codigoProduto}${info?.nome && info.nome !== e.codigoProduto ? " — " + info.nome : ""}`],
                   ["PIS", pct(f.pisPerc)], ["COFINS", pct(f.cofinsPerc)], ["ISS", pct(f.issPerc)],
                   ["Lista", e.listaUsd != null ? `USD ${e.listaUsd.toLocaleString("pt-BR")} × ${e.cambio.toLocaleString("pt-BR")} = ${brl(l.listaUnitariaBrl)}` : brl(l.listaUnitariaBrl)],
-                  [cen.temRO ? "Desc. RO" : "Desc. sem RO", pct(l.descBasePerc)],
+                  [l.publicTender ? "Public Tender" : l.temRO ? "Desc. RO" : "Desc. sem RO", pct(l.descBasePerc)],
                   ["Pgto 30d", l.descPgtoPerc ? pct(l.descPgtoPerc) : ""],
                   ["Custo unit.", brl(l.custoUnitario)], ["Custo", brl(l.custoLinha)],
                   ["Comissão", pct(l.comissaoPerc)], ["Retenção", pct(f.retencaoPerc)],

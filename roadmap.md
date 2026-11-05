@@ -1,3 +1,8 @@
+# Zabbix — Public Tender
+- [x] Adicionar percentual em Parâmetros e ativação no Configurador, somente Suporte.
+- [x] Substituir parceria por Public Tender, combinar com pagamento 30 dias e preservar snapshots.
+- [x] 88 testes passaram; Suporte Gold validado autenticado com 35% e pagamento 20% (custo R$ 28.314), salvamento/recarga e telas desktop/715px conferidos.
+
 # Download Cotação/ROI Zabbix — Fernanda
 - [x] Reproduzir o aviso com a cotação salva da Fernanda e carregamento lento.
 - [x] Aguardar o resumo antes de exportar, cobrindo também as demais ofertas com a mesma falha.

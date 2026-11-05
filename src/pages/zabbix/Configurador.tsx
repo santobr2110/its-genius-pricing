@@ -94,7 +94,7 @@ export default function ZbxConfigurador() {
 
   const pendentes = cad.params.filter((p) => p.status === "simulado" || p.status === "a_confirmar");
   const descRO = params.descontos.suporte;
-  const resumoCondicao = `Custo apurado ${config.temRO ? `com RO de ${descRO.ro}%` : `sem RO (desconto de parceria de ${descRO.semRo}%)`} e ${config.pagamento30d ? `pagamento em 30 dias (${config.temRO ? descRO.pgto30Ro : descRO.pgto30SemRo}%)` : "sem desconto de pagamento em 30 dias"} · categoria Suporte`;
+  const resumoCondicao = `Custo apurado ${config.publicTender ? `com Public Tender de ${params.publicTenderPerc ?? 35}%` : config.temRO ? `com RO de ${descRO.ro}%` : `sem RO (desconto de parceria de ${descRO.semRo}%)`} e ${config.pagamento30d ? `pagamento em 30 dias (${config.temRO && !config.publicTender ? descRO.pgto30Ro : descRO.pgto30SemRo}%)` : "sem desconto de pagamento em 30 dias"} · categoria Suporte`;
 
   if (R.loading) return <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Carregando…</p>;
   if (cad.error) return <p className="text-sm text-destructive">Você não tem acesso ao catálogo das Subscrições Zabbix. Peça a permissão "Acessar Subscrições Zabbix" a um administrador.</p>;
@@ -108,7 +108,7 @@ export default function ZbxConfigurador() {
           <Lock className="h-4 w-4 text-primary shrink-0" />
           <span className="flex-1 min-w-0">
             {congeladoIntacto
-              ? <>Valores congelados em {new Date(snapshot.congeladoEm).toLocaleDateString("pt-BR")} — câmbio {snapshot.cambio.toLocaleString("pt-BR")}, {snapshot.cenario.temRO ? "com" : "sem"} RO{snapshot.itens[0] ? ` (${snapshot.cenario.temRO ? snapshot.itens[0].descontos.ro : snapshot.itens[0].descontos.semRo}%)` : ""}{snapshot.cenario.pagamento30d ? ", pagamento 30 dias" : ""} · versão {snapshot.versao}{diffs.length ? ` · ${diffs.length} parâmetro(s) mudaram desde então` : ""}</>
+              ? <>Valores congelados em {new Date(snapshot.congeladoEm).toLocaleDateString("pt-BR")} — câmbio {snapshot.cambio.toLocaleString("pt-BR")}, {snapshot.cenario.publicTender ? "Public Tender (Suporte)" : `${snapshot.cenario.temRO ? "com" : "sem"} RO`}{snapshot.cenario.pagamento30d ? ", pagamento 30 dias" : ""} · versão {snapshot.versao}{diffs.length ? ` · ${diffs.length} parâmetro(s) mudaram desde então` : ""}</>
               : <>Cotação alterada desde o congelamento de {new Date(snapshot.congeladoEm).toLocaleDateString("pt-BR")}: os valores abaixo usam os parâmetros atuais e serão congelados de novo ao salvar.</>}
           </span>
           {congeladoIntacto && (
@@ -150,6 +150,7 @@ export default function ZbxConfigurador() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
             <label className="flex items-center gap-2 text-sm"><Switch checked={config.temRO} onCheckedChange={(v) => setConfig({ ...config, temRO: v })} /> Temos Registered Opportunity (RO)</label>
             <label className="flex items-center gap-2 text-sm"><Switch checked={config.pagamento30d} onCheckedChange={(v) => setConfig({ ...config, pagamento30d: v })} /> Pagamento em 30 dias</label>
+            <label className="flex items-center gap-2 text-sm"><Switch aria-label="Public Tender — Suporte" checked={!!config.publicTender} onCheckedChange={(v) => setConfig({ ...config, publicTender: v })} /> Public Tender — Suporte <Badge variant="outline">{config.publicTender ? "Ativo" : "Inativo"}</Badge></label>
             <div className="flex items-center gap-2">
               <Label className="text-xs text-muted-foreground shrink-0">Município (ISS)</Label>
               <Select value={config.municipio} onValueChange={(v) => setConfig({ ...config, municipio: v })}>
@@ -209,7 +210,7 @@ export default function ZbxConfigurador() {
               <div className="flex justify-between items-baseline"><span className="text-muted-foreground text-xs">Mensal (12 meses)</span><span className="text-base font-semibold tabular-nums whitespace-nowrap text-primary">{brl(res.precoFinalTotal / 12)}/mês</span></div>
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas)} />
               <div className="rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground space-y-0.5">
-                <p>Município {config.municipio} · {config.temRO ? "com RO" : "sem RO"}{config.pagamento30d ? " · pagamento 30 dias" : ""}{config.descontoTotalPerc ? ` · desconto ${pct2(config.descontoTotalPerc)}` : ""}</p>
+                <p>Município {config.municipio} · {config.publicTender ? "Public Tender (Suporte)" : config.temRO ? "com RO" : "sem RO"}{config.pagamento30d ? " · pagamento 30 dias" : ""}{config.descontoTotalPerc ? ` · desconto ${pct2(config.descontoTotalPerc)}` : ""}</p>
                 <p>Comissão {res.cascataBase.comissaoFixaPerc != null ? `fixa ${pct2(res.cascataBase.comissaoFixaPerc)}` : "Escala Selbetti"} · Retenção {pct2(res.cascataBase.retencaoPerc)} · IR/CSLL {pct2(res.cascataBase.irpjCsllPerc)} · <Link to={`${ZBX_BASE}/financeiro/impostos`} className="text-primary hover:underline">Alterar condições</Link></p>
               </div>
               {res.abaixoPiso && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens abaixo do piso de rentabilidade.</p>}
@@ -261,7 +262,7 @@ function LinhaEditor({ r, linha, ativos, quantidadeLivre, onChange, onRemove }: 
     { label: "Suporte · outros", itens: ativos.filter((s) => s.categoria === "suporte" && !NIVEIS.includes(s.nivel ?? "")) },
     { label: "Academy", itens: ativos.filter((s) => s.categoria === "academy") },
   ].filter((g) => g.itens.length);
-  const temRO = r.descBasePerc === e.descontos.ro && r.fixos != null;
+  const temRO = r.temRO;
   const o = e.origemDesconto;
   const tagOrigem = (k: keyof typeof o) => (o[k] === "sku" ? " (exceção do SKU)" : " (categoria)");
   const f = r.fixos;
@@ -321,8 +322,8 @@ function LinhaEditor({ r, linha, ativos, quantidadeLivre, onChange, onRemove }: 
           <CollapsibleTrigger className="flex items-center gap-1 text-xs text-primary hover:underline"><ChevronDown className="h-3.5 w-3.5" /> Detalhes do cálculo</CollapsibleTrigger>
           <CollapsibleContent className="mt-2 rounded-md border bg-muted/30 p-3 text-xs font-mono space-y-0.5">
             <M l={e.listaUsd != null ? `Lista Zabbix  USD ${usd(e.listaUsd)} × ${e.cambio.toLocaleString("pt-BR")}` : "Lista Zabbix (R$)"} v={brl(r.listaUnitariaBrl)} />
-            <M neg l={`(−) Desconto ${temRO ? "RO" : "sem RO"} ${r.descBasePerc}%${tagOrigem(temRO ? "ro" : "semRo")}`} v={`− ${brl(r.listaUnitariaBrl * r.descBasePerc / 100)}`} />
-            <M l={`= Custo ${temRO ? "com RO" : "sem RO"}`} v={brl(r.listaUnitariaBrl * (1 - r.descBasePerc / 100))} />
+            <M neg l={`(−) Desconto ${r.publicTender ? "Public Tender" : temRO ? "RO" : "sem RO"} ${r.descBasePerc}%${r.publicTender ? " (parâmetro)" : tagOrigem(temRO ? "ro" : "semRo")}`} v={`− ${brl(r.listaUnitariaBrl * r.descBasePerc / 100)}`} />
+            <M l={`= Custo ${r.publicTender ? "Public Tender" : temRO ? "com RO" : "sem RO"}`} v={brl(r.listaUnitariaBrl * (1 - r.descBasePerc / 100))} />
             {r.descPgtoPerc > 0 && <M neg l={`(−) Pagamento 30 dias ${r.descPgtoPerc}%${tagOrigem(temRO ? "pgto30Ro" : "pgto30SemRo")}`} v={`− ${brl(r.listaUnitariaBrl * (1 - r.descBasePerc / 100) * r.descPgtoPerc / 100)}`} />}
             <M strong l="= Custo unitário" v={brl(r.custoUnitario)} />
             <M l={`× Quantidade ${e.quantidade}`} v={brl(r.custoLinha)} />
