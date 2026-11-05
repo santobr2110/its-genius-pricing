@@ -1,3 +1,8 @@
+# Zabbix — Public Tender
+- [ ] Adicionar percentual em Parâmetros e ativação no Configurador, somente Suporte.
+- [ ] Substituir parceria por Public Tender, combinar com pagamento 30 dias e preservar snapshots.
+- [ ] Validar regras e fluxo autenticado de cálculo, salvamento e reabertura.
+
 # Download Cotação/ROI Zabbix — Fernanda
 - [x] Reproduzir o aviso com a cotação salva da Fernanda e carregamento lento.
 - [x] Aguardar o resumo antes de exportar, cobrindo também as demais ofertas com a mesma falha.
