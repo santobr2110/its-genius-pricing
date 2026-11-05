@@ -26,7 +26,7 @@ export default function ZbxParametrosTab({ params, refresh }: ZbxCadastro) {
     // Editados em Financeiro › Impostos & Markup:
     "comissao_regra", "piso_rentabilidade_suporte", "piso_rentabilidade_academy"];
   const filtrados = useMemo(
-    () => params.filter((p) => !p.key.startsWith("desconto_") && !p.key.startsWith("produto_") && !OCULTOS.includes(p.key)
+    () => params.filter((p) => (!p.key.startsWith("desconto_") || p.key === "desconto_public_tender_suporte") && !p.key.startsWith("produto_") && !OCULTOS.includes(p.key)
       && ((p.status as string) !== "reuso" || p.key.startsWith("proposta_"))),
     [params],
   );
@@ -39,6 +39,8 @@ export default function ZbxParametrosTab({ params, refresh }: ZbxCadastro) {
   });
 
   const salvar = async () => {
+    const tender = sujos.find((r) => r.key === "desconto_public_tender_suporte");
+    if (tender && (tender.value == null || !Number.isFinite(Number(tender.value)) || Number(tender.value) < 0 || Number(tender.value) > 100)) return toast.error("Desconto Public Tender deve estar entre 0% e 100%.");
     for (const r of sujos) {
       const res = await supabase.from("zabbix_params").update({ value: r.value as never, status: r.status, updated_by: user?.id ?? null }).eq("key", r.key);
       if (res.error) return toast.error(res.error.message);
@@ -88,7 +90,7 @@ export default function ZbxParametrosTab({ params, refresh }: ZbxCadastro) {
               <Input value={String(r.value ?? "")} placeholder={r.key === "comissao_regra" ? "Vazio = tabela da empresa" : undefined} onChange={(e) => set(r.key, { value: e.target.value })} />
             ) : (
               <div className="flex items-center gap-1">
-                <Input type="number" step="0.01" value={r.value == null ? "" : Number(r.value)} placeholder="Vazio"
+                <Input aria-label={r.label} type="number" step="0.01" min={r.key === "desconto_public_tender_suporte" ? 0 : undefined} max={r.key === "desconto_public_tender_suporte" ? 100 : undefined} value={r.value == null ? "" : Number(r.value)} placeholder="Vazio"
                   onChange={(e) => set(r.key, { value: e.target.value === "" ? null : Number(e.target.value) })} />
                 <span className="text-xs text-muted-foreground w-6">{r.tipo === "percent" ? "%" : ""}</span>
               </div>

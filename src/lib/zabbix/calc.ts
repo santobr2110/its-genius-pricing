@@ -30,6 +30,7 @@ export interface ZabbixParam {
 }
 
 export interface ZabbixParams {
+  publicTenderPerc?: number;
   cambioUsd: number; retencaoPerc: number; comissaoFixaPerc: number | null;
   irpjCsllConvencao: string; encFinancPerc: number;
   produtos: { suporte: string; academy: string };
@@ -67,6 +68,7 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): ZabbixP
   const n = (k: string, d: number) => (m.has(k) && m.get(k) !== null && Number.isFinite(Number(m.get(k))) ? Number(m.get(k)) : d);
   const nOpt = (k: string) => (m.get(k) == null || String(m.get(k)).trim() === "" ? null : n(k, 0));
   return {
+    publicTenderPerc: n("desconto_public_tender_suporte", 35),
     cambioUsd: n("cambio_usd", 5.5),
     retencaoPerc: n("retencao_perc", 5),
     comissaoFixaPerc: parseComissao(m.get("comissao_regra")),

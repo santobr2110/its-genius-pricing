@@ -14,6 +14,7 @@ import { useZbxState } from "./useZbxState";
 /** A cotação aberta ainda é exatamente a que foi congelada (mesmos itens e condições)? */
 export function mesmasEntradas(s: SnapshotZbx, linhas: LinhaZbx[], c: ConfigZbx): boolean {
   if (s.municipio !== c.municipio || s.cenario.temRO !== c.temRO || s.cenario.pagamento30d !== c.pagamento30d) return false;
+  if (!!s.cenario.publicTender !== !!c.publicTender) return false;
   if ((s.descontoTotalPerc ?? 0) !== (c.descontoTotalPerc || 0)) return false;
   if (c.encFinancPerc != null && c.encFinancPerc !== s.encFinancPerc) return false;
   if (s.itens.length !== linhas.length) return false;
@@ -33,7 +34,7 @@ export function useZabbixResultado() {
   const hoje = new Date().toISOString().slice(0, 10);
 
   const globaisVivos: GlobaisZbx = useMemo(() => ({
-    cenario: { temRO: st.config.temRO, pagamento30d: st.config.pagamento30d },
+    cenario: { temRO: st.config.temRO, pagamento30d: st.config.pagamento30d, publicTender: !!st.config.publicTender },
     comissaoFixaPerc: params.comissaoFixaPerc, retencaoPerc: params.retencaoPerc,
     irpjCsllPerc: central.irpjCsllPerc, encFinancPerc: st.config.encFinancPerc ?? params.encFinancPerc,
     descontoTotalPerc: st.config.descontoTotalPerc || 0,
