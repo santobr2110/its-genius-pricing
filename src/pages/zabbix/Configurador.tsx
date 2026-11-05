@@ -148,7 +148,7 @@ export default function ZbxConfigurador() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-            <label className="flex items-center gap-2 text-sm"><Switch checked={config.temRO} onCheckedChange={(v) => setConfig({ ...config, temRO: v })} /> Temos Registered Opportunity (RO)</label>
+            <label className={`flex items-center gap-2 text-sm ${config.publicTender ? "text-muted-foreground" : ""}`}><Switch aria-label="Temos Registered Opportunity (RO)" checked={config.temRO} disabled={!!config.publicTender} onCheckedChange={(v) => setConfig({ ...config, temRO: v })} /> Temos Registered Opportunity (RO)</label>
             <label className="flex items-center gap-2 text-sm"><Switch checked={config.pagamento30d} onCheckedChange={(v) => setConfig({ ...config, pagamento30d: v })} /> Pagamento em 30 dias</label>
             <label className="flex items-center gap-2 text-sm"><Switch aria-label="Public Tender — Suporte" checked={!!config.publicTender} onCheckedChange={(v) => setConfig({ ...config, publicTender: v })} /> Public Tender — Suporte <Badge variant="outline">{config.publicTender ? "Ativo" : "Inativo"}</Badge></label>
             <div className="flex items-center gap-2">
