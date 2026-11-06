@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useMemo, useState } from "react";
@@ -210,6 +211,7 @@ export default function SreConfigurador() {
               </div>
               {res.precoTabelaTotal !== res.precoFinalTotal && <div className="flex justify-between"><span className="text-muted-foreground">Desconto</span><span className="tabular-nums font-medium whitespace-nowrap">− {brl(res.precoTabelaTotal - res.precoFinalTotal)}</span></div>}
               <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Total de Venda</span><span className="text-xl font-bold tabular-nums whitespace-nowrap">{brl(res.precoFinalTotal)}</span></div>
+              <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas)} />
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas)} />
               <div className="rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground space-y-0.5">
                 <p>Município {config.municipio}{campanha ? ` · campanha ${pct2(campanha.descontoPerc)}` : ""}{config.descontoTotalPerc ? ` · desconto ${pct2(config.descontoTotalPerc)}` : ""} · gestão interna {hrs(res.horasGestaoTotal)} (não faturada)</p>
@@ -303,6 +305,8 @@ function LinhaEditor({ r, linha, ativos, onChange, onRemove }: {
         </div>
       )}
 
+      {ok && f && <PrecoClienteDetalhado parcelas={[{ preco: r.precoFinal, ...f }]} titulo="Preço do item" />}
+      {ok && f && <PrecoClienteDetalhado parcelas={[{ preco: r.valorHoraExecucao, ...f }]} titulo="Preço por hora" />}
       {ok && f && (
         <Collapsible>
           <CollapsibleTrigger className="flex items-center gap-1 text-xs text-primary hover:underline"><ChevronDown className="h-3.5 w-3.5" /> Detalhes do cálculo</CollapsibleTrigger>

@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { A_CONFIRMAR, dataExtenso, type ModeloPropostaZbx } from "@/lib/zabbix/proposta";
 import selbettiLogo from "@/assets/selbetti-logo.png.asset.json";
 
@@ -79,6 +80,8 @@ export default function PropostaDoc({ m }: { m: ModeloPropostaZbx }) {
             <tr><td colSpan={cab.length - 1} style={{ ...td, textAlign: "right", fontWeight: 700 }}>Total geral</td><td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{brl(m.total)}</td></tr>
           </tbody>
         </table>
+        <PrecoClienteDetalhado demonstrativo={m.demonstrativo} />
+        {m.itens.map((item, index) => <PrecoClienteDetalhado key={index} demonstrativo={item.demonstrativo} titulo={item.descricao} />)}
         <S>Condições comerciais</S>
         <ul style={{ paddingLeft: 20, listStyle: "disc" }}>
           <li>Vigência: {m.vigenciaMeses} meses.</li>

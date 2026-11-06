@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, parcelasDeLinhas, textoPrecoReforma, REFORMA_VIGENCIA } from "@/lib/pricing/reformaTributaria";
 import { Fragment } from "react";
@@ -89,12 +90,14 @@ export default function ZbxResumo({ embedded = false }: { embedded?: boolean }) 
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Investimento Total:" value={brl(total)} />
             <Field label={`Investimento a partir de ${REFORMA_VIGENCIA}:`} value={textoPrecoReforma(calcPrecoReforma(parcelasDeLinhas(ok), cbsPerc))} />
-            <Field label="Impostos:" value={brl(impostos)} />
+            <Field label="Tributos internos (incl. IR/CSLL):" value={brl(impostos)} />
             <Field label="Comercial:" value={brl(comercial)} />
             <Field label="Financeiro:" value={brl(financeiro)} />
             <Field label="Retenção:" value={brl(retencao)} />
             <Field label="Custo Zabbix:" value={brl(res.custoTotal)} />
           </div>
+          <PrecoClienteDetalhado parcelas={parcelasDeLinhas(ok)} className="mb-4" />
+          <PrecoClienteDetalhado parcelas={parcelasDeLinhas(ok)} fator={1 / 12} titulo="Preço mensal — 12 meses" className="mb-4" />
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Rentabilidade</h2>
           <div className="grid grid-cols-2 mb-10">
             <div className="text-center"><div className="text-3xl font-bold">{brl(res.lucroTotal)}</div><div>Líquido</div></div>
@@ -134,6 +137,7 @@ export default function ZbxResumo({ embedded = false }: { embedded?: boolean }) 
                     <tr>
                       <td className={cell} />
                       <td className={cell + " text-[9px]"} colSpan={4}>
+                        <PrecoClienteDetalhado parcelas={[{ preco: l.precoFinal, ...f }]} titulo="Preço do item" />
                         <div className="grid grid-cols-3 gap-x-4 gap-y-0.5">
                           {nota.map(([k, v]) => <span key={k}><strong>{k}:</strong> {v}</span>)}
                         </div>

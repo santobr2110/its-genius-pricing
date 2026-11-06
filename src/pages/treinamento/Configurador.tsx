@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useMemo, useState } from "react";
@@ -160,6 +161,7 @@ export default function Configurador() {
               </div>
               {res.precoTabelaTotal !== res.precoFinalTotal && <Linha l="Desconto" v={`− ${brl(res.precoTabelaTotal - res.precoFinalTotal)}`} />}
               <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Total de Venda</span><span className="text-2xl font-bold tabular-nums">{brl(res.precoFinalTotal)}</span></div>
+              <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas.filter((l) => l.preco != null))} />
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas.filter((l) => l.preco != null))} />
               <div className="rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground space-y-0.5">
                 <p>Município {config.municipio} · rentabilidade alvo {pct(config.lucroPerc)}{config.descontoTotalPerc ? ` · desconto ${pct(config.descontoTotalPerc)}` : ""}</p>
@@ -273,6 +275,7 @@ function LinhaEditor({ r, vendaveis, onChange, onRemove }: {
           <Kpi icon={Tag} l="Desconto" v={pct(r.descontoEfetivoPerc)} />
         </div>
       )}
+      {preco && r.tax && <><PrecoClienteDetalhado parcelas={[{ preco: r.precoFinal, ...r.tax }]} titulo="Preço do item" /><PrecoClienteDetalhado parcelas={[{ preco: r.precoFinalPorAluno, ...r.tax }]} titulo="Preço por aluno" /></>}
       {ref != null && difRef != null && (
         <p className={`text-xs ${Math.abs(difRef) > 20 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
           Mercado praticado: {brl(ref)} por aluno · calculado {brl(r.precoFinalPorAluno)} ({difRef > 0 ? "+" : ""}{difRef.toFixed(1)}%)

@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useMemo, useState, useEffect } from "react";
@@ -195,6 +196,8 @@ export default function BsConfigurador() {
               {res.precoTabelaTotal !== res.precoFinalTotalMensal && <div className="flex justify-between"><span className="text-muted-foreground">Desconto</span><span className="tabular-nums font-medium">− {brl(res.precoTabelaTotal - res.precoFinalTotalMensal)}</span></div>}
               <div className="flex flex-wrap gap-2 justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Mensal Total</span><span className="text-xl font-bold tabular-nums">{brl(res.precoFinalTotalMensal)}</span></div>
               <div className="flex flex-wrap justify-between gap-2"><span>Valor Total do Contrato</span><strong>{brl(res.precoFinalTotalContrato)}</strong></div>
+              <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas)} titulo="Preço mensal ao cliente" />
+              <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas)} fator={res.cascataBase.duracaoMeses} titulo="Preço do contrato" />
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas)} rotulo="Mensal a partir de 01/01/2027" />
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas)} fator={res.cascataBase.duracaoMeses} rotulo="Contrato a partir de 01/01/2027" compacto />
               <div className="bg-muted/50 p-2 text-xs text-muted-foreground space-y-1"><p>{config.municipio} · {config.duracaoMeses} meses</p><p>Comissão {res.cascataBase.comissaoFixaPerc ?? "Escala Selbetti"}% · Retenção {pct2(res.cascataBase.retencaoPerc)} · IR/CSLL {pct2(res.cascataBase.irpjCsllPerc)}</p><a href="#condicoes" className="text-primary underline">Alterar condições</a></div>

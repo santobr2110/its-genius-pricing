@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, parcelasDeLinhas, textoPrecoReforma, REFORMA_VIGENCIA } from "@/lib/pricing/reformaTributaria";
 import { Fragment } from "react";
@@ -103,13 +104,14 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Investimento Total:" value={brl(total)} />
             <Field label={`Investimento a partir de ${REFORMA_VIGENCIA}:`} value={textoPrecoReforma(calcPrecoReforma(parcelasDeLinhas(itens), cbsPerc))} />
-            <Field label="Impostos:" value={brl(impostos)} />
+            <Field label="Tributos internos (incl. IR/CSLL):" value={brl(impostos)} />
             <Field label="Comercial:" value={brl(comercial)} />
             <Field label="Financeiro:" value={brl(financeiro)} />
             <Field label="Retenção:" value={brl(retencao)} />
             <Field label="Custo de execução:" value={brl(res.custoTotal)} />
           </div>
 
+          <PrecoClienteDetalhado parcelas={parcelasDeLinhas(itens.filter(l => l.preco != null))} className="mb-4" />
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Rentabilidade</h2>
           <div className="grid grid-cols-2 mb-10">
             <div className="text-center">
@@ -163,7 +165,7 @@ export default function TreinamentoResumo({ embedded = false }: { embedded?: boo
                     </tr>
                     <tr>
                       <td colSpan={7} className={cell + " text-[11px]"} style={{ color: "#000" }}>
-                        <div className="font-semibold mb-1">Composição — {cur.nome}</div>
+                        <PrecoClienteDetalhado parcelas={parcelasDeLinhas([l])} titulo="Preço do item" /><PrecoClienteDetalhado parcelas={parcelasDeLinhas([l])} fator={1 / Math.max(1, l.linha.alunos)} titulo="Preço por aluno" /><div className="font-semibold mb-1">Composição — {cur.nome}</div>
                         <div className="text-[10px]" style={{ lineHeight: 1.6 }}>
                           <div className="mb-1"><span className="font-semibold mr-1">{nota[0][0]}:</span><span>{nota[0][1]}</span></div>
                           <div className="grid grid-cols-3 gap-x-4">
