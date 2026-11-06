@@ -3,6 +3,7 @@ import {
   AlignmentType, BorderStyle, Document, HeadingLevel, Packer, PageBreak, Paragraph, Table, TableCell, TableRow, TextRun, WidthType,
 } from "docx";
 import { A_CONFIRMAR, dataExtenso, type ModeloPropostaZbx } from "./proposta";
+import { linhasDemonstrativo } from "@/lib/pricing/demonstrativoCliente";
 
 const COR = "17392F";
 const FONTE = "Segoe UI";
@@ -85,6 +86,8 @@ export async function gerarPropostaZbxDocxLegado(m: ModeloPropostaZbx): Promise<
     // 5. Preços
     titulo("Investimento"),
     tabela,
+    ...(m.demonstrativo ? linhasDemonstrativo(m.demonstrativo).map(t => p(t)) : []),
+    ...m.itens.flatMap(i => i.demonstrativo ? [sub(i.descricao), ...linhasDemonstrativo(i.demonstrativo).map(t => p(t))] : []),
     // 6. Condições comerciais
     sub("Condições comerciais"),
     ...[

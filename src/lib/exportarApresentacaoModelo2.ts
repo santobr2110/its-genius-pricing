@@ -1,3 +1,4 @@
+import { linhasDemonstrativo } from "@/lib/pricing/demonstrativoCliente";
 import pptxgen from "pptxgenjs";
 import { formatBRL } from "@/hooks/useITSMCalculator";
 import type {
@@ -1239,6 +1240,10 @@ export async function exportarApresentacaoModelo2(data: ApresentacaoPayload) {
   if (data.restricoesGerais.length > 0) {
     slideRestricoes(pptx, data, bgData, page, totalSlides);
     page++;
+  }
+  if (data.demonstrativo) {
+    const fiscal = pptx.addSlide();
+    fiscal.addText(linhasDemonstrativo(data.demonstrativo).join("\n"), { x:0.6,y:0.6,w:12,h:6,fontSize:18,fontFace:"Segoe UI" });
   }
   slideFechamento(pptx, data, bgData, page, totalSlides);
 

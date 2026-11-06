@@ -1,3 +1,4 @@
+import { linhasDemonstrativo } from "@/lib/pricing/demonstrativoCliente";
 import JSZip from "jszip";
 import { formatBRL } from "@/hooks/useITSMCalculator";
 import type {
@@ -128,6 +129,8 @@ function buildBlocks(data: ApresentacaoPayload): Block[] {
   }
 
   blocks.push({ kind: "investimento", data });
+  if (data.demonstrativo) blocks.push({ kind:"restricoes-gerais", items:["Composição mensal do preço ao cliente", ...linhasDemonstrativo(data.demonstrativo)] });
+  if (data.demonstrativoContrato) blocks.push({ kind:"restricoes-gerais", items:["Composição do contrato", ...linhasDemonstrativo(data.demonstrativoContrato)] });
 
   return blocks;
 }

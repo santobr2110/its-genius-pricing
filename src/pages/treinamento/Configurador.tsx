@@ -1,3 +1,4 @@
+import { assinaturaTreinamento } from "@/lib/treinamento/congelamento";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
@@ -70,10 +71,13 @@ export default function Configurador() {
     const nome = atual.nome.trim() || atual.cliente.trim();
     setSalvando(true);
     try {
+      if (atual.id && !confirm("Reavaliar e salvar com os parâmetros atuais? Os documentos já emitidos permanecem intactos.")) return;
+      const cfg = { ...config, irpjCsllPerc: irpj, comissaoTiers: tiers, resultadoCongelado: undefined };
+      const congelado = { ...cfg, resultadoCongelado: { assinatura: assinaturaTreinamento(linhas, cfg), resultado: R.vivo } };
       const id = await cot.salvar(atual.id, nome, atual.cliente, {
-        linhas, config: { ...config, irpjCsllPerc: irpj, comissaoTiers: tiers }, resumo: { custoTotal: res.custoTotal, precoFinalTotal: res.precoFinalTotal, rentabilidadePerc: res.rentabilidadePerc },
+        linhas, config: congelado, resumo: { custoTotal: R.vivo.custoTotal, precoFinalTotal: R.vivo.precoFinalTotal, rentabilidadePerc: R.vivo.rentabilidadePerc },
       }, atual);
-      setConfig({ ...config, irpjCsllPerc: irpj, comissaoTiers: tiers });
+      setConfig(congelado);
       const salvo = cot.lista.find((x) => x.id === id);
       setAtual({ ...atual, id, nome, codigo: salvo?.quote_code ?? (id === atual.id ? atual.codigo : null) });
       toast.success("Cotação salva");

@@ -1,3 +1,4 @@
+import { demonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, fraseReforma } from "@/lib/pricing/reformaTributaria";
@@ -1187,6 +1188,8 @@ export default function Detalhamento() {
       itensAdicionais: itensSlide,
       restricoesGerais,
       investimentoTotal: investimentoTotal,
+      demonstrativo: demonstrativoCliente([{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]),
+      demonstrativoContrato: demonstrativoCliente([{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }],mesesContrato),
       presetName: activePreset.name ?? undefined,
       exportedAt: Date.now(),
       watermark: approval.watermark ?? undefined,

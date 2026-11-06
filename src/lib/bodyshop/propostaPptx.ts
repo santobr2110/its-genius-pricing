@@ -2,6 +2,8 @@ import PizZip from "pizzip";
 import { computeCarrinhoBS, entradasDoSnapshot, globaisDoSnapshot, type SnapshotBS, type FormatoBS } from "./carrinho";
 import type { BodyshopContent } from "./calc";
 import { A_CONFIRMAR, clonarLinhaTabela, clonarSlide, listarSlides, reordenarSlides, salvar, substituirTokens, textoSlides, tokensPendentes } from "./pptxTemplate";
+import { demonstrativoCliente, linhasDemonstrativo, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
+import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 
 export const TEMPLATE_PPTX_BS = "/templates/proposta-bodyshop-template.pptx";
 
@@ -37,6 +39,9 @@ export interface ModeloPropostaPptx {
   observacoesComerciais: string[];
   textoCobertura: string; textoRegimeObrigacao: string;
   avisos: string[];
+  demonstrativo?: DemonstrativoCliente;
+  demonstrativoContrato?: DemonstrativoCliente;
+  demonstrativosItens?: { titulo: string; mensal: DemonstrativoCliente; unitario: DemonstrativoCliente }[];
 }
 
 const txt = (v: unknown) => (v == null ? "" : String(v)).trim();
@@ -152,6 +157,9 @@ export function montarModeloPropostaPptx(a: {
     amNome: ouPendente(a.amNome), amEmail: ouPendente(a.amEmail),
     ofertaSubtitulo: g("proposta_oferta_subtitulo"), objetivo: objModelo ? objModelo.replace("{perfis}", enumeracao) : A_CONFIRMAR,
     perfis, slideLocalUnico, itens, totalMensal: res.precoFinalTotalMensal, totalContrato: res.precoFinalTotalContrato, duracaoMeses: a.snapshot.duracaoMeses,
+    demonstrativo: demonstrativoCliente(parcelasDeLinhas(res.linhas)),
+    demonstrativoContrato: demonstrativoCliente(parcelasDeLinhas(res.linhas), a.snapshot.duracaoMeses),
+    demonstrativosItens: res.linhas.map(l => ({ titulo: `${l.entrada.cargo} ${l.entrada.senioridade}`, mensal: demonstrativoCliente(parcelasDeLinhas([l])), unitario: demonstrativoCliente(parcelasDeLinhas([l]), 1 / l.entrada.quantidade) })),
     observacoesComerciais: obs, textoCobertura: g("proposta_texto_cobertura"), textoRegimeObrigacao: g("proposta_regime_obrigacao"), avisos,
   };
 }
@@ -204,7 +212,25 @@ export function preencherPptx(zip: PizZip, m: ModeloPropostaPptx): PizZip {
     if (!m.slideLocalUnico) { const a9 = i === 0 ? s9 : clonarSlide(zip, s9); ordem.push(a9); porSlide.push([a9, mapaPerfil(b)]); }
   });
   if (m.slideLocalUnico) { ordem.push(s9); porSlide.push([s9, mapaPerfil(m.slideLocalUnico)]); }
-  ordem.push(s10, s11, s12);
+  ordem.push(s10, s11);
+  const fiscais: [number, string, DemonstrativoCliente][] = [];
+  const detalhado = zip.file("docProps/custom.xml")?.asText().includes("DemonstrativoClienteV1") ?? false;
+  if (detalhado && m.demonstrativo) fiscais.push([clonarSlide(zip,s11), "COMPOSIÇÃO DO PREÇO MENSAL", m.demonstrativo]);
+  if (detalhado && m.demonstrativoContrato) fiscais.push([clonarSlide(zip,s11), `COMPOSIÇÃO DO CONTRATO — ${m.duracaoMeses} MESES`, m.demonstrativoContrato]);
+  for (const item of detalhado ? m.demonstrativosItens ?? [] : []) {
+    fiscais.push([clonarSlide(zip,s11), `${item.titulo} — MENSAL`, item.mensal]);
+    fiscais.push([clonarSlide(zip,s11), `${item.titulo} — POR PROFISSIONAL`, item.unitario]);
+  }
+  for (const [slide, titulo, d] of fiscais) {
+    const path = `ppt/slides/slide${slide}.xml`;
+    const xml = zip.file(path)?.asText();
+    if (xml) zip.file(path, xml.replace(/<p:sp\b[\s\S]*?<\/p:sp>/g, shape => /ROTULO_OBSERVACOES|OBSERVACOES_COMERCIAIS/.test(shape) ? "" : shape));
+    const rows = linhasDemonstrativo(d).map(t => { const i=t.lastIndexOf(": "); return { ITEM_DESCRICAO:t.slice(0,i), ITEM_VALOR:t.slice(i+2) }; });
+    clonarLinhaTabela(zip,slide,"{{ITEM_DESCRICAO}}",rows,true);
+    substituirTokens(zip,slide,{...global,ROTULO_INVESTIMENTO:titulo,ROTULO_COL_DESC:"Componente / base de cálculo",ROTULO_COL_VALOR:"Valor",ROTULO_OBSERVACOES:" ",OBSERVACOES_COMERCIAIS:" "});
+    ordem.push(slide);
+  }
+  ordem.push(s12);
   const linhasTabela = m.itens.map(i => ({ ITEM_DESCRICAO: i.descricao, ITEM_VALOR: moeda(i.valorMensal) }));
   if (m.itens.length > 1) linhasTabela.push({ ITEM_DESCRICAO: "TOTAL MENSAL", ITEM_VALOR: moeda(m.totalMensal) });
   clonarLinhaTabela(zip, s11, "{{ITEM_DESCRICAO}}", linhasTabela, true);
@@ -219,7 +245,7 @@ export function preencherPptx(zip: PizZip, m: ModeloPropostaPptx): PizZip {
 }
 
 export async function gerarPropostaBsPptx(m: ModeloPropostaPptx, template?: ArrayBuffer): Promise<Blob> {
-  const buf = template ?? await (async () => { const r = await fetch(TEMPLATE_PPTX_BS); if (!r.ok) throw new Error("Modelo PowerPoint do BodyShop indisponível."); return r.arrayBuffer(); })();
+  const buf = template ?? await (async () => { const r = await fetch(m.demonstrativo ? "/templates/proposta-bodyshop-detalhada-v2.pptx" : TEMPLATE_PPTX_BS); if (!r.ok) throw new Error("Modelo PowerPoint do BodyShop indisponível."); return r.arrayBuffer(); })();
   return salvar(preencherPptx(new PizZip(buf), m));
 }
 

@@ -19,6 +19,8 @@ import { useTreinamentoResultado } from "./useTreinamentoResultado";
 import TreinamentoResumo, { exportarResumoPdf } from "./Resumo";
 import { gerarPropostaDocx } from "@/lib/treinamento/propostaDocx";
 import type { TrainingCourseContent } from "@/lib/treinamento/types";
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
+import { demonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const dataBR = (iso: string) => new Date(iso + (iso.length === 10 ? "T12:00:00" : "")).toLocaleDateString("pt-BR");
@@ -37,7 +39,7 @@ export interface EmissaoTRN {
 }
 
 export default function TreinamentoProposta() {
-  const { cad, st, res, loading } = useTreinamentoResultado();
+  const { cad, st, res, loading, congeladoIntacto } = useTreinamentoResultado();
   const cot = useTreinamentoCotacoes();
   const { can } = useAuth();
   const podeEmitir = can("page.trn.proposal");
@@ -59,6 +61,7 @@ export default function TreinamentoProposta() {
 
   const emitir = async () => {
     if (!salvo) { toast.error("Salve a cotação no Configurador antes de emitir."); return; }
+    if (!congeladoIntacto) { toast.error("Reavalie e salve a cotação no Configurador antes de emitir uma nova proposta detalhada: as entradas atuais não têm um resultado fiscal congelado válido."); return; }
     if (res.temErros) { toast.error("Corrija os erros do Configurador antes de emitir."); return; }
     if (!st.atual.cliente.trim()) { toast.error("Informe o cliente no Configurador."); return; }
     setEmitindo(true);
@@ -83,9 +86,11 @@ export default function TreinamentoProposta() {
         especialista: st.atual.especialistaBU,
         emissao: dataBR(hojeISO), validade: dataBR(validaAte), validadeDias: d.validadeDias,
         condicoesPagamento: d.condicoesPagamento, observacoes: obsFinal, total: res.precoFinalTotal,
+        demonstrativo: demonstrativoCliente(parcelasDeLinhas(res.linhas.filter(l => l.preco != null))),
         itens: itens.map((l) => {
           const curso = l.cursoOriginal ?? l.curso!;
-          return { curso, conteudo: contentById.get(curso.id), modalidade: MOD[l.linha.modalidade] ?? l.linha.modalidade, alunos: l.linha.alunos, somenteExame: l.linha.somenteExame, precoPorAluno: l.precoFinalPorAluno, total: l.precoFinal };
+          return { curso, conteudo: contentById.get(curso.id), modalidade: MOD[l.linha.modalidade] ?? l.linha.modalidade, alunos: l.linha.alunos, somenteExame: l.linha.somenteExame, precoPorAluno: l.precoFinalPorAluno, total: l.precoFinal,
+            demonstrativo: demonstrativoCliente(parcelasDeLinhas([l])), demonstrativoAluno: demonstrativoCliente(parcelasDeLinhas([l]), 1 / Math.max(1,l.linha.alunos)) };
         }),
       });
   const gerarWord = () => gerarPropostaDocx(entradaWord(emissoes.length || null));
@@ -306,6 +311,8 @@ export default function TreinamentoProposta() {
             <tfoot><tr><td colSpan={4} className="py-2 text-right font-semibold">Total</td><td className="text-right font-bold">{brl(res.precoFinalTotal)}</td></tr></tfoot>
           </table>
           <p className="text-xs text-muted-foreground">Valores com impostos inclusos.</p>
+          <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas.filter(l => l.preco != null))} />
+          {itens.filter(l => l.preco != null).map(l => <div key={l.linha.id}><PrecoClienteDetalhado parcelas={parcelasDeLinhas([l])} titulo={l.curso?.nome ?? "Item"} /><PrecoClienteDetalhado parcelas={parcelasDeLinhas([l])} fator={1 / Math.max(1,l.linha.alunos)} titulo="Preço por aluno" /></div>)}
         </section>
 
         <section className="text-sm space-y-1 rounded-lg border bg-muted/20 p-4 break-inside-avoid">
