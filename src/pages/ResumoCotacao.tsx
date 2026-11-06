@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, parcelasDeLinhas, textoPrecoReforma, REFORMA_VIGENCIA } from "@/lib/pricing/reformaTributaria";
 import { obsEfetivos } from "@/lib/custoObservabilidadeNiveis";
@@ -120,11 +121,11 @@ export default function ResumoCotacao() {
   // auto-syncs (comissão por rentabilidade, custos N1/N2 vindos das equipes).
   // Usar `results` do contexto garante que Resumo == Camadas de oferta.
   const computed: ITSMResults = useMemo(() => {
-    if (isSaved) return results as ITSMResults;
+    if (isSaved && !snapshot) return results as ITSMResults;
     const base = computeITSMResults(calcState);
     const extras = computeExtrasOperacionais(calcState, base, rotinas, gmuds);
     return recomputeComposicaoComExtras(calcState, base, extras.custoTotal);
-  }, [isSaved, results, calcState, rotinas, gmuds]);
+  }, [isSaved, snapshot, results, calcState, rotinas, gmuds]);
 
   // ===== Composição financeira (mesma fórmula das Camadas de Oferta) =====
   const meses = parseMonths(commercial?.contract_term);
@@ -564,7 +565,7 @@ export default function ResumoCotacao() {
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
             <Field label="Investimento Total:" value={formatBRL(investimentoTotal)} />
             <Field label={`Mensal a partir de ${REFORMA_VIGENCIA}:`} value={textoPrecoReforma(calcPrecoReforma([{ preco: receitaMes, pisPerc: calcState.pisPerc || 0, cofinsPerc: calcState.cofinsPerc || 0, issPerc: calcState.issPerc || 0 }], cbsReforma))} />
-            <Field label="Impostos:" value={formatBRL(impostos)} />
+            <Field label="Tributos internos (incl. IR/CSLL):" value={formatBRL(impostos)} />
             <Field label="Receita por Mês:" value={formatBRL(receitaMes)} />
             <Field label="Comercial:" value={formatBRL(comercial)} />
             <Field label="Financeiro:" value={formatBRL(financeiro)} />
@@ -572,6 +573,7 @@ export default function ResumoCotacao() {
             <Field label="Administrativo:" value={formatBRL(administrativo)} />
           </div>
 
+<PrecoClienteDetalhado parcelas={[{ preco:receitaMes, pisPerc:calcState.pisPerc, cofinsPerc:calcState.cofinsPerc, issPerc:calcState.issPerc }]} titulo="Preço mensal ao cliente" /><PrecoClienteDetalhado parcelas={[{ preco:receitaMes, pisPerc:calcState.pisPerc, cofinsPerc:calcState.cofinsPerc, issPerc:calcState.issPerc }]} fator={meses} titulo="Preço do contrato" />
           {/* Rentabilidade */}
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Rentabilidade</h2>
           <div className="grid grid-cols-2 mb-10">

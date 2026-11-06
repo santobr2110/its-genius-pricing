@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ITSMState, ITSMResults, formatBRL, formatNumber } from "@/hooks/useITSMCalculator";
 import { DollarSign, Clock, TrendingUp, FileText, AlertTriangle } from "lucide-react";
@@ -25,6 +26,7 @@ export default function ResultsPanel({ state, results }: Props) {
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3">
         <HighlightCard icon={DollarSign} label="Preço Sugerido" value={formatBRL(results.precoVendaMensal)} accent="text-emerald-600 bg-emerald-50" />
+<PrecoClienteDetalhado parcelas={[{ preco:results.precoVendaMensal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]} titulo="Preço mensal ao cliente" />
         <HighlightCard icon={TrendingUp} label="Custo Total" value={formatBRL(results.custoTotalOperacao)} accent="text-blue-600 bg-blue-50" />
         <HighlightCard
           icon={Clock}

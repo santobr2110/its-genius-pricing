@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, fraseReforma, parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -221,6 +222,8 @@ export default function SreProposta() {
             </tbody>
             <tfoot><tr><td colSpan={5} className="py-1 font-semibold text-right">Total</td><td className="text-right font-bold">{brl(modelo.total)}</td></tr></tfoot>
           </table>
+        <PrecoClienteDetalhado demonstrativo={modelo.demonstrativo} />
+        {modelo.itens.map((item, index) => <PrecoClienteDetalhado key={index} demonstrativo={item.demonstrativo} titulo={item.descricao} />)}
         </section>
         <section className="space-y-1">
           <h2 className="text-lg font-semibold">Condições comerciais</h2>

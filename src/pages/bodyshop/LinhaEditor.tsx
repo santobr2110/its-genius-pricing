@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
     {!r.erros.length && <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 rounded-md bg-muted/40 p-2 text-xs">{[
       ["Custo mensal", brl(r.custoLinha)], ["Preço mensal", brl(r.precoFinal)], ["Rentabilidade", pct(r.rentabilidadePerc)], ["Comissão", pct(r.comissaoPerc)], ["Lucro mensal", brl(r.lucro)], ["Desconto", pct(r.descontoEfetivoPerc)],
     ].map(([l, v]) => <div key={l} className="min-w-0"><p className="text-muted-foreground text-[10px] uppercase tracking-wide">{l}</p><strong className={`tabular-nums break-words ${l === "Rentabilidade" && (r.abaixoPiso || r.rentabilidadePerc < 0) ? "text-destructive" : ""}`}>{v}</strong></div>)}</div>}
+    {!r.erros.length && f && <><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal, ...f }]} titulo="Preço mensal do perfil" /><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal / Math.max(1,e.quantidade), ...f }]} titulo="Preço mensal por profissional" /><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal, ...f }]} fator={duracao} titulo="Preço do contrato" /></>}
     <Collapsible><CollapsibleTrigger asChild><Button variant="link" size="sm" className="p-0 h-auto gap-1"><ChevronDown className="h-3 w-3" />Detalhes do cálculo</Button></CollapsibleTrigger><CollapsibleContent className="mt-3 text-xs space-y-1">
       <M l={`Salário base ${e.faixa.toUpperCase()}`} v={brl(e.salarioBase)} />
       <M l={`× Regime ${e.regime === "integral" ? "integral" : "meio período"} (${e.horasLinha}h / ${e.horasPadrao}h)${origem("horas")}`} v={brl(m.base)} />

@@ -1,3 +1,5 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
+import { parcelasDeLinhas as parcelasCliente } from "@/lib/pricing/reformaTributaria";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -88,6 +90,7 @@ export function SreResultado() {
         </CardHeader>
         <CardContent className="space-y-2">
           {c.ok.length === 0 ? <p className="text-sm text-muted-foreground">Adicione pacotes no <Link to={SRE_BASE} className="text-primary hover:underline">Configurador</Link>.</p> : <>
+            <PrecoClienteDetalhado parcelas={parcelasCliente(res.linhas)} />
             {L("Valor de VENDA", pv, 100, { bold: true })}
             <Separator className="my-2" />
             {L("(−) Impostos (PIS + COFINS + ISS)", -c.impostos, p(c.impostos))}

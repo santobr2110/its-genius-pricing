@@ -1,3 +1,5 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
+import { parcelasDeLinhas as parcelasCliente } from "@/lib/pricing/reformaTributaria";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -75,6 +77,7 @@ export function TrnResultado() {
         </CardHeader>
         <CardContent className="space-y-2">
           {ok.length === 0 ? <p className="text-sm text-muted-foreground">Adicione itens no <Link to="/observabilidade/treinamento" className="text-primary hover:underline">Configurador</Link>.</p> : <>
+            <PrecoClienteDetalhado parcelas={parcelasCliente(res.linhas.filter(l => l.preco != null))} />
             {L("Valor de VENDA", pv, 100, { bold: true })}
             <Separator className="my-2" />
             {L("(−) Impostos (PIS + COFINS + ISS)", -impostos, p(impostos))}

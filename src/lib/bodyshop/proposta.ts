@@ -1,5 +1,7 @@
 import { computeCarrinhoBS, entradasDoSnapshot, globaisDoSnapshot, mesmasEntradas, type SnapshotBS, type LinhaBS, type ConfigBS } from './carrinho';
 import type { BodyshopContent } from './calc';
+import { demonstrativoCliente, linhasDemonstrativo, type DemonstrativoCliente } from '@/lib/pricing/demonstrativoCliente';
+import { parcelasDeLinhas } from '@/lib/pricing/reformaTributaria';
 
 export const A_CONFIRMAR = '[A CONFIRMAR]';
 const texto = (v: unknown) => String(v ?? '').trim() || A_CONFIRMAR;
@@ -14,6 +16,7 @@ export interface ModeloPropostaBS {
   blocos: { id: string; titulo: string; aConfirmar: boolean; campos: { label: string; texto: string }[] }[];
   itens: { id: string; perfil: string; quantidade: number; regime: string; unitario: number; total: number }[];
   totalMensal: number; totalContrato: number;
+  demonstrativo?: DemonstrativoCliente; demonstrativoContrato?: DemonstrativoCliente;
 }
 export interface EmissaoBS {
   versao: number; emitidaEm: string; validaAte: string; snapshotVersao: number;
@@ -55,6 +58,7 @@ export function montarModeloPropostaBS(a: {
     objeto:`Alocação de profissionais por ${a.snapshot.duracaoMeses} meses. ${texto(p.get('proposta_objeto'))}`,
     reajusteIndice:texto(p.get('reajuste_indice')), observacoes:[a.observacoesExtra?.trim(), texto(p.get('proposta_observacoes'))].filter(Boolean).join('\n\n'),
     textoTributario:texto(p.get('proposta_texto_tributario')), dadosFaturamento:lista('proposta_dados_faturamento'), entregaveisContratuais:lista('proposta_entregaveis_contratuais'), regimeObrigacao:texto(p.get('proposta_regime_obrigacao')), blocos,itens,
+    demonstrativo:demonstrativoCliente(parcelasDeLinhas(res.linhas)), demonstrativoContrato:demonstrativoCliente(parcelasDeLinhas(res.linhas),a.snapshot.duracaoMeses),
     totalMensal:res.precoFinalTotalMensal,totalContrato:res.precoFinalTotalContrato };
 }
 export function nomeArquivoBS(m: ModeloPropostaBS) {
@@ -68,7 +72,7 @@ export function secoesPropostaBS(m: ModeloPropostaBS) {
     { titulo:'Objeto e escopo da alocação', textos:[m.objeto,`Duração: ${m.duracaoMeses} meses.`,`Início: ${m.dataInicio}.`,`Regime: ${m.regime}.`] },
     ...m.blocos.map(b=>({titulo:b.titulo,textos:[...(b.aConfirmar?[A_CONFIRMAR]:[]),...b.campos.flatMap(c=>[c.label,c.texto])]})),
     ...(m.regimeObrigacao ? [{ titulo:'Regime da obrigação', textos:[m.regimeObrigacao] }] : []),
-    { titulo:'Investimento', textos:[`Total mensal: ${moedaBS(m.totalMensal)}`,`Total do contrato: ${moedaBS(m.totalContrato)}`], investimento:true },
+    { titulo:'Investimento', textos:[`Total mensal: ${moedaBS(m.totalMensal)}`,`Total do contrato: ${moedaBS(m.totalContrato)}`,...(m.demonstrativo ? linhasDemonstrativo(m.demonstrativo) : []),...(m.demonstrativoContrato ? ['Composição do contrato',...linhasDemonstrativo(m.demonstrativoContrato)] : [])], investimento:true },
     { titulo:'Condições comerciais', textos:[`Duração: ${m.duracaoMeses} meses.`,`Data de início: ${m.dataInicio}.`,`Regime de alocação: ${m.regime}.`,`Validade da proposta: ${m.validadeDias} dias, até ${m.dataValidade.split('-').reverse().join('/')}.`,`Prazo de pagamento: ${m.prazoPagamento}`,'Impostos: inclusos.',`Reajuste anual pelo índice: ${m.reajusteIndice}.`,'Faturamento sujeito à aprovação de crédito.'] },
     ...(m.entregaveisContratuais?.length ? [{ titulo:'Entregáveis contratuais da alocação', textos:m.entregaveisContratuais.map(t=>`• ${t}`) }] : []),
     { titulo:'Observações', textos:[m.observacoes] },

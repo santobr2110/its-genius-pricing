@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { formatBRL } from "@/hooks/useITSMCalculator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -97,6 +98,7 @@ export default function ConfiguracoesFinanceiras() {
           </div>
         )}
 
+<PrecoClienteDetalhado parcelas={[{ preco:pv, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]} titulo="Preço mensal ao cliente" />
         {/* Resultado da Operação */}
         <Card>
             <CardHeader>

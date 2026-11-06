@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { A_CONFIRMAR, dataExtenso, type ModeloPropostaSre } from "@/lib/sre/proposta";
 import selbettiLogo from "@/assets/selbetti-logo.png.asset.json";
 
@@ -83,6 +84,8 @@ export default function PropostaDocSre({ m }: { m: ModeloPropostaSre }) {
             <tr><td colSpan={5} style={{ ...td, textAlign: "right", fontWeight: 700 }}>Total geral</td><td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{brl(m.total)}</td></tr>
           </tbody>
         </table>
+        <PrecoClienteDetalhado demonstrativo={m.demonstrativo} />
+        {m.itens.map((item, index) => <PrecoClienteDetalhado key={index} demonstrativo={item.demonstrativo} titulo={item.descricao} />)}
         <p style={{ fontSize: 11 }}>Valor por hora calculado sobre as horas do pacote.</p>
         <S>Condições comerciais</S>
         <ul style={{ paddingLeft: 20, listStyle: "disc" }}>{m.condicoes.map((c, i) => <li key={i}><Pd t={c} /></li>)}</ul>

@@ -1,3 +1,4 @@
+import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, fraseReforma } from "@/lib/pricing/reformaTributaria";
 import { obsEfetivos, computeCustoObservabilidadeNiveis, NIVEL_INFO } from "@/lib/custoObservabilidadeNiveis";
@@ -1874,6 +1875,8 @@ export default function Detalhamento() {
                 </div>
               </div>
             </div>
+<PrecoClienteDetalhado parcelas={[{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]} titulo="Preço mensal ao cliente" />
+<PrecoClienteDetalhado parcelas={[{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]} fator={mesesContrato} titulo="Preço do contrato" />
             <div className="mt-4 border-t border-primary/20 pt-3 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                 Componentes da oferta{dominantOffer ? ` ${dominantOffer.name}` : ""}
