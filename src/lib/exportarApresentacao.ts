@@ -1,3 +1,4 @@
+import { linhasDemonstrativo, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
 import pptxgen from "pptxgenjs";
 import { formatBRL } from "@/hooks/useITSMCalculator";
 import type { CamadaKey } from "@/data/escopoProposicao";
@@ -66,6 +67,8 @@ export interface ApresentacaoPayload {
   itensAdicionais: ItemAdicionalSlide[];
   restricoesGerais: string[];
   investimentoTotal: number;
+  demonstrativo?: DemonstrativoCliente;
+  demonstrativoContrato?: DemonstrativoCliente;
   /** Nome da precificação salva (Smart ITO). Exibido no slide de fechamento. */
   presetName?: string;
   /** Timestamp (ms) da exportação. Exibido no slide de fechamento. */
@@ -1072,6 +1075,10 @@ export async function exportarApresentacao(data: ApresentacaoPayload) {
   if (data.restricoesGerais.length > 0) {
     slideRestricoes(pptx, data, page, totalSlides);
     page++;
+  }
+  if (data.demonstrativo) {
+    const fiscal = pptx.addSlide();
+    fiscal.addText(linhasDemonstrativo(data.demonstrativo).join("\n"), { x:0.6,y:0.6,w:8.8,h:4.4,fontSize:18,fontFace:"Segoe UI" });
   }
   slideFechamento(pptx, data, page, totalSlides);
 
