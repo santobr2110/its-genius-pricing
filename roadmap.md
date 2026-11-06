@@ -1,7 +1,8 @@
 # Revisão — Comissões e apresentação compacta
-- [ ] Corrigir origem da comissão zerada a 20% e conferir todas as ofertas, preservando históricos.
-- [ ] Simplificar telas e novos documentos para três valores e alíquotas como detalhe.
-- [ ] Validar motores, regressões, documentos e telas.
+- [x] Conferir todas as ofertas a 20%: 7,32% aplicado; corrigir escala central vazia/inválida e mostrar comissão efetiva BodyShop, preservando históricos.
+- [ ] Identificar o zero observado pelo usuário: não reproduzido na cotação salva nem no Financeiro; depende da identificação da tela/cotação afetada.
+- [x] Simplificar telas e novos documentos para três valores e alíquotas como detalhe, com versões históricas preservadas.
+- [x] Validar motores e regressões (343 testes), telas autenticadas ITO/BodyShop e Word Treinamento/Zabbix/SRE e PPTX BodyShop baixados/abertos.
 
 # Auditoria — Preço final detalhado ao cliente
 - [x] Avaliar motores, telas e emissores de todas as ofertas: preço sem impostos + ISS/PIS/COFINS + total; 247 testes passaram.
