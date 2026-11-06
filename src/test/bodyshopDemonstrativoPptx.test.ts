@@ -16,7 +16,7 @@ describe("BodyShop — demonstrativo versionado", () => {
     expect(texto).toContain("ISS 2%");
     expect(texto).toContain("PIS 1,65%");
     expect(texto).toContain("COFINS 7,6%");
-    expect(modelo.demonstrativo?.precoFinal).toBeCloseTo(modelo.totalMensal,2);
+    expect(modelo.demonstrativo?.total).toBeCloseTo(modelo.totalMensal,2);
     expect(texto).not.toContain("IRPJ");
   });
 });
