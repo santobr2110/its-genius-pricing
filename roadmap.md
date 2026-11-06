@@ -1,8 +1,8 @@
 # Auditoria — Preço final detalhado ao cliente
 - [x] Avaliar motores, telas e emissores de todas as ofertas: preço sem impostos + ISS/PIS/COFINS + total; 247 testes passaram.
-- [x] Consolidar cobertura, preservação de históricos e roteiro de implementação; apresentação detalhada ainda não implementada.
-- [ ] Implementar demonstrativo compartilhado e integrar telas, propostas e emissores preservando históricos.
-- [ ] Validar reconciliação, regressão e documentos/telas autenticadas.
+- [x] Consolidar cobertura, preservação de históricos e roteiro de implementação.
+- [x] Implementar demonstrativo compartilhado e integrar telas, propostas e emissores preservando históricos; Treinamento exige resultado congelado íntegro para nova emissão.
+- [x] Validar reconciliação e regressão sem alterar testes históricos; telas autenticadas das cinco ofertas, Word Treinamento/Zabbix/SRE e PPTX BodyShop baixados e abertos, ITO/resumo conferidos. Geradores PPTX ITO permanecem bloqueados como antes; sem emissão persistida nova nesta verificação.
 
 # Zabbix — Public Tender
 - [x] Adicionar percentual em Parâmetros e ativação no Configurador, somente Suporte.
