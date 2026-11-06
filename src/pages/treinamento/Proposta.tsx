@@ -39,7 +39,7 @@ export interface EmissaoTRN {
 }
 
 export default function TreinamentoProposta() {
-  const { cad, st, res, loading } = useTreinamentoResultado();
+  const { cad, st, res, loading, congeladoIntacto } = useTreinamentoResultado();
   const cot = useTreinamentoCotacoes();
   const { can } = useAuth();
   const podeEmitir = can("page.trn.proposal");
@@ -61,7 +61,7 @@ export default function TreinamentoProposta() {
 
   const emitir = async () => {
     if (!salvo) { toast.error("Salve a cotação no Configurador antes de emitir."); return; }
-    if (!st.config.resultadoCongelado) { toast.error("Esta cotação não preservou as alíquotas históricas. Reavalie e salve no Configurador antes de emitir uma nova proposta detalhada."); return; }
+    if (!congeladoIntacto) { toast.error("Reavalie e salve a cotação no Configurador antes de emitir uma nova proposta detalhada: as entradas atuais não têm um resultado fiscal congelado válido."); return; }
     if (res.temErros) { toast.error("Corrija os erros do Configurador antes de emitir."); return; }
     if (!st.atual.cliente.trim()) { toast.error("Informe o cliente no Configurador."); return; }
     setEmitindo(true);

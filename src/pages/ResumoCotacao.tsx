@@ -329,7 +329,7 @@ export default function ResumoCotacao() {
     tp.custo.residualBucket === tier ? tp.custo.residual : 0;
 
   // Quando Smart Flow está ativo, ele consolida o Smart Monitor (não exibir separado).
-  if (calcState.tierMonitor && !calcState.tierFlow && hasInfraInventory) {
+  if (calcState.tierMonitor && !calcState.tierFlow) {
     const custo = addDominantGerenciais("Monitor", monitorCusto + residualIn("Monitor"));
     layerRows.push({
       camada: "Smart Monitor",
@@ -410,7 +410,7 @@ export default function ResumoCotacao() {
     });
   }
 
-  const receitaMes = layerRows.reduce((a, r) => a + r.valor, 0);
+  const receitaMes = computed.precoVendaMensal;
   const investimentoTotal = receitaMes * meses;
   const impostos = receitaMes * (((calcState.pisPerc || 0) + (calcState.cofinsPerc || 0) + (calcState.issPerc || 0) + (calcState.irpjCsllPerc || 0)) / 100);
   const comercial = receitaMes * ((calcState.comissaoPerc || 0) / 100);
