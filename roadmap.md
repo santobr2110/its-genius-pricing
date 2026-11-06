@@ -1,3 +1,8 @@
+# Revisão — Comissões e apresentação compacta
+- [ ] Corrigir origem da comissão zerada a 20% e conferir todas as ofertas, preservando históricos.
+- [ ] Simplificar telas e novos documentos para três valores e alíquotas como detalhe.
+- [ ] Validar motores, regressões, documentos e telas.
+
 # Auditoria — Preço final detalhado ao cliente
 - [x] Avaliar motores, telas e emissores de todas as ofertas: preço sem impostos + ISS/PIS/COFINS + total; 247 testes passaram.
 - [x] Consolidar cobertura, preservação de históricos e roteiro de implementação.
