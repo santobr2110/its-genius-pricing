@@ -6,16 +6,19 @@
 import JSZip from "jszip";
 import modeloAsset from "@/assets/proposta-treinamento-modelo-v2.docx.asset.json";
 import type { TrainingCourse, TrainingCourseContent } from "./types";
+import { linhasDemonstrativo, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
 
 export interface PropostaDocxItem {
   curso: TrainingCourse; conteudo?: TrainingCourseContent; modalidade: string; alunos: number;
   somenteExame: boolean; precoPorAluno: number; total: number;
+  demonstrativo?: DemonstrativoCliente; demonstrativoAluno?: DemonstrativoCliente;
 }
 export interface PropostaDocxDados {
   cliente: string; contato: string; email: string; codigo: string | null; versao: number | null;
   emissao: string; validade: string; validadeDias: number; condicoesPagamento: string; observacoes: string;
   especialista?: string;
   itens: PropostaDocxItem[]; total: number;
+  demonstrativo?: DemonstrativoCliente;
 }
 
 const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
@@ -117,12 +120,19 @@ function preencherInvestimento(xml: string, d: PropostaDocxDados): string {
     `${it.curso.nome}${it.somenteExame ? " (exame)" : ""}`, it.modalidade, String(it.alunos), brl(it.precoPorAluno), brl(it.total),
   ], false));
   linhas.push(preencherLinha(modelo, ["Total do investimento", "", "", "", brl(d.total)], true));
-  return xml.slice(0, cabFim) + linhas.join("") + xml.slice(tFim);
+  const detalhes = d.demonstrativo ? [
+    par(run("Composição do preço ao cliente", { bold: true, size: PEQ })),
+    ...linhasDemonstrativo(d.demonstrativo).map(t => par(run(t, { size: PEQ }))),
+    ...d.itens.flatMap(it => it.demonstrativo ? [par(run(it.curso.nome, { bold: true, size: PEQ })), ...linhasDemonstrativo(it.demonstrativo).map(t => par(run(t, { size: PEQ }))), ...(it.demonstrativoAluno ? [par(run("Preço por aluno", { bold: true, size: PEQ })), ...linhasDemonstrativo(it.demonstrativoAluno).map(t => par(run(t, { size: PEQ })))] : [])] : []),
+  ].join("") : "";
+  return xml.slice(0, cabFim) + linhas.join("") + xml.slice(tFim, tFim + 8) + detalhes + xml.slice(tFim + 8);
 }
 
 export async function preencherModelo(modelo: ArrayBuffer, d: PropostaDocxDados): Promise<Blob> {
   const zip = await JSZip.loadAsync(modelo);
-  let xml = await zip.file("word/document.xml")!.async("string");
+  const documento = zip.file("word/document.xml");
+  if (!documento) throw new Error("Modelo Word inválido.");
+  let xml = await documento.async("string");
   const nomes = d.itens.map((it) => it.curso.nome).filter((n, i, a) => a.indexOf(n) === i).join(", ") || "Treinamento";
 
   d = { ...d, emissao: dataExtenso(d.emissao), validade: dataExtenso(d.validade) };

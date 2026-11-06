@@ -3,6 +3,8 @@
 // Horas de gestão são custo interno e NUNCA entram no modelo (nem como linha, nem como nota).
 import type { SreContent } from "./calc";
 import type { CarrinhoSre } from "./carrinho";
+import { demonstrativoCliente, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
+import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 
 export const A_CONFIRMAR = "[A CONFIRMAR]";
 const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
@@ -30,7 +32,7 @@ export const OBJETO_PADRAO = "Pacote de horas consultivas pré-pagas para Zabbix
 
 export interface BlocoPacoteSre { titulo: string; partNumber: string; horas: number; tagline: string | null; aConfirmar: boolean; campos: { label: string; texto: string }[] }
 /** Linha da tabela de investimento. valorHora = preço ÷ horas de execução. */
-export interface ItemInvestimentoSre { partNumber: string; descricao: string; horas: number; quantidade: number; valorHora: number; total: number }
+export interface ItemInvestimentoSre { partNumber: string; descricao: string; horas: number; quantidade: number; valorHora: number; total: number; demonstrativo?: DemonstrativoCliente; demonstrativoHora?: DemonstrativoCliente }
 
 export interface ClienteSre { razao: string; cnpj: string; endereco: string }
 export interface ContatoSre { nome: string; cargo: string; email: string }
@@ -49,6 +51,7 @@ export interface ModeloPropostaSre {
   aceite: string[];
   /** Ausente/1 = gerador programático; 2 = template .docx (quando o template for entregue). */
   layoutVersao?: 1 | 2;
+  demonstrativo?: DemonstrativoCliente;
 }
 
 export interface EmissaoSre {
@@ -96,6 +99,8 @@ export function montarModeloPropostaSre(a: {
   const itens = ok.map((l) => ({
     partNumber: l.entrada.partNumber, descricao: l.entrada.nome, horas: l.entrada.horasExecucao, quantidade: l.entrada.quantidade,
     valorHora: l.valorHoraExecucao, total: l.precoFinal,
+    demonstrativo: demonstrativoCliente(parcelasDeLinhas([l])),
+    demonstrativoHora: demonstrativoCliente(parcelasDeLinhas([l]), 1 / Math.max(1, l.entrada.horasExecucao * l.entrada.quantidade)),
   }));
   const par = (s: string) => { const i = s.indexOf("|"); return i < 0 ? { valor: s.trim(), rotulo: "" } : { valor: s.slice(0, i).trim(), rotulo: s.slice(i + 1).trim() }; };
   const nums = linhas(p.get("proposta_numeros")).map(par);
@@ -111,6 +116,7 @@ export function montarModeloPropostaSre(a: {
     objeto: txt(p.get("proposta_objeto")) || OBJETO_PADRAO,
     fraseEscopo: FRASE_ESCOPO,
     blocos, itens, total: a.res.precoFinalTotal,
+    demonstrativo: demonstrativoCliente(parcelasDeLinhas(ok)),
     prazoPagamento: prazo, validadeHoras, fraseReforma: reforma,
     condicoes: [
       `Validade da proposta: ${a.validadeDias} dias (até ${dataExtenso(validade)}).`,

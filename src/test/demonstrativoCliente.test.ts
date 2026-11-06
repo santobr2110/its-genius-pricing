@@ -4,7 +4,8 @@ import { demonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
 describe("Preço ao cliente: somente ISS, PIS e COFINS", () => {
   const parcela = { preco: 1000, issPerc: 5, pisPerc: 0.65, cofinsPerc: 3 };
   it("retira apenas os três impostos já incluídos, sem reaplicar sobre o líquido", () => {
-    const d = demonstrativoCliente([{ ...parcela, irpjCsllPerc: 10.34 }]);
+    const entrada = { ...parcela, irpjCsllPerc: 10.34 };
+    const d = demonstrativoCliente([entrada]);
     expect(d).toMatchObject({ total: 1000, semImpostos: 913.5, impostos: 86.5 });
     expect(d.cargas.map(c => [c.tributo, c.base, c.valor])).toEqual([["ISS",1000,50],["PIS",1000,6.5],["COFINS",1000,30]]);
   });

@@ -2,6 +2,8 @@
 // pré-visualização em tela, o PDF e o Word. Os valores vêm sempre do snapshot congelado da cotação.
 import type { ZabbixContent } from "./calc";
 import type { CarrinhoZbx } from "./carrinho";
+import { demonstrativoCliente, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
+import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 
 export const A_CONFIRMAR = "[A CONFIRMAR]";
 const MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
@@ -22,7 +24,7 @@ export const CAMPOS_CONTEUDO: { k: keyof ZabbixContent; label: string }[] = [
 ];
 
 export interface BlocoSubscricao { titulo: string; partNumber: string; tagline: string | null; aConfirmar: boolean; campos: { label: string; texto: string }[] }
-export interface ItemPreco { partNumber?: string; nome?: string; descricao: string; quantidade: number; unitario: number; total: number; listaUnitarioBrl: number | null }
+export interface ItemPreco { partNumber?: string; nome?: string; descricao: string; quantidade: number; unitario: number; total: number; listaUnitarioBrl: number | null; demonstrativo?: DemonstrativoCliente; demonstrativoUnitario?: DemonstrativoCliente }
 
 export interface ModeloPropostaZbx {
   cidade: string; dataEmissao: string; dataValidade: string; validadeDias: number;
@@ -35,6 +37,8 @@ export interface ModeloPropostaZbx {
   /** Layout do Word com identidade Selbetti (template). Ausente = emissão antiga → gerador legado. */
   layoutVersao?: 2;
   v2?: DadosV2;
+  demonstrativo?: DemonstrativoCliente;
+  demonstrativoMensal?: DemonstrativoCliente;
 }
 
 export type SecaoMatriz = "recursos" | "apoio" | "servicos" | "extras";
@@ -101,9 +105,13 @@ export function montarModeloProposta(a: {
       partNumber: l.entrada.partNumber, nome: l.entrada.nome,
       descricao: `${l.entrada.partNumber} — ${l.entrada.nome}`, quantidade: l.entrada.quantidade,
       unitario: l.precoFinal / Math.max(1, l.entrada.quantidade), total: l.precoFinal,
+      demonstrativo: demonstrativoCliente(parcelasDeLinhas([l])),
+      demonstrativoUnitario: demonstrativoCliente(parcelasDeLinhas([l]), 1 / Math.max(1, l.entrada.quantidade)),
       listaUnitarioBrl: l.entrada.listaUsd != null || l.entrada.listaBrl != null ? l.listaUnitariaBrl : null,
     })),
     total: a.res.precoFinalTotal,
+    demonstrativo: demonstrativoCliente(parcelasDeLinhas(ok)),
+    demonstrativoMensal: demonstrativoCliente(parcelasDeLinhas(ok), 1 / 12),
     exibirLista: p.get("exibir_lista_na_proposta") === true,
     vigenciaMeses: Number(p.get("proposta_vigencia_meses")) || 12,
     prazoPagamento: txt(a.prazoPagamento) || ouPendente(p.get("proposta_prazo_pagamento")),

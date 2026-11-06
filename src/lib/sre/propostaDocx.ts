@@ -5,6 +5,7 @@ import {
   AlignmentType, BorderStyle, Document, HeadingLevel, Packer, PageBreak, Paragraph, Table, TableCell, TableRow, TextRun, WidthType,
 } from "docx";
 import { A_CONFIRMAR, dataExtenso, type ModeloPropostaSre } from "./proposta";
+import { linhasDemonstrativo } from "@/lib/pricing/demonstrativoCliente";
 
 const COR = "17392F";
 const FONTE = "Segoe UI";
@@ -95,6 +96,8 @@ export function documentoPropostaSre(m: ModeloPropostaSre): Document {
     // 5. Investimento
     titulo("Investimento"),
     tabela,
+    ...(m.demonstrativo ? linhasDemonstrativo(m.demonstrativo).map(t => p(t)) : []),
+    ...m.itens.flatMap(i => i.demonstrativo ? [sub(i.descricao), ...linhasDemonstrativo(i.demonstrativo).map(t => p(t)), ...(i.demonstrativoHora ? [p("Preço por hora", { bold: true }), ...linhasDemonstrativo(i.demonstrativoHora).map(t => p(t))] : [])] : []),
     p("Valor por hora calculado sobre as horas do pacote.", { size: 18 }),
     // 6. Condições comerciais
     sub("Condições comerciais"),
