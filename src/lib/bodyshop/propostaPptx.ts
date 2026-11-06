@@ -222,6 +222,9 @@ export function preencherPptx(zip: PizZip, m: ModeloPropostaPptx): PizZip {
     fiscais.push([clonarSlide(zip,s11), `${item.titulo} — POR PROFISSIONAL`, item.unitario]);
   }
   for (const [slide, titulo, d] of fiscais) {
+    const path = `ppt/slides/slide${slide}.xml`;
+    const xml = zip.file(path)?.asText();
+    if (xml) zip.file(path, xml.replace(/<p:sp\b[\s\S]*?<\/p:sp>/g, shape => /ROTULO_OBSERVACOES|OBSERVACOES_COMERCIAIS/.test(shape) ? "" : shape));
     const rows = linhasDemonstrativo(d).map(t => { const i=t.lastIndexOf(": "); return { ITEM_DESCRICAO:t.slice(0,i), ITEM_VALOR:t.slice(i+2) }; });
     clonarLinhaTabela(zip,slide,"{{ITEM_DESCRICAO}}",rows,true);
     substituirTokens(zip,slide,{...global,ROTULO_INVESTIMENTO:titulo,ROTULO_COL_DESC:"Componente / base de cálculo",ROTULO_COL_VALOR:"Valor",ROTULO_OBSERVACOES:" ",OBSERVACOES_COMERCIAIS:" "});
