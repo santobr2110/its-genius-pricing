@@ -2,7 +2,7 @@ import PizZip from "pizzip";
 import { computeCarrinhoBS, entradasDoSnapshot, globaisDoSnapshot, type SnapshotBS, type FormatoBS } from "./carrinho";
 import type { BodyshopContent } from "./calc";
 import { A_CONFIRMAR, clonarLinhaTabela, clonarSlide, listarSlides, reordenarSlides, salvar, substituirTokens, textoSlides, tokensPendentes } from "./pptxTemplate";
-import { demonstrativoCliente, linhasDemonstrativo, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
+import { aliquotasDemonstrativo, demonstrativoCliente, linhasDemonstrativo, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 
 export const TEMPLATE_PPTX_BS = "/templates/proposta-bodyshop-template.pptx";
@@ -188,6 +188,7 @@ function mapaGlobal(m: ModeloPropostaPptx): Record<string, string> {
     TEXTO_COBERTURA: m.textoCobertura, TEXTO_REGIME_OBRIGACAO: m.textoRegimeObrigacao,
     DATA_CURTA: m.dataCurta, ROTULO_COMERCIAL: r.rotulo_comercial, ROTULO_INVESTIMENTO: r.rotulo_investimento, ROTULO_COL_DESC: r.rotulo_col_desc, ROTULO_COL_VALOR: r.rotulo_col_valor,
     ROTULO_OBSERVACOES: r.rotulo_observacoes, OBSERVACOES_COMERCIAIS: lista(m.observacoesComerciais),
+    ALIQUOTAS_CLIENTE: m.demonstrativo ? `Alíquotas: ${aliquotasDemonstrativo(m.demonstrativo)}` : " ",
     FECHAMENTO_CHAMADA: i.fechamento, AM_NOME: m.amNome, AM_EMAIL: m.amEmail,
   };
 }
