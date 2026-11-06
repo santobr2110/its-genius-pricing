@@ -25,6 +25,8 @@ export interface ConfigCarrinho {
   /** Percentuais corporativos capturados ao salvar; ausência = cotação legada. */
   irpjCsllPerc?: number;
   comissaoTiers?: ComissaoTier[];
+  /** Novas cotações preservam resultado e alíquotas; ausência mantém leitura legada. */
+  resultadoCongelado?: { assinatura: string; resultado: CarrinhoResultado };
   lucroPerc: number;
   encFinancPerc: number;
   descontoTotalPerc: number;
