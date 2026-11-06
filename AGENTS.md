@@ -23,3 +23,4 @@
 - User role assignments use a local draft in UserRolePicker and one explicit, guarded save; update the user row without reloading the full Admin page — prevents overlapping replacement requests and lost selections.
 - Summary PDF exports use `aguardarResumoExportavel` to await the printable element, fonts and images — independent embedded loading must not race a fixed export delay.
 - Customer tax statements use pricing/demonstrativoCliente from effective final prices and matching fiscal inputs; versioned proposal fields freeze statements, absent fields preserve legacy rendering — presentation reconciliation must not change engine precision or historical documents.
+- BodyShop detailed PPTX templates opt into fiscal slides with the custom property DemonstrativoClienteV1; legacy templates/models retain their original structure — regression fixtures and historical emissions remain unchanged.
