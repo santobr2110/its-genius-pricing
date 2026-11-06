@@ -36,7 +36,7 @@ describe("BodyShop · proposta PowerPoint", () => {
       const z = gerar(modelo(Array.from({ length: n }, (_, i) => ent({ linhaId: `l${i}`, cargoId: `c${i}`, local: `Cidade ${i}` }))));
       const pres = z.file("ppt/presentation.xml")!.asText(), rels = z.file("ppt/_rels/presentation.xml.rels")!.asText(), ct = z.file("[Content_Types].xml")!.asText();
       const ids = [...pres.matchAll(/<p:sldId\b[^>]*r:id="([^"]+)"/g)].map(m => m[1]);
-      expect(ids.length).toBe(12 + (n - 1) * 3);
+      expect(ids.length).toBe(12 + (n - 1) * 3 + 2 + n * 2);
       expect((ct.match(/presentationml\.slide\+xml/g) ?? []).length).toBe(ids.length);
       expect(slidesXml(z).length).toBe(ids.length);
       for (const id of ids) expect(rels).toContain(`Id="${id}"`);
@@ -51,10 +51,10 @@ describe("BodyShop · proposta PowerPoint", () => {
   });
   it("5. slide 9 único quando formato/local/horário coincidem", () => {
     const iguais = [ent(), ent({ linhaId: "l2", cargoId: "c2" }), ent({ linhaId: "l3", cargoId: "c3" })];
-    expect(slidesXml(gerar(modelo(iguais))).length).toBe(12 + 2 * 2);
+    expect(slidesXml(gerar(modelo(iguais))).length).toBe(12 + 2 * 2 + 2 + iguais.length * 2);
     const dif = [ent(), ent({ linhaId: "l2", cargoId: "c2", horario: "noturno" }), ent({ linhaId: "l3", cargoId: "c3" })];
     expect(modelo(dif).slideLocalUnico).toBeNull();
-    expect(slidesXml(gerar(modelo(dif))).length).toBe(12 + 2 * 3);
+    expect(slidesXml(gerar(modelo(dif))).length).toBe(12 + 2 * 3 + 2 + dif.length * 2);
   });
   it("6. tabela: N itens + total, soma = totalMensal", () => {
     const m = modelo([ent(), ent({ linhaId: "l2", cargoId: "c2" }), ent({ linhaId: "l3", cargoId: "c3", quantidade: 2 })]);
