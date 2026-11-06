@@ -1,6 +1,7 @@
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
+import { resultadoOperacaoBS } from "@/lib/bodyshop/financeiro";
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
@@ -200,7 +201,8 @@ export default function BsConfigurador() {
               <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas)} fator={res.cascataBase.duracaoMeses} titulo="Preço do contrato" />
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas)} rotulo="Mensal a partir de 01/01/2027" />
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas)} fator={res.cascataBase.duracaoMeses} rotulo="Contrato a partir de 01/01/2027" compacto />
-              <div className="bg-muted/50 p-2 text-xs text-muted-foreground space-y-1"><p>{config.municipio} · {config.duracaoMeses} meses</p><p>Comissão {res.cascataBase.comissaoFixaPerc ?? "Escala Selbetti"}% · Retenção {pct2(res.cascataBase.retencaoPerc)} · IR/CSLL {pct2(res.cascataBase.irpjCsllPerc)}</p><a href="#condicoes" className="text-primary underline">Alterar condições</a></div>
+              <div className="bg-muted/50 p-2 text-xs text-muted-foreground space-y-1"><p>{config.municipio} · {config.duracaoMeses} meses</p><p>Comissão {pct2(res.precoFinalTotalMensal > 0 ? resultadoOperacaoBS(res).comissao / res.precoFinalTotalMensal * 100 : 0)} ({res.cascataBase.comissaoFixaPerc == null ? "Escala Selbetti" : "fixa"}) · Retenção {pct2(res.cascataBase.retencaoPerc)} · IR/CSLL {pct2(res.cascataBase.irpjCsllPerc)}</p><a href="#condicoes" className="text-primary underline">Alterar condições</a></div>
+              {res.linhas.some(l => l.comissaoInstavel) && <p className="text-xs text-destructive">Comissão sem faixa estável após os descontos; revise as condições antes de emitir.</p>}
               {res.abaixoPiso && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens abaixo do piso de rentabilidade.</p>}
               {res.temErros && <p className="text-xs text-destructive flex gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Há itens com erro; eles não entram no total.</p>}
               <ApprovalBadge approval={approval} canRequest={!!atual.id && congeladoIntacto && podeCotar} disabledReason={!atual.id ? "Salve a cotação primeiro" : !congeladoIntacto ? "Salve e confirme os valores antes de solicitar" : undefined} />

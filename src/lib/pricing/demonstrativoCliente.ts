@@ -4,7 +4,7 @@ export type TributoCliente = "ISS" | "PIS" | "COFINS";
 export interface CargaCliente { tributo: TributoCliente; aliquota: number; base: number; valor: number }
 /** Somente apresentação: não altera a precisão nem a conta de nenhum motor. */
 export interface DemonstrativoCliente {
-  versao: 1; semImpostos: number; impostos: number; total: number; cargas: CargaCliente[];
+  versao: 1 | 2; semImpostos: number; impostos: number; total: number; cargas: CargaCliente[];
 }
 const centavos = (v: number) => Math.round((v + Number.EPSILON) * 100);
 export function demonstrativoCliente(parcelas: ParcelaReforma[], fator = 1): DemonstrativoCliente {
@@ -28,15 +28,27 @@ export function demonstrativoCliente(parcelas: ParcelaReforma[], fator = 1): Dem
     .map(g => ({ ...g, base: centavos(g.base) / 100, valor: centavos(g.valor) / 100 }));
   const impostosCent = cargas.reduce((s, c) => s + centavos(c.valor), 0);
   const totalCent = centavos(total);
-  return { versao: 1, semImpostos: (totalCent - impostosCent) / 100, impostos: impostosCent / 100, total: totalCent / 100, cargas };
+  return { versao: 2, semImpostos: (totalCent - impostosCent) / 100, impostos: impostosCent / 100, total: totalCent / 100, cargas };
 }
 const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-export function linhasDemonstrativo(d: DemonstrativoCliente): string[] {
+export function linhasDemonstrativo(d: DemonstrativoCliente, compacto = d.versao === 2): string[] {
+  if (compacto) return [
+    `Preço de Venda sem impostos: ${brl(d.semImpostos)}`,
+    `Total de Impostos (ISS/PIS/COFINS): ${brl(d.impostos)}`,
+    `Preço de Venda com impostos: ${brl(d.total)}`,
+    `Alíquotas: ${aliquotasDemonstrativo(d)}`,
+  ];
   return [
     `Preço sem impostos (ISS, PIS e COFINS): ${brl(d.semImpostos)}`,
     ...d.cargas.map(c => `${c.tributo} ${c.aliquota.toLocaleString("pt-BR", { maximumFractionDigits: 6 })}% sobre ${brl(c.base)}: ${brl(c.valor)}`),
     `Total de impostos destacados: ${brl(d.impostos)}`,
     `Preço final com impostos: ${brl(d.total)}`,
   ];
+}
+export function aliquotasDemonstrativo(d: DemonstrativoCliente): string {
+  return (["ISS", "PIS", "COFINS"] as const).map(tributo => {
+    const taxas = [...new Set(d.cargas.filter(c => c.tributo === tributo).map(c => c.aliquota))];
+    return `${tributo} ${taxas.map(a => `${a.toLocaleString("pt-BR", { maximumFractionDigits: 6 })}%`).join(" / ")}`;
+  }).join(" · ");
 }
 export function textoDemonstrativo(d: DemonstrativoCliente): string { return linhasDemonstrativo(d).join("\n"); }

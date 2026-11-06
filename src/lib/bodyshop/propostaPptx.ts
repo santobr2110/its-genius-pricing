@@ -2,7 +2,7 @@ import PizZip from "pizzip";
 import { computeCarrinhoBS, entradasDoSnapshot, globaisDoSnapshot, type SnapshotBS, type FormatoBS } from "./carrinho";
 import type { BodyshopContent } from "./calc";
 import { A_CONFIRMAR, clonarLinhaTabela, clonarSlide, listarSlides, reordenarSlides, salvar, substituirTokens, textoSlides, tokensPendentes } from "./pptxTemplate";
-import { demonstrativoCliente, linhasDemonstrativo, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
+import { aliquotasDemonstrativo, demonstrativoCliente, linhasDemonstrativo, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
 
 export const TEMPLATE_PPTX_BS = "/templates/proposta-bodyshop-template.pptx";
@@ -188,6 +188,7 @@ function mapaGlobal(m: ModeloPropostaPptx): Record<string, string> {
     TEXTO_COBERTURA: m.textoCobertura, TEXTO_REGIME_OBRIGACAO: m.textoRegimeObrigacao,
     DATA_CURTA: m.dataCurta, ROTULO_COMERCIAL: r.rotulo_comercial, ROTULO_INVESTIMENTO: r.rotulo_investimento, ROTULO_COL_DESC: r.rotulo_col_desc, ROTULO_COL_VALOR: r.rotulo_col_valor,
     ROTULO_OBSERVACOES: r.rotulo_observacoes, OBSERVACOES_COMERCIAIS: lista(m.observacoesComerciais),
+    ALIQUOTAS_CLIENTE: m.demonstrativo ? `Alíquotas: ${aliquotasDemonstrativo(m.demonstrativo)}` : " ",
     FECHAMENTO_CHAMADA: i.fechamento, AM_NOME: m.amNome, AM_EMAIL: m.amEmail,
   };
 }
@@ -214,7 +215,9 @@ export function preencherPptx(zip: PizZip, m: ModeloPropostaPptx): PizZip {
   if (m.slideLocalUnico) { ordem.push(s9); porSlide.push([s9, mapaPerfil(m.slideLocalUnico)]); }
   ordem.push(s10, s11);
   const fiscais: [number, string, DemonstrativoCliente][] = [];
-  const detalhado = zip.file("docProps/custom.xml")?.asText().includes("DemonstrativoClienteV1") ?? false;
+  const propriedades = zip.file("docProps/custom.xml")?.asText() ?? "";
+  const compacto = propriedades.includes("DemonstrativoClienteV2");
+  const detalhado = compacto || propriedades.includes("DemonstrativoClienteV1");
   if (detalhado && m.demonstrativo) fiscais.push([clonarSlide(zip,s11), "COMPOSIÇÃO DO PREÇO MENSAL", m.demonstrativo]);
   if (detalhado && m.demonstrativoContrato) fiscais.push([clonarSlide(zip,s11), `COMPOSIÇÃO DO CONTRATO — ${m.duracaoMeses} MESES`, m.demonstrativoContrato]);
   for (const item of detalhado ? m.demonstrativosItens ?? [] : []) {
@@ -225,9 +228,10 @@ export function preencherPptx(zip: PizZip, m: ModeloPropostaPptx): PizZip {
     const path = `ppt/slides/slide${slide}.xml`;
     const xml = zip.file(path)?.asText();
     if (xml) zip.file(path, xml.replace(/<p:sp\b[\s\S]*?<\/p:sp>/g, shape => /ROTULO_OBSERVACOES|OBSERVACOES_COMERCIAIS/.test(shape) ? "" : shape));
-    const rows = linhasDemonstrativo(d).map(t => { const i=t.lastIndexOf(": "); return { ITEM_DESCRICAO:t.slice(0,i), ITEM_VALOR:t.slice(i+2) }; });
+    const textos = linhasDemonstrativo(d, compacto);
+    const rows = (compacto ? textos.slice(0,3) : textos).map(t => { const i=t.lastIndexOf(": "); return { ITEM_DESCRICAO:t.slice(0,i), ITEM_VALOR:t.slice(i+2) }; });
     clonarLinhaTabela(zip,slide,"{{ITEM_DESCRICAO}}",rows,true);
-    substituirTokens(zip,slide,{...global,ROTULO_INVESTIMENTO:titulo,ROTULO_COL_DESC:"Componente / base de cálculo",ROTULO_COL_VALOR:"Valor",ROTULO_OBSERVACOES:" ",OBSERVACOES_COMERCIAIS:" "});
+    substituirTokens(zip,slide,{...global,ROTULO_INVESTIMENTO:titulo,ROTULO_COL_DESC:compacto ? "Preço de Venda" : "Componente / base de cálculo",ROTULO_COL_VALOR:"Valor",ALIQUOTAS_CLIENTE:compacto ? textos[3] : " ",ROTULO_OBSERVACOES:" ",OBSERVACOES_COMERCIAIS:" "});
     ordem.push(slide);
   }
   ordem.push(s12);
@@ -245,7 +249,7 @@ export function preencherPptx(zip: PizZip, m: ModeloPropostaPptx): PizZip {
 }
 
 export async function gerarPropostaBsPptx(m: ModeloPropostaPptx, template?: ArrayBuffer): Promise<Blob> {
-  const buf = template ?? await (async () => { const r = await fetch(m.demonstrativo ? "/templates/proposta-bodyshop-detalhada-v2.pptx" : TEMPLATE_PPTX_BS); if (!r.ok) throw new Error("Modelo PowerPoint do BodyShop indisponível."); return r.arrayBuffer(); })();
+  const buf = template ?? await (async () => { const r = await fetch(m.demonstrativo?.versao === 2 ? "/templates/proposta-bodyshop-compacta-v3.pptx" : m.demonstrativo ? "/templates/proposta-bodyshop-detalhada-v2.pptx" : TEMPLATE_PPTX_BS); if (!r.ok) throw new Error("Modelo PowerPoint do BodyShop indisponível."); return r.arrayBuffer(); })();
   return salvar(preencherPptx(new PizZip(buf), m));
 }
 
