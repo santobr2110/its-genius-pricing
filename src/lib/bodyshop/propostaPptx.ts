@@ -214,9 +214,10 @@ export function preencherPptx(zip: PizZip, m: ModeloPropostaPptx): PizZip {
   if (m.slideLocalUnico) { ordem.push(s9); porSlide.push([s9, mapaPerfil(m.slideLocalUnico)]); }
   ordem.push(s10, s11);
   const fiscais: [number, string, DemonstrativoCliente][] = [];
-  if (m.demonstrativo) fiscais.push([clonarSlide(zip,s11), "COMPOSIÇÃO DO PREÇO MENSAL", m.demonstrativo]);
-  if (m.demonstrativoContrato) fiscais.push([clonarSlide(zip,s11), `COMPOSIÇÃO DO CONTRATO — ${m.duracaoMeses} MESES`, m.demonstrativoContrato]);
-  for (const item of m.demonstrativosItens ?? []) {
+  const detalhado = zip.file("docProps/custom.xml")?.asText().includes("DemonstrativoClienteV1") ?? false;
+  if (detalhado && m.demonstrativo) fiscais.push([clonarSlide(zip,s11), "COMPOSIÇÃO DO PREÇO MENSAL", m.demonstrativo]);
+  if (detalhado && m.demonstrativoContrato) fiscais.push([clonarSlide(zip,s11), `COMPOSIÇÃO DO CONTRATO — ${m.duracaoMeses} MESES`, m.demonstrativoContrato]);
+  for (const item of detalhado ? m.demonstrativosItens ?? [] : []) {
     fiscais.push([clonarSlide(zip,s11), `${item.titulo} — MENSAL`, item.mensal]);
     fiscais.push([clonarSlide(zip,s11), `${item.titulo} — POR PROFISSIONAL`, item.unitario]);
   }
