@@ -27,7 +27,7 @@ describe("Comissão variável com rentabilidade de 20%",()=>{
     expect(r.comissaoPerc).toBe(7.32);expect(r.rentabilidadePerc).toBeCloseTo(20,10);
   });
   it("Zabbix aplica 7,32% em venda fixa com rentabilidade efetiva de 20%",()=>{
-    const e: EntradaLinha={linhaId:"1",subscriptionId:"s",partNumber:"SKU",nome:"Suporte",categoria:"suporte",unidade:"un",vendaUnitaria:10000,listaUsd:null,listaBrl:5059,cambio:5,descontos:{ro:0,semRo:0,pgto30Ro:0,pgto30SemRo:0},origemDesconto:{ro:"categoria",semRo:"categoria",pgto30Ro:"categoria",pgto30SemRo:"categoria"},codigoProduto:"ZBX",tax,quantidade:1,descontoPerc:0,permiteQuantidade:true,quantidadeMaxima:null,pisoRentabilidadePerc:null};
+    const e: EntradaLinha={linhaId:"1",subscriptionId:"s",partNumber:"SKU",nome:"Suporte",categoria:"suporte",unidade:"un",vendaUnitaria:10000,listaUsd:null,listaBrl:4559,cambio:5,descontos:{ro:0,semRo:0,pgto30Ro:0,pgto30SemRo:0},origemDesconto:{ro:"categoria",semRo:"categoria",pgto30Ro:"categoria",pgto30SemRo:"categoria"},codigoProduto:"ZBX",tax,quantidade:1,descontoPerc:0,permiteQuantidade:true,quantidadeMaxima:null,pisoRentabilidadePerc:null};
     const r=computeLinha(e,{...globais,cenario:{temRO:false,pagamento30d:false}},tiers);
     expect(r.comissaoPerc).toBe(7.32);expect(r.rentabilidadePerc).toBeCloseTo(20,10);
   });
