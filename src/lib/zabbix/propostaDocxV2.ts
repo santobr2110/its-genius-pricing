@@ -133,7 +133,7 @@ export function renderizarTemplateV2(buf: ArrayBuffer | Uint8Array, m: ModeloPro
 }
 
 export async function gerarPropostaZbxDocxV2(m: ModeloPropostaZbx): Promise<Blob> {
-  const r = await fetch(import.meta.env.BASE_URL + (m.demonstrativo ? "templates/proposta-zabbix-detalhada-v3.docx" : "templates/proposta-zabbix-template.docx"));
+  const r = await fetch(import.meta.env.BASE_URL + (m.demonstrativo?.versao === 2 ? "templates/proposta-zabbix-compacta-v4.docx" : m.demonstrativo ? "templates/proposta-zabbix-detalhada-v3.docx" : "templates/proposta-zabbix-template.docx"));
   if (!r.ok) throw new Error("Falha ao montar o Word: modelo não encontrado.");
   return renderizarTemplateV2(await r.arrayBuffer(), m).generate({
     type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", compression: "DEFLATE",
