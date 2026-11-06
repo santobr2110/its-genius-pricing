@@ -4,6 +4,7 @@
 import Docxtemplater from "docxtemplater";
 import PizZip from "pizzip";
 import { A_CONFIRMAR, CAMPOS_CONTEUDO, dataExtenso, ehAcademy, type ModeloPropostaZbx, type SecaoMatriz } from "./proposta";
+import { textoDemonstrativo } from "@/lib/pricing/demonstrativoCliente";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }).replace(/\u00a0/g, " ");
 const ou = (v: string | null | undefined) => (v ?? "").trim() || A_CONFIRMAR;
@@ -91,6 +92,12 @@ export function montarDadosTemplateV2(m: ModeloPropostaZbx) {
     itens_aceite: m.itens.map((i) => ({ linha: `${i.quantidade} x ${i.partNumber ?? ""} – ${i.nome ?? i.descricao}` })),
     itens: m.itens.map((i) => ({ sku: i.partNumber ?? "", descricao: i.nome ?? i.descricao, qtd: String(i.quantidade), unitario: brl(i.unitario), total_item: brl(i.total) })),
     total: brl(m.itens.reduce((s, i) => s + i.total, 0)),
+    demonstrativos_cliente: [
+      ...(m.demonstrativo ? [{ titulo: "Composição do preço ao cliente — Total", texto: textoDemonstrativo(m.demonstrativo) }] : []),
+      ...(m.demonstrativoMensal ? [{ titulo: "Composição mensal — 12 meses", texto: textoDemonstrativo(m.demonstrativoMensal) }] : []),
+      ...(m.demonstrativo && m.vigenciaMeses !== 12 ? [{ titulo: "Vigência", texto: `A vigência indicada é ${m.vigenciaMeses} meses; a referência mensal comercial acima é o total dividido por 12.` }] : []),
+      ...m.itens.flatMap(i => i.demonstrativo ? [{ titulo: i.descricao, texto: textoDemonstrativo(i.demonstrativo) }, ...(i.demonstrativoUnitario ? [{ titulo: "Preço unitário", texto: textoDemonstrativo(i.demonstrativoUnitario) }] : [])] : []),
+    ],
     recursos: matriz("recursos"), apoio: matriz("apoio"), servicos: matriz("servicos"), extras: matriz("extras"),
     blocos_academy: v.temAcademy ? m.blocos.filter((b) => ehAcademy(b.partNumber)).map((b) => ({
       titulo: b.titulo,
@@ -126,7 +133,7 @@ export function renderizarTemplateV2(buf: ArrayBuffer | Uint8Array, m: ModeloPro
 }
 
 export async function gerarPropostaZbxDocxV2(m: ModeloPropostaZbx): Promise<Blob> {
-  const r = await fetch(import.meta.env.BASE_URL + "templates/proposta-zabbix-template.docx");
+  const r = await fetch(import.meta.env.BASE_URL + (m.demonstrativo ? "templates/proposta-zabbix-detalhada-v3.docx" : "templates/proposta-zabbix-template.docx"));
   if (!r.ok) throw new Error("Falha ao montar o Word: modelo não encontrado.");
   return renderizarTemplateV2(await r.arrayBuffer(), m).generate({
     type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", compression: "DEFLATE",
