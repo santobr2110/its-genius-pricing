@@ -1,3 +1,7 @@
+# Auditoria — Preço final detalhado ao cliente
+- [x] Avaliar motores, telas e emissores de todas as ofertas: preço sem impostos + ISS/PIS/COFINS + total; 247 testes passaram.
+- [x] Consolidar cobertura, preservação de históricos e roteiro de implementação; apresentação detalhada ainda não implementada.
+
 # Zabbix — Public Tender
 - [x] Adicionar percentual em Parâmetros e ativação no Configurador, somente Suporte.
 - [x] Substituir parceria por Public Tender, combinar com pagamento 30 dias e preservar snapshots.
