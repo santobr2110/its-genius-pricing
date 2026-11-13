@@ -395,3 +395,23 @@ input[type="number"]::-webkit-outer-spin-button {
   body:has(.trn-print) .trn-print { position: absolute; inset: 0 auto auto 0; width: 100%; border: 0; background: #fff; color: #000; }
   .break-inside-avoid { break-inside: avoid; }
 }
+
+/* Relatórios de Cotação/ROI: somente preto, sem cores (legibilidade no PDF) */
+#resumo-cotacao-printable, #zbx-resumo-printable, #trn-resumo-printable,
+#sre-resumo-printable, #bs-resumo-printable {
+  --foreground: 0 0% 0%;
+  --muted-foreground: 0 0% 0%;
+  --primary: 0 0% 0%;
+  --destructive: 0 0% 0%;
+  --success: 0 0% 0%;
+  color: #000 !important;
+}
+#resumo-cotacao-printable *, #zbx-resumo-printable *, #trn-resumo-printable *,
+#sre-resumo-printable *, #bs-resumo-printable * {
+  color: #000 !important;
+  -webkit-text-fill-color: #000 !important;
+}
+#resumo-cotacao-printable svg *, #zbx-resumo-printable svg *, #trn-resumo-printable svg *,
+#sre-resumo-printable svg *, #bs-resumo-printable svg * {
+  stroke: #000 !important;
+}
