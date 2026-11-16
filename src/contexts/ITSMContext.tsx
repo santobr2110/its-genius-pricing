@@ -1,4 +1,5 @@
 // @refresh reset
+import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
 import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { useITSMCalculator, ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { useN1TeamState, N1TeamState, N1TeamResults } from "@/hooks/useN1TeamState";
@@ -85,10 +86,10 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   // e a composição do PV reflitam os mesmos extras exibidos nas camadas Smart
   // e no Relatório de Proposição (Configurações Financeiras vs Camadas vs
   // Relatório passam a usar a mesma base de custo).
-  const [rotinasAll] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { rotinas: rotinasAll } = useCatalogoCentral();
   const { offSet } = useRotinasSelecao();
   const rotinas = useMemo(() => filterRotinasAtivas(rotinasAll, offSet), [rotinasAll, offSet]);
-  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+  const { gmuds: gmuds } = useCatalogoCentral();
 
   // Tabela corporativa administrada centralmente; estado local guarda a escala da cotação.
   const [tiersSalvos, persistirTiers] = usePersistentState<ComissaoTier[]>(

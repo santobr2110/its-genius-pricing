@@ -1,4 +1,5 @@
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
+import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, parcelasDeLinhas, textoPrecoReforma, REFORMA_VIGENCIA } from "@/lib/pricing/reformaTributaria";
@@ -89,9 +90,9 @@ export default function ResumoCotacao() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePreset.activeId]);
 
-  const [rotinasLive] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { rotinas: rotinasLive } = useCatalogoCentral();
   const { off: rotinasOffLive } = useRotinasSelecao();
-  const [gmudsLive] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+  const { gmuds: gmudsLive } = useCatalogoCentral();
   const [n3CortesLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3Cortes", [0, 0]);
   const [n3AllocHorasLive] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3AllocHoras", [0, 0]);
   const [horasMelhoriaOpLive] = usePersistentState<number>("gestao-ti:smartOp:horasMelhoria", 0);

@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -29,7 +30,7 @@ const groups = [
 ] as const;
 
 export default function ClientPanel({ state, update, results }: Props) {
-  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { rotinas: rotinas } = useCatalogoCentral();
   const flagsComRotina = useMemo(() => {
     const set = new Set<ComplexFlagKey>();
     rotinas.forEach((r) => {
