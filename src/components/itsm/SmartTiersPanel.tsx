@@ -402,6 +402,7 @@ export default function SmartTiersPanel() {
     qtdAtivosRede: state.qtdAtivosRede,
     qtdBancosDados: state.qtdBancosDados,
     qtdSistemas: state.qtdSistemas,
+    qtdAmbientesCloud: state.qtdAmbientesCloud ?? 0,
   };
   const complexFlags: ComplexFlags = {
     complexVirtualizacaoCluster: state.complexVirtualizacaoCluster,

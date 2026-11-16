@@ -230,6 +230,7 @@ export default function GestaoTI() {
     qtdAtivosRede: itsm.qtdAtivosRede,
     qtdBancosDados: itsm.qtdBancosDados,
     qtdSistemas: itsm.qtdSistemas,
+    qtdAmbientesCloud: itsm.qtdAmbientesCloud ?? 0,
   };
   const complexFlags: ComplexFlags = {
     complexVirtualizacaoCluster: itsm.complexVirtualizacaoCluster,
@@ -473,6 +474,7 @@ export default function GestaoTI() {
     inventario.qtdAtivosRede,
     inventario.qtdBancosDados,
     inventario.qtdSistemas,
+    inventario.qtdAmbientesCloud,
     complexFlags.complexVirtualizacaoCluster,
     complexFlags.complexBancoDadosHA,
     complexFlags.complexFirewallHA,

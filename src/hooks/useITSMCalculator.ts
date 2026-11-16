@@ -36,6 +36,8 @@ export interface ITSMState {
   qtdAtivosRede: number;
   qtdBancosDados: number;
   qtdSistemas: number;
+  /** Ambientes de nuvem pública sob gestão — só condiciona rotinas do grupo Cloud. */
+  qtdAmbientesCloud: number;
   horasN3Mensais: number;
   horasN3Monitor: number;
   horasN3MonitorManut: number;
@@ -275,6 +277,7 @@ const DEFAULTS: ITSMState = {
   qtdAtivosRede: 20,
   qtdBancosDados: 10,
   qtdSistemas: 15,
+  qtdAmbientesCloud: 0,
   horasN3Mensais: 80,
   horasN3Monitor: 0,
   horasN3MonitorManut: 0,

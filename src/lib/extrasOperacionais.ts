@@ -49,6 +49,7 @@ export function computeExtrasOperacionais(
     qtdAtivosRede: state.qtdAtivosRede,
     qtdBancosDados: state.qtdBancosDados,
     qtdSistemas: state.qtdSistemas,
+    qtdAmbientesCloud: state.qtdAmbientesCloud ?? 0,
   };
   const complexFlags = COMPLEX_FLAG_KEYS.reduce((acc, k) => {
     acc[k] = (state as unknown as Record<string, boolean>)[k] || false;

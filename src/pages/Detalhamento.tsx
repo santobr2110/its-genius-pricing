@@ -72,7 +72,7 @@ import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
 } from "@/data/gmuds";
-import { GitBranch, PackagePlus } from "lucide-react";
+import { GitBranch, PackagePlus, Cloud } from "lucide-react";
 import WriteFence from "@/components/auth/WriteFence";
 
 function normalizeOsRotina(r: Rotina): Rotina {
@@ -566,6 +566,7 @@ export default function Detalhamento() {
   const inv = {
     qtdServidores: state.qtdServidores, qtdAtivosRede: state.qtdAtivosRede,
     qtdBancosDados: state.qtdBancosDados, qtdSistemas: state.qtdSistemas,
+    qtdAmbientesCloud: state.qtdAmbientesCloud ?? 0,
   };
   const complexFlags: ComplexFlags = {
     complexVirtualizacaoCluster: state.complexVirtualizacaoCluster,
@@ -1428,6 +1429,7 @@ export default function Detalhamento() {
             <Comp icon={Network} label="Ativos de Rede" qtd={state.qtdAtivosRede} ativo />
             <Comp icon={Database} label="Bancos de Dados" qtd={state.qtdBancosDados} ativo />
             <Comp icon={Shield} label="Firewall / Sistemas" qtd={state.qtdSistemas} ativo />
+            {(state.qtdAmbientesCloud ?? 0) > 0 && <Comp icon={Cloud} label="Ambientes de nuvem" qtd={state.qtdAmbientesCloud} ativo />}
           </ul>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
             <Stat label="Total de ativos" value={formatNumber(sm.ativos)} />
@@ -1562,6 +1564,7 @@ export default function Detalhamento() {
                 <Comp icon={Network} label="Ativos de Rede" qtd={state.qtdAtivosRede} ativo />
                 <Comp icon={Database} label="Bancos de Dados" qtd={state.qtdBancosDados} ativo />
                 <Comp icon={Shield} label="Firewall / Sistemas" qtd={state.qtdSistemas} ativo />
+            {(state.qtdAmbientesCloud ?? 0) > 0 && <Comp icon={Cloud} label="Ambientes de nuvem" qtd={state.qtdAmbientesCloud} ativo />}
               </ul>
             </>
           )}
