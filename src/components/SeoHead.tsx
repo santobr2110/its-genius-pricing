@@ -17,7 +17,7 @@ const ROUTE_META: Record<string, { title: string; description: string }> = {
   "/equipe-n1": {
     title: "Equipe N1 — Smart ITO",
     description:
-      "Dimensionamento, capacidade e custo mensal da equipe de Service Desk N1.",
+      "Dimensionamento, capacidade e custo mensal da equipe de operação N1.",
   },
   "/equipe-n2": {
     title: "Equipe N2 — Smart ITO",

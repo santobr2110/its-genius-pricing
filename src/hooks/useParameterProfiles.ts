@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { normalizarValorLegado } from "@/lib/normalizacoesLegado";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyPersistentStateRestored } from "./usePersistentState";
 import {
@@ -89,8 +90,8 @@ async function snapshotStoredParams(
   const cloud = new Map((data ?? []).map((r) => [r.key as string, r.value]));
   for (const k of keys) {
     const local = readLocalParamValue(k);
-    if (local !== undefined) out[k] = local;
-    else if (cloud.has(k)) out[k] = cloud.get(k);
+    if (local !== undefined) out[k] = normalizarValorLegado(k, local);
+    else if (cloud.has(k)) out[k] = normalizarValorLegado(k, cloud.get(k));
   }
   return out;
 }

@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { SMART_ITO_NS } from "@/lib/offerings";
+import { normalizarValorLegado } from "@/lib/normalizacoesLegado";
 import {
   ESCOPO_DEFAULT, RESTRICOES_GERAIS_DEFAULT, ITENS_ADICIONAIS_DEFAULT,
   type EscopoProposicao, type ItemAdicional,
@@ -40,7 +41,7 @@ function readLs<T>(rawKey: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(SMART_ITO_NS + rawKey);
     if (raw == null) return fallback;
-    return JSON.parse(raw) as T;
+    return normalizarValorLegado(rawKey, JSON.parse(raw) as T);
   } catch {
     return fallback;
   }
