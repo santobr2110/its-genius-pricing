@@ -48,6 +48,10 @@ export function getCatalogoCentralState(): CatalogoCentralState {
 export function recarregarCatalogoCentral(): Promise<CatalogoCentralState> {
   if (carregando) return carregando;
   carregando = (async () => {
+    // Sem sessão a leitura é negada; não marca como carregado para não fixar
+    // o catálogo pessoal — recarrega no login (onAuthStateChange).
+    const { data: sess } = await supabase.auth.getSession();
+    if (!sess.session) return estado;
     const { data, error } = await supabase
       .from("smart_ito_catalogo")
       .select("tipo, conteudo, versao, updated_at, autor_nome");
@@ -80,6 +84,13 @@ function subscribe(l: () => void) {
   if (!focoRegistrado && typeof window !== "undefined") {
     focoRegistrado = true;
     window.addEventListener("focus", () => void recarregarCatalogoCentral());
+    supabase.auth.onAuthStateChange((evento) => {
+      if (evento === "SIGNED_IN" || evento === "SIGNED_OUT" || evento === "USER_UPDATED") {
+        if (evento === "SIGNED_OUT") emitir({ loaded: false, rotinas: null, gmuds: null });
+        // Fora do callback do auth para não travar o cliente.
+        setTimeout(() => void recarregarCatalogoCentral(), 0);
+      }
+    });
   }
   return () => ouvintes.delete(l);
 }

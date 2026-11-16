@@ -12,6 +12,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** Descarta o cache (ex.: ao entrar/sair: sem sessão a leitura volta vazia). */
+export function resetDefaultProfilePayloadCache() {
+  defaultProfilePayloadPromise = null;
+}
+
 export async function loadDefaultProfilePayload(): Promise<ParamPayload | null> {
   if (defaultProfilePayloadPromise) return defaultProfilePayloadPromise;
   defaultProfilePayloadPromise = (async () => {
