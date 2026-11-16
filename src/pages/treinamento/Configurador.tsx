@@ -181,6 +181,10 @@ export default function Configurador() {
               <div className="flex justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Total de Venda</span><span className="text-2xl font-bold tabular-nums">{brl(res.precoFinalTotal)}</span></div>
               <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas.filter((l) => l.preco != null))} />
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas.filter((l) => l.preco != null))} />
+              <div className="grid grid-cols-2 gap-2 border-t pt-3">
+                <div className="space-y-1"><Label className="text-xs">Margem (rentabilidade) %</Label><Input type="number" step="0.5" min={0} max={60} value={config.lucroPerc} onChange={(e) => setConfig({ ...config, lucroPerc: Math.min(60, Math.max(0, Number(e.target.value) || 0)) })} className="h-8" /></div>
+                <div className="space-y-1"><Label className="text-xs">Desconto total %</Label><Input type="number" step="0.5" min={0} max={50} value={config.descontoTotalPerc} onChange={(e) => setConfig({ ...config, descontoTotalPerc: Math.min(50, Math.max(0, Number(e.target.value) || 0)) })} className="h-8" /></div>
+              </div>
               <div className="rounded-md bg-muted/50 p-2 text-[11px] text-muted-foreground space-y-0.5">
                 <p>Município {config.municipio} · rentabilidade alvo {pct(config.lucroPerc)}{config.descontoTotalPerc ? ` · desconto ${pct(config.descontoTotalPerc)}` : ""}</p>
                 <p>Comissão {pct(res.cascataBase.comissaoPerc)} · IR/CSLL {pct(res.cascataBase.irpjCsllPerc)} · <Link to="/observabilidade/treinamento/financeiro/impostos" className="text-primary hover:underline">Alterar condições</Link></p>
