@@ -1,6 +1,6 @@
 import { ajustesForaDoPadrao, lerRascunhoLocal } from "@/lib/novaPrecificacao";
 import { isPresetActive } from "@/lib/activePreset";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
 import { PrazoMesesInput } from "@/components/itsm/PrazoMesesInput";
 import { useNavigate } from "react-router-dom";
@@ -220,7 +220,7 @@ export default function SavePresetButton() {
             </DialogDescription>
           </DialogHeader>
           {ajustesSuspeitos.length > 0 && (
-            <div role="status" className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs">
+            <div role="status" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs">
               <p className="font-medium">
                 Este rascunho tem ajustes de escopo, rotinas desligadas ou horas que não são o padrão. Confira se são deste cliente.
               </p>
