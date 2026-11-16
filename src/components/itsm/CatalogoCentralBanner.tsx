@@ -46,6 +46,7 @@ export default function CatalogoCentralBanner({ catalogo }: { catalogo: Editor }
   const [historico, setHistorico] = useState<CatalogoHistoricoItem[] | null>(null);
   const [verItem, setVerItem] = useState<CatalogoHistoricoItem | null>(null);
   const [atualizarOpen, setAtualizarOpen] = useState(false);
+  const [ajustesCot, setAjustesCot] = usePersistentState<AjustesCotacao>(AJUSTES_COTACAO_KEY, AJUSTES_COTACAO_PADRAO);
 
   if (modo === "carregando") return null;
 
@@ -91,7 +92,6 @@ export default function CatalogoCentralBanner({ catalogo }: { catalogo: Editor }
   const centralRotinas = (central.rotinas?.conteudo as Rotina[] | undefined) ?? catalogo.rotinas;
   const centralGmuds = (central.gmuds?.conteudo as Gmud[] | undefined) ?? catalogo.gmuds;
   const totalAtual = results.precoVendaMensal;
-  const [ajustesCot, setAjustesCot] = usePersistentState<AjustesCotacao>(AJUSTES_COTACAO_KEY, AJUSTES_COTACAO_PADRAO);
   const orfaos = atualizarOpen ? aplicarAjustesCotacao(centralRotinas, centralGmuds, ajustesCot).ignorados : [];
   const totalVigente = atualizarOpen ? simularPrecoMensal(centralRotinas, centralGmuds) : 0;
 
