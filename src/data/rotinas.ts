@@ -308,3 +308,5 @@ const ROTINAS_SEMENTE: Rotina[] = [
   r("vrt-4", "Virtualizadores", "Realizar coleta de dados do consumo atual do ambiente", "Performance", "Ambiente", false, "Mensal"),
   r("vrt-5", "Virtualizadores", "Teste da Estrutura de Contingência dos Virtualizadores", "Performance", "Ambiente", false, "Anual"),
 ];
+
+export const ROTINAS_DEFAULT: Rotina[] = ajustarRotinasCloud(ROTINAS_SEMENTE);

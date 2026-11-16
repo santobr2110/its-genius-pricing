@@ -1,3 +1,5 @@
+import { isPresetActive } from "@/lib/activePreset";
+import { ajustarRotinasCloud, type Rotina } from "@/data/rotinas";
 /**
  * Normalizações de valores legados persistidos (localStorage, nuvem, cotações).
  * Replicam exatamente a migração "Correção global: termo Service Desk e
@@ -92,7 +94,12 @@ export function limparCatalogoLegado<T>(lista: T, campo: string): T {
 const NORMALIZADORES: Array<[string, (v: unknown) => unknown]> = [
   ["escopo:proposicao", corrigirEscopoLegado],
   ["gestao-ti:gmuds", (v) => limparCatalogoLegado(v, "descricao")],
-  ["gestao-ti:rotinas", (v) => limparCatalogoLegado(v, "rotina")],
+  ["gestao-ti:rotinas", (v) => {
+    const limpo = limparCatalogoLegado(v, "rotina");
+    // Correção G só fora do modo cotação: cotações salvas mantêm o catálogo congelado.
+    if (isPresetActive() || !Array.isArray(limpo)) return limpo;
+    return ajustarRotinasCloud(limpo as Partial<Rotina>[]);
+  }],
 ];
 
 /** Normaliza o valor conforme a chave (crua ou namespeada/prefixada). */
