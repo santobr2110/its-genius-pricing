@@ -26,3 +26,26 @@ describe("correção global Service Desk", () => {
     expect(limparCatalogoLegado(n, "descricao")).toBe(n);
   });
 });
+
+import { FLOW_INCLUIDOS, FLOW_RESTRICOES, FLOW_TAGLINE } from "@/lib/normalizacoesLegado";
+describe("correção global Smart Flow", () => {
+  it("substitui o bloco antigo inteiro e é idempotente", () => {
+    const v = { flow: { titulo: "Smart Flow", tagline: "Monitoramento integrado ao ITSM e atendentes dedicados", descricao: "x", incluidos: ["a"], restricoes: ["b"] } };
+    const n = corrigirEscopoLegado(v);
+    expect(n.flow.tagline).toBe(FLOW_TAGLINE);
+    expect(n.flow.incluidos).toEqual([...FLOW_INCLUIDOS]);
+    expect(n.flow.restricoes).toEqual([...FLOW_RESTRICOES]);
+    expect(n.flow.titulo).toBe("Smart Flow");
+    expect(corrigirEscopoLegado(n)).toBe(n);
+  });
+  it("não mexe em bloco já reescrito", () => {
+    const v = { flow: { tagline: "Meu texto", descricao: "outro", incluidos: ["a"], restricoes: [] } };
+    expect(corrigirEscopoLegado(v)).toBe(v);
+  });
+  it("itens 1,2,3,4,9 escapam das regras de filtro; 5–8 casam", () => {
+    const regras = [/atendent/i, /prox/i, /hora.*automa|automa.*evento|horas?\s*de\s*automa/i, /acionamento|opcional/i];
+    const casa = (t: string) => regras.some((r) => r.test(t));
+    expect([0, 1, 2, 3, 8].map((i) => casa(FLOW_INCLUIDOS[i]))).toEqual([false, false, false, false, false]);
+    expect([4, 5, 6, 7].map((i) => casa(FLOW_INCLUIDOS[i]))).toEqual([true, true, true, true]);
+  });
+});

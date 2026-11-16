@@ -254,7 +254,7 @@ export default function Detalhamento() {
   // As demais camadas são apresentadas como componentes desta oferta.
   const DOMINANT_OFFER: Record<string, { name: string; tagline: string }> = {
     bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento da infraestrutura" },
-    steel:   { name: "ITO Smart Flow",        tagline: "Monitoramento integrado ao ITSM com atendentes dedicados" },
+    steel:   { name: "ITO Smart Flow",        tagline: "Execução das tarefas N1 documentadas pelo cliente" },
     silver:  { name: "ITO Smart Operation",   tagline: "TI gerenciada com prevenção como eixo" },
     gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
     diamond: { name: "ITO Smart Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
@@ -783,7 +783,7 @@ export default function Detalhamento() {
     ? {
         titulo: "Monitor + Flow",
         tagline:
-          "Monitoramento da infraestrutura integrado ao ITSM com atendentes dedicados",
+          "Monitoramento da infraestrutura e execução das tarefas N1 documentadas",
         descricao: mergeDescricoes(escopo.monitor.descricao, escopo.flow.descricao),
         incluidos: dedupLines([...escopoFiltered.monitor.incluidos, ...escopoFiltered.flow.incluidos]),
         restricoes: dedupLines([...escopo.monitor.restricoes, ...escopo.flow.restricoes]),

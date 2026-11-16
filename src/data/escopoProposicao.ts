@@ -9,6 +9,7 @@
  * Configurações › Escopo e o estado é persistido via `usePersistentState`
  * sob a chave `escopo:proposicao`.
  */
+import { FLOW_TAGLINE, FLOW_DESCRICAO, FLOW_INCLUIDOS, FLOW_RESTRICOES } from "@/lib/normalizacoesLegado";
 
 export type CamadaKey = "monitor" | "flow" | "operation" | "performance" | "enterprise";
 
@@ -59,22 +60,10 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
   },
   flow: {
     titulo: "Smart Flow",
-    tagline: "Monitoramento integrado ao ITSM e atendentes dedicados",
-    descricao:
-      "Camada de integração entre o monitoramento e o ITSM do cliente, com atendentes dedicados para triagem e roteamento técnico, horas de automação e horas N3 / Automação opcionais para tratamento de eventos.",
-    incluidos: [
-      "Monitoramento integrado ao ITSM do cliente",
-      "Acesso de atendentes dedicados no ITSM para operação técnica",
-      "Horas de automação para tratamento e ajuste contínuo de eventos",
-      "Horas N3 / Automação opcionais para acionamento técnico sob demanda",
-      "Proxys de coleta dedicados à camada Flow",
-    ],
-    restricoes: [
-      "Não inclui o funil de atendimento N1, N2 e N3 a incidentes de infraestrutura (camada Smart Operation)",
-      "Horas N3 / Automação e atendentes são absorvidos pela camada Smart Operation quando contratada",
-      "Automações fora do catálogo demandam estudo técnico prévio",
-      "Cobertura limitada aos ativos do inventário declarado",
-    ],
+    tagline: FLOW_TAGLINE,
+    descricao: FLOW_DESCRICAO,
+    incluidos: [...FLOW_INCLUIDOS],
+    restricoes: [...FLOW_RESTRICOES],
   },
   operation: {
     titulo: "Smart Operation",
