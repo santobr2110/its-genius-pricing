@@ -53,6 +53,8 @@ interface ITSMContextType {
   n2Results: N2TeamResults;
   loadPreset: (preset: PricingPreset) => void;
   activePreset: ActivePresetStatus;
+  /** Preço de venda mensal que a cotação teria com outro catálogo de rotinas/GMUDs. */
+  simularPrecoMensal: (rotinas: Rotina[], gmuds: Gmud[]) => number;
 }
 
 const ITSMContext = createContext<ITSMContextType | null>(null);
@@ -155,6 +157,12 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
       percGestaoN2: 0,
     }));
   }, [n2.results.custoTotalEquipe, n2.teamState.capacidadeChamadosTotal, calc.state.custoAnalistaN2, calc.state.capacidadeChamadosN2, calc.state.percGestaoN2, calc.setState]);
+
+  const simularPrecoMensal = useCallback((rotinasCat: Rotina[], gmudsCat: Gmud[]) => {
+    const ativas = filterRotinasAtivas(rotinasCat, offSet);
+    const extras = computeExtrasOperacionais(calc.state, calc.results, ativas, gmudsCat);
+    return recomputeComposicaoComExtras(calc.state, calc.results, extras.custoTotal).precoVendaMensal;
+  }, [calc.state, calc.results, offSet]);
 
   const loadPreset = useCallback((preset: PricingPreset) => {
     // Em uma aba que já está editando uma precificação, "carregar" não faz
