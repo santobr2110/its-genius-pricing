@@ -4,7 +4,6 @@ import SmartTiersPanel from "@/components/itsm/SmartTiersPanel";
 import { Calculator } from "lucide-react";
 import SortableNav from "@/components/SortableNav";
 import SavePresetButton from "@/components/SavePresetButton";
-import NovaPrecificacaoButton from "@/components/NovaPrecificacaoButton";
 import UserMenu from "@/components/auth/UserMenu";
 import Can from "@/components/auth/Can";
 import ParametrosMenu from "@/components/ParametrosMenu";
@@ -28,7 +27,6 @@ const Index = () => {
               extras={
                 <div className="flex items-center gap-2 mx-1">
                   <ParametrosMenu />
-                  <Can permission="pricing.save_preset"><NovaPrecificacaoButton /></Can>
                   <Can permission="pricing.save_preset"><SavePresetButton /></Can>
                 </div>
               }
