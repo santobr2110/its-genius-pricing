@@ -72,7 +72,7 @@ import {
   GMUDS_DEFAULT, bucketGmuds, computeGmud,
   type Gmud, type GmudComputed,
 } from "@/data/gmuds";
-import { GitBranch, PackagePlus } from "lucide-react";
+import { GitBranch, PackagePlus, Cloud } from "lucide-react";
 import WriteFence from "@/components/auth/WriteFence";
 
 function normalizeOsRotina(r: Rotina): Rotina {

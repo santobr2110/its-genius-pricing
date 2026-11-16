@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
-import { Server, Network, Database, ShieldCheck, Gauge } from "lucide-react";
+import { Server, Network, Database, ShieldCheck, Gauge, Cloud } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { ROTINAS_DEFAULT, type Rotina, type ComplexFlagKey } from "@/data/rotinas";
@@ -79,20 +79,25 @@ export default function ClientPanel({ state, update, results }: Props) {
                 {group.title}
               </p>
               <div className="grid grid-cols-2 gap-2">
-                {group.items.map(({ key, label, icon: Icon, color }) => (
-                  <div key={key} className="flex items-center gap-2 rounded-lg border p-2">
+                {group.items.map((item) => {
+                  const { key, label, icon: Icon, color } = item;
+                  const help = "help" in item ? item.help : undefined;
+                  return (
+                  <div key={key} className="flex items-center gap-2 rounded-lg border p-2" title={help}>
                     <Icon className={`h-4 w-4 shrink-0 ${color}`} />
                     <div className="flex-1 min-w-0 space-y-0.5">
                       <Label className="text-[10px] text-muted-foreground leading-none truncate block">{label}</Label>
                       <Input
                         type="number"
-                        value={state[key] as number}
+                        value={(state[key] as number | undefined) ?? 0}
                         onChange={(e) => update(key, parseInt(e.target.value) || 0)}
                         className="h-7 text-sm border-0 p-0 shadow-none focus-visible:ring-0"
                       />
+                      {help && <p className="text-[9px] leading-tight text-muted-foreground">{help}</p>}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
             ))}
