@@ -1,3 +1,4 @@
+import { FREQ_TO_EXECUCOES_MES } from "@/data/frequencias";
 export type GmudTipo = "Padrão" | "Normal" | "Emergencial";
 export type GmudComplexidade = "Baixa" | "Média" | "Alta";
 export type GmudOferta = "Operation" | "Performance" | "Ambas";
@@ -24,15 +25,7 @@ export const GMUD_FREQUENCIAS: GmudFrequencia[] = [
 ];
 
 // Conversão de frequência para chamados/mês equivalentes.
-export const GMUD_FREQ_TO_CHAMADOS: Record<GmudFrequencia, number> = {
-  Semanal: 4,
-  Quinzenal: 2,
-  Mensal: 1,
-  Bimestral: 0.5,
-  Trimestral: 1 / 3,
-  Semestral: 1 / 6,
-  Anual: 1 / 12,
-};
+export const GMUD_FREQ_TO_CHAMADOS: Record<GmudFrequencia, number> = FREQ_TO_EXECUCOES_MES;
 
 export const CAC_FACTOR_GMUD = 0.2;
 

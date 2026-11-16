@@ -14,8 +14,8 @@ describe("aplicarAjustesCotacao", () => {
     const base = [rot("a")];
     const { rotinas } = aplicarAjustesCotacao(base, [], { gmudsOff: [], rotinas: { a: { frequencia: "Trimestral" } } });
     expect(rotinas[0].frequencia).toBe("Trimestral");
-    expect(rotinas[0].chamadosMes).toBe(0.3);
-    expect(rotinas[0].cac).toBe(0.06);
+    expect(rotinas[0].chamadosMes).toBeCloseTo(1 / 3, 10);
+    expect(rotinas[0].cac).toBe(0.0667);
     expect(rotinas[0].original?.frequencia).toBe("Mensal");
     expect(rotinas[0].ajustadaNaCotacao).toBe(true);
     expect(base[0].frequencia).toBe("Mensal"); // catálogo intacto
