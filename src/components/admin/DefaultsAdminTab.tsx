@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { stripPricingOwnedKeys } from "@/lib/paramKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -279,9 +280,9 @@ function SetDefaultProfileDialog({
     try {
       // Mesmo que o perfil seja antigo e ainda contenha campos de Perfil
       // de Cliente, removemos antes de gravar como padrão.
-      const payload = stripClientProfileFields(
+      const payload = stripPricingOwnedKeys(stripClientProfileFields(
         (profile.payload ?? {}) as Record<string, unknown>,
-      );
+      ));
       const rows = Object.entries(payload).map(([key, value]) => ({
         key,
         value: value as never,
@@ -328,7 +329,7 @@ function SetDefaultProfileDialog({
         <DialogHeader>
           <DialogTitle>Definir perfil padrão · {offering ? OFFERING_LABEL[offering] : ""}</DialogTitle>
           <DialogDescription>
-            O perfil escolhido será gravado em "Parâmetros padrão" desta oferta. Os valores atuais de cada chave serão substituídos pelos do perfil (versão anterior fica no histórico).
+            O perfil escolhido será gravado em "Parâmetros padrão" desta oferta. Os valores atuais de cada chave serão substituídos pelos do perfil (versão anterior fica no histórico). Escopo, restrições, itens adicionais, rotinas desligadas e horas de TAM/Owner/melhoria não fazem parte do padrão.
           </DialogDescription>
         </DialogHeader>
         {loading ? (
