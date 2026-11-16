@@ -426,7 +426,9 @@ export default function ResumoCotacao() {
     : approval.loading
     ? "Verificando status de aprovação..."
     : approvalBlocked
-    ? `Exportação bloqueada: rentabilidade de ${Number(calcState.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
+    ? approval.effectiveStatus === "outdated"
+      ? `Exportação bloqueada: a rentabilidade caiu de ${(approval.approvedRentPct ?? 0).toFixed(1)}% para ${Number(calcState.lucroPerc ?? 0).toFixed(1)}% depois da aprovação. Solicite nova aprovação.`
+      : `Exportação bloqueada: rentabilidade de ${Number(calcState.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
     : undefined;
   const exportBlocked = !!exportDisabledReason;
   const handleExportPDF = async () => {

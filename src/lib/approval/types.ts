@@ -1,4 +1,10 @@
-export type ApprovalStatus = "not_required" | "pending" | "approved" | "rejected" | "canceled";
+/** "outdated" é calculado na tela (aprovado acima da rentabilidade atual); nunca gravado. */
+export type ApprovalStatus = "not_required" | "pending" | "approved" | "rejected" | "canceled" | "outdated";
+
+/** Aprovação vale enquanto a rentabilidade atual ≥ aprovada (tolerância 0,01 p.p.). */
+export function aprovacaoVale(rentAtual: number, rentAprovada: number): boolean {
+  return rentAtual >= Number(rentAprovada) - 0.01;
+}
 export type DecisionStatus = "pending" | "approved" | "rejected";
 
 export interface ApprovalRole {
@@ -75,5 +81,6 @@ export function describeStatus(s: ApprovalStatus): string {
     case "rejected": return "Rejeitado";
     case "canceled": return "Cancelado";
     case "not_required": return "Liberado";
+    case "outdated": return "Aprovação desatualizada";
   }
 }

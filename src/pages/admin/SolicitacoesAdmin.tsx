@@ -32,6 +32,7 @@ const STATUS_VARIANT: Record<ApprovalStatus, "default" | "secondary" | "destruct
   rejected: "destructive",
   canceled: "outline",
   not_required: "outline",
+  outdated: "secondary",
 };
 
 export default function SolicitacoesAdmin() {
