@@ -25,6 +25,7 @@ const groups = [
       { key: "qtdAtivosRede" as const, label: "Ativos de Rede", icon: Network, color: "text-amber-500" },
       { key: "qtdBancosDados" as const, label: "Bancos de Dados", icon: Database, color: "text-purple-500" },
       { key: "qtdSistemas" as const, label: "Firewall", icon: ShieldCheck, color: "text-cyan-500" },
+      { key: "qtdAmbientesCloud" as const, label: "Ambientes de nuvem", icon: Cloud, color: "text-sky-500", help: "Contas, assinaturas ou projetos de nuvem pública sob gestão (AWS, Azure, GCP, OCI)" },
     ],
   },
 ] as const;

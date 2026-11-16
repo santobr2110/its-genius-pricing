@@ -147,6 +147,7 @@ export default function ResumoCotacao() {
     const inv = {
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
       qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
+      qtdAmbientesCloud: calcState.qtdAmbientesCloud ?? 0,
     };
     const flags: ComplexFlags = {
       complexVirtualizacaoCluster: calcState.complexVirtualizacaoCluster,
@@ -252,6 +253,7 @@ export default function ResumoCotacao() {
     const inv = {
       qtdServidores: calcState.qtdServidores, qtdAtivosRede: calcState.qtdAtivosRede,
       qtdBancosDados: calcState.qtdBancosDados, qtdSistemas: calcState.qtdSistemas,
+      qtdAmbientesCloud: calcState.qtdAmbientesCloud ?? 0,
     };
     const cflags = {
       complexVirtualizacaoCluster: calcState.complexVirtualizacaoCluster,

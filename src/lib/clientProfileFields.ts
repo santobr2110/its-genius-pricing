@@ -18,6 +18,7 @@ export const CLIENT_PROFILE_CALCULATOR_FIELDS: ReadonlySet<string> = new Set([
   "qtdAtivosRede",
   "qtdBancosDados",
   "qtdSistemas",
+  "qtdAmbientesCloud",
   // Override de volume manual
   "semVolumesAtuais",
   "volumeChamadosAtivosManual",
