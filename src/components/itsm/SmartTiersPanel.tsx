@@ -1,3 +1,5 @@
+import Can from "@/components/auth/Can";
+import NovaPrecificacaoButton from "@/components/NovaPrecificacaoButton";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
@@ -847,11 +849,12 @@ export default function SmartTiersPanel() {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(180px,auto)_minmax(0,1fr)] lg:items-center">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(180px,auto)_minmax(0,1fr)_auto] lg:items-center">
           <CardTitle className="text-sm font-semibold">Camadas de Oferta</CardTitle>
           <div className="min-w-0">
             <AppliedProfilePill />
           </div>
+          <Can permission="pricing.save_preset"><NovaPrecificacaoButton /></Can>
         </div>
         <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-2 md:items-stretch [&>*]:min-w-0 [&>*>div]:w-full [&>*>div]:justify-center">
           <div
