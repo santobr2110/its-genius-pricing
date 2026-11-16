@@ -166,7 +166,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     // restaura tudo (rotinas, GMUDs, cortes Smart Perf, escopo)
     // via mesmo mecanismo dos Perfis de Parâmetros.
     if (preset.allParams && Object.keys(preset.allParams).length > 0) {
-      void applyParamsPayload(preset.allParams);
+      void applyParamsPayload(preset.allParams, { incluirChavesDaCotacao: true });
       return;
     }
     calc.setState(preset.calculator);

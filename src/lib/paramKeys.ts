@@ -86,7 +86,8 @@ export function keysForOffering(offering: ParamOffering): string[] {
  * e horas de melhoria. Ao abrir uma precificação salva, esses valores devem vir
  * sempre do snapshot salvo — nunca do perfil de parâmetros padrão.
  */
-export const PRICING_OWNED_PARAM_KEYS: string[] = [
+/** Chaves cruas que pertencem à cotação, nunca a perfil/padrão global. */
+export const PRICING_OWNED_RAW_KEYS: readonly string[] = [
   "gestao-ti:rotinasOff",
   "gestao-ti:smartPerf:n3Cortes",
   "gestao-ti:smartPerf:n3AllocHoras",
@@ -95,7 +96,23 @@ export const PRICING_OWNED_PARAM_KEYS: string[] = [
   "escopo:proposicao",
   "escopo:restricoesGerais",
   "escopo:itensAdicionais",
-].map((k) => SMART_ITO_NS + k);
+];
+
+export const PRICING_OWNED_PARAM_KEYS: string[] = PRICING_OWNED_RAW_KEYS.map((k) => SMART_ITO_NS + k);
+
+/** true para a chave crua, com namespace ou com prefixo de cotação (`preset.<id>.`). */
+export function isPricingOwnedKey(chave: string): boolean {
+  let k = chave;
+  if (k.startsWith(SMART_ITO_NS)) k = k.slice(SMART_ITO_NS.length);
+  k = k.replace(/^preset\.[^.]+\./, "");
+  return PRICING_OWNED_RAW_KEYS.includes(k);
+}
+
+export function stripPricingOwnedKeys<T extends Record<string, unknown>>(payload: T): T {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(payload ?? {})) if (!isPricingOwnedKey(k)) out[k] = v;
+  return out as T;
+}
 
 export const OFFERING_LABEL: Record<ParamOffering, string> = {
   "smart-ito": "Smart ITO",

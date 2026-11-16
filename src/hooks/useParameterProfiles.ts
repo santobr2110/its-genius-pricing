@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { stripPricingOwnedKeys } from "@/lib/paramKeys";
 import { normalizarValorLegado } from "@/lib/normalizacoesLegado";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyPersistentStateRestored } from "./usePersistentState";
@@ -103,8 +104,8 @@ export async function snapshotCurrentParams(
 ): Promise<ParamPayload> {
   const out = await snapshotStoredParams(userId, offering);
   // Remove campos de "Perfil de Cliente" / inputs pontuais do calculator
-  // antes de retornar — eles não fazem parte do snapshot de parâmetros.
-  return stripClientProfileFields(out);
+  // e as chaves que pertencem à cotação (escopo, rotinas desligadas, horas).
+  return stripPricingOwnedKeys(stripClientProfileFields(out));
 }
 
 /** Snapshot para precificação: mantém exatamente os inputs da tela. */
@@ -121,7 +122,13 @@ export async function snapshotCurrentPricingParams(
 }
 
 /** Aplica um payload de parâmetros: nuvem + storage local + notifica hooks. */
-export async function applyParamsPayload(payload: ParamPayload): Promise<void> {
+export async function applyParamsPayload(
+  rawPayload: ParamPayload,
+  opts: { incluirChavesDaCotacao?: boolean } = {},
+): Promise<void> {
+  // Perfis/padrões nunca sobrescrevem escopo e escolhas da cotação; só o
+  // carregamento de uma cotação salva traz essas chaves.
+  const payload = opts.incluirChavesDaCotacao ? rawPayload : stripPricingOwnedKeys(rawPayload);
   const { data: { user } } = await supabase.auth.getUser();
   // Ao aplicar um perfil, preservamos os campos de Perfil de Cliente
   // do estado atual da precificação. Se o payload do perfil contiver

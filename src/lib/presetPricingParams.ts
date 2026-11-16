@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ITSMState } from "@/hooks/useITSMCalculator";
 import type { ParamPayload } from "@/hooks/useParameterProfiles";
 import { CALCULATOR_KEY, CLIENT_PROFILE_CALCULATOR_FIELDS } from "@/lib/clientProfileFields";
-import { PRICING_OWNED_PARAM_KEYS } from "@/lib/paramKeys";
+import { isPricingOwnedKey } from "@/lib/paramKeys";
 
 const DEFAULT_OFFERING = "smart-ito";
 
@@ -80,8 +80,8 @@ export function mergePresetParamsForPricing(
       if (value !== undefined) params[key] = value;
     }
     // Reforço explícito das chaves que sempre pertencem à precificação.
-    for (const key of PRICING_OWNED_PARAM_KEYS) {
-      if (savedParams[key] !== undefined) params[key] = savedParams[key];
+    for (const [key, value] of Object.entries(savedParams)) {
+      if (isPricingOwnedKey(key) && value !== undefined) params[key] = value;
     }
   }
 

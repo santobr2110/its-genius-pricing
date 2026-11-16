@@ -81,6 +81,42 @@ export type Database = {
           },
         ]
       }
+      app_defaults_backup_pricing_owned: {
+        Row: {
+          backed_up_at: string
+          id: string
+          key: string
+          motivo: string
+          source_profile_id: string | null
+          source_profile_name: string | null
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          backed_up_at?: string
+          id?: string
+          key: string
+          motivo?: string
+          source_profile_id?: string | null
+          source_profile_name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          backed_up_at?: string
+          id?: string
+          key?: string
+          motivo?: string
+          source_profile_id?: string | null
+          source_profile_name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       app_defaults_history: {
         Row: {
           change_kind: string

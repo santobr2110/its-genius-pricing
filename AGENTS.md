@@ -24,3 +24,4 @@
 - Summary PDF exports use `aguardarResumoExportavel` to await the printable element, fonts and images — independent embedded loading must not race a fixed export delay.
 - Customer statements use pricing/demonstrativoCliente: V2 shows three totals and rates; V1 retains historical rendering. Freeze the presentation version without changing engine precision or saved documents.
 - BodyShop fiscal PPTX templates opt in with DemonstrativoClienteV1/V2; template selection follows the frozen statement version — legacy emissions and regression fixtures remain unchanged.
+- Quote-owned keys live only in PRICING_OWNED_RAW_KEYS; profiles/defaults strip them, only quote loading keeps them — no scope leaks between clients.
