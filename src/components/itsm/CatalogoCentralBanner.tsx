@@ -20,6 +20,9 @@ import {
 } from "@/hooks/useCatalogoCentral";
 import type { useCatalogoEditor } from "@/hooks/useCatalogoEditor";
 import type { Rotina } from "@/data/rotinas";
+import {
+  AJUSTES_COTACAO_KEY, AJUSTES_COTACAO_PADRAO, aplicarAjustesCotacao, normalizarAjustes, type AjustesCotacao,
+} from "@/lib/ajustesCotacao";
 import type { Gmud } from "@/data/gmuds";
 
 type Editor = ReturnType<typeof useCatalogoEditor>;
@@ -88,11 +91,21 @@ export default function CatalogoCentralBanner({ catalogo }: { catalogo: Editor }
   const centralRotinas = (central.rotinas?.conteudo as Rotina[] | undefined) ?? catalogo.rotinas;
   const centralGmuds = (central.gmuds?.conteudo as Gmud[] | undefined) ?? catalogo.gmuds;
   const totalAtual = results.precoVendaMensal;
+  const [ajustesCot, setAjustesCot] = usePersistentState<AjustesCotacao>(AJUSTES_COTACAO_KEY, AJUSTES_COTACAO_PADRAO);
+  const orfaos = atualizarOpen ? aplicarAjustesCotacao(centralRotinas, centralGmuds, ajustesCot).ignorados : [];
   const totalVigente = atualizarOpen ? simularPrecoMensal(centralRotinas, centralGmuds) : 0;
 
   const atualizarCotacao = () => {
     catalogo.setRotinasPessoais(centralRotinas); // modo cotação: grava na cópia da cotação
     catalogo.setGmudsPessoais(centralGmuds);
+    if (orfaos.length) {
+      const fora = new Set(orfaos.map((o) => `${o.tipo}:${o.id}`));
+      const a = normalizarAjustes(ajustesCot);
+      setAjustesCot({
+        gmudsOff: a.gmudsOff.filter((id) => !fora.has(`gmud:${id}`)),
+        rotinas: Object.fromEntries(Object.entries(a.rotinas).filter(([id]) => !fora.has(`rotina:${id}`))),
+      });
+    }
     setVersaoCotacao({ rotinas: central.rotinas?.versao ?? 0, gmuds: central.gmuds?.versao ?? 0, salvoEm: new Date().toISOString() });
     setAtualizarOpen(false);
     toast.success("Cotação atualizada para o catálogo central vigente.");
@@ -200,6 +213,19 @@ export default function CatalogoCentralBanner({ catalogo }: { catalogo: Editor }
               Total atual {brl(totalAtual)} → com o catálogo vigente {brl(totalVigente)}
             </DialogDescription>
           </DialogHeader>
+          {orfaos.length > 0 && (
+            <div className="rounded border p-2 text-xs space-y-1">
+              <p className="font-medium">Ajustes desta cotação que serão descartados (item não existe no catálogo vigente):</p>
+              <ul className="list-disc pl-4">
+                {orfaos.map((o) => {
+                  const nome = o.tipo === "rotina"
+                    ? (catalogo.rotinas.find((r) => r.id === o.id)?.rotina ?? o.id)
+                    : (catalogo.gmuds.find((g) => g.id === o.id)?.descricao ?? o.id);
+                  return <li key={o.tipo + o.id}>{o.tipo === "rotina" ? "Rotina" : "GMUD"}: {nome}</li>;
+                })}
+              </ul>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setAtualizarOpen(false)}>Cancelar</Button>
             <Button onClick={atualizarCotacao}>Confirmar atualização</Button>
