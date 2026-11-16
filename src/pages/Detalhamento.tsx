@@ -144,7 +144,9 @@ export default function Detalhamento() {
     : approval.loading
     ? "Verificando status de aprovação..."
     : approvalBlocked
-    ? `Exportação bloqueada: rentabilidade de ${Number(state.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
+    ? approval.effectiveStatus === "outdated"
+      ? `Exportação bloqueada: a rentabilidade caiu de ${(approval.approvedRentPct ?? 0).toFixed(1)}% para ${Number(state.lucroPerc ?? 0).toFixed(1)}% depois da aprovação. Solicite nova aprovação.`
+      : `Exportação bloqueada: rentabilidade de ${Number(state.lucroPerc ?? 0).toFixed(1)}% requer aprovação (${approval.statusLabel})`
     : undefined;
   const exportBlocked = !isSavedPricing || approvalBlocked;
   // No modelo de níveis, os proxys exibidos nos relatórios são os do novo modelo (cobrados no monitoramento).

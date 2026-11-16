@@ -21,7 +21,7 @@ export default function ApprovalBadge({ approval, canRequest, disabledReason }: 
   const status = approval.effectiveStatus;
   const variant = status === "approved" ? "default"
     : status === "rejected" ? "destructive"
-    : status === "pending" ? "secondary"
+    : status === "pending" || status === "outdated" ? "secondary"
     : "outline";
   const Icon = status === "approved" ? ShieldCheck
     : status === "rejected" ? ShieldX
@@ -46,7 +46,11 @@ export default function ApprovalBadge({ approval, canRequest, disabledReason }: 
   return (
     <div className="flex h-10 w-full min-w-0 items-center justify-center gap-x-2 overflow-hidden rounded-lg border border-primary/30 bg-primary/5 px-3 py-0 text-xs">
       <span className="shrink-0 text-xs font-semibold text-foreground">Aprovação:</span>
-      <Badge variant={variant as any} className="min-w-0 gap-1 text-[10px]">
+      <Badge
+        variant={variant as any}
+        className="min-w-0 gap-1 text-[10px]"
+        title={status === "outdated" ? `Abaixo da rentabilidade aprovada (${approval.approvedRentPct?.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%) — exigirá nova aprovação` : undefined}
+      >
         <Icon className="h-3 w-3 shrink-0" /> <span className="min-w-0 break-words">{approval.statusLabel}</span>
       </Badge>
       {!approval.requiresApproval ? null : status === "approved" ? null : (
@@ -59,7 +63,7 @@ export default function ApprovalBadge({ approval, canRequest, disabledReason }: 
             onClick={handleRequest}
           >
             <Send className="h-3 w-3" />
-            {status === "rejected" ? "Reenviar" : approval.request ? "Reabrir" : "Solicitar"}
+            {status === "rejected" ? "Reenviar" : status === "outdated" ? "Solicitar nova" : approval.request ? "Reabrir" : "Solicitar"}
           </Button>
         </>
       )}
