@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { ajustesForaDoPadrao, lerRascunhoLocal } from "@/lib/novaPrecificacao";
+import { isPresetActive } from "@/lib/activePreset";
+import { useMemo, useState } from "react";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
 import { PrazoMesesInput } from "@/components/itsm/PrazoMesesInput";
 import { useNavigate } from "react-router-dom";
@@ -62,6 +64,11 @@ export default function SavePresetButton() {
   const [buSpecialist, setBuSpecialist] = useState("");
   const [contractTerm, setContractTerm] = useState("");
   const [buArchitect, setBuArchitect] = useState("");
+
+  const ajustesSuspeitos = useMemo(
+    () => (open && !isPresetActive() ? ajustesForaDoPadrao(lerRascunhoLocal) : []),
+    [open],
+  );
 
   const handleSave = async () => {
     const missing: string[] = [];
@@ -212,6 +219,16 @@ export default function SavePresetButton() {
               (ITS-SMART-ITO-XXXXXXX) será gerado automaticamente.
             </DialogDescription>
           </DialogHeader>
+          {ajustesSuspeitos.length > 0 && (
+            <div role="status" className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs">
+              <p className="font-medium">
+                Este rascunho tem ajustes de escopo, rotinas desligadas ou horas que não são o padrão. Confira se são deste cliente.
+              </p>
+              <ul className="mt-1 list-disc pl-4">
+                {ajustesSuspeitos.map((a) => <li key={a}>{a}</li>)}
+              </ul>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="preset-client">Nome do Cliente *</Label>

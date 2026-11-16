@@ -1,3 +1,5 @@
+import Can from "@/components/auth/Can";
+import NovaPrecificacaoButton from "@/components/NovaPrecificacaoButton";
 import { useEffect, useMemo, useState } from "react";
 import { mesesDoPrazo, formatarPrazo } from "@/lib/prazoContrato";
 import { PrazoMesesInput } from "@/components/itsm/PrazoMesesInput";
@@ -160,6 +162,7 @@ export default function Precificacoes() {
           <BackHomeButton />
           <h1 className="text-sm font-bold truncate">Precificações Salvas</h1>
           <div className="ml-auto shrink-0 pl-2 flex items-center gap-2">
+            <Can permission="pricing.save_preset"><NovaPrecificacaoButton /></Can>
             <SortableNav current="precificacoes" />
           </div>
         </div>
