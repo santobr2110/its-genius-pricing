@@ -1,4 +1,5 @@
 import { demonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
+import { mesesDoPrazo, formatarPrazo } from "@/lib/prazoContrato";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, fraseReforma } from "@/lib/pricing/reformaTributaria";
@@ -186,10 +187,7 @@ export default function Detalhamento() {
     return () => { cancel = true; };
   }, [activePreset.activeId]);
   const contractTerm = presetCadastro?.contract_term ?? null;
-  const mesesContrato = (() => {
-    const m = String(contractTerm ?? "").match(/(\d+)/);
-    return m ? Number(m[1]) : 12;
-  })();
+  const mesesContrato = mesesDoPrazo(contractTerm);
 
   // Quando não há ativos de Cloud/Datacenter no inventário, o Smart Monitor
   // não faz parte da proposta (ainda que esteja marcado nas configurações).
@@ -1189,7 +1187,7 @@ export default function Detalhamento() {
       restricoesGerais,
       investimentoTotal: investimentoTotal,
       demonstrativo: demonstrativoCliente([{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]),
-      demonstrativoContrato: demonstrativoCliente([{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }],mesesContrato),
+      demonstrativoContrato: mesesContrato == null ? undefined : demonstrativoCliente([{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }],mesesContrato),
       presetName: activePreset.name ?? undefined,
       exportedAt: Date.now(),
       watermark: approval.watermark ?? undefined,
@@ -1873,13 +1871,16 @@ export default function Detalhamento() {
               <div className="text-right text-xs space-y-1">
                 <div><span className="text-muted-foreground">Anual: </span><strong>{formatBRL(investimentoTotal * 12)}</strong></div>
                 <div>
-                  <span className="text-muted-foreground">Total do contrato ({mesesContrato} {mesesContrato === 1 ? "mês" : "meses"}): </span>
-                  <strong>{formatBRL(investimentoTotal * mesesContrato)}</strong>
+                  {mesesContrato == null ? (
+                    <><span className="text-muted-foreground">Total do contrato: </span><strong>Prazo a confirmar</strong></>
+                  ) : (<>
+                  <span className="text-muted-foreground">Total do contrato ({formatarPrazo(mesesContrato)}): </span>
+                  <strong>{formatBRL(investimentoTotal * mesesContrato)}</strong></>)}
                 </div>
               </div>
             </div>
 <PrecoClienteDetalhado parcelas={[{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]} titulo="Preço mensal ao cliente" />
-<PrecoClienteDetalhado parcelas={[{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]} fator={mesesContrato} titulo="Preço do contrato" />
+{mesesContrato != null && <PrecoClienteDetalhado parcelas={[{ preco:investimentoTotal, pisPerc:state.pisPerc, cofinsPerc:state.cofinsPerc, issPerc:state.issPerc }]} fator={mesesContrato} titulo="Preço do contrato" />}
             <div className="mt-4 border-t border-primary/20 pt-3 space-y-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
                 Componentes da oferta{dominantOffer ? ` ${dominantOffer.name}` : ""}
@@ -1922,8 +1923,8 @@ export default function Detalhamento() {
                 <span className="text-sm font-extrabold text-primary tabular-nums">{formatBRL(investimentoTotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-xs font-bold">Total do contrato ({mesesContrato} {mesesContrato === 1 ? "mês" : "meses"})</span>
-                <span className="text-sm font-extrabold text-primary tabular-nums">{formatBRL(investimentoTotal * mesesContrato)}</span>
+                <span className="text-xs font-bold">Total do contrato{mesesContrato != null ? ` (${formatarPrazo(mesesContrato)})` : ""}</span>
+                <span className="text-sm font-extrabold text-primary tabular-nums">{mesesContrato == null ? "Prazo a confirmar" : formatBRL(investimentoTotal * mesesContrato)}</span>
               </div>
             </div>
           </CardContent>

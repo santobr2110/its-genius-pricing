@@ -1,4 +1,5 @@
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
+import { mesesDoPrazo } from "@/lib/prazoContrato";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { computeCustoObservabilidadeNiveis, obsEfetivos, obsHorasLimites } from "@/lib/custoObservabilidadeNiveis";
 import { useCallback } from "react";
@@ -772,10 +773,7 @@ export default function SmartTiersPanel() {
     return () => { cancel = true; };
   }, [activePreset.activeId]);
 
-  const meses = (() => {
-    const m = String(commercial?.contract_term ?? "").match(/(\d+)/);
-    return m ? Number(m[1]) : 12;
-  })();
+  const meses = mesesDoPrazo(commercial?.contract_term);
   const camadasAtivas = [
     state.tierMonitor && !state.tierFlow ? "Smart Monitor" : null,
     state.tierFlow ? "Smart Flow" : null,
@@ -806,7 +804,7 @@ export default function SmartTiersPanel() {
     comissao_pct: Number((state.comissaoPerc ?? 0).toFixed(2)),
     impostos_pct: Number(((state.pisPerc || 0) + (state.cofinsPerc || 0) + (state.issPerc || 0) + (state.irpjCsllPerc || 0)).toFixed(2)),
     meses,
-    investimento_total: Number((totalSelecionado * meses).toFixed(2)),
+    investimento_total: meses == null ? null : Number((totalSelecionado * meses).toFixed(2)),
   }), [commercial, camadasAtivas.join("|"), totalSelecionado, custoTotalMensal, state.lucroPerc, state.comissaoPerc, state.pisPerc, state.cofinsPerc, state.issPerc, state.irpjCsllPerc, meses]);
 
   const approval = usePricingApproval({

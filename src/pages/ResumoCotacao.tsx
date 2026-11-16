@@ -1,4 +1,5 @@
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
+import { mesesDoPrazo } from "@/lib/prazoContrato";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
 import { calcPrecoReforma, parcelasDeLinhas, textoPrecoReforma, REFORMA_VIGENCIA } from "@/lib/pricing/reformaTributaria";
 import { obsEfetivos } from "@/lib/custoObservabilidadeNiveis";
@@ -43,11 +44,6 @@ interface PresetSnapshot {
   allParams: Record<string, unknown> | null;
 }
 
-function parseMonths(term: string | null | undefined): number {
-  if (!term) return 12;
-  const m = String(term).match(/(\d+)/);
-  return m ? Number(m[1]) : 12;
-}
 
 export default function ResumoCotacao() {
   const { state, results, activePreset } = useITSMContext();
@@ -128,7 +124,7 @@ export default function ResumoCotacao() {
   }, [isSaved, snapshot, results, calcState, rotinas, gmuds]);
 
   // ===== Composição financeira (mesma fórmula das Camadas de Oferta) =====
-  const meses = parseMonths(commercial?.contract_term);
+  const meses = mesesDoPrazo(commercial?.contract_term);
   // Modelo de níveis: horas de automação e proxys vêm do novo modelo.
   const obsNivRes = calcState.modeloObservabilidade === "niveis";
   const obsEfRes = obsEfetivos(calcState);
@@ -411,7 +407,7 @@ export default function ResumoCotacao() {
   }
 
   const receitaMes = computed.precoVendaMensal;
-  const investimentoTotal = receitaMes * meses;
+  const investimentoTotal = meses == null ? null : receitaMes * meses;
   const impostos = receitaMes * (((calcState.pisPerc || 0) + (calcState.cofinsPerc || 0) + (calcState.issPerc || 0) + (calcState.irpjCsllPerc || 0)) / 100);
   const comercial = receitaMes * ((calcState.comissaoPerc || 0) / 100);
   const financeiro = receitaMes * ((calcState.encFinancPerc || 0) / 100);
@@ -563,7 +559,7 @@ export default function ResumoCotacao() {
           </div>}
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Taxas e Impostos</h2>
           <div className="grid grid-cols-2 gap-x-12 gap-y-2 mb-8">
-            <Field label="Investimento Total:" value={formatBRL(investimentoTotal)} />
+            <Field label="Investimento Total:" value={investimentoTotal == null ? "Prazo a confirmar" : formatBRL(investimentoTotal)} />
             <Field label={`Mensal a partir de ${REFORMA_VIGENCIA}:`} value={textoPrecoReforma(calcPrecoReforma([{ preco: receitaMes, pisPerc: calcState.pisPerc || 0, cofinsPerc: calcState.cofinsPerc || 0, issPerc: calcState.issPerc || 0 }], cbsReforma))} />
             <Field label="Tributos internos (incl. IR/CSLL):" value={formatBRL(impostos)} />
             <Field label="Receita por Mês:" value={formatBRL(receitaMes)} />
@@ -573,7 +569,7 @@ export default function ResumoCotacao() {
             <Field label="Administrativo:" value={formatBRL(administrativo)} />
           </div>
 
-<PrecoClienteDetalhado parcelas={[{ preco:receitaMes, pisPerc:calcState.pisPerc, cofinsPerc:calcState.cofinsPerc, issPerc:calcState.issPerc }]} titulo="Preço mensal ao cliente" /><PrecoClienteDetalhado parcelas={[{ preco:receitaMes, pisPerc:calcState.pisPerc, cofinsPerc:calcState.cofinsPerc, issPerc:calcState.issPerc }]} fator={meses} titulo="Preço do contrato" />
+<PrecoClienteDetalhado parcelas={[{ preco:receitaMes, pisPerc:calcState.pisPerc, cofinsPerc:calcState.cofinsPerc, issPerc:calcState.issPerc }]} titulo="Preço mensal ao cliente" />{meses != null && <PrecoClienteDetalhado parcelas={[{ preco:receitaMes, pisPerc:calcState.pisPerc, cofinsPerc:calcState.cofinsPerc, issPerc:calcState.issPerc }]} fator={meses} titulo="Preço do contrato" />}
           {/* Rentabilidade */}
           <h2 className="text-center text-xl font-bold mb-4" style={{ color: "#000" }}>Rentabilidade</h2>
           <div className="grid grid-cols-2 mb-10">

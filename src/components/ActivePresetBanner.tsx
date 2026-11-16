@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { mesesDoPrazo } from "@/lib/prazoContrato";
 import { useITSMContext } from "@/contexts/ITSMContext";
 import { closeActivePreset } from "@/lib/activePreset";
 import { Button } from "@/components/ui/button";
@@ -30,7 +32,10 @@ function timeAgo(ts: number | null): string {
 
 export default function ActivePresetBanner() {
   const { activePreset, state, n1Team, n2Team } = useITSMContext();
-  const { save } = usePricingPresets();
+  const { save, presets } = usePricingPresets();
+  const navigate = useNavigate();
+  const atual = presets.find((p) => p.id === activePreset?.activeId);
+  const prazoInvalido = !!atual && mesesDoPrazo(atual.contractTerm) == null;
   const [tick, setTick] = useState(0);
   const [saveAsOpen, setSaveAsOpen] = useState(false);
   const [newName, setNewName] = useState("");
@@ -50,7 +55,14 @@ export default function ActivePresetBanner() {
       const allParams = user
         ? await snapshotCurrentPricingParams(user.id, { calculator: state, n1Team, n2Team })
         : undefined;
-      const p = await save(newName, state, n1Team, n2Team, undefined, undefined, allParams);
+      // Copia os dados comerciais (sem quote_code nem aprovação: a cópia é outra cotação).
+      const p = await save(newName, state, n1Team, n2Team, undefined, undefined, allParams, atual?.salesforceCode ?? null, {
+        clientName: atual?.clientName ?? "",
+        accountManager: atual?.accountManager ?? "",
+        buSpecialist: atual?.buSpecialist ?? "",
+        buArchitect: atual?.buArchitect ?? "",
+        contractTerm: atual?.contractTerm ?? "",
+      });
       toast.success(`"${p.name}" salva como nova precificação.`);
       setSaveAsOpen(false);
       setNewName("");
@@ -77,6 +89,11 @@ export default function ActivePresetBanner() {
               <><Check className="h-3 w-3 text-green-600" /> salvo {timeAgo(activePreset.savedAt) /* refresh tick */}{tick ? "" : ""}</>
             )}
           </span>
+          {prazoInvalido && (
+            <button type="button" className="text-destructive underline underline-offset-2" onClick={() => navigate("/precificacoes")}>
+              Prazo de contrato a confirmar
+            </button>
+          )}
           <div className="ml-auto flex items-center gap-1">
             <Button
               size="sm"
@@ -120,6 +137,13 @@ export default function ActivePresetBanner() {
               placeholder={`Cópia de ${activePreset.name ?? ""}`}
               onKeyDown={(e) => e.key === "Enter" && handleSaveAs()}
             />
+            <div className="rounded-md border bg-muted/40 p-2 text-xs space-y-0.5">
+              <p className="font-medium">Dados comerciais copiados</p>
+              <p><span className="text-muted-foreground">Cliente:</span> {atual?.clientName || "—"}</p>
+              <p><span className="text-muted-foreground">Salesforce:</span> {atual?.salesforceCode || "—"}</p>
+              <p><span className="text-muted-foreground">Prazo:</span> {atual?.contractTerm || "—"}{prazoInvalido ? " (a confirmar)" : ""}</p>
+              <p className="text-muted-foreground">Edite depois pela lista de precificações.</p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setSaveAsOpen(false)}>Cancelar</Button>

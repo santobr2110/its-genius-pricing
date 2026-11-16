@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { mesesDoPrazo, formatarPrazo } from "@/lib/prazoContrato";
+import { PrazoMesesInput } from "@/components/itsm/PrazoMesesInput";
 import { Link } from "react-router-dom";
 import { ArrowLeft, FolderOpen, Trash2, Pencil, Download, Calendar, ExternalLink, Search, UserRoundCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,7 +127,7 @@ export default function Precificacoes() {
       accountManager: p.accountManager ?? "",
       buSpecialist: p.buSpecialist ?? "",
       buArchitect: p.buArchitect ?? "",
-      contractTerm: p.contractTerm ?? "",
+      contractTerm: mesesDoPrazo(p.contractTerm) != null ? formatarPrazo(mesesDoPrazo(p.contractTerm)!) : "",
       salesforceCode: p.salesforceCode ?? "",
     });
   };
@@ -331,11 +333,11 @@ export default function Precificacoes() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="ed-term">Prazo de Contrato</Label>
-              <Input
+              <PrazoMesesInput
                 id="ed-term"
                 value={form.contractTerm}
-                onChange={(e) => setForm((f) => ({ ...f, contractTerm: e.target.value }))}
-                placeholder="Ex.: 12 meses"
+                onChange={(t) => setForm((f) => ({ ...f, contractTerm: t }))}
+                anterior={editPreset?.contractTerm}
               />
             </div>
             <div className="space-y-1">

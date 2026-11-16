@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { mesesDoPrazo } from "@/lib/prazoContrato";
+import { PrazoMesesInput } from "@/components/itsm/PrazoMesesInput";
 import { useNavigate } from "react-router-dom";
 import { FolderOpen, Save, Download, Eye, ChevronDown, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -66,7 +68,7 @@ export default function SavePresetButton() {
     if (!clientName.trim()) missing.push("Nome do Cliente");
     if (!accountManager.trim()) missing.push("Gerente de Conta");
     if (!buSpecialist.trim()) missing.push("Especialista da BU");
-    if (!contractTerm.trim()) missing.push("Prazo de Contrato");
+    if (mesesDoPrazo(contractTerm) == null) missing.push("Prazo de Contrato");
     if (!salesforceCode.trim()) missing.push("No. Oportunidade Sales Force");
     if (!buArchitect.trim()) missing.push("Arquiteto BU");
     if (missing.length) {
@@ -225,7 +227,7 @@ export default function SavePresetButton() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="preset-term">Prazo de Contrato *</Label>
-              <Input id="preset-term" value={contractTerm} onChange={(e) => setContractTerm(e.target.value)} placeholder="Ex.: 12 meses" />
+              <PrazoMesesInput id="preset-term" value={contractTerm} onChange={setContractTerm} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="preset-sf">No. Oportunidade Sales Force *</Label>
