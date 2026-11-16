@@ -1232,7 +1232,7 @@ function RotinaGroupCards({
                     {demanda.toFixed(1)}
                   </p>
                   <p className="text-[9px] text-muted-foreground">
-                    {r.chamadosMes.toFixed(1)}×{mult}
+                    {+r.chamadosMes.toFixed(2)}×{mult}
                   </p>
                 </div>
                 <div>
@@ -1592,7 +1592,7 @@ function NovaRotinaDialog({
           </div>
 
           <p className="text-[11px] text-muted-foreground">
-            Freq/mês: {FREQ_TO_CHAMADOS[frequencia]} • CAC: {(FREQ_TO_CHAMADOS[frequencia] * CAC_FACTOR).toFixed(2)}
+            Freq/mês: {+FREQ_TO_CHAMADOS[frequencia].toFixed(2)} • CAC: {(FREQ_TO_CHAMADOS[frequencia] * CAC_FACTOR).toFixed(2)}
           </p>
         </div>
         <DialogFooter>
