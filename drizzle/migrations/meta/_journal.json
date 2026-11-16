@@ -162,6 +162,13 @@
       "when": 1794850184993,
       "tag": "0023_app_defaults_backup_pricing_owned",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794851868543,
+      "tag": "0024_smart_ito_catalogo_central",
+      "breakpoints": true
     }
   ]
 }
