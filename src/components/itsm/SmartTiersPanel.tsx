@@ -1,7 +1,7 @@
 import Can from "@/components/auth/Can";
 import NovaPrecificacaoButton from "@/components/NovaPrecificacaoButton";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
-import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
+import { useCatalogoDaCotacao } from "@/hooks/useCatalogoDaCotacao";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { computeCustoObservabilidadeNiveis, obsEfetivos, obsHorasLimites } from "@/lib/custoObservabilidadeNiveis";
@@ -266,7 +266,7 @@ export default function SmartTiersPanel() {
     </div>
   );
 
-  const { rotinas: rotinas } = useCatalogoCentral();
+  const { rotinas: rotinas } = useCatalogoDaCotacao();
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   // Seleção manual: quais rotinas do catálogo entram nesta precificação.
   const { offSet: rotinasOffSet, isOff: rotinaOff, toggle: toggleRotina, setOff: setRotinasOff } = useRotinasSelecao();
@@ -284,7 +284,7 @@ export default function SmartTiersPanel() {
     },
     [setRotinasOff],
   );
-  const { gmuds: gmuds } = useCatalogoCentral();
+  const { gmuds: gmuds } = useCatalogoDaCotacao();
   // Distribuição das horas N3 / Automação entre TAM / Owner / Livre.
   // Persistimos o VOLUME de horas (absoluto) — ao alterar o total N3, o volume
   // alocado a TAM/Owner é preservado (o % é recalculado). O % permanece só como

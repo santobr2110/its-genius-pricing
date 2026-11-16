@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
+import { useCatalogoDaCotacao } from "@/hooks/useCatalogoDaCotacao";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -31,7 +31,7 @@ const groups = [
 ] as const;
 
 export default function ClientPanel({ state, update, results }: Props) {
-  const { rotinas: rotinas } = useCatalogoCentral();
+  const { rotinas: rotinas } = useCatalogoDaCotacao();
   const flagsComRotina = useMemo(() => {
     const set = new Set<ComplexFlagKey>();
     rotinas.forEach((r) => {
