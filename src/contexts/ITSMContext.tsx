@@ -231,6 +231,7 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
     n2Results: n2.results,
     loadPreset,
     activePreset,
+    simularPrecoMensal,
   };
 
   return <ITSMContext.Provider value={value}>{children}</ITSMContext.Provider>;
