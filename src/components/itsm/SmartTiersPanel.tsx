@@ -1,6 +1,7 @@
 import Can from "@/components/auth/Can";
 import NovaPrecificacaoButton from "@/components/NovaPrecificacaoButton";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
+import { horasN3DaRotina } from "@/lib/rotinasHoras";
 import { useCatalogoDaCotacao } from "@/hooks/useCatalogoDaCotacao";
 import { AjustesRotinaContext, AjusteRotinaBotao, ResumoAjustesRotinas } from "@/components/itsm/AjustesRotinaCotacao";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
@@ -466,9 +467,10 @@ export default function SmartTiersPanel() {
           ? Math.max(0, Math.min(100, state.percCustoRotinaAutomatizada ?? 100)) / 100
           : 1;
         const usaHoras = !!(r.horasExecucao && r.horasExecucao > 0);
-        const horasMes = usaHoras ? demanda * (r.horasExecucao || 0) * fatorAuto : 0;
+        // Horas cheias consumidas do pacote; automação reduz só o custo.
+        const horasMes = horasN3DaRotina(r, demanda);
         const custo = usaHoras
-          ? horasMes * state.valorHoraN3
+          ? demanda * (r.horasExecucao || 0) * fatorAuto * state.valorHoraN3
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, off: rotinaOff(r.id), demanda, horasMes, cac, custo, venda };
@@ -506,9 +508,9 @@ export default function SmartTiersPanel() {
           : 1;
         const usaHoras = !!(r.horasExecucao && r.horasExecucao > 0);
         const horas = r.horasExecucao ?? 0;
-        const horasMes = usaHoras ? demanda * horas : 0;
+        const horasMes = horasN3DaRotina(r, demanda);
         const custo = usaHoras
-          ? horasMes * state.valorHoraN3 * fatorAuto
+          ? demanda * horas * state.valorHoraN3 * fatorAuto
           : demanda * custoPorChamadoMix * fatorAuto;
         const venda = toSell(custo);
         return { id: r.id, grupo: r.grupo, rotina: r.rotina, automacao: r.automacao, off: rotinaOff(r.id), demanda, horas, horasMes, cac, custo, venda };

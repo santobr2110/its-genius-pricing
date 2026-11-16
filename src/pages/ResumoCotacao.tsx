@@ -1,5 +1,6 @@
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { aplicarAjustesCotacao, type AjustesCotacao } from "@/lib/ajustesCotacao";
+import { horasN3DaRotina } from "@/lib/rotinasHoras";
 import { useCatalogoDaCotacao } from "@/hooks/useCatalogoDaCotacao";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
@@ -177,9 +178,7 @@ export default function ResumoCotacao() {
       const mult = rotinaMultiplicador(r, inv, flags);
       const ch = r.chamadosMes * mult;
       perf += ch;
-      if (!(r as { gerencial?: boolean }).gerencial && ch > 0) {
-        horasN3Rot += ch * (r.horasExecucao ?? 1) * ((r as { automacao?: boolean }).automacao ? fa0 : 1);
-      }
+      horasN3Rot += horasN3DaRotina(r, ch);
     });
     return { rotinasPerformance: perf, horasRotinasN3: horasN3Rot };
   }, [rotinas, calcState]);

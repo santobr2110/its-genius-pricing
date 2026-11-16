@@ -1,4 +1,5 @@
 import { demonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
+import { horasN3DaRotina } from "@/lib/rotinasHoras";
 import { useCatalogoDaCotacao } from "@/hooks/useCatalogoDaCotacao";
 import { mesesDoPrazo, formatarPrazo } from "@/lib/prazoContrato";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
@@ -621,7 +622,7 @@ export default function Detalhamento() {
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
         const demanda = r.chamadosMes * mult;
         const custo = rotinaCusto(r, demanda);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo, horasN3: horasN3DaRotina(r, demanda) };
       })
       .filter(i => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
@@ -641,7 +642,7 @@ export default function Detalhamento() {
         const mult = rotinaMultiplicador(rotina, inv, complexFlags);
         const demanda = r.chamadosMes * mult;
         const custo = rotinaCusto(r, demanda);
-        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo };
+        return { id: r.id, grupo: r.grupo, rotina: r.rotina, freq: r.frequencia, demanda, mult, custo, horasN3: horasN3DaRotina(r, demanda) };
       })
       .filter(i => i.demanda > 0)
       .sort((a, b) => a.grupo.localeCompare(b.grupo, "pt-BR") || a.rotina.localeCompare(b.rotina, "pt-BR"));
@@ -714,12 +715,10 @@ export default function Detalhamento() {
   // Rotinas Performance consomem horas do pool N3 contratado (slider).
   // O custo das rotinas é abatido das horas N3 (sem cobrar em separado).
   // Rotinas Operation seguem o mesmo princípio (absorvidas pelo pool N3 contratado).
-  const horasRotinasOpN3 = state.valorHoraN3 > 0
-    ? custoRotinasOp / state.valorHoraN3
-    : 0;
-  const horasRotinasPerfN3 = state.valorHoraN3 > 0
-    ? (custoRotinasPerfPadrao + custoRotinasPerfComplexo) / state.valorHoraN3
-    : 0;
+  // Regra única (horasN3DaRotina): só rotinas com horas, sem fator de automação.
+  const somaHoras = (arr: { horasN3: number }[]) => arr.reduce((a, b) => a + b.horasN3, 0);
+  const horasRotinasOpN3 = somaHoras(rotinasOp);
+  const horasRotinasPerfN3 = somaHoras(rotinasPerfPadrao) + somaHoras(rotinasPerfComplexo);
   // Quando Performance está ativo, o pool N3 fica em Performance e absorve
   // tanto as rotinas de Performance quanto as de Operation.
   const horasRotinasN3 = horasRotinasOpN3 + horasRotinasPerfN3;
@@ -1428,7 +1427,7 @@ export default function Detalhamento() {
             <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
             <Comp icon={Network} label="Ativos de Rede" qtd={state.qtdAtivosRede} ativo />
             <Comp icon={Database} label="Bancos de Dados" qtd={state.qtdBancosDados} ativo />
-            <Comp icon={Shield} label="Firewall / Sistemas" qtd={state.qtdSistemas} ativo />
+            <Comp icon={Shield} label="Firewall" qtd={state.qtdSistemas} ativo />
             {(state.qtdAmbientesCloud ?? 0) > 0 && <Comp icon={Cloud} label="Ambientes de nuvem" qtd={state.qtdAmbientesCloud} ativo />}
           </ul>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
@@ -1563,7 +1562,7 @@ export default function Detalhamento() {
                 <Comp icon={Server} label="Servidores" qtd={state.qtdServidores} ativo />
                 <Comp icon={Network} label="Ativos de Rede" qtd={state.qtdAtivosRede} ativo />
                 <Comp icon={Database} label="Bancos de Dados" qtd={state.qtdBancosDados} ativo />
-                <Comp icon={Shield} label="Firewall / Sistemas" qtd={state.qtdSistemas} ativo />
+                <Comp icon={Shield} label="Firewall" qtd={state.qtdSistemas} ativo />
             {(state.qtdAmbientesCloud ?? 0) > 0 && <Comp icon={Cloud} label="Ambientes de nuvem" qtd={state.qtdAmbientesCloud} ativo />}
               </ul>
             </>
