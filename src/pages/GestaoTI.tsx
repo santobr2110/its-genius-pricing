@@ -75,6 +75,8 @@ import {
   type GmudFrequencia,
 } from "@/data/gmuds";
 import WriteFence from "@/components/auth/WriteFence";
+import { useCatalogoEditor } from "@/hooks/useCatalogoEditor";
+import CatalogoCentralBanner from "@/components/itsm/CatalogoCentralBanner";
 
 const OFERTAS: Oferta[] = [
   "Monitor",
@@ -148,6 +150,7 @@ function EscalaRotinasPanel() {
                 }
               }}
               className="h-8 text-sm"
+              data-readonly-skip
             />
             <span className="text-xs text-muted-foreground">%</span>
           </div>
@@ -210,6 +213,7 @@ function GmudDistribuicaoPanel() {
                 }
               }}
               className="h-8 text-sm"
+              data-readonly-skip
             />
             <span className="text-xs text-muted-foreground">%</span>
           </div>
@@ -303,7 +307,8 @@ export default function GestaoTI() {
       return g;
     });
     if (changed) setGmuds(next);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prontoParaMigrar]);
 
   const updateRotina = (id: string, patch: Partial<Rotina>) => {
     setRotinas((prev) =>
@@ -513,7 +518,8 @@ export default function GestaoTI() {
       </header>
 
       <main className="mx-auto max-w-[1400px] p-6 space-y-6">
-<WriteFence permission="page.gestao_ti.write">
+        <CatalogoCentralBanner catalogo={catalogo} />
+<WriteFence permission="page.gestao_ti.write" forceReadOnly={catalogo.modo === "central-leitura" || catalogo.modo === "cotacao"} hideBanner={catalogo.modo === "central-leitura" || catalogo.modo === "cotacao"}>
         <Tabs defaultValue="rotinas" className="space-y-6">
           <TabsList>
             <TabsTrigger value="rotinas" className="gap-1.5">
