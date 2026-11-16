@@ -25,4 +25,4 @@
 - Customer statements use pricing/demonstrativoCliente: V2 shows three totals and rates; V1 retains historical rendering. Freeze the presentation version without changing engine precision or saved documents.
 - BodyShop fiscal PPTX templates opt in with DemonstrativoClienteV1/V2; template selection follows the frozen statement version — legacy emissions and regression fixtures remain unchanged.
 - Quote-owned keys live only in PRICING_OWNED_RAW_KEYS; profiles/defaults strip them, only quote loading keeps them — no scope leaks between clients.
-- Smart ITO rotinas/GMUDs: one central catalog (publish via versioned RPC); quotes freeze a copy, profiles strip CATALOG_KEYS — no repricing.
+- ITO rotinas/GMUDs: central catalog; quotes freeze a copy — no repricing.
