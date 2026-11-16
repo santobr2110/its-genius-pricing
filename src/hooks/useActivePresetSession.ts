@@ -1,3 +1,4 @@
+import { CATALOGO_VERSAO_KEY } from "@/lib/paramKeys";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getActivePresetId, ACTIVE_PRESET_CHANGED_EVENT } from "@/lib/activePreset";
@@ -161,7 +162,7 @@ export function useActivePresetSession(): ActivePresetStatus {
       itensAdicionais: allParams[SMART_ITO_NS + "escopo:itensAdicionais"],
     };
 
-    const payload = { calculator, n1Team, n2Team, escopo, allParams };
+    const payload = { calculator, n1Team, n2Team, escopo, allParams, catalogoVersao: allParams[CATALOGO_VERSAO_KEY] };
 
     const { error } = await supabase
       .from("pricing_presets")

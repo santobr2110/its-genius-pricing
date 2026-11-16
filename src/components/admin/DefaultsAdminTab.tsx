@@ -282,7 +282,7 @@ function SetDefaultProfileDialog({
       // de Cliente, removemos antes de gravar como padrão.
       const payload = stripCatalogKeys(stripPricingOwnedKeys(stripClientProfileFields(
         (profile.payload ?? {}) as Record<string, unknown>,
-      ));
+      )));
       const rows = Object.entries(payload).map(([key, value]) => ({
         key,
         value: value as never,
