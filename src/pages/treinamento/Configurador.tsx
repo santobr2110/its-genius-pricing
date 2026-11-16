@@ -2,7 +2,7 @@ import { assinaturaTreinamento } from "@/lib/treinamento/congelamento";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,13 @@ export default function Configurador() {
     const ids = tax.codes.filter((c) => (Object.values(params.produtos ?? PRODUTO_TRN) as string[]).includes(c.codigo)).map((c) => c.id);
     return Array.from(new Set(tax.rates.filter((r) => ids.includes(r.tax_product_code_id)).map((r) => r.municipio))).sort();
   }, [tax.codes, tax.rates, params.produtos]);
+  // Proteção: município sem alíquotas para os SKUs do Treinamento zera o preço — volta para Joinville (ou o primeiro disponível).
+  useEffect(() => {
+    if (!municipios.length || municipios.includes(config.municipio)) return;
+    const destino = municipios.includes(CONFIG_PADRAO.municipio) ? CONFIG_PADRAO.municipio : municipios[0];
+    setConfig({ ...config, municipio: destino });
+    toast.info(`Município ajustado para ${destino}: não há alíquotas cadastradas para "${config.municipio || "vazio"}".`);
+  }, [municipios, config.municipio]); // eslint-disable-line react-hooks/exhaustive-deps
   const rates = resolveTaxRates(config.codigoProduto || CODIGO_TRN, config.municipio, hoje(), tax.codes, tax.rates);
   const approval = usePricingApproval({
     offering: "treinamento", targetType: "pricing_preset", targetId: atual.id, rentPct: res.rentabilidadePerc,
@@ -113,6 +120,13 @@ export default function Configurador() {
             <div className="space-y-1"><Label className="text-xs flex items-center gap-1.5 h-4 text-muted-foreground"><FileSignature className="h-3.5 w-3.5 text-primary" /> Nome da cotação (opcional)</Label><Input value={atual.nome} onChange={(e) => setAtual({ ...atual, nome: e.target.value })} placeholder="Ex.: Turma ZCS março" /></div>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex items-center gap-2 mr-auto">
+              <Label className="text-xs text-muted-foreground shrink-0">Município (ISS)</Label>
+              <Select value={config.municipio} onValueChange={(v) => setConfig({ ...config, municipio: v })}>
+                <SelectTrigger className="h-9 w-48"><SelectValue /></SelectTrigger>
+                <SelectContent>{(municipios.length ? municipios : [config.municipio]).map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
             {codigoAtual && <Badge variant="outline" className="font-mono">{codigoAtual}</Badge>}
             <Button variant="outline" onClick={nova}><FilePlus2 className="h-4 w-4 mr-1" /> Nova</Button>
             <Button onClick={salvar} disabled={salvando || linhas.length === 0 || !can("page.trn.quote")}><Save className="h-4 w-4 mr-1" /> Salvar</Button>
