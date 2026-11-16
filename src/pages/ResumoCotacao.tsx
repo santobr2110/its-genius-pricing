@@ -173,7 +173,6 @@ export default function ResumoCotacao() {
     // Horas do pool N3 consumidas pelas rotinas preventivas (não gerenciais,
     // — mesma regra do Relatório de Proposição.
     let horasN3Rot = 0;
-    const fa0 = Math.max(0, Math.min(100, calcState.percCustoRotinaAutomatizada ?? 100)) / 100;
     rotinas.forEach((r) => {
       const mult = rotinaMultiplicador(r, inv, flags);
       const ch = r.chamadosMes * mult;
