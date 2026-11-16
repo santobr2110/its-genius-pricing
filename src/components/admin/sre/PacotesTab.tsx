@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ArrowDown, ArrowUp, Copy, Pencil, Plus, Trash2, Undo2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,8 +44,6 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
   }, [pacotes, prm, tax.codes, tax.rates, central]);
 
   const lista = pacotes.filter((p) => filtro === "todos" || (filtro === "ativos" ? p.ativo : !p.ativo));
-  const escada = pacotes.filter((p) => p.ativo).map((p) => ({ horas: Number(p.horas_execucao), valorHora: calc.get(p.id)?.valorHoraExecucao ?? 0, pn: p.part_number }))
-    .filter((x) => x.valorHora > 0).sort((a, b) => a.horas - b.horas);
 
   const salvar = async () => {
     if (!ed) return;
@@ -99,24 +96,6 @@ export default function SrePacotesTab({ pacotes, params, refresh }: SreCadastro)
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Valor por hora por pacote</CardTitle>
-          <p className="text-xs text-muted-foreground">Valor por hora de execução contra o tamanho do pacote (município {prm.municipioPadrao}, sem desconto, rentabilidade padrão de {num(prm.rentabilidadePadraoPerc)}%). Na venda, o vendedor define a rentabilidade da cotação.</p>
-        </CardHeader>
-        <CardContent className="h-56">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={escada} margin={{ left: 8, right: 16, top: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="horas" scale="log" domain={["dataMin", "dataMax"]} type="number" ticks={escada.map((x) => x.horas)} tick={{ fontSize: 10 }} />
-              <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10 }} tickFormatter={(v) => `R$ ${Math.round(v)}`} width={60} />
-              <Tooltip formatter={(v: number) => brl(v)} labelFormatter={(h) => `${h} horas`} />
-              <Line type="monotone" dataKey="valorHora" name="Valor/hora" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <div>
