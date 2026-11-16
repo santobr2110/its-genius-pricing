@@ -1,3 +1,4 @@
+import { FREQ_TO_EXECUCOES_MES } from "@/data/frequencias";
 export type Oferta =
   | "Monitor"
   | "Flow"
@@ -48,15 +49,7 @@ export const FREQUENCIAS: Frequencia[] = [
   "Anual",
 ];
 
-export const FREQ_TO_CHAMADOS: Record<Frequencia, number> = {
-  Semanal: 4,
-  Quinzenal: 2,
-  Mensal: 1,
-  Bimestral: 0.5,
-  Trimestral: 0.3,
-  Semestral: 0.2,
-  Anual: 0.1,
-};
+export const FREQ_TO_CHAMADOS: Record<Frequencia, number> = FREQ_TO_EXECUCOES_MES;
 
 export const CAC_FACTOR = 0.2;
 
