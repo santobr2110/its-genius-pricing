@@ -2202,6 +2202,8 @@ function GmudTable({
   totals,
   venda,
   toSell,
+  offSet,
+  onToggle,
 }: {
   titulo: string;
   vazio: string;
