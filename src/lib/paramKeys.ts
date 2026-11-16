@@ -18,6 +18,7 @@ const SMART_ITO_RAW = [
   "gestao-ti:rotinas",
   "gestao-ti:gmuds",
   "gestao-ti:rotinasOff",
+  "gestao-ti:ajustesCotacao",
   "gestao-ti:smartPerf:n3Cortes",
   "gestao-ti:smartPerf:n3AllocHoras",
   "gestao-ti:smartOp:horasMelhoria",
@@ -90,6 +91,7 @@ export function keysForOffering(offering: ParamOffering): string[] {
 /** Chaves cruas que pertencem à cotação, nunca a perfil/padrão global. */
 export const PRICING_OWNED_RAW_KEYS: readonly string[] = [
   "gestao-ti:rotinasOff",
+  "gestao-ti:ajustesCotacao",
   "gestao-ti:smartPerf:n3Cortes",
   "gestao-ti:smartPerf:n3AllocHoras",
   "gestao-ti:smartOp:horasMelhoria",

@@ -1,5 +1,6 @@
 // @refresh reset
-import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
+import { aplicarAjustesCotacao } from "@/lib/ajustesCotacao";
+import { useCatalogoDaCotacao } from "@/hooks/useCatalogoDaCotacao";
 import { createContext, useContext, ReactNode, useEffect, useCallback, useMemo } from "react";
 import { useITSMCalculator, ITSMState, ITSMResults } from "@/hooks/useITSMCalculator";
 import { useN1TeamState, N1TeamState, N1TeamResults } from "@/hooks/useN1TeamState";
@@ -88,10 +89,10 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   // e a composição do PV reflitam os mesmos extras exibidos nas camadas Smart
   // e no Relatório de Proposição (Configurações Financeiras vs Camadas vs
   // Relatório passam a usar a mesma base de custo).
-  const { rotinas: rotinasAll } = useCatalogoCentral();
+  const { rotinas: rotinasAll } = useCatalogoDaCotacao();
   const { offSet } = useRotinasSelecao();
   const rotinas = useMemo(() => filterRotinasAtivas(rotinasAll, offSet), [rotinasAll, offSet]);
-  const { gmuds: gmuds } = useCatalogoCentral();
+  const { gmuds: gmuds, ajustes: ajustesCotacao } = useCatalogoDaCotacao();
 
   // Tabela corporativa administrada centralmente; estado local guarda a escala da cotação.
   const [tiersSalvos, persistirTiers] = usePersistentState<ComissaoTier[]>(
@@ -159,10 +160,12 @@ export function ITSMProvider({ children }: { children: ReactNode }) {
   }, [n2.results.custoTotalEquipe, n2.teamState.capacidadeChamadosTotal, calc.state.custoAnalistaN2, calc.state.capacidadeChamadosN2, calc.state.percGestaoN2, calc.setState]);
 
   const simularPrecoMensal = useCallback((rotinasCat: Rotina[], gmudsCat: Gmud[]) => {
-    const ativas = filterRotinasAtivas(rotinasCat, offSet);
-    const extras = computeExtrasOperacionais(calc.state, calc.results, ativas, gmudsCat);
+    // Ajustes da cotação valem também para o catálogo vigente simulado.
+    const aj = aplicarAjustesCotacao(rotinasCat, gmudsCat, ajustesCotacao);
+    const ativas = filterRotinasAtivas(aj.rotinas, offSet);
+    const extras = computeExtrasOperacionais(calc.state, calc.results, ativas, aj.gmuds);
     return recomputeComposicaoComExtras(calc.state, calc.results, extras.custoTotal).precoVendaMensal;
-  }, [calc.state, calc.results, offSet]);
+  }, [calc.state, calc.results, offSet, ajustesCotacao]);
 
   const loadPreset = useCallback((preset: PricingPreset) => {
     // Em uma aba que já está editando uma precificação, "carregar" não faz

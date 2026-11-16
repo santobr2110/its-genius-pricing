@@ -1,5 +1,5 @@
 import { demonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
-import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
+import { useCatalogoDaCotacao } from "@/hooks/useCatalogoDaCotacao";
 import { mesesDoPrazo, formatarPrazo } from "@/lib/prazoContrato";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import { useReformaCBS } from "@/hooks/useReformaCBS";
@@ -523,14 +523,14 @@ export default function Detalhamento() {
     }
   };
 
-  const { rotinas: rotinasAll } = useCatalogoCentral();
+  const { rotinas: rotinasAll } = useCatalogoDaCotacao();
   const { offSet: rotinasOffSet } = useRotinasSelecao();
   const rotinas = useMemo(
     () => filterRotinasAtivas(rotinasAll, rotinasOffSet),
     [rotinasAll, rotinasOffSet],
   );
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
-  const { gmuds: gmuds } = useCatalogoCentral();
+  const { gmuds: gmuds } = useCatalogoDaCotacao();
   // Alocação absoluta de horas TAM/Owner (fonte canônica editada em Camadas).
   // `n3Cortes` permanece apenas como fallback legado.
   const [n3AllocHoras] = usePersistentState<[number, number]>("gestao-ti:smartPerf:n3AllocHoras", [0, 0]);

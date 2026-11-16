@@ -12,6 +12,7 @@ import {
   CAMADA_LABEL, CAMADA_ORDEM, ESCOPO_DEFAULT, ITENS_ADICIONAIS_DEFAULT, RESTRICOES_GERAIS_DEFAULT,
   type EscopoProposicao,
 } from "@/data/escopoProposicao";
+import { AJUSTES_COTACAO_PADRAO, resumoAjustes } from "@/lib/ajustesCotacao";
 import { getActivePresetId, setActivePresetId } from "@/lib/activePreset";
 
 /** Valor padrão de cada chave da cotação; `undefined` = a chave é removida. */
@@ -20,6 +21,7 @@ const PADRAO_POR_CHAVE: Record<string, unknown> = {
   "escopo:restricoesGerais": RESTRICOES_GERAIS_DEFAULT,
   "escopo:itensAdicionais": ITENS_ADICIONAIS_DEFAULT,
   "gestao-ti:rotinasOff": [],
+  "gestao-ti:ajustesCotacao": AJUSTES_COTACAO_PADRAO,
   "gestao-ti:smartPerf:n3AllocHoras": [0, 0],
   "gestao-ti:smartPerf:n3Cortes": undefined,
   "gestao-ti:smartOp:horasMelhoria": 0,
@@ -70,6 +72,7 @@ export function ajustesForaDoPadrao(ler: (rawKey: string) => unknown): string[] 
   if (itens !== undefined && !igual(itens, ITENS_ADICIONAIS_DEFAULT)) out.push("Itens adicionais editados");
   const off = ler("gestao-ti:rotinasOff");
   if (Array.isArray(off) && off.length) out.push(`${off.length} ${off.length === 1 ? "rotina desligada" : "rotinas desligadas"}`);
+  out.push(...resumoAjustes(ler("gestao-ti:ajustesCotacao")));
   const melhoria = (Number(ler("gestao-ti:smartOp:horasMelhoria")) || 0) + (Number(ler("gestao-ti:smartPerf:horasMelhoria")) || 0);
   if (melhoria) out.push(`Horas de melhoria: ${melhoria}`);
   const alloc = ler("gestao-ti:smartPerf:n3AllocHoras");

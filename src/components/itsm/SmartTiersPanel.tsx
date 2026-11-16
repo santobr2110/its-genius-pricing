@@ -1,7 +1,8 @@
 import Can from "@/components/auth/Can";
 import NovaPrecificacaoButton from "@/components/NovaPrecificacaoButton";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
-import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
+import { useCatalogoDaCotacao } from "@/hooks/useCatalogoDaCotacao";
+import { AjustesRotinaContext, AjusteRotinaBotao, ResumoAjustesRotinas } from "@/components/itsm/AjustesRotinaCotacao";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { computeCustoObservabilidadeNiveis, obsEfetivos, obsHorasLimites } from "@/lib/custoObservabilidadeNiveis";
@@ -266,7 +267,13 @@ export default function SmartTiersPanel() {
     </div>
   );
 
-  const { rotinas: rotinas } = useCatalogoCentral();
+  const catCot = useCatalogoDaCotacao();
+  const rotinas = catCot.rotinas;
+  const ajustesRotinaCtx = useMemo(
+    () => ({ porId: new Map(catCot.rotinas.map((x) => [x.id, x])), ajustes: catCot.ajustes, ajustarRotina: catCot.ajustarRotina }),
+    [catCot.rotinas, catCot.ajustes, catCot.ajustarRotina],
+  );
+  const gmudsOffSet = useMemo(() => new Set(catCot.ajustes.gmudsOff), [catCot.ajustes.gmudsOff]);
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   // Seleção manual: quais rotinas do catálogo entram nesta precificação.
   const { offSet: rotinasOffSet, isOff: rotinaOff, toggle: toggleRotina, setOff: setRotinasOff } = useRotinasSelecao();
@@ -284,7 +291,8 @@ export default function SmartTiersPanel() {
     },
     [setRotinasOff],
   );
-  const { gmuds: gmuds } = useCatalogoCentral();
+  // Lista completa do catálogo; GMUDs desligadas aparecem riscadas e saem do total.
+  const gmuds = catCot.gmudsCatalogo;
   // Distribuição das horas N3 / Automação entre TAM / Owner / Livre.
   // Persistimos o VOLUME de horas (absoluto) — ao alterar o total N3, o volume
   // alocado a TAM/Owner é preservado (o % é recalculado). O % permanece só como
@@ -722,6 +730,7 @@ export default function SmartTiersPanel() {
     const items = gmudBuckets.operation.map((g) => computeGmud(g, gmudInput));
     const totals = items.reduce(
       (acc, i) => {
+        if (gmudsOffSet.has(i.id)) return acc;
         acc.chamados += i.chamadosMes;
         acc.horasN3 += i.horasN3;
         acc.custo += i.custo;
@@ -731,11 +740,12 @@ export default function SmartTiersPanel() {
     );
     return { items, totals, venda: toSell(totals.custo) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
+  }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda, gmudsOffSet]);
   const gmudPerformance = useMemo(() => {
     const items = gmudBuckets.performance.map((g) => computeGmud(g, gmudInput));
     const totals = items.reduce(
       (acc, i) => {
+        if (gmudsOffSet.has(i.id)) return acc;
         acc.chamados += i.chamadosMes;
         acc.horasN3 += i.horasN3;
         acc.custo += i.custo;
@@ -745,7 +755,7 @@ export default function SmartTiersPanel() {
     );
     return { items, totals, venda: toSell(totals.custo) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda]);
+  }, [gmudBuckets, results.custoPorChamadoN2, state.tempoMedioChamadoN3, state.valorHoraN3, state.percGmudN2, state.percGmudN3, fatorVenda, gmudsOffSet]);
 
   const smOperationVenda = state.tierOperation
     ? tierPricing.venda.operation + gerenciaisVendaIn("Operation")
@@ -847,6 +857,7 @@ export default function SmartTiersPanel() {
   }, [flowAdvanced, state.horasN3FlowManut, state.horasN3Flow]);
 
   return (
+    <AjustesRotinaContext.Provider value={ajustesRotinaCtx}>
     <Card>
       <CardHeader className="pb-3">
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(180px,auto)_minmax(0,1fr)_auto] lg:items-center">
@@ -1517,6 +1528,7 @@ export default function SmartTiersPanel() {
                     custo/ch ponderado: {formatBRL(custoPorChamadoMix)}
                   </span>
                 </div>
+                <ResumoAjustesRotinas ids={rotinasOperation.items.map((i) => i.id)} />
                 <div className="max-h-56 overflow-auto rounded border">
                   <table className="w-full text-[11px]">
                     <thead className="bg-muted sticky top-0">
@@ -1563,6 +1575,7 @@ export default function SmartTiersPanel() {
                             {i.automacao && (
                               <span className="ml-1 text-[9px] text-primary">[auto]</span>
                             )}
+                            <AjusteRotinaBotao id={i.id} />
                           </td>
                           <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
                           <td className="px-2 py-1 text-right tabular-nums">{i.cac.toFixed(2)}</td>
@@ -1736,6 +1749,8 @@ export default function SmartTiersPanel() {
               totals={gmudOperation.totals}
               venda={gmudOperation.venda}
               toSell={toSell}
+              offSet={gmudsOffSet}
+              onToggle={catCot.toggleGmud}
             />
             {(() => {
               const g = gerenciaisEmCamada("Operation");
@@ -1991,6 +2006,8 @@ export default function SmartTiersPanel() {
               totals={gmudPerformance.totals}
               venda={gmudPerformance.venda}
               toSell={toSell}
+              offSet={gmudsOffSet}
+              onToggle={catCot.toggleGmud}
             />
             {(() => {
               const g = gerenciaisEmCamada("Performance");
@@ -2056,6 +2073,7 @@ export default function SmartTiersPanel() {
         </div>
       </CardContent>
     </Card>
+    </AjustesRotinaContext.Provider>
   );
 }
 
@@ -2111,6 +2129,7 @@ function LayerRoutineTable({
       {descricao && (
         <p className="text-[10px] text-muted-foreground italic px-1">{descricao}</p>
       )}
+      {onToggle && <ResumoAjustesRotinas ids={items.map((i) => i.id)} />}
       <div className="max-h-56 overflow-auto rounded border">
         <table className="w-full text-[11px]">
           <thead className="bg-muted sticky top-0">
@@ -2153,6 +2172,7 @@ function LayerRoutineTable({
                   {i.automacao && (
                     <span className="ml-1 text-[9px] text-primary">[auto]</span>
                   )}
+                  {onToggle && <AjusteRotinaBotao id={i.id} />}
                 </td>
                 <td className="px-2 py-1 text-right tabular-nums">{i.demanda.toFixed(1)}</td>
                 <td className="px-2 py-1 text-right tabular-nums">{formatBRL(i.custo)}</td>
@@ -2182,6 +2202,8 @@ function GmudTable({
   totals,
   venda,
   toSell,
+  offSet,
+  onToggle,
 }: {
   titulo: string;
   vazio: string;
@@ -2189,8 +2211,11 @@ function GmudTable({
   totals: { chamados: number; horasN3: number; custo: number };
   venda: number;
   toSell: (c: number) => number;
+  offSet?: Set<string>;
+  onToggle?: (id: string) => void;
 }) {
   if (items.length === 0) return null;
+  const ativos = items.filter((g) => !offSet?.has(g.id)).length;
   return (
     <div className="rounded border bg-background p-2 space-y-1.5">
       <div className="flex items-center justify-between">
@@ -2199,13 +2224,14 @@ function GmudTable({
           <p className="text-xs font-semibold">{titulo}</p>
         </div>
         <span className="text-[10px] text-muted-foreground">
-          {items.length} GMUD{items.length === 1 ? "" : "s"}
+          {ativos}/{items.length} GMUD{items.length === 1 ? "" : "s"}
         </span>
       </div>
       <div className="max-h-56 overflow-auto rounded border">
         <table className="w-full text-[11px]">
           <thead className="bg-muted sticky top-0">
             <tr>
+              {onToggle && <th className="w-7 px-1 py-1" />}
               <th className="text-left px-2 py-1 font-medium">Descrição</th>
               <th className="text-left px-2 py-1 font-medium w-20">Tipo</th>
               <th className="text-left px-2 py-1 font-medium w-24">Frequência</th>
@@ -2216,8 +2242,19 @@ function GmudTable({
           </thead>
           <tbody>
             {items.map((g) => (
-              <tr key={g.id} className="border-t">
-                <td className="px-2 py-1">{g.descricao}</td>
+              <tr key={g.id} className={`border-t ${offSet?.has(g.id) ? "opacity-45" : ""}`}>
+                {onToggle && (
+                  <td className="px-1 py-1 text-center">
+                    <input
+                      type="checkbox"
+                      className="h-3 w-3 accent-emerald-600 cursor-pointer"
+                      checked={!offSet?.has(g.id)}
+                      onChange={() => onToggle(g.id)}
+                      title={offSet?.has(g.id) ? "Incluir GMUD na precificação" : "Remover GMUD da precificação"}
+                    />
+                  </td>
+                )}
+                <td className={`px-2 py-1 ${offSet?.has(g.id) ? "line-through" : ""}`}>{g.descricao}</td>
                 <td className="px-2 py-1 text-[10px] text-muted-foreground">{g.tipo}</td>
                 <td className="px-2 py-1 text-[10px] text-muted-foreground">{g.frequencia}</td>
                 <td className="px-2 py-1 text-right tabular-nums">{g.chamadosMes.toFixed(2)}</td>
@@ -2228,7 +2265,7 @@ function GmudTable({
           </tbody>
           <tfoot className="bg-muted sticky bottom-0">
             <tr>
-              <td className="px-2 py-1 font-semibold" colSpan={3}>Total</td>
+              <td className="px-2 py-1 font-semibold" colSpan={onToggle ? 4 : 3}>Total</td>
               <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.chamados.toFixed(2)}</td>
               <td className="px-2 py-1 text-right font-semibold tabular-nums">{totals.horasN3.toFixed(2)}</td>
               <td className="px-2 py-1 text-right font-bold text-primary tabular-nums">{formatBRL(venda)}</td>
