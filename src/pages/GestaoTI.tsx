@@ -238,13 +238,14 @@ export default function GestaoTI() {
     complexErpMercado: itsm.complexErpMercado,
   };
 
-  const [rotinas, setRotinas] = usePersistentState<Rotina[]>(
-    "gestao-ti:rotinas",
-    ROTINAS_DEFAULT,
-  );
+  const catalogo = useCatalogoEditor();
+  const { rotinas, setRotinas, gmuds, setGmuds, prontoParaMigrar } = catalogo;
 
-  // Migração: normaliza grupo "BACKUP" → "Backup" e abrangencia para enum em dados antigos
+  // Migração: normaliza grupo "BACKUP" → "Backup" e abrangencia para enum em dados antigos.
+  // Atua só sobre a fonte editável (rascunho do central ou catálogo pessoal);
+  // nunca roda no modo cotação nem em leitura.
   useEffect(() => {
+    if (!prontoParaMigrar) return;
     let changed = false;
     const next = rotinas.map((rRaw) => {
       // Migração: rotinas legadas com oferta "Todos" viram gerencial vinculadas a Operation
@@ -276,14 +277,12 @@ export default function GestaoTI() {
       return Object.keys(patch).length ? { ...r, ...patch } : r;
     });
     if (changed) setRotinas(next as Rotina[]);
-  }, []);
-  const [gmuds, setGmuds] = usePersistentState<Gmud[]>(
-    "gestao-ti:gmuds",
-    GMUDS_DEFAULT,
-  );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prontoParaMigrar]);
 
   // Migração: garante que GMUDs antigas tenham `frequencia`.
   useEffect(() => {
+    if (!prontoParaMigrar) return;
     let changed = false;
     const next = gmuds.map((g) => {
       if (!g.frequencia) {

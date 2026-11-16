@@ -19,6 +19,8 @@ import {
   recarregarCatalogoCentral,
   useCatalogoCentralState,
   catalogoCentralInicializado,
+  ConflitoCatalogoError,
+  MSG_CONFLITO_CATALOGO,
 } from "@/hooks/useCatalogoCentral";
 import { contarAlteracoesCatalogo } from "@/lib/catalogoCentral";
 
@@ -100,7 +102,6 @@ export function useCatalogoEditor() {
     const alterouGmuds = contarAlteracoesCatalogo(centralGmuds as never, rascunhoGmuds as never) > 0;
     // Confere a versão atual antes de gravar (a função no banco também confere).
     const atual = await recarregarCatalogoCentral();
-    const { ConflitoCatalogoError, MSG_CONFLITO_CATALOGO } = await import("@/hooks/useCatalogoCentral");
     if ((atual.rotinas?.versao ?? 0) !== base.rotinas || (atual.gmuds?.versao ?? 0) !== base.gmuds) {
       throw new ConflitoCatalogoError(MSG_CONFLITO_CATALOGO);
     }
