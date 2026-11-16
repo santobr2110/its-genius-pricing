@@ -10,6 +10,8 @@ interface Props {
   anyOf?: PermissionKey[];
   /** Ocultar a faixa "somente leitura" no topo (padrão: mostra). */
   hideBanner?: boolean;
+  /** Força somente leitura mesmo com permissão (ex.: catálogo central sem permissão própria). */
+  forceReadOnly?: boolean;
   children: ReactNode;
 }
 
@@ -19,9 +21,9 @@ interface Props {
  * escrita informada. Links de navegação (`<a>`) continuam funcionais.
  * Complementa as verificações servidor-side (RLS) já existentes.
  */
-export default function WriteFence({ permission, anyOf, hideBanner, children }: Props) {
+export default function WriteFence({ permission, anyOf, hideBanner, forceReadOnly, children }: Props) {
   const { can } = useAuth();
-  const canWrite = can(permission) || (anyOf?.some((p) => can(p)) ?? false);
+  const canWrite = !forceReadOnly && (can(permission) || (anyOf?.some((p) => can(p)) ?? false));
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {

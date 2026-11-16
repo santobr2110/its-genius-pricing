@@ -1,4 +1,5 @@
 import { useITSMContext } from "@/contexts/ITSMContext";
+import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -42,14 +43,14 @@ export default function RelatorioDemanda() {
   const fatorLimite = 1 + limitePerc / 100;
 
   // === Rotinas (CACs previstos por origem/ativo) ===
-  const [rotinasAll] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { rotinas: rotinasAll } = useCatalogoCentral();
   const { offSet: rotinasOffSet } = useRotinasSelecao();
   const rotinas = useMemo(
     () => filterRotinasAtivas(rotinasAll, rotinasOffSet),
     [rotinasAll, rotinasOffSet],
   );
   // === GMUDs (demanda extra para N2/N3) ===
-  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+  const { gmuds: gmuds } = useCatalogoCentral();
   const gmudData = useMemo(() => {
     const input = {
       custoPorChamadoN2: results.custoPorChamadoN2,

@@ -1,3 +1,4 @@
+import { CATALOGO_VERSAO_KEY } from "@/lib/paramKeys";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ITSMState } from "./useITSMCalculator";
@@ -171,7 +172,7 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Faça login para salvar precificações.");
       const finalName = name.trim() || `Precificação ${new Date().toLocaleString("pt-BR")}`;
-      const payload = { calculator, n1Team, n2Team, volumes, escopo, allParams };
+      const payload = { calculator, n1Team, n2Team, volumes, escopo, allParams, catalogoVersao: allParams?.[CATALOGO_VERSAO_KEY] };
       const { data, error } = await supabase
         .from("pricing_presets")
         .insert({
@@ -208,7 +209,7 @@ export function usePricingPresets({ autoLoad = true }: { autoLoad?: boolean } = 
       escopo?: PresetEscopo,
       allParams?: ParamPayload,
     ) => {
-      const payload = { calculator, n1Team, n2Team, volumes, escopo, allParams };
+      const payload = { calculator, n1Team, n2Team, volumes, escopo, allParams, catalogoVersao: allParams?.[CATALOGO_VERSAO_KEY] };
       const { error } = await supabase
         .from("pricing_presets")
         .update({ payload: payload as unknown as never })

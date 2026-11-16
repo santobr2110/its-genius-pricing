@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { stripPricingOwnedKeys } from "@/lib/paramKeys";
+import { stripPricingOwnedKeys, stripCatalogKeys, CATALOGO_VERSAO_KEY } from "@/lib/paramKeys";
+import { getCatalogoCentralState, recarregarCatalogoCentral } from "@/hooks/useCatalogoCentral";
 import { normalizarValorLegado } from "@/lib/normalizacoesLegado";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyPersistentStateRestored } from "./usePersistentState";
@@ -105,7 +106,7 @@ export async function snapshotCurrentParams(
   const out = await snapshotStoredParams(userId, offering);
   // Remove campos de "Perfil de Cliente" / inputs pontuais do calculator
   // e as chaves que pertencem à cotação (escopo, rotinas desligadas, horas).
-  return stripPricingOwnedKeys(stripClientProfileFields(out));
+  return stripCatalogKeys(stripPricingOwnedKeys(stripClientProfileFields(out)));
 }
 
 /** Snapshot para precificação: mantém exatamente os inputs da tela. */
@@ -115,6 +116,23 @@ export async function snapshotCurrentPricingParams(
   offering: ParamOffering = "smart-ito",
 ): Promise<ParamPayload> {
   const out = await snapshotStoredParams(userId, offering);
+  // Cotação nova (fora do modo cotação): congela o catálogo CENTRAL vigente.
+  // "Salvar como nova" a partir de uma cotação mantém a cópia da origem
+  // (lida do sessionStorage da cotação por snapshotStoredParams).
+  if (offering === "smart-ito" && !getActivePresetId()) {
+    const central = await recarregarCatalogoCentral().catch(() => getCatalogoCentralState());
+    if (central.rotinas || central.gmuds) {
+      if (central.rotinas) out[SMART_ITO_NS + "gestao-ti:rotinas"] = central.rotinas.conteudo;
+      if (central.gmuds) out[SMART_ITO_NS + "gestao-ti:gmuds"] = central.gmuds.conteudo;
+      out[CATALOGO_VERSAO_KEY] = {
+        rotinas: central.rotinas?.versao ?? 0,
+        gmuds: central.gmuds?.versao ?? 0,
+        salvoEm: new Date().toISOString(),
+      };
+    } else {
+      delete out[CATALOGO_VERSAO_KEY];
+    }
+  }
   if (current.calculator) out[CALCULATOR_KEY] = current.calculator;
   if (current.n1Team) out[N1_TEAM_KEY] = current.n1Team;
   if (current.n2Team) out[N2_TEAM_KEY] = current.n2Team;
@@ -128,7 +146,10 @@ export async function applyParamsPayload(
 ): Promise<void> {
   // Perfis/padrões nunca sobrescrevem escopo e escolhas da cotação; só o
   // carregamento de uma cotação salva traz essas chaves.
-  const payload = opts.incluirChavesDaCotacao ? rawPayload : stripPricingOwnedKeys(rawPayload);
+  const semCotacao = opts.incluirChavesDaCotacao ? rawPayload : stripPricingOwnedKeys(rawPayload);
+  // Catálogo de rotinas/GMUDs: perfis nunca aplicam; carregar uma cotação só
+  // o restaura dentro do modo cotação (nunca copia para o rascunho pessoal).
+  const payload = opts.incluirChavesDaCotacao && getActivePresetId() ? semCotacao : stripCatalogKeys(semCotacao);
   const { data: { user } } = await supabase.auth.getUser();
   // Ao aplicar um perfil, preservamos os campos de Perfil de Cliente
   // do estado atual da precificação. Se o payload do perfil contiver

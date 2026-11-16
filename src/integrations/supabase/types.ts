@@ -1179,6 +1179,66 @@ export type Database = {
         }
         Relationships: []
       }
+      smart_ito_catalogo: {
+        Row: {
+          autor_nome: string | null
+          conteudo: Json
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          versao: number
+        }
+        Insert: {
+          autor_nome?: string | null
+          conteudo: Json
+          tipo: string
+          updated_at?: string
+          updated_by?: string | null
+          versao: number
+        }
+        Update: {
+          autor_nome?: string | null
+          conteudo?: Json
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Relationships: []
+      }
+      smart_ito_catalogo_historico: {
+        Row: {
+          autor_nome: string | null
+          comentario: string | null
+          conteudo: Json
+          id: string
+          tipo: string
+          updated_at: string
+          updated_by: string | null
+          versao: number
+        }
+        Insert: {
+          autor_nome?: string | null
+          comentario?: string | null
+          conteudo: Json
+          id?: string
+          tipo: string
+          updated_at?: string
+          updated_by?: string | null
+          versao: number
+        }
+        Update: {
+          autor_nome?: string | null
+          comentario?: string | null
+          conteudo?: Json
+          id?: string
+          tipo?: string
+          updated_at?: string
+          updated_by?: string | null
+          versao?: number
+        }
+        Relationships: []
+      }
       sre_campanhas: {
         Row: {
           a_confirmar: boolean
@@ -2059,6 +2119,15 @@ export type Database = {
           message_id: number
           payload: Json
           source_queue: string
+        }
+        Returns: number
+      }
+      publicar_catalogo_smart_ito: {
+        Args: {
+          _comentario: string
+          _conteudo: Json
+          _tipo: string
+          _versao_base: number
         }
         Returns: number
       }

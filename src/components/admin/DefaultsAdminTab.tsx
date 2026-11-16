@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { stripPricingOwnedKeys } from "@/lib/paramKeys";
+import { stripPricingOwnedKeys, stripCatalogKeys } from "@/lib/paramKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -280,9 +280,9 @@ function SetDefaultProfileDialog({
     try {
       // Mesmo que o perfil seja antigo e ainda contenha campos de Perfil
       // de Cliente, removemos antes de gravar como padrão.
-      const payload = stripPricingOwnedKeys(stripClientProfileFields(
+      const payload = stripCatalogKeys(stripPricingOwnedKeys(stripClientProfileFields(
         (profile.payload ?? {}) as Record<string, unknown>,
-      ));
+      )));
       const rows = Object.entries(payload).map(([key, value]) => ({
         key,
         value: value as never,

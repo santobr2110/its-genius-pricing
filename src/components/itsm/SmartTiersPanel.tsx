@@ -1,4 +1,5 @@
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
+import { useCatalogoCentral } from "@/hooks/useCatalogoCentral";
 import { mesesDoPrazo } from "@/lib/prazoContrato";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { computeCustoObservabilidadeNiveis, obsEfetivos, obsHorasLimites } from "@/lib/custoObservabilidadeNiveis";
@@ -263,7 +264,7 @@ export default function SmartTiersPanel() {
     </div>
   );
 
-  const [rotinas] = usePersistentState<Rotina[]>("gestao-ti:rotinas", ROTINAS_DEFAULT);
+  const { rotinas: rotinas } = useCatalogoCentral();
   const normalizedRotinas = useMemo(() => rotinas.map(normalizeLegacyRotina), [rotinas]);
   // Seleção manual: quais rotinas do catálogo entram nesta precificação.
   const { offSet: rotinasOffSet, isOff: rotinaOff, toggle: toggleRotina, setOff: setRotinasOff } = useRotinasSelecao();
@@ -281,7 +282,7 @@ export default function SmartTiersPanel() {
     },
     [setRotinasOff],
   );
-  const [gmuds] = usePersistentState<Gmud[]>("gestao-ti:gmuds", GMUDS_DEFAULT);
+  const { gmuds: gmuds } = useCatalogoCentral();
   // Distribuição das horas N3 / Automação entre TAM / Owner / Livre.
   // Persistimos o VOLUME de horas (absoluto) — ao alterar o total N3, o volume
   // alocado a TAM/Owner é preservado (o % é recalculado). O % permanece só como

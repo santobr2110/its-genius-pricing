@@ -25,6 +25,7 @@ const SMART_ITO_RAW = [
   "escopo:proposicao",
   "escopo:restricoesGerais",
   "escopo:itensAdicionais",
+  "catalogo:versao",
 ] as const;
 
 export const SMART_ITO_PARAM_KEYS: string[] = SMART_ITO_RAW.map(
@@ -111,6 +112,32 @@ export function isPricingOwnedKey(chave: string): boolean {
 export function stripPricingOwnedKeys<T extends Record<string, unknown>>(payload: T): T {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(payload ?? {})) if (!isPricingOwnedKey(k)) out[k] = v;
+  return out as T;
+}
+
+/**
+ * Chaves cruas do catálogo de rotinas/GMUDs. O catálogo vigente é o central;
+ * cada cotação guarda a própria cópia. Perfis e padrão global nunca gravam
+ * nem aplicam essas chaves.
+ */
+export const CATALOG_RAW_KEYS: readonly string[] = [
+  "gestao-ti:rotinas",
+  "gestao-ti:gmuds",
+  "catalogo:versao",
+];
+export const CATALOG_KEYS: string[] = CATALOG_RAW_KEYS.map((k) => SMART_ITO_NS + k);
+export const CATALOGO_VERSAO_KEY = SMART_ITO_NS + "catalogo:versao";
+
+export function isCatalogKey(chave: string): boolean {
+  let k = chave;
+  if (k.startsWith(SMART_ITO_NS)) k = k.slice(SMART_ITO_NS.length);
+  k = k.replace(/^preset\.[^.]+\./, "");
+  return CATALOG_RAW_KEYS.includes(k);
+}
+
+export function stripCatalogKeys<T extends Record<string, unknown>>(payload: T): T {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(payload ?? {})) if (!isCatalogKey(k)) out[k] = v;
   return out as T;
 }
 

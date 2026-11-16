@@ -41,6 +41,7 @@ export type PermissionKey =
   | "pricing.export_pdf"
   | "teams.edit"
   | "financeiro.edit"
+  | "smart_ito.catalogo.write"
   | "admin.users.manage"
   | "admin.roles.manage"
   // Profissionais Alocados — páginas
@@ -143,6 +144,7 @@ export const PERMISSIONS: PermissionDef[] = [
   { key: "pricing.export_pdf",     label: "Exportar PDF / proposta",           group: "ITO › Smart ITO › Precificação" },
   { key: "teams.edit",             label: "Editar equipes N1/N2/N3",           group: "ITO › Smart ITO › Equipes" },
   { key: "financeiro.edit",        label: "Editar configurações financeiras",  group: "ITO › Smart ITO › Financeiro" },
+  { key: "smart_ito.catalogo.write", label: "Editar catálogo central de rotinas e GMUDs", group: "ITO › Smart ITO › Precificação" },
   { key: "admin.users.manage", label: "Gerenciar usuários", group: "Administração" },
   { key: "admin.roles.manage", label: "Gerenciar perfis e permissões", group: "Administração" },
   { key: "page.prof.base_conhecimento",        label: "Base de Conhecimento",                   group: "ITO › Profissionais Alocados" },
