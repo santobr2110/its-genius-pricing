@@ -65,7 +65,8 @@ export type AtivoTipo =
   | "Servidor"
   | "Ativo de Rede"
   | "Banco de Dados"
-  | "Firewall";
+  | "Firewall"
+  | "Cloud";
 
 export const ATIVO_TIPOS: AtivoTipo[] = [
   "Ambiente",
@@ -73,6 +74,7 @@ export const ATIVO_TIPOS: AtivoTipo[] = [
   "Ativo de Rede",
   "Banco de Dados",
   "Firewall",
+  "Cloud",
 ];
 
 export type Abrangencia = "Ambiente" | "Individual";
@@ -84,6 +86,8 @@ export interface InventarioCounts {
   qtdAtivosRede: number;
   qtdBancosDados: number;
   qtdSistemas: number; // Firewall
+  /** Ambientes de nuvem pública sob gestão; ausente = 0. */
+  qtdAmbientesCloud?: number;
 }
 
 export type ComplexFlagKey =
@@ -133,7 +137,8 @@ export function rotinaMultiplicador(
       ? inv.qtdServidores +
         inv.qtdAtivosRede +
         inv.qtdBancosDados +
-        inv.qtdSistemas
+        inv.qtdSistemas +
+        (inv.qtdAmbientesCloud ?? 0)
       : inventarioMultiplicador(r.ativo, inv);
   if (qtdAtivo === 0) return 0;
   // Abrangência "Ambiente": 1 execução por rotina (independente da quantidade).
@@ -156,6 +161,8 @@ export function inventarioMultiplicador(
       return inv.qtdBancosDados;
     case "Firewall":
       return inv.qtdSistemas;
+    case "Cloud":
+      return inv.qtdAmbientesCloud ?? 0;
     default:
       return 1;
   }
@@ -242,7 +249,30 @@ const r = (
   };
 };
 
-export const ROTINAS_DEFAULT: Rotina[] = [
+/**
+ * Correção G: rotinas do grupo "Cloud" dependem do inventário de nuvem
+ * (ativo "Cloud"); as de Performance deixam de depender da marca de ambiente
+ * híbrido. Idempotente; devolve a mesma lista quando nada muda.
+ */
+export function ajustarRotinasCloud<T extends Partial<Rotina>>(lista: T[]): T[] {
+  if (!Array.isArray(lista)) return lista;
+  let mudou = false;
+  const out = lista.map((r) => {
+    if (!r || typeof r !== "object" || String(r.grupo ?? "").toLowerCase() !== "cloud") return r;
+    const perf = r.oferta === "Performance";
+    if (r.ativo === "Cloud" && (!perf || (r.complexidade === "Padrão" && !("complexFlag" in r)))) return r;
+    mudou = true;
+    const n: T = { ...r, ativo: "Cloud" };
+    if (perf) {
+      n.complexidade = "Padrão";
+      delete (n as Partial<Rotina>).complexFlag;
+    }
+    return n;
+  });
+  return mudou ? out : lista;
+}
+
+const ROTINAS_SEMENTE: Rotina[] = [
   r("aud-1", "Auditoria", "Auditoria Rotinas/CAC", "Operation", "Ambiente", false, "Quinzenal"),
   r("bkp-1", "Backup", "Segurança do ambiente/ferramenta de backup", "Performance", "Ambiente", false, "Semestral"),
   r("bkp-2", "Backup", "Validação do Backup", "Operation", "Ambiente", false, "Bimestral"),
