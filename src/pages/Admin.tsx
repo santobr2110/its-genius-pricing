@@ -111,6 +111,7 @@ const PERMISSION_TREE: GroupNode[] = [
           },
           { id: "equipes", name: "Equipes", keys: ["teams.edit"] },
           { id: "financeiro", name: "Financeiro", keys: ["financeiro.edit"] },
+          { id: "catalogo", name: "Catálogo central de rotinas e GMUDs", keys: ["smart_ito.catalogo.write"] },
         ],
       },
       {
