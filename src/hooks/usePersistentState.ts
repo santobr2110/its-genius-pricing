@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } fr
 import { supabase } from "@/integrations/supabase/client";
 import { SMART_ITO_NS } from "@/lib/offerings";
 import { getPresetKeyPrefix, isPresetActive } from "@/lib/activePreset";
+import { normalizarValorLegado } from "@/lib/normalizacoesLegado";
 
 export const PERSISTENT_STATE_RESTORED_EVENT = "itsm:persistent-state-restored";
 /** Sincroniza instâncias do mesmo hook na MESMA aba (storage event não dispara localmente). */
@@ -81,7 +82,12 @@ function readLocal<T>(key: string): T | undefined {
   try {
     const raw = storage.getItem(key);
     if (raw == null) return undefined;
-    return JSON.parse(raw) as T;
+    const parsed = JSON.parse(raw) as T;
+    const norm = normalizarValorLegado(key, parsed);
+    // Persiste a correção (rascunho: localStorage; cotação: sessionStorage,
+    // que o autosave da cotação envia ao payload).
+    if (norm !== parsed) storage.setItem(key, JSON.stringify(norm));
+    return norm;
   } catch {
     return undefined;
   }
@@ -209,7 +215,8 @@ export function usePersistentState<T>(
   const userIdRef = useRef<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const commitExternalValue = useCallback((value: unknown) => {
+  const commitExternalValue = useCallback((raw: unknown) => {
+    const value = normalizarValorLegado(key, raw);
     const merged = mergeWithInitial(value as T, initialRef.current);
     if (saveTimer.current) {
       clearTimeout(saveTimer.current);
@@ -269,7 +276,9 @@ export function usePersistentState<T>(
       }
 
       if (cloudValue !== undefined && cloudValue !== null) {
-        commitExternalValue(cloudValue);
+        const normCloud = normalizarValorLegado(key, cloudValue);
+        commitExternalValue(normCloud);
+        if (normCloud !== cloudValue) saveCloudValue(uid, key, normCloud);
         hydratedRef.current = true;
         return;
       }

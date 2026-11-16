@@ -70,7 +70,7 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
       "Proxys de coleta dedicados à camada Flow",
     ],
     restricoes: [
-      "Não inclui Service Desk humano N1/N2 reativo (oferta Smart Operation)",
+      "Não inclui o funil de atendimento N1, N2 e N3 a incidentes de infraestrutura (camada Smart Operation)",
       "Horas N3 / Automação e atendentes são absorvidos pela camada Smart Operation quando contratada",
       "Automações fora do catálogo demandam estudo técnico prévio",
       "Cobertura limitada aos ativos do inventário declarado",
@@ -78,9 +78,9 @@ export const ESCOPO_DEFAULT: EscopoProposicao = {
   },
   operation: {
     titulo: "Smart Operation",
-    tagline: "Service Desk humano N1 e N2 com rotinas básicas",
+    tagline: "TI gerenciada com prevenção como eixo, operada pelos níveis N1, N2 e N3",
     descricao:
-      "Service Desk gerenciado com atendimento humano nos níveis N1 e N2, triagem técnica, SLA controlado e rotinas preventivas básicas executadas mensalmente.",
+      "Gestão de TI gerenciada com prevenção como eixo: o funil de atendimento N1, N2 e N3 trata os incidentes de infraestrutura e executa as rotinas preventivas na periodicidade estabelecida, com triagem técnica e SLA controlado. Não inclui atendimento ao usuário final, que pertence à oferta Smart Service Desk.",
     incluidos: [
       "Funil N1 e N2 reativo com SLA controlado",
       "Triagem técnica e roteamento dos chamados",

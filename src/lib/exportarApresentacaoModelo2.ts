@@ -244,7 +244,7 @@ function slideCapa(pptx: pptxgen, data: ApresentacaoPayload, bgData: string) {
         color: C.white,
         rotate: i % 2 === 0 ? -4 : 3,
       });
-      slide.addText("Service Desk · NOC 24×7", {
+      slide.addText("Operação N1, N2 e N3 · NOC 24×7", {
         x: 10.1,
         y: cy + 0.45,
         w: 2.55,

@@ -255,7 +255,7 @@ export default function Detalhamento() {
   const DOMINANT_OFFER: Record<string, { name: string; tagline: string }> = {
     bronze:  { name: "ITO Smart Monitor",     tagline: "Monitoramento da infraestrutura" },
     steel:   { name: "ITO Smart Flow",        tagline: "Monitoramento integrado ao ITSM com atendentes dedicados" },
-    silver:  { name: "ITO Smart Operation",   tagline: "Service Desk gerenciado com monitoramento incluso" },
+    silver:  { name: "ITO Smart Operation",   tagline: "TI gerenciada com prevenção como eixo" },
     gold:    { name: "ITO Smart Performance", tagline: "Operação completa com rotinas avançadas e horas N3" },
     diamond: { name: "ITO Smart Enterprise",  tagline: "Governança executiva sobre toda a operação de TI" },
   };
