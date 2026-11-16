@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+import { resetDefaultProfilePayloadCache } from "@/lib/presetPricingParams";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -68,6 +70,15 @@ import ActivePresetBanner from "./components/ActivePresetBanner";
 import { useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient();
+
+// Dados centrais (parâmetros financeiros, fiscais, cadastros) lidos antes do
+// login voltam vazios por causa das regras de acesso; recarrega tudo ao entrar/sair.
+supabase.auth.onAuthStateChange((evento) => {
+  if (evento === "SIGNED_IN" || evento === "SIGNED_OUT") {
+    resetDefaultProfilePayloadCache();
+    setTimeout(() => void queryClient.invalidateQueries(), 0);
+  }
+});
 
 function GlobalActivePresetBanner() {
   const { pathname } = useLocation();
