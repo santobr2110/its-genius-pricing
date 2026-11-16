@@ -1,0 +1,1 @@
+- Smart ITO per-quote routine/GMUD adjustments (`gestao-ti:ajustesCotacao`) are applied only through `useCatalogoDaCotacao`; Gestão de TI and the catalog editor keep using `useCatalogoCentral` (unadjusted) — the central catalog stays shared.

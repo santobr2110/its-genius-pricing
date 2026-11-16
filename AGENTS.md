@@ -26,4 +26,3 @@
 - BodyShop fiscal PPTX templates opt in with DemonstrativoClienteV1/V2; template selection follows the frozen statement version — legacy emissions and regression fixtures remain unchanged.
 - Quote-owned keys live only in PRICING_OWNED_RAW_KEYS; profiles/defaults strip them, only quote loading keeps them — no scope leaks between clients.
 - ITO rotinas/GMUDs: central catalog; quotes freeze a copy — no repricing.
-- Smart ITO per-quote routine/GMUD adjustments live in `gestao-ti:ajustesCotacao` (pricing-owned) and are applied only via `aplicarAjustesCotacao`/`useCatalogoDaCotacao` in calc/report consumers; Gestão de TI and the catalog editor read the unadjusted catalog — central catalog stays shared, adjustments stay per client.
