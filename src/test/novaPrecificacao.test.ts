@@ -5,10 +5,12 @@ import { RESTRICOES_GERAIS_DEFAULT } from "@/data/escopoProposicao";
 
 describe("Nova precificação", () => {
   it("zera inventário e mantém parâmetros do usuário", () => {
-    const atual = { ...ITSM_DEFAULTS, qtdServidores: 99, complexMultiSites: true, valorHoraN3: 321 } as Record<string, unknown>;
+    const atual = { ...ITSM_DEFAULTS, qtdServidores: 99, complexMultiSites: true, tierMonitor: true, tierEnterprise: true, valorHoraN3: 321 } as Record<string, unknown>;
     const limpo = calculatorLimpo(atual);
-    expect(limpo.qtdServidores).toBe(ITSM_DEFAULTS.qtdServidores);
-    expect(limpo.complexMultiSites).toBe(ITSM_DEFAULTS.complexMultiSites);
+    expect(limpo.qtdServidores).toBe(0);
+    expect(limpo.complexMultiSites).toBe(false);
+    expect(limpo.tierMonitor).toBe(false);
+    expect(limpo.tierEnterprise).toBe(false);
     expect(limpo.valorHoraN3).toBe(321);
   });
   it("limpa escopo, rotinas desligadas e cidade do ISS; mantém código do produto", () => {
