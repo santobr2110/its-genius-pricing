@@ -49,6 +49,11 @@ export function calculatorLimpo(atual: Record<string, unknown> | null | undefine
     if (campo in def) out[campo] = def[campo];
     else delete out[campo];
   }
+  // Precificação nova começa vazia: inventário zerado, sem complexidades e sem camadas.
+  for (const campo of CLIENT_PROFILE_CALCULATOR_FIELDS) {
+    if (/^qtd/.test(campo)) out[campo] = 0;
+    else if (/^(complex|tier)/.test(campo)) out[campo] = false;
+  }
   return out;
 }
 
