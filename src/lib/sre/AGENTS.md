@@ -1,0 +1,1 @@
+- Package content has a type: generic packages share one common text in sre_params (proposta_generico_*, {horas} placeholder, edited in the Conteúdo tab); specific packages use their own fields in sre_pacote_content — common text lives in one place.
