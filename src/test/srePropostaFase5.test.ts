@@ -49,9 +49,25 @@ describe("Proposta SRE (Fase 5)", () => {
     expect(m.condicoes.some((c) => c.includes("12 meses"))).toBe(true);
   });
 
-  it("conteúdo vazio sai [A CONFIRMAR]", () => {
-    expect(m.blocos[0].aConfirmar).toBe(true);
+  it("pacote genérico sem conteúdo comum sai [A CONFIRMAR]", () => {
+    expect(m.blocos[0].campos.map((c) => c.label)).toEqual(["Descrição", "Fora do escopo", "Restrições"]);
     expect(m.blocos[0].campos.every((c) => c.texto === "[A CONFIRMAR]")).toBe(true);
+  });
+
+  it("pacote genérico usa o conteúdo comum e só troca as horas", () => {
+    const params = [{ key: "proposta_generico_titulo", value: "Consultivo ({horas} horas)" }, { key: "proposta_generico_descricao", value: "Pacote de {horas} h" }];
+    const g = montarModeloPropostaSre({ ...base, params });
+    const h = g.blocos[0].horas;
+    expect(g.blocos[0].titulo).toBe(`Consultivo (${h} horas)`);
+    expect(g.blocos[0].campos[0].texto).toBe(`Pacote de ${h} h`);
+  });
+
+  it("pacote específico usa os cinco campos próprios", () => {
+    const pid = m.blocos.length ? base.res.linhas[0].entrada.pacoteId : "";
+    const e = montarModeloPropostaSre({ ...base, contents: [{ pacote_id: pid, tipo: "especifico", escopo_atividades: "Upgrade", a_confirmar: false } as never] });
+    expect(e.blocos[0].campos.map((c) => c.label)).toEqual(["Escopo de atividades", "Detalhes adicionais", "Restrições", "Premissas", "Fora do escopo"]);
+    expect(e.blocos[0].campos[0].texto).toBe("Upgrade");
+    expect(e.blocos[0].aConfirmar).toBe(false);
   });
 
   it("nome do arquivo segue {Cliente}_OP{sf}_ConsultivoSRE_{ddmmaaaa}", () => {

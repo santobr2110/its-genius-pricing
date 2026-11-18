@@ -17,6 +17,9 @@ export interface SreContent {
   entregavel: string | null; forma_acionamento: string | null; sla_atendimento: string | null;
   validade_horas_texto: string | null; regra_consumo: string | null; pre_requisito: string | null;
   observacoes: string | null; link_mais_informacoes: string | null; a_confirmar: boolean;
+  /** Genérico = conteúdo comum (sre_params proposta_generico_*); Específico = campos próprios. */
+  tipo?: "generico" | "especifico";
+  detalhes_adicionais?: string | null; restricoes?: string | null; premissas?: string | null; fora_escopo?: string | null;
 }
 
 export interface SreParam {

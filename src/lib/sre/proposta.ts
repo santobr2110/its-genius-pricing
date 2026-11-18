@@ -27,6 +27,24 @@ export const CAMPOS_CONTEUDO_SRE: { k: keyof SreContent; label: string }[] = [
   { k: "link_mais_informacoes", label: "Mais informações" },
 ];
 
+/** Campos de um pacote específico (escopo individual). */
+export const CAMPOS_ESPECIFICO_SRE: { k: keyof SreContent; label: string }[] = [
+  { k: "escopo_atividades", label: "Escopo de atividades" },
+  { k: "detalhes_adicionais", label: "Detalhes adicionais" },
+  { k: "restricoes", label: "Restrições" },
+  { k: "premissas", label: "Premissas" },
+  { k: "fora_escopo", label: "Fora do escopo" },
+];
+
+/** Conteúdo comum dos pacotes genéricos; {horas} vira as horas do pacote. */
+export const PARAMS_GENERICO_SRE = [
+  { key: "proposta_generico_descricao", label: "Descrição" },
+  { key: "proposta_generico_fora_escopo", label: "Fora do escopo" },
+  { key: "proposta_generico_restricoes", label: "Restrições" },
+] as const;
+export const tipoPacoteSre = (c?: SreContent | null) => (c?.tipo === "especifico" ? "especifico" : "generico");
+const comHoras = (t: string, h: number) => t.replace(/\{horas\}/g, h.toLocaleString("pt-BR", { maximumFractionDigits: 2 }));
+
 export const FRASE_ESCOPO = "Itens não listados nesta proposta estão fora do escopo.";
 export const OBJETO_PADRAO = "Pacote de horas consultivas pré-pagas para Zabbix, executadas pelo time de SRE da Selbetti conforme o escopo de cada pacote descrito a seguir.";
 
@@ -85,10 +103,18 @@ export function montarModeloPropostaSre(a: {
     if (vistos.has(e.pacoteId)) continue;
     vistos.add(e.pacoteId);
     const c = a.contents.find((x) => x.pacote_id === e.pacoteId);
-    blocos.push({
-      titulo: e.nome, partNumber: e.partNumber, horas: e.horasExecucao, tagline: txt(c?.tagline) || null, aConfirmar: c ? c.a_confirmar : true,
-      campos: CAMPOS_CONTEUDO_SRE.map(({ k, label }) => ({ label, texto: ouPendente(c?.[k]) })),
-    });
+    if (tipoPacoteSre(c) === "generico") {
+      const tit = txt(p.get("proposta_generico_titulo"));
+      blocos.push({
+        titulo: tit ? comHoras(tit, e.horasExecucao) : e.nome, partNumber: e.partNumber, horas: e.horasExecucao, tagline: null, aConfirmar: false,
+        campos: PARAMS_GENERICO_SRE.map(({ key, label }) => ({ label, texto: ouPendente(comHoras(txt(p.get(key)), e.horasExecucao)) })),
+      });
+    } else {
+      blocos.push({
+        titulo: e.nome, partNumber: e.partNumber, horas: e.horasExecucao, tagline: txt(c?.tagline) || null, aConfirmar: c ? c.a_confirmar : true,
+        campos: CAMPOS_ESPECIFICO_SRE.map(({ k, label }) => ({ label, texto: ouPendente(c?.[k]) })),
+      });
+    }
   }
   const data = a.dataISO || a.hojeISO;
   const validade = a.validadeISO || somarDias(data, a.validadeDias);

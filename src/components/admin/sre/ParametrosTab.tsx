@@ -13,12 +13,12 @@ import type { SreParam } from "@/lib/sre/calc";
 import type { SreCadastro } from "@/hooks/useSreCadastro";
 
 const STATUS = Object.keys(STATUS_LABEL) as StatusParam[];
-// Editados em Financeiro › Impostos & Markup (Fase 4): não repetir aqui.
+// proposta_generico_* são editados na aba Conteúdo. Editados em Financeiro › Impostos & Markup (Fase 4): não repetir aqui.
 const OCULTOS = ["comissao_regra", "irpj_csll_convencao", "produto_padrao"];
 
 export default function SreParametrosTab({ params, refresh }: SreCadastro) {
   const { user } = useAuth();
-  const filtrados = useMemo(() => params.filter((p) => !OCULTOS.includes(p.key)), [params]);
+  const filtrados = useMemo(() => params.filter((p) => !OCULTOS.includes(p.key) && !p.key.startsWith("proposta_generico_")), [params]);
   const [rows, setRows] = useState<SreParam[]>(filtrados);
   useEffect(() => setRows(filtrados), [filtrados]);
   const set = (key: string, patch: Partial<SreParam>) => setRows((p) => p.map((r) => (r.key === key ? { ...r, ...patch } : r)));

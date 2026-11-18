@@ -1282,51 +1282,66 @@ export type Database = {
         Row: {
           a_confirmar: boolean
           descricao: string | null
+          detalhes_adicionais: string | null
           entregavel: string | null
           escopo_atividades: string | null
+          fora_escopo: string | null
           forma_acionamento: string | null
           link_mais_informacoes: string | null
           observacoes: string | null
           pacote_id: string
           perfis_envolvidos: string | null
           pre_requisito: string | null
+          premissas: string | null
           regra_consumo: string | null
+          restricoes: string | null
           sla_atendimento: string | null
           tagline: string | null
+          tipo: string
           updated_at: string
           validade_horas_texto: string | null
         }
         Insert: {
           a_confirmar?: boolean
           descricao?: string | null
+          detalhes_adicionais?: string | null
           entregavel?: string | null
           escopo_atividades?: string | null
+          fora_escopo?: string | null
           forma_acionamento?: string | null
           link_mais_informacoes?: string | null
           observacoes?: string | null
           pacote_id: string
           perfis_envolvidos?: string | null
           pre_requisito?: string | null
+          premissas?: string | null
           regra_consumo?: string | null
+          restricoes?: string | null
           sla_atendimento?: string | null
           tagline?: string | null
+          tipo?: string
           updated_at?: string
           validade_horas_texto?: string | null
         }
         Update: {
           a_confirmar?: boolean
           descricao?: string | null
+          detalhes_adicionais?: string | null
           entregavel?: string | null
           escopo_atividades?: string | null
+          fora_escopo?: string | null
           forma_acionamento?: string | null
           link_mais_informacoes?: string | null
           observacoes?: string | null
           pacote_id?: string
           perfis_envolvidos?: string | null
           pre_requisito?: string | null
+          premissas?: string | null
           regra_consumo?: string | null
+          restricoes?: string | null
           sla_atendimento?: string | null
           tagline?: string | null
+          tipo?: string
           updated_at?: string
           validade_horas_texto?: string | null
         }

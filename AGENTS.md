@@ -26,3 +26,4 @@
 - BodyShop fiscal PPTX templates opt in with DemonstrativoClienteV1/V2; template selection follows the frozen statement version — legacy emissions and regression fixtures remain unchanged.
 - Quote-owned keys live only in PRICING_OWNED_RAW_KEYS; profiles/defaults strip them, only quote loading keeps them — no scope leaks between clients.
 - ITO rotinas/GMUDs: central catalog; quotes freeze a copy — no repricing.
+- SRE package content has a type: generic packages share one common text in sre_params (`proposta_generico_*`, `{horas}` placeholder, edited in the Conteúdo tab); specific packages use their own fields in sre_pacote_content — one place for common text, per-package scope only where needed.
