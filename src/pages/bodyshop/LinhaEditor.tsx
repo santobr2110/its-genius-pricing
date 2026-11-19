@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { brl, FAIXAS, type BodyshopCargo } from "@/lib/bodyshop/calc";
+import { PRESETS_ESCALA, SOBREAVISO_LABEL, type EscalaBS, type Sobreaviso } from "@/lib/bodyshop/escala";
 import { memorialCusto, type LinhaBS, type LinhaResultadoBS } from "@/lib/bodyshop/carrinho";
 const pct = (n: number) => `${n.toLocaleString("pt-BR", { maximumFractionDigits: 4 })}%`;
 function M({ l, v, strong }: { l: string; v: string; strong?: boolean }) {
@@ -32,14 +33,18 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
     </div>
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
       <div className="space-y-1"><Label htmlFor={`q-${linha.id}`} className={L}>Vagas</Label><Input id={`q-${linha.id}`} className="h-9" disabled={disabled} type="number" min={1} step={1} value={linha.quantidade} onChange={ev => onChange({ quantidade: Number(ev.target.value) })} /></div>
+      {!linha.escala && <>
       <div className="space-y-1"><Label className={L}>Regime</Label><Select disabled={disabled} value={linha.regime} onValueChange={(regime: LinhaBS["regime"]) => onChange({ regime, horasLinha: null })}><SelectTrigger className="h-9" aria-label="Regime"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="integral">Integral</SelectItem><SelectItem value="meio_periodo">Meio período</SelectItem></SelectContent></Select></div>
       <div className="space-y-1"><Label htmlFor={`h-${linha.id}`} className={L}>Horas mensais</Label><Input id={`h-${linha.id}`} className="h-9" disabled={disabled} type="number" min={1} value={linha.horasLinha ?? e.horasLinha} onChange={ev => onChange({ horasLinha: ev.target.value === "" ? null : Number(ev.target.value) })} /></div>
+      </>}
+      {linha.escala && <div className="space-y-1 md:col-span-2"><Label className={L}>Horas mensais (pela escala)</Label><p className="h-9 flex items-center tabular-nums">{e.horasLinha.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h</p></div>}
       <div className="space-y-1"><Label htmlFor={`d-${linha.id}`} className={L}>Desconto %</Label><Input id={`d-${linha.id}`} className="h-9" disabled={disabled} type="number" min={0} max={100} value={linha.descontoPerc} onChange={ev => onChange({ descontoPerc: Number(ev.target.value) })} /></div>
     </div>
+    {linha.escala && <EscalaEditor id={linha.id} escala={linha.escala} disabled={disabled} onChange={escala => onChange({ escala })} />}
     <div className="grid grid-cols-2 md:grid-cols-[1fr_1.5fr_2fr] gap-2">
       <div className="space-y-1"><Label className={L}>Formato</Label><Select disabled={disabled} value={linha.formato ?? "padrao"} onValueChange={(v) => onChange({ formato: v === "padrao" ? undefined : v as LinhaBS["formato"] })}><SelectTrigger className="h-9" aria-label="Formato"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="padrao">Padrão da oferta</SelectItem><SelectItem value="presencial">Presencial</SelectItem><SelectItem value="remoto">Remoto</SelectItem></SelectContent></Select></div>
       <div className="space-y-1"><Label htmlFor={`loc-${linha.id}`} className={L} title="Onde o profissional fica alocado; não muda o município do ISS.">Local de alocação</Label><Input id={`loc-${linha.id}`} className="h-9" disabled={disabled} placeholder="Cidade/UF" value={linha.local ?? ""} onChange={ev => onChange({ local: ev.target.value })} /></div>
-      <div className="space-y-1 col-span-2 md:col-span-1"><Label htmlFor={`hor-${linha.id}`} className={L}>Horário de atendimento</Label><Input id={`hor-${linha.id}`} className="h-9" disabled={disabled} placeholder="Padrão da oferta" value={linha.horario ?? ""} onChange={ev => onChange({ horario: ev.target.value })} /></div>
+      <div className="space-y-1 col-span-2 md:col-span-1"><Label htmlFor={`hor-${linha.id}`} className={L}>Horário de atendimento</Label><Input id={`hor-${linha.id}`} className="h-9" disabled={disabled} placeholder={linha.escala ? "Gerado pela escala" : "Padrão da oferta"} value={linha.horario ?? ""} onChange={ev => onChange({ horario: ev.target.value })} /></div>
     </div>
     {r.erros.map(msg => <p key={msg} className="text-xs text-destructive">{msg}</p>)}
     {r.abaixoPiso && <p className="text-xs text-destructive">Rentabilidade abaixo do piso de {pct(e.pisoRentabilidadePerc ?? 0)}{origem("piso")}.</p>}
@@ -50,7 +55,13 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
     {!r.erros.length && f && <><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal, ...f }]} titulo="Preço mensal do perfil" /><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal / Math.max(1,e.quantidade), ...f }]} titulo="Preço mensal por profissional" /><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal, ...f }]} fator={duracao} titulo="Preço do contrato" /></>}
     <Collapsible><CollapsibleTrigger asChild><Button variant="link" size="sm" className="p-0 h-auto gap-1"><ChevronDown className="h-3 w-3" />Detalhes do cálculo</Button></CollapsibleTrigger><CollapsibleContent className="mt-3 text-xs space-y-1">
       <M l={`Salário base ${e.faixa.toUpperCase()}`} v={brl(e.salarioBase)} />
-      <M l={`× Regime ${e.regime === "integral" ? "integral" : "meio período"} (${e.horasLinha}h / ${e.horasPadrao}h)${origem("horas")}`} v={brl(m.base)} />
+      {!e.escala && <M l={`× Regime ${e.regime === "integral" ? "integral" : "meio período"} (${e.horasLinha}h / ${e.horasPadrao}h)${origem("horas")}`} v={brl(m.base)} />}
+      {e.escala && m.escalaCalc && <>
+        <M l={`Escala ${e.escala.tipo} · ${m.escalaCalc.horasMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h/mês · valor-hora`} v={brl(m.escalaCalc.valorHora)} />
+        {m.adicionalNoturno > 0 && <M l={`(+) Adicional noturno 40% · ${m.escalaCalc.horasNoturnasRelogioMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h relógio → ${m.escalaCalc.horasNoturnasPagasMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h reduzidas`} v={brl(m.adicionalNoturno)} />}
+        {m.sobreaviso > 0 && <M l={`(+) Sobreaviso 1/3 · ${m.escalaCalc.horasSobreavisoMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h`} v={brl(m.sobreaviso)} />}
+        <M l="= Remuneração base" v={brl(m.base)} />
+      </>}
       <M l={`(+) Encargos ${pct(e.encargosPerc)}${origem("encargos")}`} v={brl(m.encargos)} />
       <M l={`(+) Benefícios${origem("beneficios")}${e.beneficiosProporcionais ? " · proporcionais" : " · integrais"}`} v={brl(m.beneficios)} />
       <M l="= Base para indiretos" v={brl(m.baseIndiretos)} />
@@ -66,4 +77,16 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
       {e.iaJustificativa && <div className="border-t pt-2"><p className="font-semibold">Seleção por descrição · aderência {e.iaIndiceAderencia ?? 0}%</p><p className="text-muted-foreground">{e.iaJustificativa}</p></div>}
     </CollapsibleContent></Collapsible>
   </article>;
+}
+function EscalaEditor({ id, escala, disabled, onChange }: { id: string; escala: EscalaBS; disabled: boolean; onChange: (e: EscalaBS) => void }) {
+  const L = "text-xs text-muted-foreground";
+  const preset = Object.entries(PRESETS_ESCALA).find(([, p]) => p.tipo === escala.tipo && p.inicio === escala.inicio && p.fim === escala.fim)?.[0] ?? "personalizado";
+  const set = (p: Partial<EscalaBS>) => onChange({ ...escala, ...p });
+  return <div className="grid grid-cols-2 md:grid-cols-5 gap-2 rounded-md border border-dashed p-2">
+    <div className="space-y-1 col-span-2 md:col-span-1"><Label className={L}>Escala</Label><Select disabled={disabled} value={preset} onValueChange={k => { const p = PRESETS_ESCALA[k]; if (p) { const { label: _l, ...e } = p; onChange({ ...e, sobreaviso: e.tipo === "12x36" ? null : escala.sobreaviso }); } }}><SelectTrigger className="h-9" aria-label="Escala"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(PRESETS_ESCALA).map(([k, p]) => <SelectItem key={k} value={k}>{p.label}</SelectItem>)}{preset === "personalizado" && <SelectItem value="personalizado">{escala.tipo} personalizado</SelectItem>}</SelectContent></Select></div>
+    <div className="space-y-1"><Label htmlFor={`ini-${id}`} className={L}>Início</Label><Input id={`ini-${id}`} type="time" className="h-9" disabled={disabled} value={escala.inicio} onChange={ev => set({ inicio: ev.target.value })} /></div>
+    <div className="space-y-1"><Label htmlFor={`fim-${id}`} className={L}>Fim</Label><Input id={`fim-${id}`} type="time" className="h-9" disabled={disabled} value={escala.fim} onChange={ev => set({ fim: ev.target.value })} /></div>
+    <div className="space-y-1"><Label htmlFor={`int-${id}`} className={L}>Almoço/descanso (min)</Label><Input id={`int-${id}`} type="number" min={0} step={15} className="h-9" disabled={disabled} value={escala.intervaloMin} onChange={ev => set({ intervaloMin: Number(ev.target.value) })} /></div>
+    <div className="space-y-1"><Label className={L}>Sobreaviso</Label><Select disabled={disabled || escala.tipo === "12x36"} value={escala.sobreaviso ?? "nao"} onValueChange={v => set({ sobreaviso: v === "nao" ? null : v as Sobreaviso })}><SelectTrigger className="h-9" aria-label="Sobreaviso"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="nao">{escala.tipo === "12x36" ? "Não disponível na 12x36" : "Sem sobreaviso"}</SelectItem>{(Object.keys(SOBREAVISO_LABEL) as Sobreaviso[]).map(k => <SelectItem key={k} value={k}>{SOBREAVISO_LABEL[k]}</SelectItem>)}</SelectContent></Select></div>
+  </div>;
 }

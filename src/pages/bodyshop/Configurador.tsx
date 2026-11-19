@@ -1,3 +1,4 @@
+import { escalaPadrao } from "@/lib/bodyshop/escala";
 import PrecoClienteDetalhado from "@/components/PrecoClienteDetalhado";
 import PrecoReformaInfo from "@/components/PrecoReformaInfo";
 import { parcelasDeLinhas } from "@/lib/pricing/reformaTributaria";
@@ -55,7 +56,7 @@ export default function BsConfigurador() {
   const upd = (id: string, patch: Partial<LinhaBS>) => setLinhas(linhas.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   const adicionar = () => {
     const s = ativos[0];
-    if (s) setLinhas([...linhas, { id: novoId(), cargoId: s.id, faixa: (["c3", "c1", "c2", "c4", "c5", "c6"] as const).find(f => s[`salario_${f}`] != null) ?? "c3", quantidade: 1, descontoPerc: 0, regime: "integral", horasLinha: null }]);
+    if (s) setLinhas([...linhas, { id: novoId(), cargoId: s.id, faixa: (["c3", "c1", "c2", "c4", "c5", "c6"] as const).find(f => s[`salario_${f}`] != null) ?? "c3", quantidade: 1, descontoPerc: 0, regime: "integral", horasLinha: null, escala: escalaPadrao() }]);
   };
 
   const validar = () => {

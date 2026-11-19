@@ -1,6 +1,7 @@
 import { comissaoFromRent, type ComissaoTier } from "@/lib/comissaoRentabilidade";
 import { cascataNucleo, REGRA_SMART_ITO } from "@/lib/pricing/cascata";
 import { decomporVenda, type ChegadaFixos } from "@/lib/pricing/chegada";
+import { adicionaisEscala, calcularEscala, textoEscala, type EscalaBS } from "./escala";
 import { produtoPorFormato, resolveParamsCargo, salarioFaixa, type BodyshopCargo, type BodyshopParams, type Faixa, type OrigemParam, type Regime } from "./calc";
 
 /** New BodyShop rejects impossible prices; unlike legacy BodyShop it never caps Σ. */
@@ -13,6 +14,8 @@ export interface LinhaBS {
   iaJustificativa?: string; iaIndiceAderencia?: number;
   /** Dados de proposta (não afetam preço): formato, local de alocação (≠ município do ISS) e horário. */
   formato?: FormatoBS; local?: string; horario?: string;
+  /** Escala/horário/sobreaviso; ausente = horas diretas (linhas antigas). */
+  escala?: EscalaBS;
 }
 export type FormatoBS = "presencial" | "remoto" | "hibrido";
 export interface ConfigBS {
@@ -28,7 +31,7 @@ export interface EntradaLinhaBS {
   quantidade: number; descontoPerc: number; codigoProduto: string; tax: TaxPercs | null;
   pisoRentabilidadePerc: number | null; origemParam: Record<string, OrigemParam>;
   iaJustificativa?: string; iaIndiceAderencia?: number; ausente?: boolean;
-  formato?: FormatoBS; local?: string; horario?: string; salarioAusente?: boolean;
+  formato?: FormatoBS; local?: string; horario?: string; salarioAusente?: boolean; escala?: EscalaBS;
 }
 export interface GlobaisBS {
   rentabilidadeAlvoPerc: number; comissaoFixaPerc: number | null; retencaoPerc: number;
@@ -44,22 +47,26 @@ export function montarEntradas(linhas: LinhaBS[], catalogo: BodyshopCargo[], p: 
       salarioBase: salario ?? 0, encargosPerc: r.encargosPerc, indiretosPerc: r.indiretosPerc, beneficiosMensais: r.beneficiosMensais,
       beneficiosProporcionais: p.beneficiosProporcionais, horasPadrao: r.horasMensais,
       horasLinha: l.horasLinha ?? (l.regime === "integral" ? r.horasMensais : p.horasMeioPeriodo), regime: l.regime,
+      ...(l.escala ? (() => { const h = calcularEscala(l.escala).horasMes; return { horasPadrao: h, horasLinha: h, escala: { ...l.escala } }; })() : {}),
       quantidade: l.quantidade, descontoPerc: l.descontoPerc, codigoProduto: sku, tax: taxPorProduto(sku),
       pisoRentabilidadePerc: r.pisoRentabilidadePerc, origemParam: { ...r.origem, produto: "parametro" },
       ...(l.iaJustificativa !== undefined ? { iaJustificativa: l.iaJustificativa } : {}),
       ...(l.iaIndiceAderencia !== undefined ? { iaIndiceAderencia: l.iaIndiceAderencia } : {}),
-      ...(l.formato ? { formato: l.formato } : {}), ...(l.local?.trim() ? { local: l.local.trim() } : {}), ...(l.horario?.trim() ? { horario: l.horario.trim() } : {}),
+      ...(l.formato ? { formato: l.formato } : {}), ...(l.local?.trim() ? { local: l.local.trim() } : {}), ...(l.horario?.trim() ? { horario: l.horario.trim() } : l.escala ? { horario: textoEscala(l.escala) } : {}),
       ...(!c ? { ausente: true } : {}), ...(c && salario === null ? { salarioAusente: true } : {}) };
   });
 }
 export function memorialCusto(e: EntradaLinhaBS) {
   const fator = e.horasPadrao > 0 ? e.horasLinha / e.horasPadrao : 0;
-  const base = e.salarioBase * fator;
+  const salarioProp = e.salarioBase * fator;
+  const ad = e.escala ? adicionaisEscala(salarioProp, e.escala) : null;
+  const adicionalNoturno = ad?.adicionalNoturno ?? 0, sobreaviso = ad?.sobreaviso ?? 0;
+  const base = salarioProp + adicionalNoturno + sobreaviso;
   const encargos = base * e.encargosPerc / 100;
   const beneficios = e.beneficiosMensais * (e.beneficiosProporcionais ? fator : 1);
   const baseIndiretos = base + encargos + beneficios;
   const indiretos = baseIndiretos * e.indiretosPerc / 100;
-  return { fator, base, encargos, beneficios, baseIndiretos, indiretos, total: baseIndiretos + indiretos };
+  return { fator, salarioProp, adicionalNoturno, sobreaviso, escalaCalc: ad, base, encargos, beneficios, baseIndiretos, indiretos, total: baseIndiretos + indiretos };
 }
 export const custoMensalUnitario = (e: EntradaLinhaBS) => memorialCusto(e).total;
 export interface LinhaResultadoBS {
@@ -76,6 +83,7 @@ export function computeLinhaBS(e: EntradaLinhaBS, g: GlobaisBS, tiers: ComissaoT
   if (!Number.isFinite(e.horasLinha) || e.horasLinha <= 0 || !Number.isFinite(e.horasPadrao) || e.horasPadrao <= 0) erros.push("Horas mensais devem ser maiores que zero.");
   if (!e.tax) erros.push(`Produto ${e.codigoProduto} sem alíquotas vigentes para o município.`);
   if (!Number.isFinite(e.salarioBase) || e.salarioBase < 0) erros.push("Salário inválido.");
+  if (e.escala) erros.push(...calcularEscala(e.escala).erros);
   if (![e.descontoPerc, g.descontoTotalPerc].every(d => Number.isFinite(d) && d >= 0 && d <= 100)) erros.push("Desconto deve estar entre 0% e 100%.");
   if (!Number.isInteger(g.duracaoMeses) || g.duracaoMeses < 1) erros.push("Duração deve ser um número inteiro de meses maior que zero.");
   const custoUnitario = custoMensalUnitario(e);
@@ -119,7 +127,7 @@ export const globaisDoSnapshot = (s: SnapshotBS): GlobaisBS => ({ rentabilidadeA
 export function mesmasEntradas(s: SnapshotBS, linhas: LinhaBS[], c: ConfigBS) {
   return s.municipio === c.municipio && s.duracaoMeses === c.duracaoMeses && s.dataInicio === c.dataInicio && s.convencao === c.convencao && s.descontoTotalPerc === c.descontoTotalPerc
     && (c.encFinancPerc == null || c.encFinancPerc === s.encFinancPerc) && (c.rentabilidadeAlvoPerc == null || c.rentabilidadeAlvoPerc === s.rentabilidadeAlvoPerc)
-    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && (l.horario?.trim() || undefined) === (i.horario || undefined); });
+    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && (l.horario?.trim() || (l.escala ? textoEscala(l.escala) : undefined)) === (i.horario || undefined) && JSON.stringify(l.escala ?? null) === JSON.stringify(i.escala ?? null); });
 }
 export function diferencasParametros(s: SnapshotBS, e: EntradaLinhaBS[], g: GlobaisBS, tiers: ComissaoTier[]) {
   const diffs: string[] = [];

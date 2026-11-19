@@ -1,3 +1,4 @@
+import { escalaPadrao } from "@/lib/bodyshop/escala";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Sparkles } from "lucide-react";
@@ -20,7 +21,7 @@ export function BsIaDialog({ open, onOpenChange, cargos, onAdd }: { open: boolea
       const sugerida = String(data.faixa ?? "C3").toLowerCase();
       const faixa = FAIXAS.find(f => f === sugerida && cargo[`salario_${f}`] != null) ?? FAIXAS.find(f => cargo[`salario_${f}`] != null);
       if (!faixa) throw new Error("O cargo sugerido não possui faixa salarial preenchida.");
-      onAdd({ id: crypto.randomUUID(), cargoId: cargo.id, faixa, quantidade: 1, regime: "integral", horasLinha: null, descontoPerc: 0, iaJustificativa: String(data.justificativa ?? ""), iaIndiceAderencia: Number(data.indice_aderencia) || 0 });
+      onAdd({ id: crypto.randomUUID(), cargoId: cargo.id, faixa, quantidade: 1, regime: "integral", horasLinha: null, escala: escalaPadrao(), descontoPerc: 0, iaJustificativa: String(data.justificativa ?? ""), iaIndiceAderencia: Number(data.indice_aderencia) || 0 });
       onOpenChange(false); setDescricao(""); toast.success("Perfil adicionado à cotação");
     } catch (err) { toast.error((err as Error).message); } finally { setBusy(false); }
   };
