@@ -38,7 +38,7 @@ export interface BodyshopParams {
   irpjCsllConvencao: string; encFinancPerc: number;
   rentabilidadeAlvoPerc: number; pisoRentabilidadePerc: number | null;
   produtoPadrao: string; produtoPresencial: string; produtoRemoto: string; formatoPadrao: "presencial" | "remoto"; validadeDias: number; duracaoMeses: number;
-  reajusteIndice: string | null;
+  reajusteIndice: string | null; incrementoBilinguePerc: number;
 }
 
 export function paramsFromRows(rows: { key: string; value: unknown }[]): BodyshopParams {
@@ -67,6 +67,7 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): Bodysho
     validadeDias: n("validade_proposta_dias", 15),
     duracaoMeses: n("duracao_padrao_meses", 12),
     reajusteIndice: t("reajuste_indice"),
+    incrementoBilinguePerc: n("incremento_bilingue_perc", 0),
   };
 }
 

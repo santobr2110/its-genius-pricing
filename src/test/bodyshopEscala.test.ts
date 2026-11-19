@@ -30,3 +30,10 @@ describe("venda da hora de sobreaviso", () => {
     expect(vendaHoraSobreaviso({ entrada: { ...entrada, escala: { ...entrada.escala!, sobreaviso: null } }, precoFinal: 85800, erros: [] })).toBeNull();
   });
 });
+describe("profissional bilíngue", () => {
+  it("acrescenta o % ao salário base antes de encargos", () => {
+    const b: EntradaLinhaBS = { linhaId:"1",cargoId:"1",cargo:"A",area:"",senioridade:"",nivelNum:1,faixa:"c3",salarioBase:10000,encargosPerc:50,indiretosPerc:0,beneficiosMensais:0,beneficiosProporcionais:true,horasPadrao:176,horasLinha:176,regime:"integral",quantidade:1,descontoPerc:0,codigoProduto:"BS",tax:null,pisoRentabilidadePerc:null,origemParam:{} };
+    close(custoMensalUnitario({ ...b, bilinguePerc: 20 }), 12000 * 1.5);
+    close(custoMensalUnitario(b), 15000);
+  });
+});

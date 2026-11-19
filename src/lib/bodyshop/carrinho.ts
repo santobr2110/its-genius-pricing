@@ -16,6 +16,7 @@ export interface LinhaBS {
   formato?: FormatoBS; local?: string; horario?: string;
   /** Escala/horário/sobreaviso; ausente = horas diretas (linhas antigas). */
   escala?: EscalaBS;
+  bilingue?: boolean;
 }
 export type FormatoBS = "presencial" | "remoto" | "hibrido";
 export interface ConfigBS {
@@ -32,6 +33,8 @@ export interface EntradaLinhaBS {
   pisoRentabilidadePerc: number | null; origemParam: Record<string, OrigemParam>;
   iaJustificativa?: string; iaIndiceAderencia?: number; ausente?: boolean;
   formato?: FormatoBS; local?: string; horario?: string; salarioAusente?: boolean; escala?: EscalaBS;
+  /** Acréscimo bilíngue congelado (% sobre o salário base). */
+  bilinguePerc?: number;
 }
 export interface GlobaisBS {
   rentabilidadeAlvoPerc: number; comissaoFixaPerc: number | null; retencaoPerc: number;
@@ -47,6 +50,7 @@ export function montarEntradas(linhas: LinhaBS[], catalogo: BodyshopCargo[], p: 
       salarioBase: salario ?? 0, encargosPerc: r.encargosPerc, indiretosPerc: r.indiretosPerc, beneficiosMensais: r.beneficiosMensais,
       beneficiosProporcionais: p.beneficiosProporcionais, horasPadrao: r.horasMensais,
       horasLinha: l.horasLinha ?? (l.regime === "integral" ? r.horasMensais : p.horasMeioPeriodo), regime: l.regime,
+      ...(l.bilingue ? { bilinguePerc: p.incrementoBilinguePerc } : {}),
       ...(l.escala ? (() => { const h = calcularEscala(l.escala).horasMes; return { horasPadrao: h, horasLinha: h, escala: { ...l.escala } }; })() : {}),
       quantidade: l.quantidade, descontoPerc: l.descontoPerc, codigoProduto: sku, tax: taxPorProduto(sku),
       pisoRentabilidadePerc: r.pisoRentabilidadePerc, origemParam: { ...r.origem, produto: "parametro" },
@@ -58,7 +62,8 @@ export function montarEntradas(linhas: LinhaBS[], catalogo: BodyshopCargo[], p: 
 }
 export function memorialCusto(e: EntradaLinhaBS) {
   const fator = e.horasPadrao > 0 ? e.horasLinha / e.horasPadrao : 0;
-  const salarioProp = e.salarioBase * fator;
+  const bilingue = e.salarioBase * (e.bilinguePerc ?? 0) / 100;
+  const salarioProp = (e.salarioBase + bilingue) * fator;
   const ad = e.escala ? adicionaisEscala(salarioProp, e.escala) : null;
   const adicionalNoturno = ad?.adicionalNoturno ?? 0, sobreaviso = ad?.sobreaviso ?? 0;
   const base = salarioProp + adicionalNoturno + sobreaviso;
@@ -66,7 +71,7 @@ export function memorialCusto(e: EntradaLinhaBS) {
   const beneficios = e.beneficiosMensais * (e.beneficiosProporcionais ? fator : 1);
   const baseIndiretos = base + encargos + beneficios;
   const indiretos = baseIndiretos * e.indiretosPerc / 100;
-  return { fator, salarioProp, adicionalNoturno, sobreaviso, escalaCalc: ad, base, encargos, beneficios, baseIndiretos, indiretos, total: baseIndiretos + indiretos };
+  return { fator, bilingue, salarioProp, adicionalNoturno, sobreaviso, escalaCalc: ad, base, encargos, beneficios, baseIndiretos, indiretos, total: baseIndiretos + indiretos };
 }
 /** Preço de venda de 1 hora de sobreaviso: fatia do preço final proporcional ao custo do sobreaviso (com encargos e indiretos) ÷ horas. */
 export function vendaHoraSobreaviso(l: Pick<LinhaResultadoBS, "entrada" | "precoFinal" | "erros">): number | null {
@@ -135,7 +140,7 @@ export const globaisDoSnapshot = (s: SnapshotBS): GlobaisBS => ({ rentabilidadeA
 export function mesmasEntradas(s: SnapshotBS, linhas: LinhaBS[], c: ConfigBS) {
   return s.municipio === c.municipio && s.duracaoMeses === c.duracaoMeses && s.dataInicio === c.dataInicio && s.convencao === c.convencao && s.descontoTotalPerc === c.descontoTotalPerc
     && (c.encFinancPerc == null || c.encFinancPerc === s.encFinancPerc) && (c.rentabilidadeAlvoPerc == null || c.rentabilidadeAlvoPerc === s.rentabilidadeAlvoPerc)
-    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && ((l.escala ? textoEscala(l.escala) : l.horario?.trim()) || undefined) === (i.horario || undefined) && JSON.stringify(l.escala ?? null) === JSON.stringify(i.escala ?? null); });
+    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && ((l.escala ? textoEscala(l.escala) : l.horario?.trim()) || undefined) === (i.horario || undefined) && JSON.stringify(l.escala ?? null) === JSON.stringify(i.escala ?? null) && !!l.bilingue === (i.bilinguePerc != null); });
 }
 export function diferencasParametros(s: SnapshotBS, e: EntradaLinhaBS[], g: GlobaisBS, tiers: ComissaoTier[]) {
   const diffs: string[] = [];

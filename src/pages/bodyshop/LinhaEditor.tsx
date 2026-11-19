@@ -3,6 +3,7 @@ import { Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { brl, FAIXAS, type BodyshopCargo } from "@/lib/bodyshop/calc";
@@ -40,6 +41,7 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
       {linha.escala && <div className="space-y-1 md:col-span-2"><Label className={L}>Horas mensais (pela escala)</Label><p className="h-9 flex items-center tabular-nums">{e.horasLinha.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h</p></div>}
       <div className="space-y-1"><Label htmlFor={`d-${linha.id}`} className={L}>Desconto %</Label><Input id={`d-${linha.id}`} className="h-9" disabled={disabled} type="number" min={0} max={100} value={linha.descontoPerc} onChange={ev => onChange({ descontoPerc: Number(ev.target.value) })} /></div>
     </div>
+    <label className="flex items-center gap-2 text-xs w-fit"><Checkbox disabled={disabled} checked={!!linha.bilingue} onCheckedChange={v => onChange({ bilingue: v === true || undefined })} aria-label="Profissional bilíngue" />Profissional bilíngue{e.bilinguePerc != null && <span className="text-muted-foreground">(+{pct(e.bilinguePerc)} sobre o salário)</span>}</label>
     {linha.escala && <EscalaEditor id={linha.id} escala={linha.escala} disabled={disabled} onChange={escala => onChange({ escala })} />}
     <div className="grid grid-cols-2 md:grid-cols-[1fr_1.5fr_2fr] gap-2">
       <div className="space-y-1"><Label className={L}>Formato</Label><Select disabled={disabled} value={linha.formato ?? "padrao"} onValueChange={(v) => onChange({ formato: v === "padrao" ? undefined : v as LinhaBS["formato"] })}><SelectTrigger className="h-9" aria-label="Formato"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="padrao">Padrão da oferta</SelectItem><SelectItem value="presencial">Presencial</SelectItem><SelectItem value="remoto">Remoto</SelectItem></SelectContent></Select></div>
@@ -55,6 +57,7 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
     {!r.erros.length && f && <><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal, ...f }]} titulo="Preço mensal do perfil" /><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal / Math.max(1,e.quantidade), ...f }]} titulo="Preço mensal por profissional" /><PrecoClienteDetalhado parcelas={[{ preco:r.precoFinal, ...f }]} fator={duracao} titulo="Preço do contrato" /></>}
     <Collapsible><CollapsibleTrigger asChild><Button variant="link" size="sm" className="p-0 h-auto gap-1"><ChevronDown className="h-3 w-3" />Detalhes do cálculo</Button></CollapsibleTrigger><CollapsibleContent className="mt-3 text-xs space-y-1">
       <M l={`Salário base ${e.faixa.toUpperCase()}`} v={brl(e.salarioBase)} />
+      {e.bilinguePerc != null && <M l={`(+) Incremento bilíngue ${pct(e.bilinguePerc)}`} v={brl(m.bilingue)} />}
       {!e.escala && <M l={`× Regime ${e.regime === "integral" ? "integral" : "meio período"} (${e.horasLinha}h / ${e.horasPadrao}h)${origem("horas")}`} v={brl(m.base)} />}
       {e.escala && m.escalaCalc && <>
         <M l={`Escala ${e.escala.tipo} · ${m.escalaCalc.horasMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h/mês · valor-hora`} v={brl(m.escalaCalc.valorHora)} />
