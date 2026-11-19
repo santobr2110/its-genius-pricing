@@ -41,7 +41,7 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
       {linha.escala && <div className="space-y-1 md:col-span-2"><Label className={L}>Horas mensais (pela escala)</Label><p className="h-9 flex items-center tabular-nums">{e.horasLinha.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h</p></div>}
       <div className="space-y-1"><Label htmlFor={`d-${linha.id}`} className={L}>Desconto %</Label><Input id={`d-${linha.id}`} className="h-9" disabled={disabled} type="number" min={0} max={100} value={linha.descontoPerc} onChange={ev => onChange({ descontoPerc: Number(ev.target.value) })} /></div>
     </div>
-    <label className="flex items-center gap-2 text-xs w-fit"><Checkbox disabled={disabled} checked={!!linha.bilingue} onCheckedChange={v => onChange({ bilingue: v === true || undefined })} aria-label="Profissional bilíngue" />Profissional bilíngue{e.bilinguePerc != null && <span className="text-muted-foreground">(+{pct(e.bilinguePerc)} sobre o salário)</span>}</label>
+    <div className="flex flex-wrap items-center gap-4"><div className="flex items-center gap-2"><Label htmlFor={`he-${linha.id}`} className={L}>Horas extras/mês (200%)</Label><Input id={`he-${linha.id}`} className="h-8 w-24" disabled={disabled} type="number" min={0} step={1} value={linha.horasExtrasMes ?? ""} placeholder="0" onChange={ev => onChange({ horasExtrasMes: ev.target.value === "" || Number(ev.target.value) <= 0 ? undefined : Number(ev.target.value) })} /></div><label className="flex items-center gap-2 text-xs w-fit"><Checkbox disabled={disabled} checked={!!linha.bilingue} onCheckedChange={v => onChange({ bilingue: v === true || undefined })} aria-label="Profissional bilíngue" />Profissional bilíngue{e.bilinguePerc != null && <span className="text-muted-foreground">(+{pct(e.bilinguePerc)} sobre o salário)</span>}</label></div>
     {linha.escala && <EscalaEditor id={linha.id} escala={linha.escala} disabled={disabled} onChange={escala => onChange({ escala })} />}
     <div className="grid grid-cols-2 md:grid-cols-[1fr_1.5fr_2fr] gap-2">
       <div className="space-y-1"><Label className={L}>Formato</Label><Select disabled={disabled} value={linha.formato ?? "padrao"} onValueChange={(v) => onChange({ formato: v === "padrao" ? undefined : v as LinhaBS["formato"] })}><SelectTrigger className="h-9" aria-label="Formato"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="padrao">Padrão da oferta</SelectItem><SelectItem value="presencial">Presencial</SelectItem><SelectItem value="remoto">Remoto</SelectItem></SelectContent></Select></div>
@@ -63,8 +63,9 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
         <M l={`Escala ${e.escala.tipo} · ${m.escalaCalc.horasMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h/mês · valor-hora`} v={brl(m.escalaCalc.valorHora)} />
         {m.adicionalNoturno > 0 && <M l={`(+) Adicional noturno 40% · ${m.escalaCalc.horasNoturnasRelogioMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h relógio → ${m.escalaCalc.horasNoturnasPagasMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h reduzidas`} v={brl(m.adicionalNoturno)} />}
         {m.sobreaviso > 0 && <M l={`(+) Sobreaviso 1/3 · ${m.escalaCalc.horasSobreavisoMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h`} v={brl(m.sobreaviso)} />}
-        <M l="= Remuneração base" v={brl(m.base)} />
       </>}
+      {m.horasExtras > 0 && <M l={`(+) Horas extras ${e.horasExtrasMes}h × ${brl(m.valorHora)} × 200%`} v={brl(m.horasExtras)} />}
+      {(e.escala || m.horasExtras > 0) && <M l="= Remuneração base" v={brl(m.base)} />}
       <M l={`(+) Encargos ${pct(e.encargosPerc)}${origem("encargos")}`} v={brl(m.encargos)} />
       <M l={`(+) Benefícios${origem("beneficios")}${e.beneficiosProporcionais ? " · proporcionais" : " · integrais"}`} v={brl(m.beneficios)} />
       <M l="= Base para indiretos" v={brl(m.baseIndiretos)} />

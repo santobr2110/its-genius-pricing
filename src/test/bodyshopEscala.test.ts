@@ -37,3 +37,9 @@ describe("profissional bilíngue", () => {
     close(custoMensalUnitario(b), 15000);
   });
 });
+import { vendaHorasExtras } from "@/lib/bodyshop/carrinho";
+describe("horas extras", () => {
+  const b: EntradaLinhaBS = { linhaId:"1",cargoId:"1",cargo:"A",area:"",senioridade:"",nivelNum:1,faixa:"c3",salarioBase:17600,encargosPerc:50,indiretosPerc:0,beneficiosMensais:0,beneficiosProporcionais:true,horasPadrao:176,horasLinha:176,regime:"integral",quantidade:1,descontoPerc:0,codigoProduto:"BS",tax:null,pisoRentabilidadePerc:null,origemParam:{} };
+  it("10h extras a 200% da hora de R$ 100 = R$ 2.000 antes de encargos", () => { close(memorialCusto({ ...b, horasExtrasMes: 10 }).horasExtras, 2000); close(custoMensalUnitario({ ...b, horasExtrasMes: 10 }), 19600 * 1.5); });
+  it("hora extra vendida = fatia do preço ÷ horas", () => { const x = vendaHorasExtras({ entrada: { ...b, horasExtrasMes: 10 }, precoFinal: 58800, erros: [] })!; close(x.totalMes, 6000); close(x.valorHora, 600); });
+});

@@ -17,6 +17,8 @@ export interface LinhaBS {
   /** Escala/horário/sobreaviso; ausente = horas diretas (linhas antigas). */
   escala?: EscalaBS;
   bilingue?: boolean;
+  /** Horas extras contratadas por mês (por profissional), pagas a 200%. */
+  horasExtrasMes?: number;
 }
 export type FormatoBS = "presencial" | "remoto" | "hibrido";
 export interface ConfigBS {
@@ -35,6 +37,7 @@ export interface EntradaLinhaBS {
   formato?: FormatoBS; local?: string; horario?: string; salarioAusente?: boolean; escala?: EscalaBS;
   /** Acréscimo bilíngue congelado (% sobre o salário base). */
   bilinguePerc?: number;
+  horasExtrasMes?: number;
 }
 export interface GlobaisBS {
   rentabilidadeAlvoPerc: number; comissaoFixaPerc: number | null; retencaoPerc: number;
@@ -50,6 +53,7 @@ export function montarEntradas(linhas: LinhaBS[], catalogo: BodyshopCargo[], p: 
       salarioBase: salario ?? 0, encargosPerc: r.encargosPerc, indiretosPerc: r.indiretosPerc, beneficiosMensais: r.beneficiosMensais,
       beneficiosProporcionais: p.beneficiosProporcionais, horasPadrao: r.horasMensais,
       horasLinha: l.horasLinha ?? (l.regime === "integral" ? r.horasMensais : p.horasMeioPeriodo), regime: l.regime,
+      ...(l.horasExtrasMes ? { horasExtrasMes: l.horasExtrasMes } : {}),
       ...(l.bilingue ? { bilinguePerc: p.incrementoBilinguePerc } : {}),
       ...(l.escala ? (() => { const h = calcularEscala(l.escala).horasMes; return { horasPadrao: h, horasLinha: h, escala: { ...l.escala } }; })() : {}),
       quantidade: l.quantidade, descontoPerc: l.descontoPerc, codigoProduto: sku, tax: taxPorProduto(sku),
@@ -66,12 +70,29 @@ export function memorialCusto(e: EntradaLinhaBS) {
   const salarioProp = (e.salarioBase + bilingue) * fator;
   const ad = e.escala ? adicionaisEscala(salarioProp, e.escala) : null;
   const adicionalNoturno = ad?.adicionalNoturno ?? 0, sobreaviso = ad?.sobreaviso ?? 0;
-  const base = salarioProp + adicionalNoturno + sobreaviso;
+  const valorHora = e.horasLinha > 0 ? salarioProp / e.horasLinha : 0;
+  const horasExtras = valorHora * FATOR_HORA_EXTRA * (e.horasExtrasMes ?? 0);
+  const base = salarioProp + adicionalNoturno + sobreaviso + horasExtras;
   const encargos = base * e.encargosPerc / 100;
   const beneficios = e.beneficiosMensais * (e.beneficiosProporcionais ? fator : 1);
   const baseIndiretos = base + encargos + beneficios;
   const indiretos = baseIndiretos * e.indiretosPerc / 100;
-  return { fator, bilingue, salarioProp, adicionalNoturno, sobreaviso, escalaCalc: ad, base, encargos, beneficios, baseIndiretos, indiretos, total: baseIndiretos + indiretos };
+  return { fator, bilingue, salarioProp, valorHora, horasExtras, adicionalNoturno, sobreaviso, escalaCalc: ad, base, encargos, beneficios, baseIndiretos, indiretos, total: baseIndiretos + indiretos };
+}
+export const FATOR_HORA_EXTRA = 2;
+/** Parcela do preço final (por profissional) correspondente a um valor de remuneração, com encargos e indiretos. */
+function parcelaVenda(l: Pick<LinhaResultadoBS, "entrada" | "precoFinal">, remuneracao: number, total: number) {
+  const custo = remuneracao * (1 + l.entrada.encargosPerc / 100) * (1 + l.entrada.indiretosPerc / 100);
+  return (l.precoFinal / l.entrada.quantidade) * (custo / total);
+}
+/** Horas extras por profissional: horas, preço de venda da hora (200%) e total mensal. */
+export function vendaHorasExtras(l: Pick<LinhaResultadoBS, "entrada" | "precoFinal" | "erros">): { horas: number; valorHora: number; totalMes: number } | null {
+  const h = l.entrada.horasExtrasMes ?? 0;
+  if (l.erros.length || !(h > 0)) return null;
+  const m = memorialCusto(l.entrada);
+  if (!(m.total > 0)) return null;
+  const totalMes = parcelaVenda(l, m.horasExtras, m.total);
+  return { horas: h, valorHora: totalMes / h, totalMes };
 }
 /** Preço de venda de 1 hora de sobreaviso: fatia do preço final proporcional ao custo do sobreaviso (com encargos e indiretos) ÷ horas. */
 export function vendaHoraSobreaviso(l: Pick<LinhaResultadoBS, "entrada" | "precoFinal" | "erros">): number | null {
@@ -140,7 +161,7 @@ export const globaisDoSnapshot = (s: SnapshotBS): GlobaisBS => ({ rentabilidadeA
 export function mesmasEntradas(s: SnapshotBS, linhas: LinhaBS[], c: ConfigBS) {
   return s.municipio === c.municipio && s.duracaoMeses === c.duracaoMeses && s.dataInicio === c.dataInicio && s.convencao === c.convencao && s.descontoTotalPerc === c.descontoTotalPerc
     && (c.encFinancPerc == null || c.encFinancPerc === s.encFinancPerc) && (c.rentabilidadeAlvoPerc == null || c.rentabilidadeAlvoPerc === s.rentabilidadeAlvoPerc)
-    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && ((l.escala ? textoEscala(l.escala) : l.horario?.trim()) || undefined) === (i.horario || undefined) && JSON.stringify(l.escala ?? null) === JSON.stringify(i.escala ?? null) && !!l.bilingue === (i.bilinguePerc != null); });
+    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && ((l.escala ? textoEscala(l.escala) : l.horario?.trim()) || undefined) === (i.horario || undefined) && JSON.stringify(l.escala ?? null) === JSON.stringify(i.escala ?? null) && !!l.bilingue === (i.bilinguePerc != null) && (l.horasExtrasMes || 0) === (i.horasExtrasMes || 0); });
 }
 export function diferencasParametros(s: SnapshotBS, e: EntradaLinhaBS[], g: GlobaisBS, tiers: ComissaoTier[]) {
   const diffs: string[] = [];
