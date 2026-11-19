@@ -21,3 +21,12 @@ describe("escalas BodyShop", () => {
     expect(custoMensalUnitario(base)).toBe(17600 * 1.5);
   });
 });
+import { vendaHoraSobreaviso } from "@/lib/bodyshop/carrinho";
+describe("venda da hora de sobreaviso", () => {
+  it("é a fatia do preço proporcional ao custo do sobreaviso ÷ horas", () => {
+    const entrada: EntradaLinhaBS = { linhaId:"1",cargoId:"1",cargo:"A",area:"",senioridade:"",nivelNum:1,faixa:"c3",salarioBase:17600,encargosPerc:50,indiretosPerc:0,beneficiosMensais:0,beneficiosProporcionais:true,horasPadrao:176,horasLinha:176,regime:"integral",quantidade:1,descontoPerc:0,codigoProduto:"BS",tax:null,pisoRentabilidadePerc:null,origemParam:{},escala:{ tipo:"8x5",inicio:"08:00",fim:"17:00",intervaloMin:60,sobreaviso:"semana" } };
+    // custo 42900, sobreaviso 16500 com encargos; preço 85800 → 33000 ÷ 330h = 100
+    close(vendaHoraSobreaviso({ entrada, precoFinal: 85800, erros: [] })!, 100);
+    expect(vendaHoraSobreaviso({ entrada: { ...entrada, escala: { ...entrada.escala!, sobreaviso: null } }, precoFinal: 85800, erros: [] })).toBeNull();
+  });
+});

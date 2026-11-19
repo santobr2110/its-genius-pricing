@@ -1,5 +1,5 @@
 import PizZip from "pizzip";
-import { computeCarrinhoBS, entradasDoSnapshot, globaisDoSnapshot, type SnapshotBS, type FormatoBS } from "./carrinho";
+import { computeCarrinhoBS, vendaHoraSobreaviso, entradasDoSnapshot, globaisDoSnapshot, type SnapshotBS, type FormatoBS } from "./carrinho";
 import type { BodyshopContent } from "./calc";
 import { A_CONFIRMAR, clonarLinhaTabela, clonarSlide, listarSlides, reordenarSlides, salvar, substituirTokens, textoSlides, tokensPendentes } from "./pptxTemplate";
 import { aliquotasDemonstrativo, demonstrativoCliente, linhasDemonstrativo, type DemonstrativoCliente } from "@/lib/pricing/demonstrativoCliente";
@@ -133,6 +133,8 @@ export function montarModeloPropostaPptx(a: {
   for (const d of dados) {
     const he = horaExtra(d.l.precoFinal / d.e.quantidade, d.e.horasLinha, fator);
     if (he != null) obs.push(`Valor da hora extra do ${d.e.cargo} ${d.e.senioridade}: ${moeda(he)}/hora;`);
+    const hs = vendaHoraSobreaviso(d.l);
+    if (hs != null) obs.push(`Valor da hora de sobreaviso do ${d.e.cargo} ${d.e.senioridade}: ${moeda(hs)}/hora;`);
   }
   obs.push(g("proposta_despesas_impostos"));
   obs.push(`Estamos considerando um contrato de ${a.snapshot.duracaoMeses} meses;`);

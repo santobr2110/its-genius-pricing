@@ -52,7 +52,7 @@ export function montarEntradas(linhas: LinhaBS[], catalogo: BodyshopCargo[], p: 
       pisoRentabilidadePerc: r.pisoRentabilidadePerc, origemParam: { ...r.origem, produto: "parametro" },
       ...(l.iaJustificativa !== undefined ? { iaJustificativa: l.iaJustificativa } : {}),
       ...(l.iaIndiceAderencia !== undefined ? { iaIndiceAderencia: l.iaIndiceAderencia } : {}),
-      ...(l.formato ? { formato: l.formato } : {}), ...(l.local?.trim() ? { local: l.local.trim() } : {}), ...(l.horario?.trim() ? { horario: l.horario.trim() } : l.escala ? { horario: textoEscala(l.escala) } : {}),
+      ...(l.formato ? { formato: l.formato } : {}), ...(l.local?.trim() ? { local: l.local.trim() } : {}), ...(l.escala ? { horario: textoEscala(l.escala) } : l.horario?.trim() ? { horario: l.horario.trim() } : {}),
       ...(!c ? { ausente: true } : {}), ...(c && salario === null ? { salarioAusente: true } : {}) };
   });
 }
@@ -67,6 +67,14 @@ export function memorialCusto(e: EntradaLinhaBS) {
   const baseIndiretos = base + encargos + beneficios;
   const indiretos = baseIndiretos * e.indiretosPerc / 100;
   return { fator, salarioProp, adicionalNoturno, sobreaviso, escalaCalc: ad, base, encargos, beneficios, baseIndiretos, indiretos, total: baseIndiretos + indiretos };
+}
+/** Preço de venda de 1 hora de sobreaviso: fatia do preço final proporcional ao custo do sobreaviso (com encargos e indiretos) ÷ horas. */
+export function vendaHoraSobreaviso(l: Pick<LinhaResultadoBS, "entrada" | "precoFinal" | "erros">): number | null {
+  if (l.erros.length || !l.entrada.escala?.sobreaviso) return null;
+  const m = memorialCusto(l.entrada), h = m.escalaCalc?.horasSobreavisoMes ?? 0;
+  if (!(h > 0) || !(m.total > 0)) return null;
+  const custoSob = m.sobreaviso * (1 + l.entrada.encargosPerc / 100) * (1 + l.entrada.indiretosPerc / 100);
+  return (l.precoFinal / l.entrada.quantidade) * (custoSob / m.total) / h;
 }
 export const custoMensalUnitario = (e: EntradaLinhaBS) => memorialCusto(e).total;
 export interface LinhaResultadoBS {
@@ -127,7 +135,7 @@ export const globaisDoSnapshot = (s: SnapshotBS): GlobaisBS => ({ rentabilidadeA
 export function mesmasEntradas(s: SnapshotBS, linhas: LinhaBS[], c: ConfigBS) {
   return s.municipio === c.municipio && s.duracaoMeses === c.duracaoMeses && s.dataInicio === c.dataInicio && s.convencao === c.convencao && s.descontoTotalPerc === c.descontoTotalPerc
     && (c.encFinancPerc == null || c.encFinancPerc === s.encFinancPerc) && (c.rentabilidadeAlvoPerc == null || c.rentabilidadeAlvoPerc === s.rentabilidadeAlvoPerc)
-    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && (l.horario?.trim() || (l.escala ? textoEscala(l.escala) : undefined)) === (i.horario || undefined) && JSON.stringify(l.escala ?? null) === JSON.stringify(i.escala ?? null); });
+    && s.itens.length === linhas.length && s.itens.every((i, k) => { const l = linhas[k]; return l && l.id === i.linhaId && l.cargoId === i.cargoId && l.faixa === i.faixa && l.regime === i.regime && l.quantidade === i.quantidade && l.descontoPerc === i.descontoPerc && (l.horasLinha == null || l.horasLinha === i.horasLinha) && l.iaJustificativa === i.iaJustificativa && l.iaIndiceAderencia === i.iaIndiceAderencia && (l.formato ?? undefined) === (i.formato ?? undefined) && (l.local?.trim() || undefined) === (i.local || undefined) && ((l.escala ? textoEscala(l.escala) : l.horario?.trim()) || undefined) === (i.horario || undefined) && JSON.stringify(l.escala ?? null) === JSON.stringify(i.escala ?? null); });
 }
 export function diferencasParametros(s: SnapshotBS, e: EntradaLinhaBS[], g: GlobaisBS, tiers: ComissaoTier[]) {
   const diffs: string[] = [];

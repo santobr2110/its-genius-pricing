@@ -21,7 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { useBodyshopCotacoes } from "@/hooks/useBodyshopCotacoes";
 import ApprovalBadge from "@/components/approval/ApprovalBadge";
-import { congelar, CONFIG_BS_PADRAO, type CarrinhoBS, type LinhaBS } from "@/lib/bodyshop/carrinho";
+import { congelar, vendaHoraSobreaviso, CONFIG_BS_PADRAO, type CarrinhoBS, type LinhaBS } from "@/lib/bodyshop/carrinho";
 import { BSLineEditor } from "./LinhaEditor";
 import { BsIaDialog } from "./IaDialog";
 import { COTACAO_BS_VAZIA } from "./useBsState";
@@ -198,6 +198,7 @@ export default function BsConfigurador() {
               {res.precoTabelaTotal !== res.precoFinalTotalMensal && <div className="flex justify-between"><span className="text-muted-foreground">Desconto</span><span className="tabular-nums font-medium">− {brl(res.precoTabelaTotal - res.precoFinalTotalMensal)}</span></div>}
               <div className="flex flex-wrap gap-2 justify-between items-baseline border-t pt-3"><span className="font-semibold">Valor Mensal Total</span><span className="text-xl font-bold tabular-nums">{brl(res.precoFinalTotalMensal)}</span></div>
               <div className="flex flex-wrap justify-between gap-2"><span>Valor Total do Contrato</span><strong>{brl(res.precoFinalTotalContrato)}</strong></div>
+              {res.linhas.map(l => ({ l, h: vendaHoraSobreaviso(l) })).filter(x => x.h != null).map(({ l, h }) => <div key={l.entrada.linhaId} className="flex flex-wrap justify-between gap-2 text-xs"><span className="text-muted-foreground">Hora de sobreaviso · {l.entrada.cargo} {l.entrada.senioridade}</span><span className="tabular-nums font-medium">{brl(h!)}/h</span></div>)}
               <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas)} titulo="Preço mensal ao cliente" />
               <PrecoClienteDetalhado parcelas={parcelasDeLinhas(res.linhas)} fator={res.cascataBase.duracaoMeses} titulo="Preço do contrato" />
               <PrecoReformaInfo parcelas={parcelasDeLinhas(res.linhas)} rotulo="Mensal a partir de 01/01/2027" />
