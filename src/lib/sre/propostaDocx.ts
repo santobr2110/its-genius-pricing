@@ -35,8 +35,9 @@ const cel = (t: string, w: number, o: { bold?: boolean; align?: Al; fill?: strin
   margins: { top: 60, bottom: 60, left: 100, right: 100 },
 });
 
-/** Despachante: layoutVersao 2 = template Selbetti (quando existir); demais = gerador programático. */
+/** Despachante: layoutVersao 2 = template Selbetti (mesma base do Word Zabbix); demais = gerador programático. */
 export async function gerarPropostaSreDocx(m: ModeloPropostaSre): Promise<Blob> {
+  if (m.layoutVersao === 2) return (await import("./propostaDocxV2")).gerarPropostaSreDocxV2(m);
   return gerarPropostaSreDocxProgramatico(m);
 }
 

@@ -45,6 +45,7 @@ export const PARAMS_GENERICO_SRE = [
 export const tipoPacoteSre = (c?: SreContent | null) => (c?.tipo === "especifico" ? "especifico" : "generico");
 const comHoras = (t: string, h: number) => t.replace(/\{horas\}/g, h.toLocaleString("pt-BR", { maximumFractionDigits: 2 }));
 
+export const CONFIDENCIALIDADE_PADRAO = "As informações contidas nesta proposta são confidenciais e destinam-se exclusivamente à avaliação do cliente, não podendo ser divulgadas a terceiros sem autorização prévia da Selbetti.";
 export const FRASE_ESCOPO = "Itens não listados nesta proposta estão fora do escopo.";
 export const OBJETO_PADRAO = "Pacote de horas consultivas pré-pagas para Zabbix, executadas pelo time de SRE da Selbetti conforme o escopo de cada pacote descrito a seguir.";
 
@@ -69,6 +70,9 @@ export interface ModeloPropostaSre {
   aceite: string[];
   /** Ausente/1 = gerador programático; 2 = template .docx (quando o template for entregue). */
   layoutVersao?: 1 | 2;
+  /** Somente layout 2 (template Selbetti, mesma base do Word Zabbix). */
+  diferenciais?: { titulo: string; texto: string }[];
+  confidencialidade?: string;
   demonstrativo?: DemonstrativoCliente;
 }
 
@@ -156,7 +160,9 @@ export function montarModeloPropostaSre(a: {
     textoTributario: ouPendente(p.get("proposta_texto_tributario")),
     dadosFaturamento: linhas(p.get("proposta_dados_faturamento")).length ? linhas(p.get("proposta_dados_faturamento")) : [A_CONFIRMAR],
     aceite: itens.map((i) => `${i.quantidade} × ${i.partNumber} – ${i.descricao} (${fmtH(i.horas)} h) – ${brl(i.total)}`),
-    layoutVersao: 1,
+    layoutVersao: 2,
+    diferenciais: linhas(p.get("proposta_diferenciais")).map((l) => { const v = par(l); return { titulo: v.valor, texto: v.rotulo }; }),
+    confidencialidade: txt(p.get("proposta_confidencialidade")) || CONFIDENCIALIDADE_PADRAO,
   };
 }
 
