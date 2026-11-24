@@ -61,6 +61,7 @@ export function BSLineEditor({ r, linha, ativos, disabled, duracao, onChange, on
       {e.bilinguePerc != null && <M l={`(+) Incremento bilíngue ${pct(e.bilinguePerc)}`} v={brl(m.bilingue)} />}
       {!e.escala && <M l={`× Regime ${e.regime === "integral" ? "integral" : "meio período"} (${e.horasLinha}h / ${e.horasPadrao}h)${origem("horas")}`} v={brl(m.base)} />}
       {e.escala && m.escalaCalc && <>
+        {m.fator < 1 && <M l={`× Jornada parcial (${e.horasLinha.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h de ${e.horasPadrao.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h)`} v={brl(m.salarioProp)} />}
         <M l={`Escala ${e.escala.tipo} · ${m.escalaCalc.horasMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h/mês · valor-hora`} v={brl(m.escalaCalc.valorHora)} />
         {m.adicionalNoturno > 0 && <M l={`(+) Adicional noturno 40% · ${m.escalaCalc.horasNoturnasRelogioMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h relógio → ${m.escalaCalc.horasNoturnasPagasMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h reduzidas`} v={brl(m.adicionalNoturno)} />}
         {m.sobreaviso > 0 && <M l={`(+) Sobreaviso 1/3 · ${m.escalaCalc.horasSobreavisoMes.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}h`} v={brl(m.sobreaviso)} />}
