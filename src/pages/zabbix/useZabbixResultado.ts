@@ -20,7 +20,7 @@ export function mesmasEntradas(s: SnapshotZbx, linhas: LinhaZbx[], c: ConfigZbx)
   if (s.itens.length !== linhas.length) return false;
   return s.itens.every((i, k) => {
     const l = linhas[k];
-    return l && l.id === i.linhaId && l.subscriptionId === i.subscriptionId && l.quantidade === i.quantidade && (l.descontoPerc || 0) === (i.descontoPerc || 0);
+    return l && l.id === i.linhaId && l.subscriptionId === i.subscriptionId && l.quantidade === i.quantidade && (l.descontoPerc || 0) === (i.descontoPerc || 0) && (l.margemPerc ?? null) === (i.margemPerc ?? null);
   });
 }
 

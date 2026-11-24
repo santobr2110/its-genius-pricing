@@ -176,6 +176,13 @@
       "when": 1795010300612,
       "tag": "0025_sre_conteudo_generico_especifico",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1795548935687,
+      "tag": "0026_zabbix_custo_direto",
+      "breakpoints": true
     }
   ]
 }

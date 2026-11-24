@@ -8,7 +8,7 @@ export type UnidadeZbx = "server" | "proxy" | "tier" | "aluno" | "assinatura";
 export interface ZabbixSubscription {
   id: string; slug: string; part_number: string; nome: string;
   categoria: CategoriaZbx; unidade: UnidadeZbx; nivel: string | null;
-  venda_brl: number; lista_usd: number | null; lista_brl: number | null;
+  venda_brl: number; custo_brl?: number | null; lista_usd: number | null; lista_brl: number | null;
   ro_perc: number | null; sem_ro_perc: number | null; pgto30_ro_perc: number | null; pgto30_sem_ro_perc: number | null;
   permite_quantidade: boolean; quantidade_maxima: number | null;
   codigo_produto: string; descricao: string | null; piso_rentabilidade_perc: number | null;
@@ -31,6 +31,7 @@ export interface ZabbixParam {
 
 export interface ZabbixParams {
   publicTenderPerc?: number;
+  margemCustoDiretoPerc?: number;
   cambioUsd: number; retencaoPerc: number; comissaoFixaPerc: number | null;
   irpjCsllConvencao: string; encFinancPerc: number;
   produtos: { suporte: string; academy: string };
@@ -69,6 +70,7 @@ export function paramsFromRows(rows: { key: string; value: unknown }[]): ZabbixP
   const nOpt = (k: string) => (m.get(k) == null || String(m.get(k)).trim() === "" ? null : n(k, 0));
   return {
     publicTenderPerc: n("desconto_public_tender_suporte", 35),
+    margemCustoDiretoPerc: n("margem_custo_direto_perc", 30),
     cambioUsd: n("cambio_usd", 5.5),
     retencaoPerc: n("retencao_perc", 5),
     comissaoFixaPerc: parseComissao(m.get("comissao_regra")),

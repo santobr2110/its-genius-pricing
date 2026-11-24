@@ -282,7 +282,7 @@ function LinhaEditor({ r, linha, ativos, quantidadeLivre, onChange, onRemove }: 
         </div>
         <Badge variant="secondary" className="text-[10px] uppercase tracking-wider">{e.categoria === "academy" ? "Academy" : "Suporte"}</Badge>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-[2fr_100px_100px_auto] gap-2 items-end">
+      <div className={`grid grid-cols-2 ${e.custoDireto != null ? "md:grid-cols-[2fr_100px_100px_100px_auto]" : "md:grid-cols-[2fr_100px_100px_auto]"} gap-2 items-end`}>
         <div className="space-y-1 col-span-2 md:col-span-1">
           <Label className="text-xs">Subscrição</Label>
           <Select value={linha.subscriptionId} onValueChange={(id) => {
@@ -301,6 +301,8 @@ function LinhaEditor({ r, linha, ativos, quantidadeLivre, onChange, onRemove }: 
         </div>
         <div className="space-y-1"><Label className="text-xs">Quantidade</Label>
           <Input type="number" min={1} disabled={!quantidadeLivre} value={linha.quantidade} onChange={(ev) => onChange({ quantidade: Math.floor(Number(ev.target.value) || 0) })} /></div>
+        {e.custoDireto != null && <div className="space-y-1"><Label className="text-xs">Margem %</Label>
+          <Input type="number" step="0.5" value={e.margemPerc ?? 0} onChange={(ev) => onChange({ margemPerc: Number(ev.target.value) || 0 })} /></div>}
         <div className="space-y-1"><Label className="text-xs">Desconto %</Label>
           <Input type="number" step="0.5" value={linha.descontoPerc} onChange={(ev) => onChange({ descontoPerc: Number(ev.target.value) || 0 })} /></div>
         <Button size="icon" variant="ghost" onClick={onRemove} aria-label="Remover item"><Trash2 className="h-4 w-4" /></Button>
@@ -326,14 +328,16 @@ function LinhaEditor({ r, linha, ativos, quantidadeLivre, onChange, onRemove }: 
         <Collapsible>
           <CollapsibleTrigger className="flex items-center gap-1 text-xs text-primary hover:underline"><ChevronDown className="h-3.5 w-3.5" /> Detalhes do cálculo</CollapsibleTrigger>
           <CollapsibleContent className="mt-2 rounded-md border bg-muted/30 p-3 text-xs font-mono space-y-0.5">
+            {e.custoDireto != null ? <M l="Custo direto (R$) · sem descontos de fabricante" v={brl(e.custoDireto)} /> : <>
             <M l={e.listaUsd != null ? `Lista Zabbix  USD ${usd(e.listaUsd)} × ${e.cambio.toLocaleString("pt-BR")}` : "Lista Zabbix (R$)"} v={brl(r.listaUnitariaBrl)} />
             <M neg l={`(−) Desconto ${r.publicTender ? "Public Tender" : temRO ? "RO" : "sem RO"} ${r.descBasePerc}%${r.publicTender ? " (parâmetro)" : tagOrigem(temRO ? "ro" : "semRo")}`} v={`− ${brl(r.listaUnitariaBrl * r.descBasePerc / 100)}`} />
             <M l={`= Custo ${r.publicTender ? "Public Tender" : temRO ? "com RO" : "sem RO"}`} v={brl(r.listaUnitariaBrl * (1 - r.descBasePerc / 100))} />
             {r.descPgtoPerc > 0 && <M neg l={`(−) Pagamento 30 dias ${r.descPgtoPerc}%${tagOrigem(temRO ? "pgto30Ro" : "pgto30SemRo")}`} v={`− ${brl(r.listaUnitariaBrl * (1 - r.descBasePerc / 100) * r.descPgtoPerc / 100)}`} />}
+            </>}
             <M strong l="= Custo unitário" v={brl(r.custoUnitario)} />
             <M l={`× Quantidade ${e.quantidade}`} v={brl(r.custoLinha)} />
             <div className="h-2" />
-            <M l={`Venda apontada  ${brl(e.vendaUnitaria)} × ${e.quantidade}`} v={brl(r.vendaTabela)} />
+            <M l={e.custoDireto != null ? `Venda pela cascata (margem ${pct2(e.margemPerc ?? 0)})  ${brl(r.vendaTabela / e.quantidade)} × ${e.quantidade}` : `Venda apontada  ${brl(e.vendaUnitaria)} × ${e.quantidade}`} v={brl(r.vendaTabela)} />
             <M neg l={`(−) Desconto ${pct2(r.descontoEfetivoPerc)}`} v={`− ${brl(r.vendaTabela - r.precoFinal)}`} />
             <M strong l="= Preço final" v={brl(r.precoFinal)} />
             <M neg l={`(−) PIS ${pct2(f.pisPerc)} · COFINS ${pct2(f.cofinsPerc)} · ISS ${pct2(f.issPerc)}`} v={`− ${brl(v(f.pisPerc + f.cofinsPerc + f.issPerc))}`} />

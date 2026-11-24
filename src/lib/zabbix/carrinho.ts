@@ -1,13 +1,15 @@
 // Motor de cálculo das Subscrições Zabbix (Fase 3). Funções puras — ver src/test/zabbixCalc.test.ts.
 // Etapa 1 resolve as entradas (catálogo vivo ou snapshot congelado); etapa 2 calcula só sobre EntradaLinha.
 import { decomporVenda, type ChegadaFixos } from "@/lib/pricing/chegada";
-import type { ComissaoTier } from "@/lib/comissaoRentabilidade";
+import { comissaoFromRent, type ComissaoTier } from "@/lib/comissaoRentabilidade";
 import { resolveDescontos, type CategoriaZbx, type Descontos, type OrigemDesconto, type ZabbixParams, type ZabbixSubscription } from "./calc";
 
 export type TaxPercs = { pisPerc: number; cofinsPerc: number; issPerc: number };
 export type OrigemDescontos = Record<keyof Descontos, OrigemDesconto>;
 
-export interface LinhaZbx { id: string; subscriptionId: string; quantidade: number; descontoPerc: number }
+export interface LinhaZbx { id: string; subscriptionId: string; quantidade: number; descontoPerc: number;
+  /** Rentabilidade alvo (só SKUs de custo direto). */
+  margemPerc?: number }
 
 export interface ConfigZbx {
   publicTender?: boolean;
@@ -21,6 +23,8 @@ export interface CenarioCusto { temRO: boolean; pagamento30d: boolean; publicTen
 /** Tudo o que o cálculo precisa, já resolvido e livre de acesso a banco. */
 export interface EntradaLinha {
   publicTenderPerc?: number;
+  /** SKU de custo direto em R$: sem descontos de fabricante; preço = cascata(custo, margem). */
+  custoDireto?: number | null; margemPerc?: number;
   linhaId: string; subscriptionId: string; partNumber: string; nome: string;
   categoria: CategoriaZbx; unidade: string;
   vendaUnitaria: number; listaUsd: number | null; listaBrl: number | null;
@@ -52,7 +56,7 @@ export function montarEntradas(
         vendaUnitaria: 0, listaUsd: null, listaBrl: null, cambio: params.cambioUsd, descontos: d,
         origemDesconto: { ro: "categoria", semRo: "categoria", pgto30Ro: "categoria", pgto30SemRo: "categoria" },
         codigoProduto: "", tax: null, quantidade: l.quantidade, descontoPerc: l.descontoPerc, permiteQuantidade: true, quantidadeMaxima: null,
-        pisoRentabilidadePerc: null, ausente: true };
+        pisoRentabilidadePerc: null, ausente: true, margemPerc: l.margemPerc };
     }
     const r = resolveDescontos(s, params.descontos);
     // SKU fiscal próprio da subscrição; categoria só como reserva se vazio.
@@ -61,7 +65,8 @@ export function montarEntradas(
       linhaId: l.id, subscriptionId: s.id, partNumber: s.part_number, nome: s.nome, categoria: s.categoria, unidade: s.unidade,
       vendaUnitaria: Number(s.venda_brl), listaUsd: s.lista_usd == null ? null : Number(s.lista_usd), listaBrl: s.lista_brl == null ? null : Number(s.lista_brl),
       cambio: params.cambioUsd, descontos: { ro: r.ro, semRo: r.semRo, pgto30Ro: r.pgto30Ro, pgto30SemRo: r.pgto30SemRo }, origemDesconto: r.origem,
-      ...(s.categoria === "suporte" ? { publicTenderPerc: params.publicTenderPerc ?? 35 } : {}),
+      ...(s.custo_brl != null ? { custoDireto: Number(s.custo_brl), margemPerc: l.margemPerc ?? params.margemCustoDiretoPerc ?? 30 } : {}),
+      ...(s.categoria === "suporte" && s.custo_brl == null ? { publicTenderPerc: params.publicTenderPerc ?? 35 } : {}),
       codigoProduto: codigo, tax: taxPorProduto(codigo),
       quantidade: l.quantidade, descontoPerc: l.descontoPerc,
       permiteQuantidade: s.permite_quantidade, quantidadeMaxima: s.quantidade_maxima,
@@ -72,6 +77,7 @@ export function montarEntradas(
 
 /** Custo unitário em R$ a partir da lista Zabbix. */
 export function descontosDoCenario(e: EntradaLinha, cen: CenarioCusto) {
+  if (e.custoDireto != null) return { publicTender: false, temRO: false, base: 0, pgto: 0 };
   const publicTender = !!cen.publicTender && e.categoria === "suporte";
   const temRO = cen.temRO && !publicTender;
   return {
@@ -82,6 +88,7 @@ export function descontosDoCenario(e: EntradaLinha, cen: CenarioCusto) {
 }
 
 export function custoUnitario(e: EntradaLinha, cen: CenarioCusto): number {
+  if (e.custoDireto != null) return e.custoDireto;
   const lista = e.listaUsd != null ? e.listaUsd * e.cambio : (e.listaBrl ?? 0);
   const { base, pgto } = descontosDoCenario(e, cen);
   return lista * (1 - base / 100) * (1 - pgto / 100);
@@ -108,7 +115,7 @@ export function computeLinha(e: EntradaLinha, g: GlobaisZbx, tiers: ComissaoTier
   else if (!e.permiteQuantidade && q > 1) erros.push("Esta subscrição não permite quantidade maior que 1.");
   else if (e.quantidadeMaxima != null && q > e.quantidadeMaxima) erros.push(`Quantidade acima do limite de ${e.quantidadeMaxima}.`);
   if (!e.ausente && !e.tax) erros.push(`Produto ${e.codigoProduto} sem alíquotas para o município.`);
-  const listaUnitariaBrl = e.listaUsd != null ? e.listaUsd * e.cambio : (e.listaBrl ?? 0);
+  const listaUnitariaBrl = e.custoDireto != null ? e.custoDireto : e.listaUsd != null ? e.listaUsd * e.cambio : (e.listaBrl ?? 0);
   const { base: descBasePerc, pgto: descPgtoPerc, publicTender, temRO } = descontosDoCenario(e, cen);
   if (publicTender && (!Number.isFinite(descBasePerc) || descBasePerc < 0 || descBasePerc > 100)) erros.push("Desconto Public Tender deve estar entre 0% e 100%.");
   const cu = custoUnitario(e, cen);
@@ -118,12 +125,26 @@ export function computeLinha(e: EntradaLinha, g: GlobaisZbx, tiers: ComissaoTier
     return { ...base, custoLinha: 0, vendaTabela: 0, precoFinal: 0, rentabilidadePerc: 0, comissaoPerc: 0, comissaoInstavel: false, lucro: 0, fixos: null, erros, abaixoPiso: false };
   }
   const custoLinha = cu * q;
-  const vendaTabela = e.vendaUnitaria * q;
   const fixos: ChegadaFixos = { pisPerc: e.tax?.pisPerc ?? 0, cofinsPerc: e.tax?.cofinsPerc ?? 0, issPerc: e.tax?.issPerc ?? 0, irpjCsllPerc: g.irpjCsllPerc, encFinancPerc: g.encFinancPerc, retencaoPerc: g.retencaoPerc };
+  let vendaUnit = e.vendaUnitaria;
+  if (e.custoDireto != null) {
+    vendaUnit = vendaCustoDireto(e.custoDireto, e.margemPerc ?? 0, fixos, tiers, g.comissaoFixaPerc);
+    if (!(vendaUnit > 0)) {
+      return { ...base, custoLinha: 0, vendaTabela: 0, precoFinal: 0, rentabilidadePerc: 0, comissaoPerc: 0, comissaoInstavel: false, lucro: 0, fixos: null, erros: ["Margem alta demais: a soma dos percentuais chega a 100%."], abaixoPiso: false };
+    }
+  }
+  const vendaTabela = vendaUnit * q;
   const d = decomporVenda(custoLinha, vendaTabela, descontoEfetivoPerc, fixos, tiers, g.comissaoFixaPerc);
   const abaixoPiso = e.pisoRentabilidadePerc != null && d.rentabilidadePerc < e.pisoRentabilidadePerc;
   return { ...base, custoLinha, vendaTabela, precoFinal: d.precoFinal, rentabilidadePerc: d.rentabilidadePerc, comissaoPerc: d.comissaoPerc,
     comissaoInstavel: d.comissaoInstavel, lucro: d.lucro, fixos, erros, abaixoPiso };
+}
+
+/** Preço de venda unitário de um SKU de custo direto: markup divisor com a margem informada. */
+export function vendaCustoDireto(custo: number, margemPerc: number, f: ChegadaFixos, tiers: ComissaoTier[], comissaoFixa: number | null): number {
+  const com = comissaoFixa ?? comissaoFromRent(margemPerc, tiers);
+  const sigma = f.pisPerc + f.cofinsPerc + f.issPerc + f.irpjCsllPerc + f.encFinancPerc + f.retencaoPerc + com + margemPerc;
+  return sigma < 100 ? custo / (1 - sigma / 100) : 0;
 }
 
 export interface CarrinhoZbx {
@@ -151,7 +172,7 @@ export function computeCarrinhoZbx(entradas: EntradaLinha[], g: GlobaisZbx, tier
 // ---------- Snapshot (congelamento da cotação salva) ----------
 
 export interface SnapshotItem {
-  publicTenderPerc?: number;
+  publicTenderPerc?: number; custoDireto?: number | null; margemPerc?: number;
   linhaId: string; subscriptionId: string; partNumber: string; nome: string; categoria: CategoriaZbx; unidade: string;
   vendaUnitaria: number; listaUsd: number | null; listaBrl: number | null;
   descontos: Descontos; origemDesconto: OrigemDescontos;
@@ -176,6 +197,7 @@ export function congelar(entradas: EntradaLinha[], g: GlobaisZbx, municipio: str
       linhaId: e.linhaId, subscriptionId: e.subscriptionId, partNumber: e.partNumber, nome: e.nome, categoria: e.categoria, unidade: e.unidade,
       vendaUnitaria: e.vendaUnitaria, listaUsd: e.listaUsd, listaBrl: e.listaBrl, descontos: { ...e.descontos }, origemDesconto: { ...e.origemDesconto },
       ...(e.publicTenderPerc != null ? { publicTenderPerc: e.publicTenderPerc } : {}),
+      ...(e.custoDireto != null ? { custoDireto: e.custoDireto, margemPerc: e.margemPerc } : {}),
       codigoProduto: e.codigoProduto, pisPerc: e.tax?.pisPerc ?? null, cofinsPerc: e.tax?.cofinsPerc ?? null, issPerc: e.tax?.issPerc ?? null,
       quantidade: e.quantidade, descontoPerc: e.descontoPerc, permiteQuantidade: e.permiteQuantidade, quantidadeMaxima: e.quantidadeMaxima, pisoRentabilidadePerc: e.pisoRentabilidadePerc,
     })),
@@ -188,6 +210,7 @@ export function entradasDoSnapshot(s: SnapshotZbx): EntradaLinha[] {
     vendaUnitaria: i.vendaUnitaria, listaUsd: i.listaUsd, listaBrl: i.listaBrl, cambio: s.cambio,
     descontos: { ...i.descontos }, origemDesconto: { ...i.origemDesconto },
     ...(i.publicTenderPerc != null ? { publicTenderPerc: i.publicTenderPerc } : {}),
+    ...(i.custoDireto != null ? { custoDireto: i.custoDireto, margemPerc: i.margemPerc } : {}),
     codigoProduto: i.codigoProduto, tax: i.pisPerc == null ? null : { pisPerc: i.pisPerc, cofinsPerc: i.cofinsPerc ?? 0, issPerc: i.issPerc ?? 0 },
     quantidade: i.quantidade, descontoPerc: i.descontoPerc, permiteQuantidade: i.permiteQuantidade, quantidadeMaxima: i.quantidadeMaxima, pisoRentabilidadePerc: i.pisoRentabilidadePerc,
   }));
@@ -198,7 +221,7 @@ export function globaisDoSnapshot(s: SnapshotZbx): GlobaisZbx {
 }
 
 /** Linhas do carrinho equivalentes ao snapshot (para reabrir a cotação na tela). */
-export const linhasDoSnapshot = (s: SnapshotZbx): LinhaZbx[] => s.itens.map((i) => ({ id: i.linhaId, subscriptionId: i.subscriptionId, quantidade: i.quantidade, descontoPerc: i.descontoPerc }));
+export const linhasDoSnapshot = (s: SnapshotZbx): LinhaZbx[] => s.itens.map((i) => ({ id: i.linhaId, subscriptionId: i.subscriptionId, quantidade: i.quantidade, descontoPerc: i.descontoPerc, ...(i.margemPerc != null ? { margemPerc: i.margemPerc } : {}) }));
 
 /** O que mudou entre o congelado e o vivo (para o diálogo de reavaliação). */
 export function diferencasParametros(snap: SnapshotZbx, vivo: EntradaLinha[], g: GlobaisZbx): string[] {
@@ -215,6 +238,7 @@ export function diferencasParametros(snap: SnapshotZbx, vivo: EntradaLinha[], g:
     if (!i) continue;
     if (g.cenario.publicTender && e.categoria === "suporte" && (i.publicTenderPerc ?? 35) !== e.publicTenderPerc) out.push(`${e.partNumber}: Public Tender ${i.publicTenderPerc ?? 35}% → ${e.publicTenderPerc}%`);
     if (JSON.stringify(i.descontos) !== JSON.stringify(e.descontos)) out.push(`${e.partNumber}: descontos alterados`);
+    if ((i.custoDireto ?? null) !== (e.custoDireto ?? null)) out.push(`${e.partNumber}: custo alterado`);
     if (i.vendaUnitaria !== e.vendaUnitaria) out.push(`${e.partNumber}: venda alterada`);
     if (i.listaUsd !== e.listaUsd || i.listaBrl !== e.listaBrl) out.push(`${e.partNumber}: lista alterada`);
     if (i.pisPerc !== (e.tax?.pisPerc ?? null) || i.cofinsPerc !== (e.tax?.cofinsPerc ?? null) || i.issPerc !== (e.tax?.issPerc ?? null)) out.push(`${e.partNumber}: alíquotas alteradas`);

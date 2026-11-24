@@ -2024,6 +2024,7 @@ export type Database = {
           categoria: string
           codigo_produto: string
           created_at: string
+          custo_brl: number | null
           descricao: string | null
           id: string
           lista_brl: number | null
@@ -2050,6 +2051,7 @@ export type Database = {
           categoria: string
           codigo_produto?: string
           created_at?: string
+          custo_brl?: number | null
           descricao?: string | null
           id?: string
           lista_brl?: number | null
@@ -2076,6 +2078,7 @@ export type Database = {
           categoria?: string
           codigo_produto?: string
           created_at?: string
+          custo_brl?: number | null
           descricao?: string | null
           id?: string
           lista_brl?: number | null
