@@ -26,4 +26,3 @@
 - BodyShop fiscal PPTX templates opt in with DemonstrativoClienteV1/V2; template selection follows the frozen statement version — legacy emissions and regression fixtures remain unchanged.
 - Quote-owned keys live only in PRICING_OWNED_RAW_KEYS; profiles/defaults strip them, only quote loading keeps them — no scope leaks between clients.
 - ITO rotinas/GMUDs: central catalog; quotes freeze a copy — no repricing.
-
