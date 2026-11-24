@@ -27,4 +27,3 @@
 - Quote-owned keys live only in PRICING_OWNED_RAW_KEYS; profiles/defaults strip them, only quote loading keeps them — no scope leaks between clients.
 - ITO rotinas/GMUDs: central catalog; quotes freeze a copy — no repricing.
 
-- Zabbix SKUs with `custo_brl` are direct-cost: no vendor/RO/Public Tender discounts; unit price = markup-divisor cascade of cost with a per-line margin (default `margem_custo_direto_perc`), frozen in the snapshot; only the seller's manual discount applies.

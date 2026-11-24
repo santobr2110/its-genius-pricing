@@ -1,0 +1,1 @@
+- SKUs with `custo_brl` are direct-cost: no vendor/RO/Public Tender discounts; price = cascade of cost with per-line margin (default `margem_custo_direto_perc`), frozen in snapshot — only the manual discount applies.
