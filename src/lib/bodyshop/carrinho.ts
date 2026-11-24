@@ -55,7 +55,7 @@ export function montarEntradas(linhas: LinhaBS[], catalogo: BodyshopCargo[], p: 
       horasLinha: l.horasLinha ?? (l.regime === "integral" ? r.horasMensais : p.horasMeioPeriodo), regime: l.regime,
       ...(l.horasExtrasMes ? { horasExtrasMes: l.horasExtrasMes } : {}),
       ...(l.bilingue ? { bilinguePerc: p.incrementoBilinguePerc } : {}),
-      ...(l.escala ? (() => { const h = calcularEscala(l.escala).horasMes; return { horasPadrao: h, horasLinha: h, escala: { ...l.escala } }; })() : {}),
+      ...(l.escala ? (() => { const c = calcularEscala(l.escala), h = c.horasMes, ref = l.escala.tipo === "12x36" ? h : 8 * (c.diasMes || 0), pagas = h + c.horasNoturnasPagasMes - c.horasNoturnasRelogioMes, f = ref > 0 && pagas > 0 ? Math.min(1, pagas / ref) : 1; return { horasPadrao: h / f, horasLinha: h, escala: { ...l.escala } }; })() : {}),
       quantidade: l.quantidade, descontoPerc: l.descontoPerc, codigoProduto: sku, tax: taxPorProduto(sku),
       pisoRentabilidadePerc: r.pisoRentabilidadePerc, origemParam: { ...r.origem, produto: "parametro" },
       ...(l.iaJustificativa !== undefined ? { iaJustificativa: l.iaJustificativa } : {}),
