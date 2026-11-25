@@ -20,7 +20,10 @@ export function mesmasEntradas(s: SnapshotZbx, linhas: LinhaZbx[], c: ConfigZbx)
   if (s.itens.length !== linhas.length) return false;
   return s.itens.every((i, k) => {
     const l = linhas[k];
-    return l && l.id === i.linhaId && l.subscriptionId === i.subscriptionId && l.quantidade === i.quantidade && (l.descontoPerc || 0) === (i.descontoPerc || 0) && (l.margemPerc ?? null) === (i.margemPerc ?? null);
+    // Older saves kept an implicit default only in the snapshot. Use that frozen
+    // value, not today's catalog default; explicit edits (including zero) still invalidate it.
+    const margem = l?.margemPerc ?? (i.custoDireto != null ? i.margemPerc : null);
+    return l && l.id === i.linhaId && l.subscriptionId === i.subscriptionId && l.quantidade === i.quantidade && (l.descontoPerc || 0) === (i.descontoPerc || 0) && (margem ?? null) === (i.margemPerc ?? null);
   });
 }
 

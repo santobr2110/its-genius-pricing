@@ -22,7 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePricingApproval } from "@/hooks/usePricingApproval";
 import { useZabbixCotacoes } from "@/hooks/useZabbixCotacoes";
 import ApprovalBadge from "@/components/approval/ApprovalBadge";
-import { congelar, CONFIG_ZBX_PADRAO, type CarrinhoZbx, type LinhaResultadoZbx, type LinhaZbx } from "@/lib/zabbix/carrinho";
+import { congelar, linhasDoSnapshot, CONFIG_ZBX_PADRAO, type CarrinhoZbx, type LinhaResultadoZbx, type LinhaZbx } from "@/lib/zabbix/carrinho";
 import type { ZabbixSubscription } from "@/lib/zabbix/calc";
 import { COTACAO_ZBX_VAZIA, ZBX_BASE } from "./useZbxState";
 import { useZabbixResultado } from "./useZabbixResultado";
@@ -72,10 +72,12 @@ export default function ZbxConfigurador() {
     setSalvando(true);
     try {
       const snap = congelar(entradasVivas, globaisVivos, config.municipio, params.cambioUsd, user?.id ?? "", snapshot?.versao ?? 0, new Date(), R.tiersVivos);
+      const linhasCongeladas = linhasDoSnapshot(snap);
       const r = await cot.salvar(atual.id, nome, atual.cliente, {
-        linhas, config, snapshot: snap,
+        linhas: linhasCongeladas, config, snapshot: snap,
         resumo: { custoTotal: vivo.custoTotal, precoFinalTotal: vivo.precoFinalTotal, rentabilidadePerc: vivo.rentabilidadePerc },
       }, atual);
+      setLinhas(linhasCongeladas);
       setSnapshot(snap);
       setAtual({ ...atual, id: r.id, nome, codigo: r.codigo ?? atual.codigo });
       toast.success("Cotação salva e valores congelados");
